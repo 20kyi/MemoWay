@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Calendar, User, Users, Edit, Trash2, X } from "lucide-react";
+import { MapPin, Calendar, User, Users, Edit, Trash2, X, Navigation } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { MemoWithDetails } from "@shared/schema";
@@ -14,6 +14,7 @@ interface MemoDetailSheetProps {
   onOpenChange: (open: boolean) => void;
   onEdit: (memoId: string) => void;
   onDelete: (memoId: string) => void;
+  onNavigateToLocation?: (lat: number, lng: number) => void;
 }
 
 export function MemoDetailSheet({
@@ -22,6 +23,7 @@ export function MemoDetailSheet({
   onOpenChange,
   onEdit,
   onDelete,
+  onNavigateToLocation,
 }: MemoDetailSheetProps) {
   if (!memo) return null;
 
@@ -118,6 +120,20 @@ export function MemoDetailSheet({
           </ScrollArea>
 
           <div className="p-6 pt-4 border-t space-y-3">
+            {onNavigateToLocation && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  onNavigateToLocation(memo.latitude, memo.longitude);
+                  onOpenChange(false);
+                }}
+                data-testid="button-navigate-to-location"
+              >
+                <Navigation className="w-4 h-4 mr-2" />
+                지도에서 위치 보기
+              </Button>
+            )}
             <Button
               className="w-full"
               onClick={() => {

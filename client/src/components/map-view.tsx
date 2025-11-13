@@ -32,6 +32,11 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation }
 
         const kakaoMap = new window.kakao.maps.Map(container, options);
         setMap(kakaoMap);
+        
+        // Notify parent that map is ready
+        if (onMapReady) {
+          onMapReady(kakaoMap);
+        }
 
         window.kakao.maps.event.addListener(kakaoMap, 'click', function(mouseEvent: any) {
           // Ignore map clicks if a marker was just clicked
