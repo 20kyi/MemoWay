@@ -35,6 +35,7 @@ export default function Home() {
   const [personalMemberId, setPersonalMemberId] = useState<string | null>(
     localStorage.getItem("personalMemberId")
   );
+  const [mapInstance, setMapInstance] = useState<any>(null);
   const { toast } = useToast();
 
   // WebSocket for real-time updates
@@ -362,6 +363,15 @@ export default function Home() {
     setLocationEnabled(enabled);
   };
 
+  const handleNavigateToLocation = (lat: number, lng: number) => {
+    if (mapInstance && window.kakao?.maps) {
+      const position = new window.kakao.maps.LatLng(lat, lng);
+      mapInstance.setCenter(position);
+      mapInstance.setLevel(3);
+      setActiveTab("map");
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <div className="flex-1 overflow-hidden pb-16">
@@ -378,6 +388,7 @@ export default function Home() {
                 }
               }}
               userLocation={userLocation}
+              onMapReady={setMapInstance}
             />
           </div>
         )}
@@ -482,6 +493,7 @@ export default function Home() {
             deleteMemoMutation.mutate(memoId);
           }
         }}
+        onNavigateToLocation={handleNavigateToLocation}
       />
     </div>
   );
