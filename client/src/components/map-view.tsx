@@ -8,10 +8,9 @@ interface MapViewProps {
   memos: Array<{ id: string; latitude: number; longitude: number; buildingName: string; photos: Array<{ url: string }> }>;
   onMarkerClick: (memoId: string) => void;
   userLocation: { lat: number; lng: number } | null;
-  onMapReady?: (map: any) => void;
 }
 
-export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, onMapReady }: MapViewProps) {
+export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
