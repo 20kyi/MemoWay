@@ -31,7 +31,10 @@ Preferred communication style: Simple, everyday language.
 
 **Map Integration**
 - Kakao Maps SDK for interactive map rendering and geocoding
-- Custom map markers showing memo locations with building names
+- Custom colored map markers using CustomOverlay for visual differentiation
+  - Group memos display in their group's selected color
+  - Personal memos display in purple (#9333ea)
+  - 8 preset colors available: blue, red, green, yellow, purple, pink, orange, teal
 - Marker click opens memo detail sheet (not creation form)
 - Map click (empty space) opens new memo creation form
 - User location tracking with geolocation API
@@ -80,7 +83,7 @@ Preferred communication style: Simple, everyday language.
 **Database Schema**
 
 Tables:
-- `groups`: Group entities with name and unique invite codes
+- `groups`: Group entities with name, unique invite codes, and customizable color (varchar, default '#3b82f6')
 - `members`: Users who belong to groups (membership model)
 - `memos`: Location-based notes with coordinates, content, and building information
 - `photos`: Image attachments linked to memos
@@ -89,7 +92,7 @@ Key Relationships:
 - Groups have many members (one-to-many)
 - Groups have many memos (one-to-many with optional relationship)
 - Memos belong to one member (many-to-one)
-- Memos have many photos (one-to-many)
+- Memos have many photos (one-to-one)
 - Cascade deletes ensure referential integrity
 
 **Schema Design Rationale**
@@ -97,6 +100,7 @@ Key Relationships:
 - Separate photos table allows multiple images per memo
 - Optional group relationship on memos supports both personal and shared memos
 - Member-based authorship (not user accounts) simplifies onboarding
+- Group color field enables visual differentiation of memos on the map
 
 ### Real-Time Communication
 
