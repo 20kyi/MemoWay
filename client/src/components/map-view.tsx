@@ -2,15 +2,38 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
+import type { MemoWithDetails } from "@shared/schema";
 
 interface MapViewProps {
   onLocationSelect: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
-  memos: Array<{ id: string; latitude: number; longitude: number; buildingName: string; photos: Array<{ url: string }> }>;
+  memos: MemoWithDetails[];
   onMarkerClick: (memoId: string) => void;
   userLocation: { lat: number; lng: number } | null;
+  onMapReady?: (map: any) => void;
 }
 
-export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation }: MapViewProps) {
+const PERSONAL_MEMO_COLOR = '#9333ea';
+
+function createMarkerContent(color: string): string {
+  return `
+    <div style="
+      position: relative;
+      width: 30px;
+      height: 40px;
+      cursor: pointer;
+    ">
+      <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+              fill="${color}" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        <circle cx="15" cy="15" r="6" fill="#ffffff"/>
+      </svg>
+    </div>
+  `;
+}
+
+export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, onMapReady }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
@@ -83,23 +106,31 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation }
 
     const newMarkers = memos.map(memo => {
       const position = new window.kakao.maps.LatLng(memo.latitude, memo.longitude);
-      const marker = new window.kakao.maps.Marker({
+      
+      const markerColor = memo.group?.color || PERSONAL_MEMO_COLOR;
+      const content = createMarkerContent(markerColor);
+      
+      const customOverlay = new window.kakao.maps.CustomOverlay({
         position,
-        map,
-        clickable: true,
+        content,
+        yAnchor: 1,
       });
+      
+      customOverlay.setMap(map);
+      
+      const overlayElement = customOverlay.getContent();
+      if (overlayElement && overlayElement instanceof HTMLElement) {
+        overlayElement.addEventListener('click', () => {
+          markerClickedRef.current = true;
+          onMarkerClick(memo.id);
+        });
+      }
 
-      window.kakao.maps.event.addListener(marker, 'click', () => {
-        // Set flag to prevent map click handler from firing
-        markerClickedRef.current = true;
-        onMarkerClick(memo.id);
-      });
-
-      return marker;
+      return customOverlay;
     });
 
     setMarkers(newMarkers);
-  }, [map, memos]);
+  }, [map, memos, onMarkerClick]);
 
   useEffect(() => {
     if (!map || !userLocation) return;

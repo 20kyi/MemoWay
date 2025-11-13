@@ -15,21 +15,34 @@ import { useToast } from "@/hooks/use-toast";
 const groupFormSchema = z.object({
   name: z.string().min(1, "그룹명을 입력하세요"),
   memberName: z.string().min(1, "이름을 입력하세요"),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i, "유효한 색상 코드를 선택하세요").default('#3b82f6'),
 });
 
 type GroupFormValues = z.infer<typeof groupFormSchema>;
+
+const PRESET_COLORS = [
+  { name: '파랑', value: '#3b82f6' },
+  { name: '빨강', value: '#ef4444' },
+  { name: '초록', value: '#22c55e' },
+  { name: '노랑', value: '#eab308' },
+  { name: '보라', value: '#a855f7' },
+  { name: '분홍', value: '#ec4899' },
+  { name: '주황', value: '#f97316' },
+  { name: '청록', value: '#14b8a6' },
+];
 
 interface Group {
   id: string;
   name: string;
   inviteCode: string;
+  color: string;
   members: Array<{ id: string; name: string }>;
   memoCount?: number;
 }
 
 interface GroupManagementProps {
   groups: Group[];
-  onCreateGroup: (data: { name: string; memberName: string }) => void;
+  onCreateGroup: (data: { name: string; memberName: string; color: string }) => void;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
   currentMemberId: string | null;
@@ -46,6 +59,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
     defaultValues: {
       name: "",
       memberName: "",
+      color: '#3b82f6',
     },
   });
 
@@ -123,6 +137,35 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={createForm.control}
+                  name="color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>그룹 색상</FormLabel>
+                      <FormControl>
+                        <div className="grid grid-cols-4 gap-2" data-testid="color-picker">
+                          {PRESET_COLORS.map((color) => (
+                            <button
+                              key={color.value}
+                              type="button"
+                              className={`h-12 rounded-md border-2 transition-all hover-elevate ${
+                                field.value === color.value 
+                                  ? 'border-foreground ring-2 ring-foreground ring-offset-2' 
+                                  : 'border-border'
+                              }`}
+                              style={{ backgroundColor: color.value }}
+                              onClick={() => field.onChange(color.value)}
+                              data-testid={`color-option-${color.value}`}
+                              aria-label={color.name}
+                            />
+                          ))}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-create-group">
                   {isLoading ? "생성 중..." : "만들기"}
                 </Button>
@@ -187,11 +230,19 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
       ) : (
         <div className="space-y-4">
           {groups.map(group => (
-            <Card key={group.id} className="rounded-2xl" data-testid={`card-group-${group.id}`}>
+            <Card key={group.id} className="rounded-2xl overflow-hidden" data-testid={`card-group-${group.id}`}>
+              <div className="h-2 w-full" style={{ backgroundColor: group.color }} data-testid={`color-stripe-${group.id}`} />
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-medium">{group.name}</h3>
-                  <Badge variant="secondary">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div 
+                      className="w-3 h-3 rounded-full flex-shrink-0" 
+                      style={{ backgroundColor: group.color }}
+                      data-testid={`color-dot-${group.id}`}
+                    />
+                    <h3 className="text-xl font-medium truncate">{group.name}</h3>
+                  </div>
+                  <Badge variant="secondary" className="flex-shrink-0">
                     {group.members.length}명
                   </Badge>
                 </div>

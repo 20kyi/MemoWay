@@ -203,7 +203,7 @@ export default function Home() {
   });
 
   const createGroupMutation = useMutation({
-    mutationFn: async (data: { name: string; memberName: string }) => {
+    mutationFn: async (data: { name: string; memberName: string; color: string }) => {
       return apiRequest("POST", "/api/groups", data);
     },
     onSuccess: (data: any) => {

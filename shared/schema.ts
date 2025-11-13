@@ -8,6 +8,7 @@ export const groups = pgTable("groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   inviteCode: varchar("invite_code").notNull().unique(),
+  color: varchar("color").notNull().default('#3b82f6'),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -78,6 +79,8 @@ export const photosRelations = relations(photos, ({ one }) => ({
 export const insertGroupSchema = createInsertSchema(groups).omit({
   id: true,
   createdAt: true,
+}).extend({
+  color: z.string().regex(/^#[0-9A-F]{6}$/i, "유효한 색상 코드를 선택하세요").default('#3b82f6'),
 });
 
 export const insertMemberSchema = createInsertSchema(members).omit({
