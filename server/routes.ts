@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertGroupSchema, insertMemberSchema, insertMemoSchema } from "@shared/schema";
+import { insertGroupSchema, insertMemberSchema, insertMemoSchema, type InsertMemo } from "@shared/schema";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
@@ -184,6 +184,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(memo);
     } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/memos/:id", upload.array("photos", 10), async (req, res) => {
+    try {
+      const bodySchema = z.object({
+        buildingName: z.string().min(1, "건물명을 입력하세요").max(200),
+        address: z.string().min(1, "주소를 입력하세요").max(500),
+        content: z.string().min(1, "메모 내용을 입력하세요").max(2000),
+        groupId: z.string().optional().transform(val => val === "" ? null : val),
+        deletedPhotoIds: z.string().optional(),
+      });
+      
+      const parsed = bodySchema.parse(req.body);
+      const { deletedPhotoIds, ...updateData } = parsed;
+      
+      // Build update object - latitude/longitude/memberId are not editable
+      const memoUpdate: Partial<InsertMemo> = {
+        buildingName: updateData.buildingName,
+        address: updateData.address,
+        content: updateData.content,
+        groupId: updateData.groupId ?? null,
+      };
+      
+      // Verify memo exists
+      const existingMemo = await storage.getMemoById(req.params.id);
+      if (!existingMemo) {
+        return res.status(404).json({ error: "메모를 찾을 수 없습니다" });
+      }
+      
+      await storage.updateMemo(req.params.id, memoUpdate);
+      
+      // Handle deleted photos
+      if (deletedPhotoIds) {
+        const photoIds = JSON.parse(deletedPhotoIds);
+        for (const photoId of photoIds) {
+          await storage.deletePhoto(photoId);
+        }
+      }
+      
+      // Handle new photos
+      const files = req.files as Express.Multer.File[];
+      if (files && files.length > 0) {
+        const currentPhotos = await storage.getPhotosByMemoId(req.params.id);
+        if (currentPhotos.length + files.length > 10) {
+          return res.status(400).json({ error: "최대 10개의 사진만 업로드할 수 있습니다" });
+        }
+        
+        for (const file of files) {
+          if (file.size > MAX_FILE_SIZE) {
+            return res.status(400).json({ error: "파일 크기는 5MB를 초과할 수 없습니다" });
+          }
+          
+          const photoUrl = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+          await storage.createPhoto({
+            memoId: req.params.id,
+            url: photoUrl,
+          });
+        }
+      }
+      
+      const updatedMemo = await storage.getMemoById(req.params.id);
+      if (!updatedMemo) {
+        return res.status(500).json({ error: "메모 업데이트 실패" });
+      }
+      
+      // Broadcast to WebSocket clients
+      broadcast({ 
+        type: "memo_updated", 
+        memo: updatedMemo 
+      });
+      
+      res.json(updatedMemo);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
       res.status(500).json({ error: error.message });
     }
   });

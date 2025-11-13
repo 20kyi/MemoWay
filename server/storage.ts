@@ -33,11 +33,13 @@ export interface IStorage {
   createMemo(memo: InsertMemo): Promise<Memo>;
   getMemos(): Promise<MemoWithDetails[]>;
   getMemoById(id: string): Promise<MemoWithDetails | undefined>;
+  updateMemo(id: string, memo: Partial<InsertMemo>): Promise<Memo>;
   deleteMemo(id: string): Promise<void>;
   
   // Photos
   createPhoto(photo: InsertPhoto): Promise<Photo>;
   getPhotosByMemoId(memoId: string): Promise<Photo[]>;
+  deletePhoto(photoId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -119,6 +121,20 @@ export class DatabaseStorage implements IStorage {
     return memo || undefined;
   }
 
+  async updateMemo(id: string, updateData: Partial<InsertMemo>): Promise<Memo> {
+    // Filter out undefined values to prevent overwriting existing columns with null
+    const cleanedData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, v]) => v !== undefined)
+    );
+    
+    const [memo] = await db
+      .update(memos)
+      .set({ ...cleanedData, updatedAt: new Date() })
+      .where(eq(memos.id, id))
+      .returning();
+    return memo;
+  }
+
   async deleteMemo(id: string): Promise<void> {
     await db.delete(memos).where(eq(memos.id, id));
   }
@@ -137,6 +153,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(photos)
       .where(eq(photos.memoId, memoId));
+  }
+
+  async deletePhoto(photoId: string): Promise<void> {
+    await db.delete(photos).where(eq(photos.id, photoId));
   }
 }
 

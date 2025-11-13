@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,17 +22,21 @@ type MemoFormValues = z.infer<typeof memoFormSchema>;
 interface MemoFormSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: MemoFormValues & { photos: File[] }) => void;
+  onSubmit: (data: MemoFormValues & { photos: File[]; deletedPhotoIds?: string[] }) => void;
   initialData?: {
     buildingName: string;
     address: string;
     latitude: number;
     longitude: number;
+    content?: string;
+    groupIds?: string[];
+    existingPhotos?: Array<{ id: string; url: string }>;
   } | null;
   groups: Array<{ id: string; name: string }>;
   isLoading?: boolean;
   isPersonalMemberReady: boolean;
   currentMemberId: string | null;
+  editMode?: boolean;
 }
 
 export function MemoFormSheet({ 
@@ -43,20 +47,41 @@ export function MemoFormSheet({
   groups,
   isLoading = false,
   isPersonalMemberReady,
-  currentMemberId
+  currentMemberId,
+  editMode = false
 }: MemoFormSheetProps) {
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<Array<{ id: string; url: string }>>(
+    initialData?.existingPhotos || []
+  );
+  const [deletedPhotoIds, setDeletedPhotoIds] = useState<string[]>([]);
 
   const form = useForm<MemoFormValues>({
     resolver: zodResolver(memoFormSchema),
     defaultValues: {
       buildingName: initialData?.buildingName || "",
       address: initialData?.address || "",
-      content: "",
-      groupIds: [],
+      content: initialData?.content || "",
+      groupIds: initialData?.groupIds || [],
     },
   });
+
+  // Update form when initialData changes
+  useEffect(() => {
+    if (initialData && open) {
+      form.reset({
+        buildingName: initialData.buildingName || "",
+        address: initialData.address || "",
+        content: initialData.content || "",
+        groupIds: initialData.groupIds || [],
+      });
+      setExistingPhotos(initialData.existingPhotos || []);
+      setDeletedPhotoIds([]);
+      setPhotos([]);
+      setPhotoPreviews([]);
+    }
+  }, [initialData, open, form]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -78,12 +103,13 @@ export function MemoFormSheet({
     setPhotoPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
+  const removeExistingPhoto = (photoId: string) => {
+    setExistingPhotos(prev => prev.filter(p => p.id !== photoId));
+    setDeletedPhotoIds(prev => [...prev, photoId]);
+  };
+
   const handleSubmit = (data: MemoFormValues) => {
-    onSubmit({ ...data, photos });
-    form.reset();
-    setPhotos([]);
-    setPhotoPreviews([]);
-    onOpenChange(false);
+    onSubmit({ ...data, photos, deletedPhotoIds });
   };
 
   return (
@@ -93,7 +119,7 @@ export function MemoFormSheet({
         
         <div className="px-6 pb-6 h-full overflow-y-auto">
           <SheetHeader className="mb-6">
-            <SheetTitle className="text-2xl">새 메모 추가</SheetTitle>
+            <SheetTitle className="text-2xl">{editMode ? "메모 편집" : "새 메모 추가"}</SheetTitle>
           </SheetHeader>
 
           <Form {...form}>
@@ -129,8 +155,23 @@ export function MemoFormSheet({
               <div>
                 <FormLabel>사진</FormLabel>
                 <div className="grid grid-cols-3 gap-2 mt-2">
+                  {existingPhotos.map((photo) => (
+                    <div key={photo.id} className="relative aspect-square">
+                      <img src={photo.url} alt="Existing photo" className="w-full h-full object-cover rounded-lg" />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full"
+                        onClick={() => removeExistingPhoto(photo.id)}
+                        data-testid={`button-remove-existing-photo-${photo.id}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
                   {photoPreviews.map((preview, index) => (
-                    <div key={index} className="relative aspect-square">
+                    <div key={`new-${index}`} className="relative aspect-square">
                       <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover rounded-lg" />
                       <Button
                         type="button"
@@ -144,17 +185,19 @@ export function MemoFormSheet({
                       </Button>
                     </div>
                   ))}
-                  <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover-elevate">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handlePhotoChange}
-                      className="hidden"
-                      data-testid="input-photo-upload"
-                    />
-                    <Camera className="h-8 w-8 text-muted-foreground" />
-                  </label>
+                  {(existingPhotos.length + photoPreviews.length) < 10 && (
+                    <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover-elevate">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                        data-testid="input-photo-upload"
+                      />
+                      <Camera className="h-8 w-8 text-muted-foreground" />
+                    </label>
+                  )}
                 </div>
               </div>
 

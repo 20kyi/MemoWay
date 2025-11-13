@@ -16,6 +16,7 @@ import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"map" | "memos" | "groups" | "settings">("map");
   const [memoFormOpen, setMemoFormOpen] = useState(false);
+  const [editingMemo, setEditingMemo] = useState<MemoWithDetails | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
     lng: number;
@@ -35,13 +36,18 @@ export default function Home() {
 
   // WebSocket for real-time updates
   const handleWebSocketMessage = useCallback((data: any) => {
-    if (data.type === "memo_created" || data.type === "memo_deleted") {
+    if (data.type === "memo_created" || data.type === "memo_deleted" || data.type === "memo_updated") {
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       
       if (data.type === "memo_created") {
         toast({
           title: "새 메모 알림",
           description: `${data.memo?.buildingName}에 새 메모가 추가되었습니다`,
+        });
+      } else if (data.type === "memo_updated") {
+        toast({
+          title: "메모 업데이트",
+          description: `${data.memo?.buildingName} 메모가 수정되었습니다`,
         });
       }
     }
@@ -137,6 +143,45 @@ export default function Home() {
         description: "새 메모가 추가되었습니다",
       });
       setMemoFormOpen(false);
+      setSelectedLocation(null);
+    },
+  });
+
+  const updateMemoMutation = useMutation({
+    mutationFn: async ({ memoId, data }: { memoId: string; data: any }) => {
+      const formData = new FormData();
+      formData.append("buildingName", data.buildingName);
+      formData.append("address", data.address);
+      formData.append("content", data.content);
+      
+      // Only send groupId if a group is selected
+      if (data.groupIds && data.groupIds.length > 0) {
+        formData.append("groupId", data.groupIds[0]);
+      }
+      // If no group selected, explicitly send empty string to clear group
+      else {
+        formData.append("groupId", "");
+      }
+      
+      if (data.deletedPhotoIds && data.deletedPhotoIds.length > 0) {
+        formData.append("deletedPhotoIds", JSON.stringify(data.deletedPhotoIds));
+      }
+      
+      data.photos.forEach((photo: File) => {
+        formData.append("photos", photo);
+      });
+
+      return apiRequest("PATCH", `/api/memos/${memoId}`, formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      toast({
+        title: "메모 수정 완료",
+        description: "메모가 수정되었습니다",
+      });
+      setMemoFormOpen(false);
+      setEditingMemo(null);
+      setSelectedLocation(null);
     },
   });
 
@@ -273,8 +318,18 @@ export default function Home() {
     address: string;
     buildingName: string;
   }) => {
+    setEditingMemo(null);
     setSelectedLocation(location);
     setMemoFormOpen(true);
+  };
+
+  const handleEditMemo = (memoId: string) => {
+    const memo = memos.find(m => m.id === memoId);
+    if (memo) {
+      setEditingMemo(memo);
+      setSelectedLocation(null);
+      setMemoFormOpen(true);
+    }
   };
 
   const handleNotificationsChange = async (enabled: boolean) => {
@@ -322,13 +377,12 @@ export default function Home() {
         {activeTab === "memos" && (
           <MemoList
             memos={memos}
-            onEdit={(memoId) => {
-              toast({
-                title: "편집 기능",
-                description: "메모 편집 기능은 추후 추가될 예정입니다",
-              });
+            onEdit={handleEditMemo}
+            onDelete={(memoId) => {
+              if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
+                deleteMemoMutation.mutate(memoId);
+              }
             }}
-            onDelete={(memoId) => deleteMemoMutation.mutate(memoId)}
             onMemoClick={(memoId) => {
               const memo = memos.find(m => m.id === memoId);
               if (memo) {
@@ -370,18 +424,42 @@ export default function Home() {
 
       <MemoFormSheet
         open={memoFormOpen}
-        onOpenChange={setMemoFormOpen}
-        onSubmit={(data) => createMemoMutation.mutate(data)}
-        initialData={selectedLocation ? {
+        onOpenChange={(open) => {
+          setMemoFormOpen(open);
+          if (!open) {
+            setEditingMemo(null);
+            setSelectedLocation(null);
+          }
+        }}
+        onSubmit={(data) => {
+          if (editingMemo) {
+            updateMemoMutation.mutate({ 
+              memoId: editingMemo.id, 
+              data
+            });
+          } else {
+            createMemoMutation.mutate(data);
+          }
+        }}
+        initialData={editingMemo ? {
+          buildingName: editingMemo.buildingName,
+          address: editingMemo.address,
+          latitude: editingMemo.latitude,
+          longitude: editingMemo.longitude,
+          content: editingMemo.content,
+          groupIds: editingMemo.groupId ? [editingMemo.groupId] : [],
+          existingPhotos: editingMemo.photos.map(p => ({ id: p.id, url: p.url })),
+        } : selectedLocation ? {
           buildingName: selectedLocation.buildingName,
           address: selectedLocation.address,
           latitude: selectedLocation.lat,
           longitude: selectedLocation.lng,
         } : null}
         groups={groups.filter(g => g.name !== "개인 메모")}
-        isLoading={createMemoMutation.isPending}
+        isLoading={createMemoMutation.isPending || updateMemoMutation.isPending}
         isPersonalMemberReady={!!personalMemberId}
         currentMemberId={currentMemberId}
+        editMode={!!editingMemo}
       />
     </div>
   );
