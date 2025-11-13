@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { MapView } from "@/components/map-view";
 import { MemoFormSheet } from "@/components/memo-form-sheet";
+import { MemoDetailSheet } from "@/components/memo-detail-sheet";
 import { MemoList } from "@/components/memo-list";
 import { GroupManagement } from "@/components/group-management";
 import { SettingsView } from "@/components/settings-view";
@@ -16,7 +17,9 @@ import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"map" | "memos" | "groups" | "settings">("map");
   const [memoFormOpen, setMemoFormOpen] = useState(false);
+  const [memoDetailOpen, setMemoDetailOpen] = useState(false);
   const [editingMemo, setEditingMemo] = useState<MemoWithDetails | null>(null);
+  const [selectedMemo, setSelectedMemo] = useState<MemoWithDetails | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
     lng: number;
@@ -368,7 +371,11 @@ export default function Home() {
               onLocationSelect={handleLocationSelect}
               memos={memos}
               onMarkerClick={(memoId) => {
-                setActiveTab("memos");
+                const memo = memos.find(m => m.id === memoId);
+                if (memo) {
+                  setSelectedMemo(memo);
+                  setMemoDetailOpen(true);
+                }
               }}
               userLocation={userLocation}
             />
@@ -386,10 +393,8 @@ export default function Home() {
             onMemoClick={(memoId) => {
               const memo = memos.find(m => m.id === memoId);
               if (memo) {
-                toast({
-                  title: memo.buildingName,
-                  description: memo.content,
-                });
+                setSelectedMemo(memo);
+                setMemoDetailOpen(true);
               }
             }}
           />
@@ -460,6 +465,23 @@ export default function Home() {
         isPersonalMemberReady={!!personalMemberId}
         currentMemberId={currentMemberId}
         editMode={!!editingMemo}
+      />
+
+      <MemoDetailSheet
+        memo={selectedMemo}
+        open={memoDetailOpen}
+        onOpenChange={(open) => {
+          setMemoDetailOpen(open);
+          if (!open) {
+            setSelectedMemo(null);
+          }
+        }}
+        onEdit={handleEditMemo}
+        onDelete={(memoId) => {
+          if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
+            deleteMemoMutation.mutate(memoId);
+          }
+        }}
       />
     </div>
   );

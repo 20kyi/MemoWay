@@ -32,8 +32,11 @@ Preferred communication style: Simple, everyday language.
 **Map Integration**
 - Kakao Maps SDK for interactive map rendering and geocoding
 - Custom map markers showing memo locations with building names
+- Marker click opens memo detail sheet (not creation form)
+- Map click (empty space) opens new memo creation form
 - User location tracking with geolocation API
 - Click-to-place memo functionality with reverse geocoding
+- markerClickedRef flag prevents map click event propagation from markers
 
 **Key Design Decisions**
 - Mobile-first responsive design with bottom sheet patterns

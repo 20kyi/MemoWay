@@ -15,6 +15,7 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation }
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
   const [mapError, setMapError] = useState<string | null>(null);
+  const markerClickedRef = useRef(false);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -33,6 +34,12 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation }
         setMap(kakaoMap);
 
         window.kakao.maps.event.addListener(kakaoMap, 'click', function(mouseEvent: any) {
+          // Ignore map clicks if a marker was just clicked
+          if (markerClickedRef.current) {
+            markerClickedRef.current = false;
+            return;
+          }
+          
           const latlng = mouseEvent.latLng;
           const geocoder = new window.kakao.maps.services.Geocoder();
           
@@ -74,9 +81,12 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation }
       const marker = new window.kakao.maps.Marker({
         position,
         map,
+        clickable: true,
       });
 
       window.kakao.maps.event.addListener(marker, 'click', () => {
+        // Set flag to prevent map click handler from firing
+        markerClickedRef.current = true;
         onMarkerClick(memo.id);
       });
 
