@@ -252,21 +252,6 @@ export default function Home() {
               }}
               userLocation={userLocation}
             />
-            {currentMemberId && (
-              <Button
-                size="icon"
-                className="absolute bottom-4 right-4 h-16 w-16 rounded-full shadow-lg"
-                onClick={() => {
-                  toast({
-                    title: "지도 탭",
-                    description: "지도에서 위치를 탭하여 메모를 추가하세요",
-                  });
-                }}
-                data-testid="button-add-memo-fab"
-              >
-                <Plus className="h-8 w-8" />
-              </Button>
-            )}
           </div>
         )}
         {activeTab === "memos" && (
