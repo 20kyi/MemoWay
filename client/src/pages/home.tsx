@@ -28,6 +28,9 @@ export default function Home() {
   const [currentMemberId, setCurrentMemberId] = useState<string | null>(
     localStorage.getItem("currentMemberId")
   );
+  const [personalMemberId, setPersonalMemberId] = useState<string | null>(
+    localStorage.getItem("personalMemberId")
+  );
   const { toast } = useToast();
 
   // WebSocket for real-time updates
@@ -50,9 +53,53 @@ export default function Home() {
     queryKey: ["/api/memos"],
   });
 
-  const { data: groups = [] } = useQuery<GroupWithMembers[]>({
+  const { data: groups = [], isFetched: groupsIsFetched } = useQuery<GroupWithMembers[]>({
     queryKey: ["/api/groups"],
   });
+
+  // 개인 메모용 멤버 자동 생성
+  useEffect(() => {
+    // groups 쿼리가 완료될 때까지 대기
+    if (!groupsIsFetched) {
+      return;
+    }
+
+    // 이미 개인 메모 그룹이 있는지 확인
+    const existingPersonalGroup = groups.find(g => g.name === "개인 메모");
+    if (existingPersonalGroup && existingPersonalGroup.members.length > 0) {
+      if (!personalMemberId || personalMemberId !== existingPersonalGroup.members[0].id) {
+        setPersonalMemberId(existingPersonalGroup.members[0].id);
+        localStorage.setItem("personalMemberId", existingPersonalGroup.members[0].id);
+      }
+      return;
+    }
+
+    // 개인 메모 그룹이 없고 personalMemberId도 없으면 생성
+    if (!personalMemberId) {
+      const createPersonalMember = async () => {
+        try {
+          const response = await apiRequest("POST", "/api/groups", {
+            name: "개인 메모",
+            memberName: "나",
+          });
+          if (response.member?.id) {
+            setPersonalMemberId(response.member.id);
+            localStorage.setItem("personalMemberId", response.member.id);
+            // groups 쿼리 무효화하여 최신 상태 유지
+            queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+          }
+        } catch (error) {
+          console.error("개인 메모 멤버 생성 실패:", error);
+          toast({
+            title: "개인 메모 설정 실패",
+            description: "개인 메모를 사용하려면 페이지를 새로고침하세요",
+            variant: "destructive",
+          });
+        }
+      };
+      createPersonalMember();
+    }
+  }, [personalMemberId, groups, groupsIsFetched, toast, queryClient]);
 
   const createMemoMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -62,10 +109,21 @@ export default function Home() {
       formData.append("latitude", selectedLocation?.lat.toString() || "0");
       formData.append("longitude", selectedLocation?.lng.toString() || "0");
       formData.append("content", data.content);
-      formData.append("memberId", currentMemberId || "");
-      if (data.groupIds && data.groupIds.length > 0) {
+      
+      // 개인 메모인지 그룹 메모인지 결정
+      const isPersonalMemo = !data.groupIds || data.groupIds.length === 0;
+      const memberId = isPersonalMemo ? personalMemberId : currentMemberId;
+      
+      if (!memberId) {
+        throw new Error("멤버 ID가 필요합니다");
+      }
+      
+      formData.append("memberId", memberId);
+      
+      if (!isPersonalMemo && data.groupIds.length > 0) {
         formData.append("groupId", data.groupIds[0]);
       }
+      
       data.photos.forEach((photo: File) => {
         formData.append("photos", photo);
       });
@@ -78,6 +136,7 @@ export default function Home() {
         title: "메모 생성 완료",
         description: "새 메모가 추가되었습니다",
       });
+      setMemoFormOpen(false);
     },
   });
 
@@ -214,15 +273,6 @@ export default function Home() {
     address: string;
     buildingName: string;
   }) => {
-    if (!currentMemberId) {
-      toast({
-        title: "그룹 필요",
-        description: "메모를 작성하려면 먼저 그룹을 만들거나 참여하세요",
-        variant: "destructive",
-      });
-      setActiveTab("groups");
-      return;
-    }
     setSelectedLocation(location);
     setMemoFormOpen(true);
   };
@@ -292,7 +342,7 @@ export default function Home() {
         )}
         {activeTab === "groups" && (
           <GroupManagement
-            groups={groups}
+            groups={groups.filter(g => g.name !== "개인 메모")}
             onCreateGroup={(data) => createGroupMutation.mutate(data)}
             onJoinGroup={(inviteCode, memberName) =>
               joinGroupMutation.mutate({ inviteCode, memberName })
@@ -328,8 +378,10 @@ export default function Home() {
           latitude: selectedLocation.lat,
           longitude: selectedLocation.lng,
         } : null}
-        groups={groups}
+        groups={groups.filter(g => g.name !== "개인 메모")}
         isLoading={createMemoMutation.isPending}
+        isPersonalMemberReady={!!personalMemberId}
+        currentMemberId={currentMemberId}
       />
     </div>
   );

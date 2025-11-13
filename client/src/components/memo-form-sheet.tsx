@@ -14,7 +14,7 @@ const memoFormSchema = z.object({
   buildingName: z.string().min(1, "건물명을 입력하세요"),
   address: z.string().min(1, "주소를 입력하세요"),
   content: z.string().min(1, "메모를 입력하세요"),
-  groupIds: z.array(z.string()).default([]),
+  groupIds: z.array(z.string()).optional().default([]),
 });
 
 type MemoFormValues = z.infer<typeof memoFormSchema>;
@@ -31,6 +31,8 @@ interface MemoFormSheetProps {
   } | null;
   groups: Array<{ id: string; name: string }>;
   isLoading?: boolean;
+  isPersonalMemberReady: boolean;
+  currentMemberId: string | null;
 }
 
 export function MemoFormSheet({ 
@@ -39,7 +41,9 @@ export function MemoFormSheet({
   onSubmit, 
   initialData, 
   groups,
-  isLoading = false 
+  isLoading = false,
+  isPersonalMemberReady,
+  currentMemberId
 }: MemoFormSheetProps) {
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
@@ -173,15 +177,15 @@ export function MemoFormSheet({
                 )}
               />
 
-              {groups.length > 0 && (
+              {groups.filter(g => g.name !== "개인 메모").length > 0 && (
                 <FormField
                   control={form.control}
                   name="groupIds"
                   render={() => (
                     <FormItem>
-                      <FormLabel>그룹 공유</FormLabel>
+                      <FormLabel>그룹 공유 (선택 안 하면 개인 메모)</FormLabel>
                       <div className="space-y-2">
-                        {groups.map(group => (
+                        {groups.filter(g => g.name !== "개인 메모").map(group => (
                           <FormField
                             key={group.id}
                             control={form.control}
@@ -215,6 +219,12 @@ export function MemoFormSheet({
                 />
               )}
 
+              {!isPersonalMemberReady && !currentMemberId && (
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">개인 메모 준비 중...</p>
+                </div>
+              )}
+
               <div className="flex gap-3 pt-4">
                 <Button
                   type="button"
@@ -228,7 +238,7 @@ export function MemoFormSheet({
                 <Button 
                   type="submit" 
                   className="flex-1"
-                  disabled={isLoading}
+                  disabled={isLoading || (!isPersonalMemberReady && !currentMemberId)}
                   data-testid="button-save-memo"
                 >
                   {isLoading ? "저장 중..." : "저장"}

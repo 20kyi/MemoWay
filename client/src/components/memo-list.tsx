@@ -38,9 +38,13 @@ export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps
                 <h3 className="text-lg font-medium truncate">{memo.buildingName}</h3>
                 <p className="text-sm text-muted-foreground truncate">{memo.address}</p>
               </div>
-              {memo.group && (
+              {memo.group && memo.group.name !== "개인 메모" ? (
                 <Badge variant="secondary" className="shrink-0">
                   {memo.group.name}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="shrink-0">
+                  개인
                 </Badge>
               )}
             </div>
