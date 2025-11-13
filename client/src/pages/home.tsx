@@ -455,6 +455,7 @@ export default function Home() {
               g.name !== "개인 메모" && 
               g.members.some(m => myMemberIds.includes(m.id))
             )}
+            myMemberIds={myMemberIds}
             onCreateGroup={(data) => createGroupMutation.mutate(data)}
             onJoinGroup={(inviteCode, memberName) =>
               joinGroupMutation.mutate({ inviteCode, memberName })
@@ -464,7 +465,6 @@ export default function Home() {
                 leaveGroupMutation.mutate({ groupId, memberId });
               }
             }}
-            currentMemberId={currentMemberId}
             isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}
           />
         )}

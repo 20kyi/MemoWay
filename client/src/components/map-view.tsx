@@ -22,7 +22,7 @@ function createMarkerContent(color: string): string {
       height: 40px;
       cursor: pointer;
     ">
-      <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+      <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
         <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
               fill="${color}" 
               stroke="#ffffff" 

@@ -45,11 +45,11 @@ interface GroupManagementProps {
   onCreateGroup: (data: { name: string; memberName: string; color: string }) => void;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
-  currentMemberId: string | null;
+  myMemberIds: string[];
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, currentMemberId, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, myMemberIds, isLoading = false }: GroupManagementProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -290,16 +290,19 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   <Share2 className="h-4 w-4 mr-2" />
                   초대 링크
                 </Button>
-                {currentMemberId && group.members.some(m => m.id === currentMemberId) && (
-                  <Button
-                    variant="destructive"
-                    className="flex-1"
-                    onClick={() => onLeaveGroup(group.id, currentMemberId)}
-                    data-testid={`button-leave-${group.id}`}
-                  >
-                    나가기
-                  </Button>
-                )}
+                {(() => {
+                  const myMember = group.members.find(m => myMemberIds.includes(m.id));
+                  return myMember && (
+                    <Button
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={() => onLeaveGroup(group.id, myMember.id)}
+                      data-testid={`button-leave-${group.id}`}
+                    >
+                      나가기
+                    </Button>
+                  );
+                })()}
               </CardFooter>
             </Card>
           ))}
