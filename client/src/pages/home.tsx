@@ -129,28 +129,33 @@ export default function Home() {
   });
 
   useEffect(() => {
-    if (locationEnabled && navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const newLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setUserLocation(newLocation);
+    if (!locationEnabled || !navigator.geolocation) return;
 
-          if (notificationsEnabled) {
-            checkNearbyMemos(newLocation);
-          }
-        },
-        (error) => {
-          console.error("위치 추적 오류:", error);
-        },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
-      );
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setUserLocation(newLocation);
 
-      return () => navigator.geolocation.clearWatch(watchId);
-    }
-  }, [locationEnabled, notificationsEnabled]);
+        if (notificationsEnabled && memos.length > 0) {
+          checkNearbyMemos(newLocation);
+        }
+      },
+      (error) => {
+        console.error("위치 추적 오류:", error);
+        toast({
+          title: "위치 추적 오류",
+          description: "위치 정보를 가져올 수 없습니다. 브라우저 설정을 확인하세요.",
+          variant: "destructive",
+        });
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [locationEnabled, notificationsEnabled, memos]);
 
   const checkNearbyMemos = (location: { lat: number; lng: number }) => {
     const nearbyMemos = memos.filter(memo => {

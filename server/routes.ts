@@ -6,14 +6,33 @@ import multer from "multer";
 import { storage } from "./storage";
 import { insertGroupSchema, insertMemberSchema, insertMemoSchema } from "@shared/schema";
 import { randomBytes } from "crypto";
+import { z } from "zod";
 
-const upload = multer({ storage: multer.memoryStorage() });
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_FILE_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Groups
   app.post("/api/groups", async (req, res) => {
     try {
-      const { name, memberName } = req.body;
+      const bodySchema = z.object({
+        name: z.string().min(1, "그룹명을 입력하세요").max(100),
+        memberName: z.string().min(1, "이름을 입력하세요").max(50),
+      });
+      
+      const { name, memberName } = bodySchema.parse(req.body);
       const inviteCode = randomBytes(6).toString("hex");
       
       const group = await storage.createGroup({ name, inviteCode });
@@ -24,13 +43,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ group, member });
     } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
       res.status(500).json({ error: error.message });
     }
   });
 
   app.post("/api/groups/join", async (req, res) => {
     try {
-      const { inviteCode, memberName } = req.body;
+      const bodySchema = z.object({
+        inviteCode: z.string().min(1, "초대 코드를 입력하세요"),
+        memberName: z.string().min(1, "이름을 입력하세요").max(50),
+      });
+      
+      const { inviteCode, memberName } = bodySchema.parse(req.body);
       
       const group = await storage.getGroupByInviteCode(inviteCode);
       if (!group) {
@@ -44,6 +71,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ group, member });
     } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
       res.status(500).json({ error: error.message });
     }
   });
@@ -60,7 +90,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Memos
   app.post("/api/memos", upload.array("photos", 10), async (req, res) => {
     try {
-      const { buildingName, address, latitude, longitude, content, memberId, groupId } = req.body;
+      const bodySchema = z.object({
+        buildingName: z.string().min(1, "건물명을 입력하세요").max(200),
+        address: z.string().min(1, "주소를 입력하세요").max(500),
+        latitude: z.string().refine((val) => !isNaN(parseFloat(val)), "유효한 위도를 입력하세요"),
+        longitude: z.string().refine((val) => !isNaN(parseFloat(val)), "유효한 경도를 입력하세요"),
+        content: z.string().min(1, "메모 내용을 입력하세요").max(2000),
+        memberId: z.string().min(1, "멤버 ID가 필요합니다"),
+        groupId: z.string().optional(),
+      });
+      
+      const { buildingName, address, latitude, longitude, content, memberId, groupId } = bodySchema.parse(req.body);
+      
+      // Verify member exists
+      const memberGroups = await storage.getGroups();
+      const memberExists = memberGroups.some(g => g.members.some(m => m.id === memberId));
+      if (!memberExists) {
+        return res.status(403).json({ error: "유효하지 않은 멤버입니다" });
+      }
       
       const memo = await storage.createMemo({
         buildingName,
@@ -74,7 +121,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const files = req.files as Express.Multer.File[];
       if (files && files.length > 0) {
+        if (files.length > 10) {
+          return res.status(400).json({ error: "최대 10개의 사진만 업로드할 수 있습니다" });
+        }
+        
         for (const file of files) {
+          if (file.size > MAX_FILE_SIZE) {
+            return res.status(400).json({ error: "파일 크기는 5MB를 초과할 수 없습니다" });
+          }
+          
           const photoUrl = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
           await storage.createPhoto({
             memoId: memo.id,
@@ -93,6 +148,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(memoWithDetails);
     } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
       res.status(500).json({ error: error.message });
     }
   });
