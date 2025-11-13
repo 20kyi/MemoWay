@@ -4,20 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-
-interface Memo {
-  id: string;
-  buildingName: string;
-  address: string;
-  content: string;
-  createdAt: string;
-  photos: Array<{ url: string }>;
-  group: { name: string } | null;
-  member: { name: string };
-}
+import type { MemoWithDetails } from "@shared/schema";
 
 interface MemoListProps {
-  memos: Memo[];
+  memos: MemoWithDetails[];
   onEdit: (memoId: string) => void;
   onDelete: (memoId: string) => void;
   onMemoClick: (memoId: string) => void;

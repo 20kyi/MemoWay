@@ -128,6 +128,21 @@ export default function Home() {
     },
   });
 
+  const leaveGroupMutation = useMutation({
+    mutationFn: async (data: { groupId: string; memberId: string }) => {
+      return apiRequest("DELETE", `/api/groups/${data.groupId}/members/${data.memberId}`);
+    },
+    onSuccess: () => {
+      setCurrentMemberId(null);
+      localStorage.removeItem("currentMemberId");
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      toast({
+        title: "그룹 나가기 완료",
+        description: "그룹에서 나갔습니다",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!locationEnabled || !navigator.geolocation) return;
 
@@ -282,6 +297,12 @@ export default function Home() {
             onJoinGroup={(inviteCode, memberName) =>
               joinGroupMutation.mutate({ inviteCode, memberName })
             }
+            onLeaveGroup={(groupId, memberId) => {
+              if (confirm("정말로 이 그룹에서 나가시겠습니까?")) {
+                leaveGroupMutation.mutate({ groupId, memberId });
+              }
+            }}
+            currentMemberId={currentMemberId}
             isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}
           />
         )}
@@ -301,7 +322,12 @@ export default function Home() {
         open={memoFormOpen}
         onOpenChange={setMemoFormOpen}
         onSubmit={(data) => createMemoMutation.mutate(data)}
-        initialData={selectedLocation}
+        initialData={selectedLocation ? {
+          buildingName: selectedLocation.buildingName,
+          address: selectedLocation.address,
+          latitude: selectedLocation.lat,
+          longitude: selectedLocation.lng,
+        } : null}
         groups={groups}
         isLoading={createMemoMutation.isPending}
       />

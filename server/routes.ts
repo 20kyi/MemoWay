@@ -87,6 +87,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/groups/:groupId/members/:memberId", async (req, res) => {
+    try {
+      const { groupId, memberId } = req.params;
+      
+      await storage.deleteMember(memberId);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Memos
   app.post("/api/memos", upload.array("photos", 10), async (req, res) => {
     try {

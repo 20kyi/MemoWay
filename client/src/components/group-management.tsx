@@ -31,10 +31,12 @@ interface GroupManagementProps {
   groups: Group[];
   onCreateGroup: (data: { name: string; memberName: string }) => void;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
+  onLeaveGroup: (groupId: string, memberId: string) => void;
+  currentMemberId: string | null;
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onJoinGroup, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, currentMemberId, isLoading = false }: GroupManagementProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -227,16 +229,26 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, isLoading 
                 </div>
               </CardContent>
 
-              <CardFooter className="pt-0">
+              <CardFooter className="pt-0 flex gap-2">
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="flex-1"
                   onClick={() => handleShareInvite(group.inviteCode)}
                   data-testid={`button-share-${group.id}`}
                 >
                   <Share2 className="h-4 w-4 mr-2" />
-                  초대 링크 공유
+                  초대 링크
                 </Button>
+                {currentMemberId && group.members.some(m => m.id === currentMemberId) && (
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => onLeaveGroup(group.id, currentMemberId)}
+                    data-testid={`button-leave-${group.id}`}
+                  >
+                    나가기
+                  </Button>
+                )}
               </CardFooter>
             </Card>
           ))}

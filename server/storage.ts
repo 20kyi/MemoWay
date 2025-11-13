@@ -27,6 +27,7 @@ export interface IStorage {
   // Members
   createMember(member: InsertMember): Promise<Member>;
   getMembersByGroupId(groupId: string): Promise<Member[]>;
+  deleteMember(memberId: string): Promise<void>;
   
   // Memos
   createMemo(memo: InsertMemo): Promise<Memo>;
@@ -80,6 +81,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(members)
       .where(eq(members.groupId, groupId));
+  }
+
+  async deleteMember(memberId: string): Promise<void> {
+    await db.delete(members).where(eq(members.id, memberId));
   }
 
   // Memos
