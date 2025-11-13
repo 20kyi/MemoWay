@@ -102,34 +102,59 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, 
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
 
-    markers.forEach(marker => marker.setMap(null));
+    markers.forEach(marker => {
+      if (marker.handler && marker.element) {
+        marker.element.removeEventListener('click', marker.handler);
+      }
+      if (marker.overlay) {
+        marker.overlay.setMap(null);
+      }
+    });
 
     const newMarkers = memos.map(memo => {
       const position = new window.kakao.maps.LatLng(memo.latitude, memo.longitude);
       
       const markerColor = memo.group?.color || PERSONAL_MEMO_COLOR;
-      const content = createMarkerContent(markerColor);
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.innerHTML = createMarkerContent(markerColor);
+      contentDiv.style.cursor = 'pointer';
       
       const customOverlay = new window.kakao.maps.CustomOverlay({
         position,
-        content,
+        content: contentDiv,
         yAnchor: 1,
       });
       
       customOverlay.setMap(map);
       
-      const overlayElement = customOverlay.getContent();
-      if (overlayElement && overlayElement instanceof HTMLElement) {
-        overlayElement.addEventListener('click', () => {
-          markerClickedRef.current = true;
-          onMarkerClick(memo.id);
-        });
-      }
+      const clickHandler = (e: Event) => {
+        e.stopPropagation();
+        markerClickedRef.current = true;
+        onMarkerClick(memo.id);
+      };
+      
+      contentDiv.addEventListener('click', clickHandler);
 
-      return customOverlay;
+      return { 
+        overlay: customOverlay, 
+        element: contentDiv,
+        handler: clickHandler
+      };
     });
 
     setMarkers(newMarkers);
+
+    return () => {
+      newMarkers.forEach(marker => {
+        if (marker.handler && marker.element) {
+          marker.element.removeEventListener('click', marker.handler);
+        }
+        if (marker.overlay) {
+          marker.overlay.setMap(null);
+        }
+      });
+    };
   }, [map, memos, onMarkerClick]);
 
   useEffect(() => {

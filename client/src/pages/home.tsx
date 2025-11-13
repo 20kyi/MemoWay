@@ -35,6 +35,22 @@ export default function Home() {
   const [personalMemberId, setPersonalMemberId] = useState<string | null>(
     localStorage.getItem("personalMemberId")
   );
+  const [myMemberIds, setMyMemberIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem("myMemberIds");
+    const savedIds = saved ? JSON.parse(saved) : [];
+    const currentId = localStorage.getItem("currentMemberId");
+    const personalId = localStorage.getItem("personalMemberId");
+    
+    const allIds = [...savedIds];
+    if (currentId && !allIds.includes(currentId)) {
+      allIds.push(currentId);
+    }
+    if (personalId && !allIds.includes(personalId)) {
+      allIds.push(personalId);
+    }
+    
+    return allIds;
+  });
   const [mapInstance, setMapInstance] = useState<any>(null);
   const { toast } = useToast();
 
@@ -210,6 +226,13 @@ export default function Home() {
       if (data.member?.id) {
         setCurrentMemberId(data.member.id);
         localStorage.setItem("currentMemberId", data.member.id);
+        
+        setMyMemberIds(prev => {
+          if (prev.includes(data.member.id)) return prev;
+          const newIds = [...prev, data.member.id];
+          localStorage.setItem("myMemberIds", JSON.stringify(newIds));
+          return newIds;
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
@@ -227,6 +250,13 @@ export default function Home() {
       if (data.member?.id) {
         setCurrentMemberId(data.member.id);
         localStorage.setItem("currentMemberId", data.member.id);
+        
+        setMyMemberIds(prev => {
+          if (prev.includes(data.member.id)) return prev;
+          const newIds = [...prev, data.member.id];
+          localStorage.setItem("myMemberIds", JSON.stringify(newIds));
+          return newIds;
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
@@ -240,9 +270,18 @@ export default function Home() {
     mutationFn: async (data: { groupId: string; memberId: string }) => {
       return apiRequest("DELETE", `/api/groups/${data.groupId}/members/${data.memberId}`);
     },
-    onSuccess: () => {
-      setCurrentMemberId(null);
-      localStorage.removeItem("currentMemberId");
+    onSuccess: (_, variables) => {
+      setMyMemberIds(prev => {
+        const newIds = prev.filter(id => id !== variables.memberId);
+        localStorage.setItem("myMemberIds", JSON.stringify(newIds));
+        return newIds;
+      });
+      
+      if (currentMemberId === variables.memberId) {
+        setCurrentMemberId(null);
+        localStorage.removeItem("currentMemberId");
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
         title: "그룹 나가기 완료",
@@ -412,7 +451,10 @@ export default function Home() {
         )}
         {activeTab === "groups" && (
           <GroupManagement
-            groups={groups.filter(g => g.name !== "개인 메모")}
+            groups={groups.filter(g => 
+              g.name !== "개인 메모" && 
+              g.members.some(m => myMemberIds.includes(m.id))
+            )}
             onCreateGroup={(data) => createGroupMutation.mutate(data)}
             onJoinGroup={(inviteCode, memberName) =>
               joinGroupMutation.mutate({ inviteCode, memberName })
