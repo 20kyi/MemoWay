@@ -28,8 +28,8 @@ export const memos = pgTable("memos", {
   latitude: doublePrecision("latitude").notNull(),
   longitude: doublePrecision("longitude").notNull(),
   content: text("content").notNull(),
-  groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }),
-  memberId: varchar("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+  groupId: varchar("group_id").references(() => groups.id, { onDelete: "set null" }),
+  memberId: varchar("member_id").notNull().references(() => members.id, { onDelete: "restrict" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

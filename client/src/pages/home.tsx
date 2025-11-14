@@ -303,7 +303,10 @@ export default function Home() {
 
   const leaveGroupMutation = useMutation({
     mutationFn: async (data: { groupId: string; memberId: string }) => {
-      return apiRequest("DELETE", `/api/groups/${data.groupId}/members/${data.memberId}`);
+      if (!personalMemberId) {
+        throw new Error("개인 메모 그룹이 설정되지 않았습니다. 잠시 후 다시 시도해주세요");
+      }
+      return apiRequest("DELETE", `/api/groups/${data.groupId}/members/${data.memberId}?personalMemberId=${personalMemberId}`);
     },
     onSuccess: (_, variables) => {
       setMyMemberIds(prev => {
@@ -321,6 +324,13 @@ export default function Home() {
       toast({
         title: "그룹 나가기 완료",
         description: "그룹에서 나갔습니다",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "그룹 나가기 실패",
+        description: error.message || "그룹에서 나가는 중 오류가 발생했습니다",
+        variant: "destructive",
       });
     },
   });
@@ -496,6 +506,7 @@ export default function Home() {
               g.members.some(m => myMemberIds.includes(m.id))
             )}
             myMemberIds={myMemberIds}
+            personalMemberId={personalMemberId}
             onCreateGroup={(data) => createGroupMutation.mutate(data)}
             onJoinGroup={(inviteCode, memberName) =>
               joinGroupMutation.mutate({ inviteCode, memberName })

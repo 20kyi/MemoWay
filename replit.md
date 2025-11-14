@@ -8,6 +8,18 @@ A mobile-first web application for creating and sharing location-based memos wit
 
 ### November 2025
 
+**Memo Preservation on Group Leave (November 14, 2025)**
+- **Critical Fix**: Memos are now preserved as personal memos when users leave groups
+- Changed database schema: `memos.memberId` uses `onDelete: 'restrict'` to prevent cascade deletes
+- Implemented `reassignMemosToPersonal()` storage method to transfer memos before member deletion
+- Updated DELETE member API to require `personalMemberId` query parameter
+- API validates personalMemberId belongs to "개인 메모" group before reassignment
+- Frontend passes localStorage personalMemberId when leaving groups
+- Flow: reassign memos to personal member → delete group member → cleanup empty group
+- Previously: memos were deleted via cascade when member was deleted
+- Now: memos are reassigned with `memberId = personalMemberId` and `groupId = null`
+- Empty groups are automatically deleted after last member leaves (except "개인 메모")
+
 **Group Membership Filtering (November 14, 2025)**
 - Fixed issue where left groups still appeared in memo form's group sharing section
 - Implemented `myMemberIds` synchronization logic that validates membership against fetched groups

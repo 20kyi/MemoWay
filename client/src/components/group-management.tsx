@@ -46,10 +46,11 @@ interface GroupManagementProps {
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
   myMemberIds: string[];
+  personalMemberId?: string | null;
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, myMemberIds, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -292,12 +293,16 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                 </Button>
                 {(() => {
                   const myMember = group.members.find(m => myMemberIds.includes(m.id));
-                  return myMember && (
+                  // Don't show "leave" button for personal member
+                  const isPersonalMember = myMember && personalMemberId && myMember.id === personalMemberId;
+                  return myMember && !isPersonalMember && (
                     <Button
                       variant="destructive"
                       className="flex-1"
                       onClick={() => onLeaveGroup(group.id, myMember.id)}
+                      disabled={!personalMemberId}
                       data-testid={`button-leave-${group.id}`}
+                      title={!personalMemberId ? "개인 메모 그룹 설정 중입니다" : ""}
                     >
                       나가기
                     </Button>

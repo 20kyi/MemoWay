@@ -91,8 +91,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/groups/:groupId/members/:memberId", async (req, res) => {
     try {
       const { groupId, memberId } = req.params;
+      const { personalMemberId } = req.query;
       
+      // Validate personalMemberId is provided
+      if (!personalMemberId || typeof personalMemberId !== 'string') {
+        return res.status(422).json({ 
+          error: "personalMemberId is required to reassign memos before leaving group" 
+        });
+      }
+      
+      // Check if trying to delete the personal member
+      if (memberId === personalMemberId) {
+        return res.status(400).json({ 
+          error: "개인 메모 멤버는 삭제할 수 없습니다" 
+        });
+      }
+      
+      const groups = await storage.getGroups();
+      
+      // Verify personalMemberId belongs to "개인 메모" group
+      const personalGroup = groups.find(g => 
+        g.name === "개인 메모" && g.members.some(m => m.id === personalMemberId)
+      );
+      
+      if (!personalGroup) {
+        return res.status(422).json({ 
+          error: "Invalid personalMemberId - must belong to personal memo group" 
+        });
+      }
+      
+      // Reassign all memos from this member to personal member before deleting
+      await storage.reassignMemosToPersonal(memberId, personalMemberId);
+      
+      // Delete the member
       await storage.deleteMember(memberId);
+      
+      // Check if this was the last member in the group
+      const updatedGroups = await storage.getGroups();
+      const group = updatedGroups.find(g => g.id === groupId);
+      
+      // If group has no members left and is not the personal group, delete it
+      if (group && group.members.length === 0 && group.name !== "개인 메모") {
+        await storage.deleteGroup(groupId);
+      }
       
       res.json({ success: true });
     } catch (error: any) {
