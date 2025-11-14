@@ -235,6 +235,8 @@ export default function Home() {
       setMemoFormOpen(false);
       setEditingMemo(null);
       setSelectedLocation(null);
+      setMemoDetailOpen(false);
+      setSelectedMemo(null);
     },
   });
 

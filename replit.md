@@ -20,6 +20,12 @@ A mobile-first web application for creating and sharing location-based memos wit
 - Map automatically centers and zooms (level 3) to memo location when navigating from other tabs
 - useEffect ensures map instance is ready before attempting navigation
 
+**Map Pin Color Update on Memo Edit (November 14, 2025)**
+- Fixed issue where map pins didn't update color when memo's group was changed
+- Memo detail sheet now closes automatically after successful memo update
+- Map markers refresh immediately to reflect new group color assignment
+- Improved user experience by showing updated pin without manual sheet dismissal
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
