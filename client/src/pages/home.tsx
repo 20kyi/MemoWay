@@ -52,6 +52,7 @@ export default function Home() {
     return allIds;
   });
   const [mapInstance, setMapInstance] = useState<any>(null);
+  const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
   const { toast } = useToast();
 
   // WebSocket for real-time updates
@@ -403,13 +404,18 @@ export default function Home() {
   };
 
   const handleNavigateToLocation = (lat: number, lng: number) => {
-    if (mapInstance && window.kakao?.maps) {
-      const position = new window.kakao.maps.LatLng(lat, lng);
+    setPendingLocation({ lat, lng });
+    setActiveTab("map");
+  };
+
+  useEffect(() => {
+    if (mapInstance && pendingLocation && window.kakao?.maps) {
+      const position = new window.kakao.maps.LatLng(pendingLocation.lat, pendingLocation.lng);
       mapInstance.setCenter(position);
       mapInstance.setLevel(3);
-      setActiveTab("map");
+      setPendingLocation(null);
     }
-  };
+  }, [mapInstance, pendingLocation]);
 
   return (
     <div className="h-screen flex flex-col">
