@@ -4,6 +4,22 @@
 
 A mobile-first web application for creating and sharing location-based memos within groups. Users can drop memos at specific geographic locations (buildings/addresses), attach photos, and share them with group members. The app features an interactive map interface powered by Kakao Maps, real-time updates via WebSocket, and a Material Design-inspired UI optimized for mobile devices.
 
+## Recent Changes
+
+### November 2025
+
+**Group Membership Filtering (November 14, 2025)**
+- Fixed issue where left groups still appeared in memo form's group sharing section
+- Implemented `myMemberIds` synchronization logic that validates membership against fetched groups
+- MemoFormSheet now filters groups to only show active memberships
+- Added automatic cleanup of stale member IDs from localStorage on page load
+
+**Map Navigation Feature (November 14, 2025)**
+- Implemented "지도에서 위치 보기" (View on Map) button in memo detail sheet
+- Added `pendingLocation` state to coordinate map navigation when switching tabs
+- Map automatically centers and zooms (level 3) to memo location when navigating from other tabs
+- useEffect ensures map instance is ready before attempting navigation
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

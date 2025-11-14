@@ -84,6 +84,38 @@ export default function Home() {
     queryKey: ["/api/groups"],
   });
 
+  // groups 데이터로 myMemberIds 동기화
+  useEffect(() => {
+    if (!groupsIsFetched || groups.length === 0) return;
+
+    // 모든 그룹의 멤버 ID 수집
+    const allMemberIds = new Set<string>();
+    groups.forEach(group => {
+      group.members.forEach(member => {
+        allMemberIds.add(member.id);
+      });
+    });
+
+    // 현재 myMemberIds 중 실제로 존재하는 멤버만 유지
+    const validMemberIds = myMemberIds.filter(id => allMemberIds.has(id));
+
+    // currentMemberId가 그룹에 존재하는데 myMemberIds에 없으면 추가
+    if (currentMemberId && allMemberIds.has(currentMemberId) && !validMemberIds.includes(currentMemberId)) {
+      validMemberIds.push(currentMemberId);
+    }
+
+    // personalMemberId가 그룹에 존재하는데 myMemberIds에 없으면 추가
+    if (personalMemberId && allMemberIds.has(personalMemberId) && !validMemberIds.includes(personalMemberId)) {
+      validMemberIds.push(personalMemberId);
+    }
+
+    // 변경사항이 있으면 업데이트
+    if (JSON.stringify([...validMemberIds].sort()) !== JSON.stringify([...myMemberIds].sort())) {
+      setMyMemberIds(validMemberIds);
+      localStorage.setItem("myMemberIds", JSON.stringify(validMemberIds));
+    }
+  }, [groups, groupsIsFetched, currentMemberId, personalMemberId, myMemberIds]);
+
   // 개인 메모용 멤버 자동 생성
   useEffect(() => {
     // groups 쿼리가 완료될 때까지 대기
@@ -519,7 +551,10 @@ export default function Home() {
           latitude: selectedLocation.lat,
           longitude: selectedLocation.lng,
         } : null}
-        groups={groups.filter(g => g.name !== "개인 메모")}
+        groups={groups.filter(g => 
+          g.name !== "개인 메모" && 
+          g.members.some(m => myMemberIds.includes(m.id))
+        )}
         isLoading={createMemoMutation.isPending || updateMemoMutation.isPending}
         isPersonalMemberReady={!!personalMemberId}
         currentMemberId={currentMemberId}
