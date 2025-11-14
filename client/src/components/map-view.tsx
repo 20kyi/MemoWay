@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Navigation } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Navigation, Search, X } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
+import { useToast } from "@/hooks/use-toast";
 import type { MemoWithDetails } from "@shared/schema";
 
 interface MapViewProps {
@@ -38,7 +40,10 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, 
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const markerClickedRef = useRef(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -186,6 +191,47 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, 
     }
   };
 
+  const handleSearchAddress = () => {
+    if (!searchQuery.trim() || !map || !window.kakao?.maps) return;
+
+    setIsSearching(true);
+    const geocoder = new window.kakao.maps.services.Geocoder();
+
+    geocoder.addressSearch(searchQuery, (result: any, status: any) => {
+      setIsSearching(false);
+
+      if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
+        const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
+        
+        map.setCenter(coords);
+        map.setLevel(3);
+
+        toast({
+          title: "위치 찾기 완료",
+          description: result[0].address_name || searchQuery,
+        });
+        
+        setSearchQuery("");
+      } else {
+        toast({
+          title: "주소를 찾을 수 없습니다",
+          description: "다른 주소로 다시 시도해주세요",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearchAddress();
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+  };
+
   return (
     <div className="relative w-full h-full">
       {mapError ? (
@@ -201,6 +247,43 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, 
       ) : (
         <>
           <div ref={mapRef} className="w-full h-full" data-testid="map-container" />
+          
+          {/* 주소 검색 바 */}
+          <div className="absolute top-4 left-4 right-4 z-10">
+            <div className="flex gap-2 bg-background rounded-2xl shadow-lg p-2">
+              <div className="relative flex-1">
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
+                  placeholder="주소를 입력하세요 (예: 서울시 강남구 역삼동)"
+                  className="pr-10 border-0 focus-visible:ring-0"
+                  disabled={isSearching}
+                  data-testid="input-address-search"
+                />
+                {searchQuery && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                    onClick={handleClearSearch}
+                    data-testid="button-clear-search"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <Button
+                size="icon"
+                onClick={handleSearchAddress}
+                disabled={!searchQuery.trim() || isSearching}
+                className="h-10 w-10 flex-shrink-0"
+                data-testid="button-search-address"
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
           
           <Button
             size="icon"

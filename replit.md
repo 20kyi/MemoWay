@@ -8,6 +8,18 @@ A mobile-first web application for creating and sharing location-based memos wit
 
 ### November 2025
 
+**Address Search Feature on Map (November 14, 2025)**
+- Implemented address search functionality on the map view
+- Added floating search bar at the top of the map with modern UI
+- Kakao Maps geocoder API integration for address-to-coordinates conversion
+- Search triggered by button click or Enter key press
+- Map automatically centers and zooms to searched location (level 3)
+- Clear button (X) appears when typing to quickly reset search
+- Success toast notification shows found address
+- Error toast notification for invalid or not found addresses
+- Search input clears on successful search, remains on error for retry
+- Search button disabled during search operation to prevent duplicate requests
+
 **Memo Preservation on Group Leave (November 14, 2025)**
 - **Critical Fix**: Memos are now preserved as personal memos when users leave groups
 - Changed database schema: `memos.memberId` uses `onDelete: 'restrict'` to prevent cascade deletes
