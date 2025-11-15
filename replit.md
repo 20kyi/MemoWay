@@ -8,6 +8,20 @@ A mobile-first web application for creating and sharing location-based memos wit
 
 ### November 2025
 
+**Photo Display Improvements (November 15, 2025)**
+- Optimized photo thumbnail size from h-40 (160px) to h-28 (112px) for better mobile viewing
+- Changed from object-cover to object-contain to display full photos without cropping
+- Implemented full-size photo viewer using Dialog component
+- Click any photo thumbnail to view original at full resolution
+- Dialog features:
+  - Black semi-transparent backdrop (bg-black/95) for focus
+  - Image scaled to max-h-[90vh] with object-contain for proper aspect ratio
+  - Close via X button, outside click, or ESC key
+  - White close button in top-right corner
+- Improved accessibility by using button element for photo thumbnails
+- Grid layout: 2 columns with gap-3 spacing
+- Touch-optimized with clear hover/active states (hover:bg-accent)
+
 **Improved Map Click Behavior with "새 메모 추가" Buttons (November 15, 2025)**
 - **Smart Map Click Detection**: Map now intelligently checks for existing memos before showing creation form
   - Empty location click → Opens memo creation form
