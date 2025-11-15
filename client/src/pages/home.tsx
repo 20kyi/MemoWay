@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { MapView } from "@/components/map-view";
 import { MemoFormSheet } from "@/components/memo-form-sheet";
 import { MemoDetailSheet } from "@/components/memo-detail-sheet";
+import { MemoClusterSheet } from "@/components/memo-cluster-sheet";
 import { MemoList } from "@/components/memo-list";
 import { GroupManagement } from "@/components/group-management";
 import { SettingsView } from "@/components/settings-view";
@@ -18,8 +19,10 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"map" | "memos" | "groups" | "settings">("map");
   const [memoFormOpen, setMemoFormOpen] = useState(false);
   const [memoDetailOpen, setMemoDetailOpen] = useState(false);
+  const [memoClusterOpen, setMemoClusterOpen] = useState(false);
   const [editingMemo, setEditingMemo] = useState<MemoWithDetails | null>(null);
   const [selectedMemo, setSelectedMemo] = useState<MemoWithDetails | null>(null);
+  const [clusterMemoIds, setClusterMemoIds] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
     lng: number;
@@ -474,6 +477,10 @@ export default function Home() {
                   setMemoDetailOpen(true);
                 }
               }}
+              onClusterClick={(memoIds) => {
+                setClusterMemoIds(memoIds);
+                setMemoClusterOpen(true);
+              }}
               userLocation={userLocation}
               onMapReady={setMapInstance}
             />
@@ -570,6 +577,19 @@ export default function Home() {
         isPersonalMemberReady={!!personalMemberId}
         currentMemberId={currentMemberId}
         editMode={!!editingMemo}
+      />
+
+      <MemoClusterSheet
+        open={memoClusterOpen}
+        onOpenChange={setMemoClusterOpen}
+        memos={memos.filter(m => clusterMemoIds.includes(m.id))}
+        onMemoSelect={(memoId) => {
+          const memo = memos.find(m => m.id === memoId);
+          if (memo) {
+            setSelectedMemo(memo);
+            setMemoDetailOpen(true);
+          }
+        }}
       />
 
       <MemoDetailSheet
