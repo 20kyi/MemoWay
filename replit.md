@@ -8,6 +8,18 @@ A mobile-first web application for creating and sharing location-based memos wit
 
 ### November 2025
 
+**Memo Clustering for Same-Location Browsing (November 15, 2025)**
+- Implemented intelligent memo clustering for locations with multiple memos
+- Added `groupMemosByLocation()` utility that groups memos by rounded coordinates (6-decimal precision)
+- Cluster markers display count badge showing number of memos at that location
+- Smart color logic: single color if all memos from same group, neutral gray (#6b7280) for mixed groups
+- Created MemoClusterSheet component: bottom sheet displaying all memos at a location
+- Memos in cluster sheet sorted by most recent first for better mobile UX
+- User flow: click cluster marker → see memo list → tap memo → view details
+- Each cluster card shows: content preview, photos, group badge, author, creation date
+- Seamless integration with existing MemoDetailSheet for viewing individual memos
+- Touch-optimized with 48px+ tap targets and Material Design bottom sheet pattern
+
 **Memo Cascade Delete on Group Leave (November 15, 2025)**
 - **Behavior Change**: Memos are now deleted when users leave groups (reverted from preservation)
 - Changed database schema: `memos.memberId` uses `onDelete: 'cascade'` for automatic deletion
