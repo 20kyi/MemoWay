@@ -102,15 +102,57 @@ function createClusterMarkerContent(color: string, count: number): string {
   `;
 }
 
+function createSearchMarkerContent(): string {
+  return `
+    <div style="
+      position: relative;
+      width: 40px;
+      height: 50px;
+      animation: bounce 1s ease-in-out 3;
+    ">
+      <svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+          </filter>
+        </defs>
+        <path d="M20 0C11.163 0 4 7.163 4 16c0 12 16 34 16 34s16-22 16-34C36 7.163 28.837 0 20 0z" 
+              fill="#ef4444" 
+              stroke="#ffffff" 
+              stroke-width="3"
+              filter="url(#shadow)"/>
+        <circle cx="20" cy="16" r="7" fill="#ffffff"/>
+        <circle cx="20" cy="16" r="4" fill="#ef4444"/>
+      </svg>
+    </div>
+    <style>
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+    </style>
+  `;
+}
+
 export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick, userLocation, onMapReady }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
+  const [searchMarker, setSearchMarker] = useState<any>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const markerClickedRef = useRef(false);
   const { toast } = useToast();
+
+  // Cleanup search marker when component unmounts
+  useEffect(() => {
+    return () => {
+      if (searchMarker) {
+        searchMarker.setMap(null);
+      }
+    };
+  }, [searchMarker]);
 
   // Initialize map only once
   useEffect(() => {
@@ -323,6 +365,24 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
 
       if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
         const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
+        
+        // Remove previous search marker if exists
+        if (searchMarker) {
+          searchMarker.setMap(null);
+        }
+
+        // Create search marker
+        const markerContent = document.createElement('div');
+        markerContent.innerHTML = createSearchMarkerContent();
+        
+        const customOverlay = new window.kakao.maps.CustomOverlay({
+          position: coords,
+          content: markerContent,
+          yAnchor: 1,
+        });
+        
+        customOverlay.setMap(map);
+        setSearchMarker(customOverlay);
         
         map.setCenter(coords);
         map.setLevel(3);
