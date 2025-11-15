@@ -2,125 +2,7 @@
 
 ## Overview
 
-A mobile-first web application for creating and sharing location-based memos within groups. Users can drop memos at specific geographic locations (buildings/addresses), attach photos, and share them with group members. The app features an interactive map interface powered by Kakao Maps, real-time updates via WebSocket, and a Material Design-inspired UI optimized for mobile devices.
-
-## Recent Changes
-
-### November 2025
-
-**Individual Memo Marker Icon Customization (November 15, 2025)**
-- Implemented marker icon selection for individual memos in memo creation form
-- Added markerIcon field to memos database table (varchar, default 'default')
-- 8 icon options available: default, travel (여행), love (사랑), food (맛집), cafe (카페), shopping (쇼핑), sport (운동), work (업무)
-- UI: 4-column grid icon selector in MemoFormSheet with visual feedback
-- Rendering priority: memo.markerIcon > group.markerIcon > 'default'
-- Added data-marker-icon and aria-label attributes to marker SVG elements for testing and accessibility
-- Backend: POST/PATCH /api/memos endpoints handle markerIcon field
-- Frontend: FormData transmits markerIcon with photo uploads
-- Map markers update immediately to reflect selected icons
-
-**Address Search Marker Feature (November 15, 2025)**
-- Added visual marker to indicate searched location on the map
-- Marker design: Red pin (#ef4444) with pure SVG graphics (no emoji)
-- Features:
-  - Larger size (40x50px) than memo markers for easy identification
-  - White outer circle with red inner dot (bullseye effect)
-  - Bounce animation plays 3 times on creation for visibility
-  - Drop shadow for depth
-  - Non-interactive (purely visual indicator)
-- Behavior:
-  - Appears automatically after successful address search
-  - Previous marker removed when new search performed
-  - Only one search marker visible at a time
-  - Persists until new search or page refresh
-  - Does not block memo creation at that location
-- Implementation:
-  - Added `searchMarker` state in MapView component
-  - `createSearchMarkerContent()` generates pure SVG marker
-  - Cleanup logic removes marker on component unmount
-  - Complies with no-emoji UI policy
-
-**Photo Display Improvements (November 15, 2025)**
-- Optimized photo thumbnail size from h-40 (160px) to h-28 (112px) for better mobile viewing
-- Changed from object-cover to object-contain to display full photos without cropping
-- Implemented full-size photo viewer using Dialog component
-- Click any photo thumbnail to view original at full resolution
-- Dialog features:
-  - Black semi-transparent backdrop (bg-black/95) for focus
-  - Image scaled to max-h-[90vh] with object-contain for proper aspect ratio
-  - Close via X button, outside click, or ESC key
-  - White close button in top-right corner
-- Improved accessibility by using button element for photo thumbnails
-- Grid layout: 2 columns with gap-3 spacing
-- Touch-optimized with clear hover/active states (hover:bg-accent)
-
-**Improved Map Click Behavior with "새 메모 추가" Buttons (November 15, 2025)**
-- **Smart Map Click Detection**: Map now intelligently checks for existing memos before showing creation form
-  - Empty location click → Opens memo creation form
-  - Location with memo(s) → Opens memo detail sheet or cluster sheet (never creation form)
-  - Fixed critical stale closure bug by separating map initialization and click handler registration
-- **"새 메모 추가" Button in Detail Sheet**: Users can add another memo at the same location from detail view
-- **"새 메모 추가" Button in Cluster Sheet**: Quick access to create memo at clustered location
-- **Technical Implementation**:
-  - Split MapView useEffect into two: map initialization (runs once) + click handler (re-registers with fresh memos)
-  - Click handler uses `groupMemosByLocation()` to detect existing memos at clicked coordinates
-  - Cleanup function removes old listener before adding new one to prevent memory leaks
-  - Both "새 메모 추가" buttons pre-fill location data and close current sheet before opening form
-- **User Flow Enhancement**: Seamless transition from viewing memos to creating new ones at same location
-
-**Memo Clustering for Same-Location Browsing (November 15, 2025)**
-- Implemented intelligent memo clustering for locations with multiple memos
-- Added `groupMemosByLocation()` utility that groups memos by rounded coordinates (6-decimal precision)
-- Cluster markers display count badge showing number of memos at that location
-- Smart color logic: single color if all memos from same group, neutral gray (#6b7280) for mixed groups
-- Created MemoClusterSheet component: bottom sheet displaying all memos at a location
-- Memos in cluster sheet sorted by most recent first for better mobile UX
-- User flow: click cluster marker → see memo list → tap memo → view details
-- Each cluster card shows: content preview, photos, group badge, author, creation date
-- Seamless integration with existing MemoDetailSheet for viewing individual memos
-- Touch-optimized with 48px+ tap targets and Material Design bottom sheet pattern
-
-**Memo Cascade Delete on Group Leave (November 15, 2025)**
-- **Behavior Change**: Memos are now deleted when users leave groups (reverted from preservation)
-- Changed database schema: `memos.memberId` uses `onDelete: 'cascade'` for automatic deletion
-- Removed `reassignMemosToPersonal()` storage method (no longer needed)
-- Simplified DELETE member API: no longer requires personalMemberId parameter
-- Added server-side protection: prevents deletion of personal memo member (400 error)
-- Frontend invalidates both `/api/groups` and `/api/memos` queries after leaving group
-- Flow: verify not personal member → delete member → cascade delete memos → cleanup empty group
-- Personal memo member cannot be deleted to protect personal memos
-- Empty groups are automatically deleted after last member leaves (except "개인 메모")
-- This is the opposite of the previous requirement where memos were preserved
-
-**Address Search Feature on Map (November 14, 2025)**
-- Implemented address search functionality on the map view
-- Added floating search bar at the top of the map with modern UI
-- Kakao Maps geocoder API integration for address-to-coordinates conversion
-- Search triggered by button click or Enter key press
-- Map automatically centers and zooms to searched location (level 3)
-- Clear button (X) appears when typing to quickly reset search
-- Success toast notification shows found address
-- Error toast notification for invalid or not found addresses
-- Search input clears on successful search, remains on error for retry
-- Search button disabled during search operation to prevent duplicate requests
-
-**Group Membership Filtering (November 14, 2025)**
-- Fixed issue where left groups still appeared in memo form's group sharing section
-- Implemented `myMemberIds` synchronization logic that validates membership against fetched groups
-- MemoFormSheet now filters groups to only show active memberships
-- Added automatic cleanup of stale member IDs from localStorage on page load
-
-**Map Navigation Feature (November 14, 2025)**
-- Implemented "지도에서 위치 보기" (View on Map) button in memo detail sheet
-- Added `pendingLocation` state to coordinate map navigation when switching tabs
-- Map automatically centers and zooms (level 3) to memo location when navigating from other tabs
-- useEffect ensures map instance is ready before attempting navigation
-
-**Map Pin Color Update on Memo Edit (November 14, 2025)**
-- Fixed issue where map pins didn't update color when memo's group was changed
-- Memo detail sheet now closes automatically after successful memo update
-- Map markers refresh immediately to reflect new group color assignment
-- Improved user experience by showing updated pin without manual sheet dismissal
+A mobile-first web application enabling users to create and share location-based memos within defined groups. Key features include an interactive map for dropping memos at specific geographic locations, attaching photos, and real-time updates. The application aims to provide a seamless and intuitive experience for collaborative location-based information sharing.
 
 ## User Preferences
 
@@ -130,133 +12,37 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 
-**Framework & Build Tool**
-- React 18 with TypeScript for type-safe component development
-- Vite as the build tool and development server for fast HMR and optimized builds
-- Wouter for lightweight client-side routing (replacing React Router)
-
-**UI Component System**
-- shadcn/ui component library built on Radix UI primitives
-- Material Design principles for mobile-optimized layouts
-- Tailwind CSS for utility-first styling with custom design tokens
-- Roboto font family loaded via Google Fonts CDN
-- Material Icons for consistent iconography
-
-**State Management**
-- TanStack Query (React Query) for server state management, caching, and data synchronization
-- React Hook Form with Zod for type-safe form validation
-- Local React state for UI-only concerns (active tabs, modals, etc.)
-
-**Map Integration**
-- Kakao Maps SDK for interactive map rendering and geocoding
-- Custom colored map markers using CustomOverlay for visual differentiation
-  - Group memos display in their group's selected color
-  - Personal memos display in purple (#9333ea)
-  - 8 preset colors available: blue, red, green, yellow, purple, pink, orange, teal
-- Marker click opens memo detail sheet (not creation form)
-- Map click (empty space) opens new memo creation form
-- User location tracking with geolocation API
-- Click-to-place memo functionality with reverse geocoding
-- markerClickedRef flag prevents map click event propagation from markers
-
-**Key Design Decisions**
-- Mobile-first responsive design with bottom sheet patterns
-- Full-screen map as primary interface with overlay sheets for content
-- Bottom navigation bar for main app sections (map, memos, groups, settings)
-- Floating Action Button (FAB) pattern for quick memo creation
-- Touch-optimized components with minimum 48px touch targets
+The frontend is built with **React 18** and **TypeScript**, using **Vite** for tooling. UI components leverage **shadcn/ui** (based on Radix UI) and **Tailwind CSS** for styling, adhering to **Material Design** principles for a mobile-first experience. **Wouter** handles client-side routing. State management relies on **TanStack Query** for server state, **React Hook Form** with **Zod** for form validation, and local React state for UI concerns. **Kakao Maps SDK** is integrated for interactive maps, custom colored markers (group-specific, personal in purple), and geocoding services. The design prioritizes full-screen map interaction, bottom navigation, and touch-optimized components.
 
 ### Backend Architecture
 
-**Server Framework**
-- Express.js for HTTP server and REST API endpoints
-- TypeScript for type safety across frontend and backend
-- ESM module system throughout the stack
-
-**API Design**
-- RESTful endpoints for CRUD operations on groups, members, and memos
-- Multipart form data handling with Multer for photo uploads
-- JSON request/response format
-- Shared Zod schemas between client and server for validation consistency
-
-**Database Layer**
-- Neon serverless PostgreSQL as the database provider
-- Drizzle ORM for type-safe database queries and migrations
-- Connection pooling via @neondatabase/serverless
-- WebSocket support using ws library for database connections
-
-**Storage Pattern**
-- Repository pattern with `IStorage` interface for data access abstraction
-- `DatabaseStorage` implementation handles all database operations
-- Separation of concerns: routes handle HTTP, storage handles data persistence
-
-**Key Architectural Decisions**
-- Shared schema definitions in `/shared` directory accessible to both client and server
-- Path aliases configured for clean imports (@/, @shared/)
-- Database schema includes soft relationships via foreign keys with cascade deletes
-- UUID primary keys generated at database level for distributed system compatibility
+The backend utilizes **Express.js** with **TypeScript** and ESM modules, providing a **RESTful API** for CRUD operations on groups, members, and memos. **Multer** handles photo uploads. **Neon serverless PostgreSQL** is the primary database, accessed via **Drizzle ORM** for type-safe queries. A **Repository pattern** abstracts data access. Key architectural decisions include shared Zod schemas between client and server, path aliases, and UUID primary keys.
 
 ### Data Storage
 
-**Database Schema**
-
-Tables:
-- `groups`: Group entities with name, unique invite codes, and customizable color (varchar, default '#3b82f6')
-- `members`: Users who belong to groups (membership model)
-- `memos`: Location-based notes with coordinates, content, and building information
-- `photos`: Image attachments linked to memos
-
-Key Relationships:
-- Groups have many members (one-to-many)
-- Groups have many memos (one-to-many with optional relationship)
-- Memos belong to one member (many-to-one)
-- Memos have many photos (one-to-one)
-- Cascade deletes ensure referential integrity
-
-**Schema Design Rationale**
-- Denormalized building name and address in memos for performance (avoids geocoding on every read)
-- Separate photos table allows multiple images per memo
-- Optional group relationship on memos supports both personal and shared memos
-- Member-based authorship (not user accounts) simplifies onboarding
-- Group color field enables visual differentiation of memos on the map
+The database schema includes `groups`, `members`, `memos`, and `photos` tables. Relationships are designed with cascade deletes to maintain integrity. Memos can be personal or group-assigned. Denormalization is used for performance, and a separate photos table allows multiple images per memo.
 
 ### Real-Time Communication
 
-**WebSocket Implementation**
-- WebSocket server runs alongside Express HTTP server
-- Real-time notifications for memo creation and deletion
-- Automatic query invalidation triggers UI updates across connected clients
-- Protocol and host detection for proper ws:// vs wss:// connection
+A **WebSocket server** runs alongside the Express HTTP server, powered by the `ws` library. It facilitates real-time notifications for memo creation and deletion, ensuring UI updates across connected clients without manual refresh.
 
-**Use Cases**
-- Broadcast new memos to all connected group members
-- Notify on memo deletions
-- Enable collaborative memo browsing without manual refresh
+## External Dependencies
 
-### External Dependencies
+### Third-Party Services
+- **Kakao Maps API**: Map rendering, geocoding, and reverse geocoding.
+- **Neon Database**: Serverless PostgreSQL hosting.
+- **Google Fonts CDN**: Delivers Roboto font.
+- **Material Icons**: Provides iconography.
 
-**Third-Party Services**
-- **Kakao Maps API**: Map rendering, geocoding, and reverse geocoding services (requires VITE_KAKAO_API_KEY)
-- **Neon Database**: Serverless PostgreSQL hosting with WebSocket support
-- **Google Fonts CDN**: Roboto font family delivery
-- **Material Icons**: Icon font from Google
+### Key Libraries
+- **Radix UI**: Accessible, unstyled component primitives.
+- **Drizzle ORM**: Type-safe SQL query builder.
+- **Zod**: Runtime type validation and schema definition.
+- **TanStack Query**: Asynchronous state management and caching.
+- **date-fns**: Date formatting and manipulation.
+- **Multer**: Multipart form parsing for file uploads.
+- **ws**: WebSocket implementation for Node.js.
 
-**Key Libraries**
-- **Radix UI**: Accessible, unstyled component primitives for dialogs, sheets, forms, etc.
-- **Drizzle ORM**: Type-safe SQL query builder with schema-first design
-- **Zod**: Runtime type validation and schema definition
-- **TanStack Query**: Async state management with caching
-- **date-fns**: Date formatting and manipulation (with Korean locale support)
-- **Multer**: Multipart form parsing for file uploads
-- **ws**: WebSocket implementation for Node.js
-
-**Development Tools**
-- **Vite plugins**: Runtime error overlay, Replit-specific development features
-- **TypeScript**: Static type checking across the entire codebase
-- **ESBuild**: Production bundling for server code
-- **Drizzle Kit**: Database migration management
-
-**Configuration Notes**
-- Environment variable `DATABASE_URL` required for PostgreSQL connection
-- Environment variable `VITE_KAKAO_API_KEY` required for map functionality
-- File upload limits: 5MB max size, restricted to image formats (JPEG, PNG, GIF, WebP)
+### Configuration Notes
+- Requires `DATABASE_URL` and `VITE_KAKAO_API_KEY` environment variables.
+- File uploads are limited to 5MB and image formats.

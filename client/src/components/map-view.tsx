@@ -227,7 +227,10 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
     const handleMapClick = (mouseEvent: any) => {
       // Ignore map clicks if a marker was just clicked
       if (markerClickedRef.current) {
-        markerClickedRef.current = false;
+        // Reset the flag after a delay to ensure all events are processed
+        setTimeout(() => {
+          markerClickedRef.current = false;
+        }, 100);
         return;
       }
       
@@ -338,14 +341,20 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
       customOverlay.setMap(map);
       
       const clickHandler = (e: Event) => {
+        e.preventDefault();
         e.stopPropagation();
+        
+        // Set flag to prevent map click handler from firing
         markerClickedRef.current = true;
         
-        if (isSingleMemo) {
-          onMarkerClick(memo.id);
-        } else if (onClusterClick) {
-          onClusterClick(cluster.memos.map(m => m.id));
-        }
+        // Use setTimeout to ensure this runs after the current event cycle
+        setTimeout(() => {
+          if (isSingleMemo) {
+            onMarkerClick(memo.id);
+          } else if (onClusterClick) {
+            onClusterClick(cluster.memos.map(m => m.id));
+          }
+        }, 0);
       };
       
       contentDiv.addEventListener('click', clickHandler);
