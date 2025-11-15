@@ -10,11 +10,41 @@ interface MapViewProps {
   onLocationSelect: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
   memos: MemoWithDetails[];
   onMarkerClick: (memoId: string) => void;
+  onClusterClick?: (memoIds: string[]) => void;
   userLocation: { lat: number; lng: number } | null;
   onMapReady?: (map: any) => void;
 }
 
 const PERSONAL_MEMO_COLOR = '#9333ea';
+
+interface MemoCluster {
+  key: string;
+  memos: MemoWithDetails[];
+  lat: number;
+  lng: number;
+}
+
+function groupMemosByLocation(memos: MemoWithDetails[]): MemoCluster[] {
+  const grouped = new Map<string, MemoWithDetails[]>();
+  
+  memos.forEach(memo => {
+    const lat = memo.latitude.toFixed(6);
+    const lng = memo.longitude.toFixed(6);
+    const key = `${lat},${lng}`;
+    
+    if (!grouped.has(key)) {
+      grouped.set(key, []);
+    }
+    grouped.get(key)!.push(memo);
+  });
+  
+  return Array.from(grouped.entries()).map(([key, clusterMemos]) => ({
+    key,
+    memos: clusterMemos,
+    lat: clusterMemos[0].latitude,
+    lng: clusterMemos[0].longitude,
+  }));
+}
 
 function createMarkerContent(color: string): string {
   return `
@@ -35,7 +65,44 @@ function createMarkerContent(color: string): string {
   `;
 }
 
-export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, onMapReady }: MapViewProps) {
+function createClusterMarkerContent(color: string, count: number): string {
+  return `
+    <div style="
+      position: relative;
+      width: 30px;
+      height: 40px;
+      cursor: pointer;
+    ">
+      <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+              fill="${color}" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        <circle cx="15" cy="15" r="6" fill="#ffffff"/>
+      </svg>
+      <div style="
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background-color: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        pointer-events: none;
+      ">${count}</div>
+    </div>
+  `;
+}
+
+export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick, userLocation, onMapReady }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
@@ -116,13 +183,19 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, 
       }
     });
 
-    const newMarkers = memos.map(memo => {
-      const position = new window.kakao.maps.LatLng(memo.latitude, memo.longitude);
+    const clusters = groupMemosByLocation(memos);
+    
+    const newMarkers = clusters.map(cluster => {
+      const position = new window.kakao.maps.LatLng(cluster.lat, cluster.lng);
       
+      const isSingleMemo = cluster.memos.length === 1;
+      const memo = cluster.memos[0];
       const markerColor = memo.group?.color || PERSONAL_MEMO_COLOR;
       
       const contentDiv = document.createElement('div');
-      contentDiv.innerHTML = createMarkerContent(markerColor);
+      contentDiv.innerHTML = isSingleMemo 
+        ? createMarkerContent(markerColor)
+        : createClusterMarkerContent(markerColor, cluster.memos.length);
       contentDiv.style.cursor = 'pointer';
       
       const customOverlay = new window.kakao.maps.CustomOverlay({
@@ -136,7 +209,12 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, 
       const clickHandler = (e: Event) => {
         e.stopPropagation();
         markerClickedRef.current = true;
-        onMarkerClick(memo.id);
+        
+        if (isSingleMemo) {
+          onMarkerClick(memo.id);
+        } else if (onClusterClick) {
+          onClusterClick(cluster.memos.map(m => m.id));
+        }
       };
       
       contentDiv.addEventListener('click', clickHandler);
@@ -160,7 +238,7 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, userLocation, 
         }
       });
     };
-  }, [map, memos, onMarkerClick]);
+  }, [map, memos, onMarkerClick, onClusterClick]);
 
   useEffect(() => {
     if (!map || !userLocation) return;
