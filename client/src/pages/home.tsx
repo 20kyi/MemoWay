@@ -590,6 +590,19 @@ export default function Home() {
             setMemoDetailOpen(true);
           }
         }}
+        onAddMemo={() => {
+          const clusterMemos = memos.filter(m => clusterMemoIds.includes(m.id));
+          if (clusterMemos.length > 0) {
+            const firstMemo = clusterMemos[0];
+            setSelectedLocation({
+              lat: firstMemo.latitude,
+              lng: firstMemo.longitude,
+              address: firstMemo.address,
+              buildingName: firstMemo.buildingName,
+            });
+            setMemoFormOpen(true);
+          }
+        }}
       />
 
       <MemoDetailSheet
@@ -608,6 +621,17 @@ export default function Home() {
           }
         }}
         onNavigateToLocation={handleNavigateToLocation}
+        onAddMemo={() => {
+          if (selectedMemo) {
+            setSelectedLocation({
+              lat: selectedMemo.latitude,
+              lng: selectedMemo.longitude,
+              address: selectedMemo.address,
+              buildingName: selectedMemo.buildingName,
+            });
+            setMemoFormOpen(true);
+          }
+        }}
       />
     </div>
   );
