@@ -300,9 +300,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                       variant="destructive"
                       className="flex-1"
                       onClick={() => onLeaveGroup(group.id, myMember.id)}
-                      disabled={!personalMemberId}
                       data-testid={`button-leave-${group.id}`}
-                      title={!personalMemberId ? "개인 메모 그룹 설정 중입니다" : ""}
                     >
                       나가기
                     </Button>

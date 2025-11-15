@@ -37,7 +37,6 @@ export interface IStorage {
   updateMemo(id: string, memo: Partial<InsertMemo>): Promise<Memo>;
   deleteMemo(id: string): Promise<void>;
   clearGroupFromMemos(groupId: string): Promise<void>;
-  reassignMemosToPersonal(fromMemberId: string, toMemberId: string): Promise<void>;
   
   // Photos
   createPhoto(photo: InsertPhoto): Promise<Photo>;
@@ -147,16 +146,6 @@ export class DatabaseStorage implements IStorage {
       .update(memos)
       .set({ groupId: null })
       .where(eq(memos.groupId, groupId));
-  }
-
-  async reassignMemosToPersonal(fromMemberId: string, toMemberId: string): Promise<void> {
-    await db
-      .update(memos)
-      .set({ 
-        memberId: toMemberId,
-        groupId: null 
-      })
-      .where(eq(memos.memberId, fromMemberId));
   }
 
   async deleteGroup(groupId: string): Promise<void> {

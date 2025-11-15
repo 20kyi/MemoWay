@@ -91,39 +91,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/groups/:groupId/members/:memberId", async (req, res) => {
     try {
       const { groupId, memberId } = req.params;
-      const { personalMemberId } = req.query;
       
-      // Validate personalMemberId is provided
-      if (!personalMemberId || typeof personalMemberId !== 'string') {
-        return res.status(422).json({ 
-          error: "personalMemberId is required to reassign memos before leaving group" 
-        });
-      }
+      // Check if trying to delete a member from the personal group
+      const groups = await storage.getGroups();
+      const personalGroup = groups.find(g => g.name === "개인 메모");
       
-      // Check if trying to delete the personal member
-      if (memberId === personalMemberId) {
+      if (personalGroup && personalGroup.members.some(m => m.id === memberId)) {
         return res.status(400).json({ 
           error: "개인 메모 멤버는 삭제할 수 없습니다" 
         });
       }
       
-      const groups = await storage.getGroups();
-      
-      // Verify personalMemberId belongs to "개인 메모" group
-      const personalGroup = groups.find(g => 
-        g.name === "개인 메모" && g.members.some(m => m.id === personalMemberId)
-      );
-      
-      if (!personalGroup) {
-        return res.status(422).json({ 
-          error: "Invalid personalMemberId - must belong to personal memo group" 
-        });
-      }
-      
-      // Reassign all memos from this member to personal member before deleting
-      await storage.reassignMemosToPersonal(memberId, personalMemberId);
-      
-      // Delete the member
+      // Delete the member (memos will be cascade deleted)
       await storage.deleteMember(memberId);
       
       // Check if this was the last member in the group

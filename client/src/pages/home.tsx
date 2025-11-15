@@ -303,10 +303,7 @@ export default function Home() {
 
   const leaveGroupMutation = useMutation({
     mutationFn: async (data: { groupId: string; memberId: string }) => {
-      if (!personalMemberId) {
-        throw new Error("개인 메모 그룹이 설정되지 않았습니다. 잠시 후 다시 시도해주세요");
-      }
-      return apiRequest("DELETE", `/api/groups/${data.groupId}/members/${data.memberId}?personalMemberId=${personalMemberId}`);
+      return apiRequest("DELETE", `/api/groups/${data.groupId}/members/${data.memberId}`);
     },
     onSuccess: (_, variables) => {
       setMyMemberIds(prev => {
@@ -321,6 +318,7 @@ export default function Home() {
       }
       
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
         title: "그룹 나가기 완료",
         description: "그룹에서 나갔습니다",

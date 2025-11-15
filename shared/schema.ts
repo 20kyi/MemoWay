@@ -29,7 +29,7 @@ export const memos = pgTable("memos", {
   longitude: doublePrecision("longitude").notNull(),
   content: text("content").notNull(),
   groupId: varchar("group_id").references(() => groups.id, { onDelete: "set null" }),
-  memberId: varchar("member_id").notNull().references(() => members.id, { onDelete: "restrict" }),
+  memberId: varchar("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
