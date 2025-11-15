@@ -8,13 +8,26 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Camera, X } from "lucide-react";
+import { Camera, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase } from "lucide-react";
+import { markerIconTypes, type MarkerIconType } from "@shared/schema";
+
+const MARKER_ICONS: Array<{ type: MarkerIconType; name: string; icon: any }> = [
+  { type: 'default', name: '기본', icon: MapPin },
+  { type: 'travel', name: '여행', icon: Plane },
+  { type: 'love', name: '사랑', icon: Heart },
+  { type: 'food', name: '맛집', icon: Utensils },
+  { type: 'cafe', name: '카페', icon: Coffee },
+  { type: 'shopping', name: '쇼핑', icon: ShoppingBag },
+  { type: 'sport', name: '운동', icon: Trophy },
+  { type: 'work', name: '업무', icon: Briefcase },
+];
 
 const memoFormSchema = z.object({
   buildingName: z.string().min(1, "건물명을 입력하세요"),
   address: z.string().min(1, "주소를 입력하세요"),
   content: z.string().min(1, "메모를 입력하세요"),
   groupIds: z.array(z.string()).optional().default([]),
+  markerIcon: z.enum(markerIconTypes).default('default'),
 });
 
 type MemoFormValues = z.infer<typeof memoFormSchema>;
@@ -30,6 +43,7 @@ interface MemoFormSheetProps {
     longitude: number;
     content?: string;
     groupIds?: string[];
+    markerIcon?: string;
     existingPhotos?: Array<{ id: string; url: string }>;
   } | null;
   groups: Array<{ id: string; name: string }>;
@@ -64,6 +78,7 @@ export function MemoFormSheet({
       address: initialData?.address || "",
       content: initialData?.content || "",
       groupIds: initialData?.groupIds || [],
+      markerIcon: (initialData?.markerIcon as MarkerIconType) || 'default',
     },
   });
 
@@ -75,6 +90,7 @@ export function MemoFormSheet({
         address: initialData.address || "",
         content: initialData.content || "",
         groupIds: initialData.groupIds || [],
+        markerIcon: (initialData.markerIcon as MarkerIconType) || 'default',
       });
       setExistingPhotos(initialData.existingPhotos || []);
       setDeletedPhotoIds([]);
@@ -200,6 +216,38 @@ export function MemoFormSheet({
                   )}
                 </div>
               </div>
+
+              <FormField
+                control={form.control}
+                name="markerIcon"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>마커 아이콘</FormLabel>
+                    <FormControl>
+                      <div className="grid grid-cols-4 gap-2">
+                        {MARKER_ICONS.map((markerIcon) => {
+                          const Icon = markerIcon.icon;
+                          const isSelected = field.value === markerIcon.type;
+                          return (
+                            <Button
+                              key={markerIcon.type}
+                              type="button"
+                              variant={isSelected ? "default" : "outline"}
+                              className="h-auto py-3 flex flex-col items-center gap-1"
+                              onClick={() => field.onChange(markerIcon.type)}
+                              data-testid={`button-marker-${markerIcon.type}`}
+                            >
+                              <Icon className="h-5 w-5" />
+                              <span className="text-xs">{markerIcon.name}</span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

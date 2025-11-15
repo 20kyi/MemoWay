@@ -132,9 +132,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: z.string().min(1, "메모 내용을 입력하세요").max(2000),
         memberId: z.string().min(1, "멤버 ID가 필요합니다"),
         groupId: z.string().optional(),
+        markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).default('default'),
       });
       
-      const { buildingName, address, latitude, longitude, content, memberId, groupId } = bodySchema.parse(req.body);
+      const { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon } = bodySchema.parse(req.body);
       
       // Verify member exists
       const memberGroups = await storage.getGroups();
@@ -151,6 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content,
         memberId,
         groupId: groupId || null,
+        markerIcon,
       });
 
       const files = req.files as Express.Multer.File[];
@@ -217,6 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: z.string().min(1, "주소를 입력하세요").max(500),
         content: z.string().min(1, "메모 내용을 입력하세요").max(2000),
         groupId: z.string().optional().transform(val => val === "" ? null : val),
+        markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).optional(),
         deletedPhotoIds: z.string().optional(),
       });
       
@@ -230,6 +233,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: updateData.content,
         groupId: updateData.groupId ?? null,
       };
+      
+      // Add markerIcon if provided
+      if (updateData.markerIcon) {
+        memoUpdate.markerIcon = updateData.markerIcon;
+      }
       
       // Verify memo exists
       const existingMemo = await storage.getMemoById(req.params.id);

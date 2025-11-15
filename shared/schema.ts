@@ -31,6 +31,7 @@ export const memos = pgTable("memos", {
   content: text("content").notNull(),
   groupId: varchar("group_id").references(() => groups.id, { onDelete: "set null" }),
   memberId: varchar("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+  markerIcon: varchar("marker_icon").notNull().default('default'),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -98,6 +99,8 @@ export const insertMemoSchema = createInsertSchema(memos).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  markerIcon: z.enum(markerIconTypes).default('default'),
 });
 
 export const insertPhotoSchema = createInsertSchema(photos).omit({

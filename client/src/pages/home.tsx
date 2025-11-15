@@ -171,6 +171,7 @@ export default function Home() {
       formData.append("latitude", selectedLocation?.lat.toString() || "0");
       formData.append("longitude", selectedLocation?.lng.toString() || "0");
       formData.append("content", data.content);
+      formData.append("markerIcon", data.markerIcon || "default");
       
       // 개인 메모인지 그룹 메모인지 결정
       const isPersonalMemo = !data.groupIds || data.groupIds.length === 0;
@@ -209,6 +210,10 @@ export default function Home() {
       formData.append("buildingName", data.buildingName);
       formData.append("address", data.address);
       formData.append("content", data.content);
+      
+      if (data.markerIcon) {
+        formData.append("markerIcon", data.markerIcon);
+      }
       
       // Only send groupId if a group is selected
       if (data.groupIds && data.groupIds.length > 0) {
@@ -566,6 +571,7 @@ export default function Home() {
           longitude: editingMemo.longitude,
           content: editingMemo.content,
           groupIds: editingMemo.groupId ? [editingMemo.groupId] : [],
+          markerIcon: editingMemo.markerIcon || 'default',
           existingPhotos: editingMemo.photos.map(p => ({ id: p.id, url: p.url })),
         } : selectedLocation ? {
           buildingName: selectedLocation.buildingName,
