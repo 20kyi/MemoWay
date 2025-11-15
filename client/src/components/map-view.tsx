@@ -141,6 +141,29 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
           }
           
           const latlng = mouseEvent.latLng;
+          const clickedLat = latlng.getLat().toFixed(6);
+          const clickedLng = latlng.getLng().toFixed(6);
+          
+          // Check if there are memos at this location
+          const clusters = groupMemosByLocation(memos);
+          const existingCluster = clusters.find(cluster => {
+            const clusterLat = cluster.lat.toFixed(6);
+            const clusterLng = cluster.lng.toFixed(6);
+            return clusterLat === clickedLat && clusterLng === clickedLng;
+          });
+          
+          if (existingCluster) {
+            // Location has memos - show memo detail or cluster
+            markerClickedRef.current = true;
+            if (existingCluster.memos.length === 1) {
+              onMarkerClick(existingCluster.memos[0].id);
+            } else if (onClusterClick) {
+              onClusterClick(existingCluster.memos.map(m => m.id));
+            }
+            return;
+          }
+          
+          // No memos at this location - show memo form
           const geocoder = new window.kakao.maps.services.Geocoder();
           
           geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result: any, status: any) {
