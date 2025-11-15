@@ -1,7 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, Calendar, User, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { MemoWithDetails } from "@shared/schema";
@@ -11,9 +12,10 @@ interface MemoClusterSheetProps {
   onOpenChange: (open: boolean) => void;
   memos: MemoWithDetails[];
   onMemoSelect: (memoId: string) => void;
+  onAddMemo?: () => void;
 }
 
-export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect }: MemoClusterSheetProps) {
+export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect, onAddMemo }: MemoClusterSheetProps) {
   if (memos.length === 0) return null;
 
   const location = memos[0];
@@ -42,6 +44,22 @@ export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect }: Me
             </Badge>
           </SheetTitle>
         </SheetHeader>
+
+        {onAddMemo && (
+          <div className="flex-shrink-0 mt-3">
+            <Button
+              onClick={() => {
+                onAddMemo();
+                onOpenChange(false);
+              }}
+              className="w-full"
+              data-testid="button-add-memo-cluster"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              새 메모 추가
+            </Button>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto mt-4 space-y-3 pb-6">
           {sortedMemos.map((memo) => (
