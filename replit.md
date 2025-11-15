@@ -8,6 +8,20 @@ A mobile-first web application for creating and sharing location-based memos wit
 
 ### November 2025
 
+**Improved Map Click Behavior with "새 메모 추가" Buttons (November 15, 2025)**
+- **Smart Map Click Detection**: Map now intelligently checks for existing memos before showing creation form
+  - Empty location click → Opens memo creation form
+  - Location with memo(s) → Opens memo detail sheet or cluster sheet (never creation form)
+  - Fixed critical stale closure bug by separating map initialization and click handler registration
+- **"새 메모 추가" Button in Detail Sheet**: Users can add another memo at the same location from detail view
+- **"새 메모 추가" Button in Cluster Sheet**: Quick access to create memo at clustered location
+- **Technical Implementation**:
+  - Split MapView useEffect into two: map initialization (runs once) + click handler (re-registers with fresh memos)
+  - Click handler uses `groupMemosByLocation()` to detect existing memos at clicked coordinates
+  - Cleanup function removes old listener before adding new one to prevent memory leaks
+  - Both "새 메모 추가" buttons pre-fill location data and close current sheet before opening form
+- **User Flow Enhancement**: Seamless transition from viewing memos to creating new ones at same location
+
 **Memo Clustering for Same-Location Browsing (November 15, 2025)**
 - Implemented intelligent memo clustering for locations with multiple memos
 - Added `groupMemosByLocation()` utility that groups memos by rounded coordinates (6-decimal precision)
