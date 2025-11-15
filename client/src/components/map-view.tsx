@@ -301,13 +301,15 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
       let markerIcon: string = 'default';
       if (isSingleMemo) {
         markerColor = memo.group?.color || PERSONAL_MEMO_COLOR;
-        markerIcon = (memo.group as any)?.markerIcon || 'default';
+        // 메모의 markerIcon을 우선 사용, 없으면 그룹의 markerIcon 사용
+        markerIcon = (memo as any)?.markerIcon || (memo.group as any)?.markerIcon || 'default';
       } else {
         const colors = cluster.memos.map(m => m.group?.color || PERSONAL_MEMO_COLOR);
         const uniqueColors = new Set(colors);
         markerColor = uniqueColors.size === 1 ? colors[0] : '#6b7280';
         
-        const icons = cluster.memos.map(m => (m.group as any)?.markerIcon || 'default');
+        // 메모의 markerIcon을 우선 사용, 없으면 그룹의 markerIcon 사용
+        const icons = cluster.memos.map(m => (m as any)?.markerIcon || (m.group as any)?.markerIcon || 'default');
         const uniqueIcons = new Set(icons);
         markerIcon = uniqueIcons.size === 1 ? icons[0] : 'default';
       }
