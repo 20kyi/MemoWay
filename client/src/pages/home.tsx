@@ -257,10 +257,14 @@ export default function Home() {
   });
 
   const createGroupMutation = useMutation({
-    mutationFn: async (data: { name: string; memberName: string; color: string }) => {
+    mutationFn: async (data: { name: string; memberName: string; color: string; markerIcon: string }) => {
       return apiRequest("POST", "/api/groups", data);
     },
     onSuccess: (data: any) => {
+      // Always invalidate queries first to ensure markerIcon is reflected in UI
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      
       if (data.member?.id) {
         setCurrentMemberId(data.member.id);
         localStorage.setItem("currentMemberId", data.member.id);
@@ -272,7 +276,7 @@ export default function Home() {
           return newIds;
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      
       toast({
         title: "그룹 생성 완료",
         description: "새 그룹이 생성되었습니다",

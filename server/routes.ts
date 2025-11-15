@@ -31,12 +31,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: z.string().min(1, "그룹명을 입력하세요").max(100),
         memberName: z.string().min(1, "이름을 입력하세요").max(50),
         color: z.string().regex(/^#[0-9A-F]{6}$/i, "유효한 색상 코드를 선택하세요").default('#3b82f6'),
+        markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).default('default'),
       });
       
-      const { name, memberName, color } = bodySchema.parse(req.body);
+      const { name, memberName, color, markerIcon } = bodySchema.parse(req.body);
       const inviteCode = randomBytes(6).toString("hex");
       
-      const group = await storage.createGroup({ name, inviteCode, color });
+      const group = await storage.createGroup({ name, inviteCode, color, markerIcon });
       const member = await storage.createMember({ 
         groupId: group.id, 
         name: memberName 

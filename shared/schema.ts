@@ -9,6 +9,7 @@ export const groups = pgTable("groups", {
   name: text("name").notNull(),
   inviteCode: varchar("invite_code").notNull().unique(),
   color: varchar("color").notNull().default('#3b82f6'),
+  markerIcon: varchar("marker_icon").notNull().default('default'),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -75,12 +76,17 @@ export const photosRelations = relations(photos, ({ one }) => ({
   }),
 }));
 
+// Marker icon types
+export const markerIconTypes = ['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work'] as const;
+export type MarkerIconType = typeof markerIconTypes[number];
+
 // Insert schemas
 export const insertGroupSchema = createInsertSchema(groups).omit({
   id: true,
   createdAt: true,
 }).extend({
   color: z.string().regex(/^#[0-9A-F]{6}$/i, "유효한 색상 코드를 선택하세요").default('#3b82f6'),
+  markerIcon: z.enum(markerIconTypes).default('default'),
 });
 
 export const insertMemberSchema = createInsertSchema(members).omit({

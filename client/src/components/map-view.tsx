@@ -46,7 +46,29 @@ function groupMemosByLocation(memos: MemoWithDetails[]): MemoCluster[] {
   }));
 }
 
-function createMarkerContent(color: string): string {
+function getMarkerIconPath(iconType: string): string {
+  switch (iconType) {
+    case 'travel':
+      return 'M12 2L10.5 6H6l4 3.5L8 15l4-2.5L16 15l-2-5.5L18 6h-4.5L12 2z M15 17v6h-3v-6h3z';
+    case 'love':
+      return 'M15 20c-3.9-3.5-7-6.3-7-9.5C8 8 9.8 6 12 6c1.1 0 2.2.5 3 1.3C15.8 6.5 16.9 6 18 6c2.2 0 4 1.8 4 4.5 0 3.2-3.1 6-7 9.5z';
+    case 'food':
+      return 'M13 3v8h-2V3h2z M19 3v4c0 2.2-1.8 4-4 4v14h-2V11c-2.2 0-4-1.8-4-4V3h2v4c0 1.1.9 2 2 2s2-.9 2-2V3h2z';
+    case 'cafe':
+      return 'M20 8h-3V4H7v10c0 2.2 1.8 4 4 4h2c2.2 0 4-1.8 4-4v-2h3c1.1 0 2-.9 2-2s-.9-2-2-2zM20 10h-3V10h3z M7 22h12v2H7z';
+    case 'shopping':
+      return 'M19 6h-2c0-2.8-2.2-5-5-5S7 3.2 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM12 3c1.7 0 3 1.3 3 3H9c0-1.7 1.3-3 3-3z';
+    case 'sport':
+      return 'M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm-1-13h2v6h-2V7zm0 8h2v2h-2v-2z';
+    case 'work':
+      return 'M20 7h-4V5c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM14 7h-4V5h4v2z';
+    default:
+      return 'M15 12c0 1.7-1.3 3-3 3s-3-1.3-3-3 1.3-3 3-3 3 1.3 3 3z';
+  }
+}
+
+function createMarkerContent(color: string, iconType: string = 'default'): string {
+  const iconPath = getMarkerIconPath(iconType);
   return `
     <div style="
       position: relative;
@@ -59,13 +81,17 @@ function createMarkerContent(color: string): string {
               fill="${color}" 
               stroke="#ffffff" 
               stroke-width="2"/>
-        <circle cx="15" cy="15" r="6" fill="#ffffff"/>
+        <circle cx="15" cy="15" r="8" fill="#ffffff"/>
+        <g transform="translate(6, 6)" fill="${color}">
+          <path d="${iconPath}" />
+        </g>
       </svg>
     </div>
   `;
 }
 
-function createClusterMarkerContent(color: string, count: number): string {
+function createClusterMarkerContent(color: string, count: number, iconType: string = 'default'): string {
+  const iconPath = getMarkerIconPath(iconType);
   return `
     <div style="
       position: relative;
@@ -78,7 +104,10 @@ function createClusterMarkerContent(color: string, count: number): string {
               fill="${color}" 
               stroke="#ffffff" 
               stroke-width="2"/>
-        <circle cx="15" cy="15" r="6" fill="#ffffff"/>
+        <circle cx="15" cy="15" r="8" fill="#ffffff"/>
+        <g transform="translate(6, 6)" fill="${color}">
+          <path d="${iconPath}" />
+        </g>
       </svg>
       <div style="
         position: absolute;
@@ -269,18 +298,24 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
       const memo = cluster.memos[0];
       
       let markerColor: string;
+      let markerIcon: string = 'default';
       if (isSingleMemo) {
         markerColor = memo.group?.color || PERSONAL_MEMO_COLOR;
+        markerIcon = (memo.group as any)?.markerIcon || 'default';
       } else {
         const colors = cluster.memos.map(m => m.group?.color || PERSONAL_MEMO_COLOR);
         const uniqueColors = new Set(colors);
         markerColor = uniqueColors.size === 1 ? colors[0] : '#6b7280';
+        
+        const icons = cluster.memos.map(m => (m.group as any)?.markerIcon || 'default');
+        const uniqueIcons = new Set(icons);
+        markerIcon = uniqueIcons.size === 1 ? icons[0] : 'default';
       }
       
       const contentDiv = document.createElement('div');
       contentDiv.innerHTML = isSingleMemo 
-        ? createMarkerContent(markerColor)
-        : createClusterMarkerContent(markerColor, cluster.memos.length);
+        ? createMarkerContent(markerColor, markerIcon)
+        : createClusterMarkerContent(markerColor, cluster.memos.length, markerIcon);
       contentDiv.style.cursor = 'pointer';
       
       const customOverlay = new window.kakao.maps.CustomOverlay({

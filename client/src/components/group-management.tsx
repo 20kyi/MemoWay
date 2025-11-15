@@ -9,13 +9,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Share2, Users } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 
 const groupFormSchema = z.object({
   name: z.string().min(1, "그룹명을 입력하세요"),
   memberName: z.string().min(1, "이름을 입력하세요"),
   color: z.string().regex(/^#[0-9A-F]{6}$/i, "유효한 색상 코드를 선택하세요").default('#3b82f6'),
+  markerIcon: z.enum(markerIconTypes).default('default'),
 });
 
 type GroupFormValues = z.infer<typeof groupFormSchema>;
@@ -31,18 +33,30 @@ const PRESET_COLORS = [
   { name: '청록', value: '#14b8a6' },
 ];
 
+const MARKER_ICONS: Array<{ type: MarkerIconType; name: string; icon: any }> = [
+  { type: 'default', name: '기본', icon: MapPin },
+  { type: 'travel', name: '여행', icon: Plane },
+  { type: 'love', name: '사랑', icon: Heart },
+  { type: 'food', name: '맛집', icon: Utensils },
+  { type: 'cafe', name: '카페', icon: Coffee },
+  { type: 'shopping', name: '쇼핑', icon: ShoppingBag },
+  { type: 'sport', name: '운동', icon: Trophy },
+  { type: 'work', name: '업무', icon: Briefcase },
+];
+
 interface Group {
   id: string;
   name: string;
   inviteCode: string;
   color: string;
+  markerIcon?: string;
   members: Array<{ id: string; name: string }>;
   memoCount?: number;
 }
 
 interface GroupManagementProps {
   groups: Group[];
-  onCreateGroup: (data: { name: string; memberName: string; color: string }) => void;
+  onCreateGroup: (data: { name: string; memberName: string; color: string; markerIcon: string }) => void;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
   myMemberIds: string[];
@@ -61,6 +75,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
       name: "",
       memberName: "",
       color: '#3b82f6',
+      markerIcon: 'default',
     },
   });
 
@@ -145,22 +160,87 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                     <FormItem>
                       <FormLabel>그룹 색상</FormLabel>
                       <FormControl>
-                        <div className="grid grid-cols-4 gap-2" data-testid="color-picker">
-                          {PRESET_COLORS.map((color) => (
-                            <button
-                              key={color.value}
-                              type="button"
-                              className={`h-12 rounded-md border-2 transition-all hover-elevate ${
-                                field.value === color.value 
-                                  ? 'border-foreground ring-2 ring-foreground ring-offset-2' 
-                                  : 'border-border'
-                              }`}
-                              style={{ backgroundColor: color.value }}
-                              onClick={() => field.onChange(color.value)}
-                              data-testid={`color-option-${color.value}`}
-                              aria-label={color.name}
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-8 gap-2" data-testid="color-picker">
+                            {PRESET_COLORS.map((color) => (
+                              <button
+                                key={color.value}
+                                type="button"
+                                className={`h-8 w-8 rounded-md border-2 transition-all ${
+                                  field.value.toLowerCase() === color.value.toLowerCase()
+                                    ? 'border-foreground ring-2 ring-foreground ring-offset-1' 
+                                    : 'border-border hover:border-foreground/50'
+                                }`}
+                                style={{ backgroundColor: color.value }}
+                                onClick={() => {
+                                  field.onChange(color.value);
+                                }}
+                                data-testid={`color-option-${color.value}`}
+                                aria-label={color.name}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <label className="text-sm text-muted-foreground">사용자 정의:</label>
+                            <Input
+                              type="color"
+                              value={field.value}
+                              onChange={(e) => {
+                                const newColor = e.target.value.toUpperCase();
+                                field.onChange(newColor);
+                              }}
+                              className="w-16 h-9 p-1 cursor-pointer"
+                              data-testid="color-custom-picker"
                             />
-                          ))}
+                            <Input
+                              type="text"
+                              value={field.value}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value.match(/^#[0-9A-Fa-f]{0,6}$/)) {
+                                  field.onChange(value.toUpperCase());
+                                }
+                              }}
+                              placeholder="#3B82F6"
+                              maxLength={7}
+                              className="flex-1 font-mono"
+                              data-testid="color-custom-input"
+                            />
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="markerIcon"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>마커 모양</FormLabel>
+                      <FormControl>
+                        <div className="grid grid-cols-4 gap-2" data-testid="marker-icon-picker">
+                          {MARKER_ICONS.map((marker) => {
+                            const Icon = marker.icon;
+                            return (
+                              <button
+                                key={marker.type}
+                                type="button"
+                                className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${
+                                  field.value === marker.type 
+                                    ? 'border-foreground bg-accent' 
+                                    : 'border-border hover:border-foreground/50 hover:bg-accent/50'
+                                }`}
+                                onClick={() => field.onChange(marker.type)}
+                                data-testid={`marker-icon-${marker.type}`}
+                                aria-label={marker.name}
+                              >
+                                <Icon className="h-5 w-5" />
+                                <span className="text-xs font-medium">{marker.name}</span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </FormControl>
                       <FormMessage />
