@@ -8,6 +8,27 @@ A mobile-first web application for creating and sharing location-based memos wit
 
 ### November 2025
 
+**Address Search Marker Feature (November 15, 2025)**
+- Added visual marker to indicate searched location on the map
+- Marker design: Red pin (#ef4444) with pure SVG graphics (no emoji)
+- Features:
+  - Larger size (40x50px) than memo markers for easy identification
+  - White outer circle with red inner dot (bullseye effect)
+  - Bounce animation plays 3 times on creation for visibility
+  - Drop shadow for depth
+  - Non-interactive (purely visual indicator)
+- Behavior:
+  - Appears automatically after successful address search
+  - Previous marker removed when new search performed
+  - Only one search marker visible at a time
+  - Persists until new search or page refresh
+  - Does not block memo creation at that location
+- Implementation:
+  - Added `searchMarker` state in MapView component
+  - `createSearchMarkerContent()` generates pure SVG marker
+  - Cleanup logic removes marker on component unmount
+  - Complies with no-emoji UI policy
+
 **Photo Display Improvements (November 15, 2025)**
 - Optimized photo thumbnail size from h-40 (160px) to h-28 (112px) for better mobile viewing
 - Changed from object-cover to object-contain to display full photos without cropping
