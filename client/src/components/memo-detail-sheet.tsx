@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,10 +29,13 @@ export function MemoDetailSheet({
   onNavigateToLocation,
   onAddMemo,
 }: MemoDetailSheetProps) {
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+
   if (!memo) return null;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0">
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 pb-4">
@@ -62,13 +67,19 @@ export function MemoDetailSheet({
                   <h3 className="font-semibold text-sm text-muted-foreground">사진</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {memo.photos.map((photo) => (
-                      <img
+                      <div
                         key={photo.id}
-                        src={photo.url}
-                        alt="메모 사진"
-                        className="w-full h-40 object-cover rounded-lg"
-                        data-testid={`img-photo-${photo.id}`}
-                      />
+                        className="relative cursor-pointer rounded-lg overflow-hidden bg-muted hover-elevate active-elevate-2"
+                        onClick={() => setSelectedPhoto(photo.url)}
+                        data-testid={`container-photo-${photo.id}`}
+                      >
+                        <img
+                          src={photo.url}
+                          alt="메모 사진"
+                          className="w-full h-28 object-contain"
+                          data-testid={`img-photo-${photo.id}`}
+                        />
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -177,5 +188,30 @@ export function MemoDetailSheet({
         </div>
       </SheetContent>
     </Sheet>
+
+    <Dialog open={!!selectedPhoto} onOpenChange={(open) => !open && setSelectedPhoto(null)}>
+      <DialogContent className="max-w-screen-lg p-0 bg-black/95">
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSelectedPhoto(null)}
+            className="absolute top-2 right-2 z-10 text-white hover:bg-white/20"
+            data-testid="button-close-photo"
+          >
+            <X className="w-6 h-6" />
+          </Button>
+          {selectedPhoto && (
+            <img
+              src={selectedPhoto}
+              alt="원본 사진"
+              className="w-full h-auto max-h-[90vh] object-contain"
+              data-testid="img-photo-fullsize"
+            />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
