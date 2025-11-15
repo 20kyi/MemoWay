@@ -8,6 +8,18 @@ A mobile-first web application for creating and sharing location-based memos wit
 
 ### November 2025
 
+**Memo Cascade Delete on Group Leave (November 15, 2025)**
+- **Behavior Change**: Memos are now deleted when users leave groups (reverted from preservation)
+- Changed database schema: `memos.memberId` uses `onDelete: 'cascade'` for automatic deletion
+- Removed `reassignMemosToPersonal()` storage method (no longer needed)
+- Simplified DELETE member API: no longer requires personalMemberId parameter
+- Added server-side protection: prevents deletion of personal memo member (400 error)
+- Frontend invalidates both `/api/groups` and `/api/memos` queries after leaving group
+- Flow: verify not personal member → delete member → cascade delete memos → cleanup empty group
+- Personal memo member cannot be deleted to protect personal memos
+- Empty groups are automatically deleted after last member leaves (except "개인 메모")
+- This is the opposite of the previous requirement where memos were preserved
+
 **Address Search Feature on Map (November 14, 2025)**
 - Implemented address search functionality on the map view
 - Added floating search bar at the top of the map with modern UI
@@ -19,18 +31,6 @@ A mobile-first web application for creating and sharing location-based memos wit
 - Error toast notification for invalid or not found addresses
 - Search input clears on successful search, remains on error for retry
 - Search button disabled during search operation to prevent duplicate requests
-
-**Memo Preservation on Group Leave (November 14, 2025)**
-- **Critical Fix**: Memos are now preserved as personal memos when users leave groups
-- Changed database schema: `memos.memberId` uses `onDelete: 'restrict'` to prevent cascade deletes
-- Implemented `reassignMemosToPersonal()` storage method to transfer memos before member deletion
-- Updated DELETE member API to require `personalMemberId` query parameter
-- API validates personalMemberId belongs to "개인 메모" group before reassignment
-- Frontend passes localStorage personalMemberId when leaving groups
-- Flow: reassign memos to personal member → delete group member → cleanup empty group
-- Previously: memos were deleted via cascade when member was deleted
-- Now: memos are reassigned with `memberId = personalMemberId` and `groupId = null`
-- Empty groups are automatically deleted after last member leaves (except "개인 메모")
 
 **Group Membership Filtering (November 14, 2025)**
 - Fixed issue where left groups still appeared in memo form's group sharing section
