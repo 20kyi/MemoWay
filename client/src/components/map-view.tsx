@@ -112,6 +112,7 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
   const markerClickedRef = useRef(false);
   const { toast } = useToast();
 
+  // Initialize map only once
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -132,67 +133,78 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
         if (onMapReady) {
           onMapReady(kakaoMap);
         }
-
-        window.kakao.maps.event.addListener(kakaoMap, 'click', function(mouseEvent: any) {
-          // Ignore map clicks if a marker was just clicked
-          if (markerClickedRef.current) {
-            markerClickedRef.current = false;
-            return;
-          }
-          
-          const latlng = mouseEvent.latLng;
-          const clickedLat = latlng.getLat().toFixed(6);
-          const clickedLng = latlng.getLng().toFixed(6);
-          
-          // Check if there are memos at this location
-          const clusters = groupMemosByLocation(memos);
-          const existingCluster = clusters.find(cluster => {
-            const clusterLat = cluster.lat.toFixed(6);
-            const clusterLng = cluster.lng.toFixed(6);
-            return clusterLat === clickedLat && clusterLng === clickedLng;
-          });
-          
-          if (existingCluster) {
-            // Location has memos - show memo detail or cluster
-            markerClickedRef.current = true;
-            if (existingCluster.memos.length === 1) {
-              onMarkerClick(existingCluster.memos[0].id);
-            } else if (onClusterClick) {
-              onClusterClick(existingCluster.memos.map(m => m.id));
-            }
-            return;
-          }
-          
-          // No memos at this location - show memo form
-          const geocoder = new window.kakao.maps.services.Geocoder();
-          
-          geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result: any, status: any) {
-            if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
-              const address = result[0]?.address?.address_name || '주소 없음';
-              const buildingName = result[0]?.road_address?.building_name || '건물명 없음';
-              
-              onLocationSelect({
-                lat: latlng.getLat(),
-                lng: latlng.getLng(),
-                address,
-                buildingName,
-              });
-            } else {
-              onLocationSelect({
-                lat: latlng.getLat(),
-                lng: latlng.getLng(),
-                address: `위도: ${latlng.getLat().toFixed(6)}, 경도: ${latlng.getLng().toFixed(6)}`,
-                buildingName: '위치 선택됨',
-              });
-            }
-          });
-        });
       })
       .catch((error) => {
         console.error("Failed to load Kakao Maps:", error);
         setMapError("지도를 불러올 수 없습니다. API 키를 확인해주세요.");
       });
-  }, [mapRef.current]);
+  }, []);
+
+  // Register map click handler with fresh memos
+  useEffect(() => {
+    if (!map || !window.kakao?.maps) return;
+
+    const handleMapClick = (mouseEvent: any) => {
+      // Ignore map clicks if a marker was just clicked
+      if (markerClickedRef.current) {
+        markerClickedRef.current = false;
+        return;
+      }
+      
+      const latlng = mouseEvent.latLng;
+      const clickedLat = latlng.getLat().toFixed(6);
+      const clickedLng = latlng.getLng().toFixed(6);
+      
+      // Check if there are memos at this location
+      const clusters = groupMemosByLocation(memos);
+      const existingCluster = clusters.find(cluster => {
+        const clusterLat = cluster.lat.toFixed(6);
+        const clusterLng = cluster.lng.toFixed(6);
+        return clusterLat === clickedLat && clusterLng === clickedLng;
+      });
+      
+      if (existingCluster) {
+        // Location has memos - show memo detail or cluster
+        markerClickedRef.current = true;
+        if (existingCluster.memos.length === 1) {
+          onMarkerClick(existingCluster.memos[0].id);
+        } else if (onClusterClick) {
+          onClusterClick(existingCluster.memos.map(m => m.id));
+        }
+        return;
+      }
+      
+      // No memos at this location - show memo form
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      
+      geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result: any, status: any) {
+        if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
+          const address = result[0]?.address?.address_name || '주소 없음';
+          const buildingName = result[0]?.road_address?.building_name || '건물명 없음';
+          
+          onLocationSelect({
+            lat: latlng.getLat(),
+            lng: latlng.getLng(),
+            address,
+            buildingName,
+          });
+        } else {
+          onLocationSelect({
+            lat: latlng.getLat(),
+            lng: latlng.getLng(),
+            address: `위도: ${latlng.getLat().toFixed(6)}, 경도: ${latlng.getLng().toFixed(6)}`,
+            buildingName: '위치 선택됨',
+          });
+        }
+      });
+    };
+
+    window.kakao.maps.event.addListener(map, 'click', handleMapClick);
+
+    return () => {
+      window.kakao.maps.event.removeListener(map, 'click', handleMapClick);
+    };
+  }, [map, memos, onLocationSelect, onMarkerClick, onClusterClick]);
 
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
