@@ -190,7 +190,15 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
       
       const isSingleMemo = cluster.memos.length === 1;
       const memo = cluster.memos[0];
-      const markerColor = memo.group?.color || PERSONAL_MEMO_COLOR;
+      
+      let markerColor: string;
+      if (isSingleMemo) {
+        markerColor = memo.group?.color || PERSONAL_MEMO_COLOR;
+      } else {
+        const colors = cluster.memos.map(m => m.group?.color || PERSONAL_MEMO_COLOR);
+        const uniqueColors = new Set(colors);
+        markerColor = uniqueColors.size === 1 ? colors[0] : '#6b7280';
+      }
       
       const contentDiv = document.createElement('div');
       contentDiv.innerHTML = isSingleMemo 

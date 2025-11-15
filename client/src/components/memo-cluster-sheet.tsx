@@ -18,6 +18,11 @@ export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect }: Me
 
   const location = memos[0];
   
+  const sortedMemos = [...memos].sort((a, b) => {
+    if (!a.createdAt || !b.createdAt) return 0;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+  
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
@@ -39,7 +44,7 @@ export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect }: Me
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto mt-4 space-y-3 pb-6">
-          {memos.map((memo) => (
+          {sortedMemos.map((memo) => (
             <Card
               key={memo.id}
               className="p-4 hover-elevate active-elevate-2 cursor-pointer"
