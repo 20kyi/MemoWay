@@ -67,19 +67,20 @@ export function MemoDetailSheet({
                   <h3 className="font-semibold text-sm text-muted-foreground">사진</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {memo.photos.map((photo) => (
-                      <div
+                      <button
                         key={photo.id}
-                        className="relative cursor-pointer rounded-lg overflow-hidden bg-muted hover-elevate active-elevate-2"
+                        type="button"
+                        className="relative rounded-lg border border-border bg-card p-2 hover:bg-accent active:bg-accent transition-colors"
                         onClick={() => setSelectedPhoto(photo.url)}
                         data-testid={`container-photo-${photo.id}`}
                       >
                         <img
                           src={photo.url}
                           alt="메모 사진"
-                          className="w-full h-28 object-contain"
+                          className="w-full h-28 object-contain rounded"
                           data-testid={`img-photo-${photo.id}`}
                         />
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
