@@ -8,6 +8,17 @@ A mobile-first web application for creating and sharing location-based memos wit
 
 ### November 2025
 
+**Individual Memo Marker Icon Customization (November 15, 2025)**
+- Implemented marker icon selection for individual memos in memo creation form
+- Added markerIcon field to memos database table (varchar, default 'default')
+- 8 icon options available: default, travel (여행), love (사랑), food (맛집), cafe (카페), shopping (쇼핑), sport (운동), work (업무)
+- UI: 4-column grid icon selector in MemoFormSheet with visual feedback
+- Rendering priority: memo.markerIcon > group.markerIcon > 'default'
+- Added data-marker-icon and aria-label attributes to marker SVG elements for testing and accessibility
+- Backend: POST/PATCH /api/memos endpoints handle markerIcon field
+- Frontend: FormData transmits markerIcon with photo uploads
+- Map markers update immediately to reflect selected icons
+
 **Address Search Marker Feature (November 15, 2025)**
 - Added visual marker to indicate searched location on the map
 - Marker design: Red pin (#ef4444) with pure SVG graphics (no emoji)
