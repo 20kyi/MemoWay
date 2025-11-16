@@ -1,9 +1,22 @@
 import { Button } from "@/components/ui/button";
-import { MapPin, Globe, Users, Lock } from "lucide-react";
-import { useLanguage } from "@/lib/language-context";
+import { MapPin, Globe, Users, Lock, Languages } from "lucide-react";
+import { useLanguage, type Language } from "@/lib/language-context";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const languageOptions: { value: Language; label: string; flag: string }[] = [
+  { value: "ko", label: "한국어", flag: "🇰🇷" },
+  { value: "en", label: "English", flag: "🇺🇸" },
+  { value: "zh", label: "中文", flag: "🇨🇳" },
+  { value: "ja", label: "日本語", flag: "🇯🇵" },
+];
 
 export default function Landing() {
-  const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
 
   const handleKakaoLogin = () => {
     // Open in new tab to avoid Replit iframe restrictions
@@ -12,6 +25,30 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-accent/20">
+      {/* Language Selector - Top Right */}
+      <div className="absolute top-4 right-4 z-10">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="rounded-full" data-testid="button-language-selector">
+              <Languages className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {languageOptions.map((option) => (
+              <DropdownMenuItem
+                key={option.value}
+                onClick={() => setLanguage(option.value)}
+                className={language === option.value ? "bg-accent" : ""}
+                data-testid={`language-option-${option.value}`}
+              >
+                <span className="text-xl mr-2">{option.flag}</span>
+                <span>{option.label}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <div className="container mx-auto px-4 py-16 max-w-6xl">
         <div className="flex flex-col items-center text-center space-y-12">
           <div className="space-y-4">
