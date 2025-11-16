@@ -82,6 +82,8 @@ export default function Home() {
   });
   const [mapInstance, setMapInstance] = useState<any>(null);
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedMarkerIcon, setSelectedMarkerIcon] = useState<string>("all");
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("all");
   const { toast } = useToast();
 
   // WebSocket for real-time updates
@@ -641,6 +643,11 @@ export default function Home() {
               }}
               userLocation={userLocation}
               onMapReady={setMapInstance}
+              groups={groups}
+              selectedMarkerIcon={selectedMarkerIcon}
+              selectedGroupId={selectedGroupId}
+              onMarkerIconChange={setSelectedMarkerIcon}
+              onGroupIdChange={setSelectedGroupId}
             />
             <Button
               size="icon"

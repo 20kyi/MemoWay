@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Navigation, Search, X, Send } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Navigation, Search, X, Send, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
 import { useToast } from "@/hooks/use-toast";
-import type { MemoWithDetails } from "@shared/schema";
+import { useLanguage } from "@/lib/language-context";
+import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 
 interface MapViewProps {
   onLocationSelect: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
@@ -14,6 +16,11 @@ interface MapViewProps {
   userLocation: { lat: number; lng: number } | null;
   onMapReady?: (map: any) => void;
   onMyLocationClick?: () => void;
+  groups?: GroupWithMembers[];
+  selectedMarkerIcon?: string;
+  selectedGroupId?: string;
+  onMarkerIconChange?: (icon: string) => void;
+  onGroupIdChange?: (groupId: string) => void;
 }
 
 const PERSONAL_MEMO_COLOR = '#9333ea';
@@ -214,7 +221,31 @@ function createSearchMarkerContent(): string {
   `;
 }
 
-export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick, userLocation, onMapReady }: MapViewProps) {
+const MARKER_ICON_COMPONENTS = {
+  default: MapPin,
+  travel: Plane,
+  love: Heart,
+  food: Utensils,
+  cafe: Coffee,
+  shopping: ShoppingBag,
+  sport: Dumbbell,
+  work: Briefcase,
+};
+
+export function MapView({ 
+  onLocationSelect, 
+  memos, 
+  onMarkerClick, 
+  onClusterClick, 
+  userLocation, 
+  onMapReady,
+  groups = [],
+  selectedMarkerIcon = "all",
+  selectedGroupId = "all",
+  onMarkerIconChange,
+  onGroupIdChange
+}: MapViewProps) {
+  const { t } = useLanguage();
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
@@ -225,6 +256,29 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
   const [markerScale, setMarkerScale] = useState(1);
   const markerClickedRef = useRef(false);
   const { toast } = useToast();
+
+  // Filter memos based on selected marker icon and group
+  const filteredMemos = useMemo(() => {
+    let filtered = memos;
+
+    // Filter by marker icon
+    if (selectedMarkerIcon !== "all") {
+      filtered = filtered.filter(memo => memo.markerIcon === selectedMarkerIcon);
+    }
+
+    // Filter by group
+    if (selectedGroupId !== "all") {
+      if (selectedGroupId === "personal") {
+        // Show only personal memos (no groupId)
+        filtered = filtered.filter(memo => !memo.groupId);
+      } else {
+        // Show only memos from the selected group
+        filtered = filtered.filter(memo => memo.groupId === selectedGroupId);
+      }
+    }
+
+    return filtered;
+  }, [memos, selectedMarkerIcon, selectedGroupId]);
 
   // Cleanup search marker when component unmounts
   useEffect(() => {
@@ -345,7 +399,7 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
       }
     });
 
-    const clusters = groupMemosByLocation(memos);
+    const clusters = groupMemosByLocation(filteredMemos);
     
     const newMarkers = clusters.map(cluster => {
       const position = new window.kakao.maps.LatLng(cluster.lat, cluster.lng);
@@ -435,7 +489,7 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
         }
       });
     };
-  }, [map, memos, onMarkerClick, onClusterClick, markerScale]);
+  }, [map, filteredMemos, onMarkerClick, onClusterClick, markerScale]);
 
   useEffect(() => {
     if (!map || !userLocation) return;
@@ -575,6 +629,53 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
               >
                 <Search className="h-5 w-5" />
               </Button>
+            </div>
+            
+            {/* 필터 바 */}
+            <div className="flex gap-2 mt-2 bg-background rounded-2xl shadow-lg p-2">
+              <Select value={selectedMarkerIcon} onValueChange={onMarkerIconChange} disabled={!onMarkerIconChange}>
+                <SelectTrigger className="flex-1 border-0" data-testid="select-marker-icon-filter">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" data-testid="filter-marker-icon-all">
+                    {t.categories.all}
+                  </SelectItem>
+                  {Object.entries(MARKER_ICON_COMPONENTS).map(([icon, IconComponent]) => (
+                    <SelectItem key={icon} value={icon} data-testid={`filter-marker-icon-${icon}`}>
+                      <div className="flex items-center gap-2">
+                        <IconComponent className="h-4 w-4" />
+                        {t.categories[icon as keyof typeof t.categories]}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedGroupId} onValueChange={onGroupIdChange} disabled={!onGroupIdChange}>
+                <SelectTrigger className="flex-1 border-0" data-testid="select-group-filter">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" data-testid="filter-group-all">
+                    전체 그룹
+                  </SelectItem>
+                  <SelectItem value="personal" data-testid="filter-group-personal">
+                    개인 메모
+                  </SelectItem>
+                  {groups.map((group) => (
+                    <SelectItem key={group.id} value={group.id} data-testid={`filter-group-${group.id}`}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full flex-shrink-0" 
+                          style={{ backgroundColor: group.color }}
+                        />
+                        {group.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </>
