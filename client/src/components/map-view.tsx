@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +24,10 @@ interface MapViewProps {
   onMapReady?: (map: any) => void;
   onMyLocationClick?: () => void;
   groups?: GroupWithMembers[];
-  selectedMarkerIcon?: string;
-  selectedGroupId?: string;
-  onMarkerIconChange?: (icon: string) => void;
-  onGroupIdChange?: (groupId: string) => void;
+  selectedMarkerIcons?: string[];
+  selectedGroupIds?: string[];
+  onMarkerIconsChange?: (icons: string[]) => void;
+  onGroupIdsChange?: (groupIds: string[]) => void;
 }
 
 const PERSONAL_MEMO_COLOR = '#9333ea';
@@ -246,10 +247,10 @@ export function MapView({
   userLocation, 
   onMapReady,
   groups = [],
-  selectedMarkerIcon = "all",
-  selectedGroupId = "all",
-  onMarkerIconChange,
-  onGroupIdChange
+  selectedMarkerIcons = ["all"],
+  selectedGroupIds = ["all"],
+  onMarkerIconsChange,
+  onGroupIdsChange
 }: MapViewProps) {
   const { t } = useLanguage();
   const mapRef = useRef<HTMLDivElement>(null);
@@ -265,28 +266,30 @@ export function MapView({
   const [groupFilterOpen, setGroupFilterOpen] = useState(false);
   const { toast } = useToast();
 
-  // Filter memos based on selected marker icon and group
+  // Filter memos based on selected marker icons and groups
   const filteredMemos = useMemo(() => {
     let filtered = memos;
 
     // Filter by marker icon
-    if (selectedMarkerIcon !== "all") {
-      filtered = filtered.filter(memo => memo.markerIcon === selectedMarkerIcon);
+    if (!selectedMarkerIcons.includes("all")) {
+      filtered = filtered.filter(memo => selectedMarkerIcons.includes(memo.markerIcon));
     }
 
     // Filter by group
-    if (selectedGroupId !== "all") {
-      if (selectedGroupId === "personal") {
-        // Show only personal memos (no groupId)
-        filtered = filtered.filter(memo => !memo.groupId);
-      } else {
-        // Show only memos from the selected group
-        filtered = filtered.filter(memo => memo.groupId === selectedGroupId);
-      }
+    if (!selectedGroupIds.includes("all")) {
+      filtered = filtered.filter(memo => {
+        if (selectedGroupIds.includes("personal") && !memo.groupId) {
+          return true;
+        }
+        if (memo.groupId && selectedGroupIds.includes(memo.groupId)) {
+          return true;
+        }
+        return false;
+      });
     }
 
     return filtered;
-  }, [memos, selectedMarkerIcon, selectedGroupId]);
+  }, [memos, selectedMarkerIcons, selectedGroupIds]);
 
   // Cleanup search marker when component unmounts
   useEffect(() => {
@@ -645,17 +648,50 @@ export function MapView({
             {/* 그룹 필터 버튼 */}
             <Button
               size="icon"
-              className="h-12 w-12 rounded-full shadow-lg relative"
+              className="h-12 w-12 rounded-full shadow-lg relative overflow-visible"
               onClick={() => setGroupFilterOpen(true)}
               data-testid="button-group-filter"
+              style={(() => {
+                if (selectedGroupIds.includes("all")) return {};
+                
+                const colors: string[] = [];
+                selectedGroupIds.forEach(id => {
+                  if (id === "personal") {
+                    colors.push(PERSONAL_MEMO_COLOR);
+                  } else {
+                    const group = groups.find(g => g.id === id);
+                    if (group) colors.push(group.color);
+                  }
+                });
+
+                if (colors.length === 0) return {};
+                if (colors.length === 1) {
+                  return { backgroundColor: colors[0], borderColor: colors[0] };
+                }
+
+                const step = 100 / colors.length;
+                const gradientStops = colors.map((color, index) => {
+                  const start = index * step;
+                  const end = (index + 1) * step;
+                  return `${color} ${start}%, ${color} ${end}%`;
+                }).join(', ');
+
+                return {
+                  background: `linear-gradient(135deg, ${gradientStops})`,
+                  borderColor: colors[0]
+                };
+              })()}
             >
-              <Users className="h-5 w-5" />
-              {selectedGroupId !== "all" && (
+              <Users className="h-5 w-5" style={{
+                color: selectedGroupIds.includes("all") ? undefined : 'white',
+                filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
+              }} />
+              {!selectedGroupIds.includes("all") && (
                 <Badge 
                   className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
                   data-testid="badge-group-filter-count"
                 >
-                  1
+                  {selectedGroupIds.filter(id => id !== "all").length}
                 </Badge>
               )}
             </Button>
@@ -668,12 +704,12 @@ export function MapView({
               data-testid="button-marker-filter"
             >
               <Filter className="h-5 w-5" />
-              {selectedMarkerIcon !== "all" && (
+              {!selectedMarkerIcons.includes("all") && (
                 <Badge 
                   className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
                   data-testid="badge-marker-filter-count"
                 >
-                  1
+                  {selectedMarkerIcons.filter(icon => icon !== "all").length}
                 </Badge>
               )}
             </Button>
@@ -685,33 +721,41 @@ export function MapView({
               <DialogHeader>
                 <DialogTitle>마커 필터</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-2 py-4 max-h-96 overflow-y-auto">
-                <Button
-                  variant={selectedMarkerIcon === "all" ? "default" : "outline"}
-                  className="justify-start"
-                  onClick={() => {
-                    onMarkerIconChange?.("all");
-                    setMarkerFilterOpen(false);
-                  }}
-                  data-testid="filter-marker-icon-all"
-                >
-                  <MapPin className="h-4 w-4 mr-2" />
-                  {t.categories.all}
-                </Button>
-                {Object.entries(MARKER_ICON_COMPONENTS).map(([icon, IconComponent]) => (
-                  <Button
-                    key={icon}
-                    variant={selectedMarkerIcon === icon ? "default" : "outline"}
-                    className="justify-start"
-                    onClick={() => {
-                      onMarkerIconChange?.(icon);
-                      setMarkerFilterOpen(false);
+              <div className="space-y-3 py-4 max-h-96 overflow-y-auto">
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <Checkbox
+                    checked={selectedMarkerIcons.includes("all")}
+                    onCheckedChange={() => {
+                      onMarkerIconsChange?.(["all"]);
                     }}
-                    data-testid={`filter-marker-icon-${icon}`}
-                  >
-                    <IconComponent className="h-4 w-4 mr-2" />
-                    {t.categories[icon as keyof typeof t.categories]}
-                  </Button>
+                    data-testid="checkbox-marker-icon-all"
+                  />
+                  <div className="flex items-center flex-1">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    <span>{t.categories.all}</span>
+                  </div>
+                </label>
+                {Object.entries(MARKER_ICON_COMPONENTS).map(([icon, IconComponent]) => (
+                  <label key={icon} className="flex items-center space-x-3 cursor-pointer">
+                    <Checkbox
+                      checked={selectedMarkerIcons.includes(icon)}
+                      onCheckedChange={() => {
+                        if (selectedMarkerIcons.includes("all")) {
+                          onMarkerIconsChange?.([icon]);
+                        } else if (selectedMarkerIcons.includes(icon)) {
+                          const newSelection = selectedMarkerIcons.filter(i => i !== icon);
+                          onMarkerIconsChange?.(newSelection.length === 0 ? ["all"] : newSelection);
+                        } else {
+                          onMarkerIconsChange?.([...selectedMarkerIcons, icon]);
+                        }
+                      }}
+                      data-testid={`checkbox-marker-icon-${icon}`}
+                    />
+                    <div className="flex items-center flex-1">
+                      <IconComponent className="h-4 w-4 mr-2" />
+                      <span>{t.categories[icon as keyof typeof t.categories]}</span>
+                    </div>
+                  </label>
                 ))}
               </div>
             </DialogContent>
@@ -723,46 +767,58 @@ export function MapView({
               <DialogHeader>
                 <DialogTitle>그룹 필터</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-2 py-4 max-h-96 overflow-y-auto">
-                <Button
-                  variant={selectedGroupId === "all" ? "default" : "outline"}
-                  className="justify-start"
-                  onClick={() => {
-                    onGroupIdChange?.("all");
-                    setGroupFilterOpen(false);
-                  }}
-                  data-testid="filter-group-all"
-                >
-                  전체 그룹
-                </Button>
-                <Button
-                  variant={selectedGroupId === "personal" ? "default" : "outline"}
-                  className="justify-start"
-                  onClick={() => {
-                    onGroupIdChange?.("personal");
-                    setGroupFilterOpen(false);
-                  }}
-                  data-testid="filter-group-personal"
-                >
-                  개인 메모
-                </Button>
-                {groups.map((group) => (
-                  <Button
-                    key={group.id}
-                    variant={selectedGroupId === group.id ? "default" : "outline"}
-                    className="justify-start"
-                    onClick={() => {
-                      onGroupIdChange?.(group.id);
-                      setGroupFilterOpen(false);
+              <div className="space-y-3 py-4 max-h-96 overflow-y-auto">
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <Checkbox
+                    checked={selectedGroupIds.includes("all")}
+                    onCheckedChange={() => {
+                      onGroupIdsChange?.(["all"]);
                     }}
-                    data-testid={`filter-group-${group.id}`}
-                  >
-                    <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0 mr-2" 
-                      style={{ backgroundColor: group.color }}
+                    data-testid="checkbox-group-all"
+                  />
+                  <span>전체 그룹</span>
+                </label>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <Checkbox
+                    checked={selectedGroupIds.includes("personal")}
+                    onCheckedChange={() => {
+                      if (selectedGroupIds.includes("all")) {
+                        onGroupIdsChange?.(["personal"]);
+                      } else if (selectedGroupIds.includes("personal")) {
+                        const newSelection = selectedGroupIds.filter(id => id !== "personal");
+                        onGroupIdsChange?.(newSelection.length === 0 ? ["all"] : newSelection);
+                      } else {
+                        onGroupIdsChange?.([...selectedGroupIds, "personal"]);
+                      }
+                    }}
+                    data-testid="checkbox-group-personal"
+                  />
+                  <span>개인 메모</span>
+                </label>
+                {groups.map((group) => (
+                  <label key={group.id} className="flex items-center space-x-3 cursor-pointer">
+                    <Checkbox
+                      checked={selectedGroupIds.includes(group.id)}
+                      onCheckedChange={() => {
+                        if (selectedGroupIds.includes("all")) {
+                          onGroupIdsChange?.([group.id]);
+                        } else if (selectedGroupIds.includes(group.id)) {
+                          const newSelection = selectedGroupIds.filter(id => id !== group.id);
+                          onGroupIdsChange?.(newSelection.length === 0 ? ["all"] : newSelection);
+                        } else {
+                          onGroupIdsChange?.([...selectedGroupIds, group.id]);
+                        }
+                      }}
+                      data-testid={`checkbox-group-${group.id}`}
                     />
-                    {group.name}
-                  </Button>
+                    <div className="flex items-center flex-1">
+                      <div 
+                        className="w-3 h-3 rounded-full flex-shrink-0 mr-2" 
+                        style={{ backgroundColor: group.color }}
+                      />
+                      <span>{group.name}</span>
+                    </div>
+                  </label>
                 ))}
               </div>
             </DialogContent>
