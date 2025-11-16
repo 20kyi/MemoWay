@@ -48,8 +48,15 @@ export function setupKakaoAuth(app: Express) {
 
   // Kakao login initiation
   app.get("/api/kakao/login", (req, res) => {
-    // Generate CSRF state token
-    const state = randomBytes(32).toString("hex");
+    // Get language from query parameter
+    const lang = req.query.lang || 'ko';
+    
+    // Generate CSRF state token with language info
+    const stateData = {
+      token: randomBytes(32).toString("hex"),
+      lang: lang
+    };
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
     
     // Store state in session for verification
     (req.session as any).kakaoState = state;
@@ -123,6 +130,15 @@ export function setupKakaoAuth(app: Express) {
     const sessionState = (req.session as any).kakaoState;
     if (!state || state !== sessionState) {
       return res.status(403).json({ error: "Invalid state parameter - possible CSRF attack" });
+    }
+    
+    // Extract language from state
+    let lang = 'ko';
+    try {
+      const stateData = JSON.parse(Buffer.from(state as string, 'base64').toString());
+      lang = stateData.lang || 'ko';
+    } catch (e) {
+      console.error('Failed to parse state:', e);
     }
     
     // Clear state from session
@@ -210,7 +226,8 @@ export function setupKakaoAuth(app: Express) {
             console.error("Session creation failed:", err);
             return res.status(500).json({ error: "Failed to create session" });
           }
-          res.redirect("/");
+          // Redirect with language parameter
+          res.redirect(`/?lang=${lang}`);
         }
       );
     } catch (error) {

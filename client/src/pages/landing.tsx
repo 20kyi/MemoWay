@@ -19,8 +19,10 @@ export default function Landing() {
   const { t, language, setLanguage } = useLanguage();
 
   const handleKakaoLogin = () => {
+    // Pass current language as query parameter
+    const loginUrl = `/api/kakao/login?lang=${language}`;
     // Open in new tab to avoid Replit iframe restrictions
-    window.open("/api/kakao/login", "_blank");
+    window.open(loginUrl, "_blank");
   };
 
   return (
