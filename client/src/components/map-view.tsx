@@ -68,26 +68,58 @@ function getMarkerIconPath(iconType: string): string {
   }
 }
 
-function createMarkerContent(color: string, iconType: string = 'default'): string {
+function createMarkerContent(color: string, iconType: string = 'default', photoUrl?: string): string {
   const iconPath = getMarkerIconPath(iconType);
+  
+  // If photo is provided, create photo marker
+  if (photoUrl) {
+    return `
+      <div 
+        style="
+          position: relative;
+          width: 45px;
+          height: 60px;
+          cursor: pointer;
+        "
+        data-marker-icon="${iconType}"
+        aria-label="${iconType} 마커"
+      >
+        <svg width="45" height="60" viewBox="0 0 45 60" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+          <defs>
+            <clipPath id="photoClip">
+              <circle cx="22.5" cy="22.5" r="12"/>
+            </clipPath>
+          </defs>
+          <path d="M22.5 0C10.074 0 0 10.074 0 22.5c0 12.426 22.5 37.5 22.5 37.5s22.5-25.074 22.5-37.5C45 10.074 34.926 0 22.5 0z" 
+                fill="${color}" 
+                stroke="#ffffff" 
+                stroke-width="3"/>
+          <circle cx="22.5" cy="22.5" r="13" fill="#ffffff"/>
+          <image href="${photoUrl}" x="10.5" y="10.5" width="24" height="24" clip-path="url(#photoClip)" preserveAspectRatio="xMidYMid slice"/>
+        </svg>
+      </div>
+    `;
+  }
+  
+  // Icon marker (no photo)
   return `
     <div 
       style="
         position: relative;
-        width: 30px;
-        height: 40px;
+        width: 45px;
+        height: 60px;
         cursor: pointer;
       "
       data-marker-icon="${iconType}"
       aria-label="${iconType} 마커"
     >
-      <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
-        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+      <svg width="45" height="60" viewBox="0 0 45 60" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <path d="M22.5 0C10.074 0 0 10.074 0 22.5c0 12.426 22.5 37.5 22.5 37.5s22.5-25.074 22.5-37.5C45 10.074 34.926 0 22.5 0z" 
               fill="${color}" 
               stroke="#ffffff" 
-              stroke-width="2"/>
-        <circle cx="15" cy="15" r="8" fill="#ffffff"/>
-        <g transform="translate(6, 6)" fill="${color}">
+              stroke-width="3"/>
+        <circle cx="22.5" cy="22.5" r="12" fill="#ffffff"/>
+        <g transform="translate(9, 9)" fill="${color}">
           <path d="${iconPath}" />
         </g>
       </svg>
@@ -101,40 +133,40 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
     <div 
       style="
         position: relative;
-        width: 30px;
-        height: 40px;
+        width: 45px;
+        height: 60px;
         cursor: pointer;
       "
       data-marker-icon="${iconType}"
       data-marker-count="${count}"
       aria-label="${iconType} 마커 클러스터 (${count}개)"
     >
-      <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
-        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+      <svg width="45" height="60" viewBox="0 0 45 60" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <path d="M22.5 0C10.074 0 0 10.074 0 22.5c0 12.426 22.5 37.5 22.5 37.5s22.5-25.074 22.5-37.5C45 10.074 34.926 0 22.5 0z" 
               fill="${color}" 
               stroke="#ffffff" 
-              stroke-width="2"/>
-        <circle cx="15" cy="15" r="8" fill="#ffffff"/>
-        <g transform="translate(6, 6)" fill="${color}">
+              stroke-width="3"/>
+        <circle cx="22.5" cy="22.5" r="12" fill="#ffffff"/>
+        <g transform="translate(9, 9)" fill="${color}">
           <path d="${iconPath}" />
         </g>
       </svg>
       <div style="
         position: absolute;
-        top: -8px;
-        right: -8px;
+        top: -10px;
+        right: -10px;
         background-color: #ef4444;
         color: white;
         border-radius: 50%;
-        width: 22px;
-        height: 22px;
+        width: 28px;
+        height: 28px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: bold;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        border: 3px solid white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         pointer-events: none;
       ">${count}</div>
     </div>
@@ -290,10 +322,19 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
       
       let markerColor: string;
       let markerIcon: string = 'default';
+      let mainPhotoUrl: string | undefined;
+      
       if (isSingleMemo) {
         markerColor = memo.group?.color || PERSONAL_MEMO_COLOR;
         // 메모의 markerIcon을 우선 사용, 없으면 그룹의 markerIcon 사용
         markerIcon = (memo as any)?.markerIcon || (memo.group as any)?.markerIcon || 'default';
+        
+        // Get main photo URL if available
+        const mainPhotoId = (memo as any).mainPhotoId;
+        if (mainPhotoId && memo.photos && memo.photos.length > 0) {
+          const mainPhoto = memo.photos.find((p: any) => p.id === mainPhotoId);
+          mainPhotoUrl = mainPhoto?.url;
+        }
       } else {
         const colors = cluster.memos.map(m => m.group?.color || PERSONAL_MEMO_COLOR);
         const uniqueColors = new Set(colors);
@@ -307,7 +348,7 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
       
       const contentDiv = document.createElement('div');
       contentDiv.innerHTML = isSingleMemo 
-        ? createMarkerContent(markerColor, markerIcon)
+        ? createMarkerContent(markerColor, markerIcon, mainPhotoUrl)
         : createClusterMarkerContent(markerColor, cluster.memos.length, markerIcon);
       contentDiv.style.cursor = 'pointer';
       
