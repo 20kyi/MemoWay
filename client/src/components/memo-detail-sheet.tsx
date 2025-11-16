@@ -99,48 +99,48 @@ export function MemoDetailSheet({
                   {memo.content}
                 </p>
               </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t.memoDetail.author}:</span>
-                  <span className="font-medium" data-testid="text-memo-author">{memo.member.name}</span>
-                </div>
-
-                {memo.group && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{t.memoDetail.group}:</span>
-                    <Badge variant="secondary" data-testid="badge-memo-group">
-                      {memo.group.name}
-                    </Badge>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t.memoDetail.created}:</span>
-                  <span data-testid="text-memo-created">
-                    {format(new Date(memo.createdAt), "PPP p", { locale: dateLocale })}
-                  </span>
-                </div>
-
-                {memo.updatedAt && new Date(memo.updatedAt).getTime() !== new Date(memo.createdAt).getTime() && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{t.common.edit}:</span>
-                    <span data-testid="text-memo-updated">
-                      {format(new Date(memo.updatedAt), "PPP p", { locale: dateLocale })}
-                    </span>
-                  </div>
-                )}
-              </div>
             </div>
           </ScrollArea>
 
-          <div className="p-6 pt-4 border-t space-y-3">
+          <div className="p-6 pt-4 border-t space-y-4">
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span>{t.memoDetail.author}:</span>
+                <span className="font-medium text-foreground" data-testid="text-memo-author">{memo.member.name}</span>
+              </div>
+
+              {memo.group && (
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span>{t.memoDetail.group}:</span>
+                  <Badge variant="secondary" data-testid="badge-memo-group">
+                    {memo.group.name}
+                  </Badge>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>{t.memoDetail.created}:</span>
+                <span className="text-foreground" data-testid="text-memo-created">
+                  {format(new Date(memo.createdAt), "PPP p", { locale: dateLocale })}
+                </span>
+              </div>
+
+              {memo.updatedAt && new Date(memo.updatedAt).getTime() !== new Date(memo.createdAt).getTime() && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  <span>{t.common.edit}:</span>
+                  <span className="text-foreground" data-testid="text-memo-updated">
+                    {format(new Date(memo.updatedAt), "PPP p", { locale: dateLocale })}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
             {onAddNewMemo && (
               <Button
                 variant="default"
