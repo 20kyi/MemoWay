@@ -36,6 +36,7 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick }:
   const [selectedMemoIds, setSelectedMemoIds] = useState<Set<string>>(new Set());
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pressStartTimeRef = useRef<number>(0);
+  const justEnteredSelectionModeRef = useRef<boolean>(false);
 
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
 
@@ -48,6 +49,7 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick }:
     longPressTimerRef.current = setTimeout(() => {
       setIsSelectionMode(true);
       setSelectedMemoIds(new Set([memoId]));
+      justEnteredSelectionModeRef.current = true;
     }, 500);
   };
 
@@ -60,6 +62,10 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick }:
 
   const handleMemoClick = (memoId: string) => {
     if (isSelectionMode) {
+      if (justEnteredSelectionModeRef.current) {
+        justEnteredSelectionModeRef.current = false;
+        return;
+      }
       toggleMemoSelection(memoId);
     } else {
       const pressDuration = Date.now() - pressStartTimeRef.current;

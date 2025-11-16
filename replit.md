@@ -30,6 +30,8 @@ The backend uses Express.js with TypeScript and ESM modules, providing a RESTful
 - **Multi-language Support**: Complete translation for Korean, English, Chinese, and Japanese.
 - **Memo List Filtering**: Filter memos by category on the memo list page.
 - **Quick Memo Creation**: Option to add new memos at the same location directly from a memo's detail view.
+- **Map Marker Filtering**: Dual filter system (marker icon + group) to show only selected categories and groups on the map.
+- **Multi-Selection and Bulk Delete**: Long-press (500ms) to enter selection mode, select multiple memos with checkboxes, and delete them all at once.
 
 ### System Design Choices
 
