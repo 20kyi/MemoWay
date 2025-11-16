@@ -13,9 +13,11 @@ import { Plus, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useLanguage } from "@/lib/language-context";
 import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 
 export default function Home() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"map" | "memos" | "groups" | "settings">("map");
   const [memoFormOpen, setMemoFormOpen] = useState(false);
   const [memoDetailOpen, setMemoDetailOpen] = useState(false);
@@ -65,17 +67,17 @@ export default function Home() {
       
       if (data.type === "memo_created") {
         toast({
-          title: "새 메모 알림",
-          description: `${data.memo?.buildingName}에 새 메모가 추가되었습니다`,
+          title: t.toast.newMemo,
+          description: `${data.memo?.buildingName}${t.toast.newMemoDesc}`,
         });
       } else if (data.type === "memo_updated") {
         toast({
-          title: "메모 업데이트",
-          description: `${data.memo?.buildingName} 메모가 수정되었습니다`,
+          title: t.toast.memoUpdated,
+          description: `${data.memo?.buildingName}${t.toast.memoUpdatedDesc}`,
         });
       }
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useWebSocket(handleWebSocketMessage);
 
@@ -153,8 +155,8 @@ export default function Home() {
         } catch (error) {
           console.error("개인 메모 멤버 생성 실패:", error);
           toast({
-            title: "개인 메모 설정 실패",
-            description: "개인 메모를 사용하려면 페이지를 새로고침하세요",
+            title: t.toast.personalSetupFailed,
+            description: t.toast.personalSetupFailedDesc,
             variant: "destructive",
           });
         }
@@ -196,8 +198,8 @@ export default function Home() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
-        title: "메모 생성 완료",
-        description: "새 메모가 추가되었습니다",
+        title: t.toast.memoCreated,
+        description: t.toast.memoCreatedDesc,
       });
       setMemoFormOpen(false);
       setSelectedLocation(null);
@@ -237,8 +239,8 @@ export default function Home() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
-        title: "메모 수정 완료",
-        description: "메모가 수정되었습니다",
+        title: t.toast.memoEditSuccess,
+        description: t.toast.memoEditSuccessDesc,
       });
       setMemoFormOpen(false);
       setEditingMemo(null);
@@ -255,8 +257,8 @@ export default function Home() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
-        title: "메모 삭제 완료",
-        description: "메모가 삭제되었습니다",
+        title: t.toast.memoDeleted,
+        description: t.toast.memoDeletedDesc,
       });
     },
   });
@@ -283,8 +285,8 @@ export default function Home() {
       }
       
       toast({
-        title: "그룹 생성 완료",
-        description: "새 그룹이 생성되었습니다",
+        title: t.toast.groupCreated,
+        description: t.toast.groupCreatedDesc,
       });
     },
   });
@@ -307,8 +309,8 @@ export default function Home() {
       }
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
-        title: "그룹 참여 완료",
-        description: "그룹에 참여했습니다",
+        title: t.toast.groupJoined,
+        description: t.toast.groupJoinedDesc,
       });
     },
   });
@@ -332,8 +334,8 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
-        title: "그룹 나가기 완료",
-        description: "그룹에서 나갔습니다",
+        title: t.toast.groupLeft,
+        description: t.toast.groupLeftDesc,
       });
     },
     onError: (error: any) => {
