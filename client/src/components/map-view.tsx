@@ -681,11 +681,11 @@ export function MapView({
 
           {/* 마커 필터 다이얼로그 */}
           <Dialog open={markerFilterOpen} onOpenChange={setMarkerFilterOpen}>
-            <DialogContent className="sm:max-w-md" data-testid="dialog-marker-filter">
+            <DialogContent className="sm:max-w-sm" data-testid="dialog-marker-filter">
               <DialogHeader>
-                <DialogTitle>{t.categories.all} 필터</DialogTitle>
+                <DialogTitle>마커 필터</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-2 py-4">
+              <div className="grid gap-2 py-4 max-h-96 overflow-y-auto">
                 <Button
                   variant={selectedMarkerIcon === "all" ? "default" : "outline"}
                   className="justify-start"
@@ -719,11 +719,11 @@ export function MapView({
 
           {/* 그룹 필터 다이얼로그 */}
           <Dialog open={groupFilterOpen} onOpenChange={setGroupFilterOpen}>
-            <DialogContent className="sm:max-w-md" data-testid="dialog-group-filter">
+            <DialogContent className="sm:max-w-sm" data-testid="dialog-group-filter">
               <DialogHeader>
                 <DialogTitle>그룹 필터</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-2 py-4">
+              <div className="grid gap-2 py-4 max-h-96 overflow-y-auto">
                 <Button
                   variant={selectedGroupId === "all" ? "default" : "outline"}
                   className="justify-start"

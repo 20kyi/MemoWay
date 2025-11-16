@@ -643,7 +643,9 @@ export default function Home() {
               }}
               userLocation={userLocation}
               onMapReady={setMapInstance}
-              groups={groups}
+              groups={groups.filter(g => 
+                g.members.some(m => myMemberIds.includes(m.id))
+              )}
               selectedMarkerIcon={selectedMarkerIcon}
               selectedGroupId={selectedGroupId}
               onMarkerIconChange={setSelectedMarkerIcon}
