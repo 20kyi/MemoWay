@@ -160,9 +160,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         memberId: z.string().min(1, "멤버 ID가 필요합니다"),
         groupId: z.string().optional(),
         markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).default('default'),
+        mainPhotoIndex: z.string().optional(),
       });
       
-      const { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon } = bodySchema.parse(req.body);
+      const { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon, mainPhotoIndex } = bodySchema.parse(req.body);
       
       // Verify member exists
       const memberGroups = await storage.getGroups();
@@ -180,9 +181,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         memberId,
         groupId: groupId || null,
         markerIcon,
+        mainPhotoId: null,
       });
 
       const files = req.files as Express.Multer.File[];
+      const photoIds: string[] = [];
+      
       if (files && files.length > 0) {
         if (files.length > 10) {
           return res.status(400).json({ error: "최대 10개의 사진만 업로드할 수 있습니다" });
@@ -194,10 +198,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           const photoUrl = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
-          await storage.createPhoto({
+          const photo = await storage.createPhoto({
             memoId: memo.id,
             url: photoUrl,
           });
+          photoIds.push(photo.id);
+        }
+      }
+      
+      // Set main photo if specified
+      if (mainPhotoIndex !== undefined && photoIds.length > 0) {
+        const index = parseInt(mainPhotoIndex);
+        if (index >= 0 && index < photoIds.length) {
+          await storage.updateMemo(memo.id, { mainPhotoId: photoIds[index] });
         }
       }
 
@@ -248,10 +261,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         groupId: z.string().optional().transform(val => val === "" ? null : val),
         markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).optional(),
         deletedPhotoIds: z.string().optional(),
+        mainPhotoId: z.string().optional(),
+        mainPhotoIndex: z.string().optional(),
       });
       
       const parsed = bodySchema.parse(req.body);
-      const { deletedPhotoIds, ...updateData } = parsed;
+      const { deletedPhotoIds, mainPhotoId, mainPhotoIndex, ...updateData } = parsed;
       
       // Build update object - latitude/longitude/memberId are not editable
       const memoUpdate: Partial<InsertMemo> = {
@@ -284,6 +299,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle new photos
       const files = req.files as Express.Multer.File[];
+      const newPhotoIds: string[] = [];
+      
       if (files && files.length > 0) {
         const currentPhotos = await storage.getPhotosByMemoId(req.params.id);
         if (currentPhotos.length + files.length > 10) {
@@ -296,10 +313,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           const photoUrl = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
-          await storage.createPhoto({
+          const photo = await storage.createPhoto({
             memoId: req.params.id,
             url: photoUrl,
           });
+          newPhotoIds.push(photo.id);
+        }
+      }
+      
+      // Set main photo if specified
+      if (mainPhotoId) {
+        await storage.updateMemo(req.params.id, { mainPhotoId });
+      } else if (mainPhotoIndex !== undefined && newPhotoIds.length > 0) {
+        const index = parseInt(mainPhotoIndex);
+        if (index >= 0 && index < newPhotoIds.length) {
+          await storage.updateMemo(req.params.id, { mainPhotoId: newPhotoIds[index] });
         }
       }
       
