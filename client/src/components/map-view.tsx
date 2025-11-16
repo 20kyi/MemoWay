@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Navigation, Search, X, Send, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Navigation, Search, X, Send, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -255,6 +261,8 @@ export function MapView({
   const [isSearching, setIsSearching] = useState(false);
   const [markerScale, setMarkerScale] = useState(1);
   const markerClickedRef = useRef(false);
+  const [markerFilterOpen, setMarkerFilterOpen] = useState(false);
+  const [groupFilterOpen, setGroupFilterOpen] = useState(false);
   const { toast } = useToast();
 
   // Filter memos based on selected marker icon and group
@@ -630,54 +638,135 @@ export function MapView({
                 <Search className="h-5 w-5" />
               </Button>
             </div>
-            
-            {/* 필터 바 */}
-            <div className="flex gap-2 mt-2 bg-background rounded-2xl shadow-lg p-2">
-              <Select value={selectedMarkerIcon} onValueChange={onMarkerIconChange} disabled={!onMarkerIconChange}>
-                <SelectTrigger className="flex-1 border-0" data-testid="select-marker-icon-filter">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" data-testid="filter-marker-icon-all">
-                    {t.categories.all}
-                  </SelectItem>
-                  {Object.entries(MARKER_ICON_COMPONENTS).map(([icon, IconComponent]) => (
-                    <SelectItem key={icon} value={icon} data-testid={`filter-marker-icon-${icon}`}>
-                      <div className="flex items-center gap-2">
-                        <IconComponent className="h-4 w-4" />
-                        {t.categories[icon as keyof typeof t.categories]}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedGroupId} onValueChange={onGroupIdChange} disabled={!onGroupIdChange}>
-                <SelectTrigger className="flex-1 border-0" data-testid="select-group-filter">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" data-testid="filter-group-all">
-                    전체 그룹
-                  </SelectItem>
-                  <SelectItem value="personal" data-testid="filter-group-personal">
-                    개인 메모
-                  </SelectItem>
-                  {groups.map((group) => (
-                    <SelectItem key={group.id} value={group.id} data-testid={`filter-group-${group.id}`}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full flex-shrink-0" 
-                          style={{ backgroundColor: group.color }}
-                        />
-                        {group.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
+
+          {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
+          <div className="fixed bottom-20 right-4 flex flex-col gap-3 z-50">
+            {/* 그룹 필터 버튼 */}
+            <Button
+              size="icon"
+              className="h-12 w-12 rounded-full shadow-lg relative"
+              onClick={() => setGroupFilterOpen(true)}
+              data-testid="button-group-filter"
+            >
+              <Users className="h-5 w-5" />
+              {selectedGroupId !== "all" && (
+                <Badge 
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
+                  data-testid="badge-group-filter-count"
+                >
+                  1
+                </Badge>
+              )}
+            </Button>
+
+            {/* 마커 필터 버튼 */}
+            <Button
+              size="icon"
+              className="h-12 w-12 rounded-full shadow-lg relative"
+              onClick={() => setMarkerFilterOpen(true)}
+              data-testid="button-marker-filter"
+            >
+              <Filter className="h-5 w-5" />
+              {selectedMarkerIcon !== "all" && (
+                <Badge 
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
+                  data-testid="badge-marker-filter-count"
+                >
+                  1
+                </Badge>
+              )}
+            </Button>
+          </div>
+
+          {/* 마커 필터 다이얼로그 */}
+          <Dialog open={markerFilterOpen} onOpenChange={setMarkerFilterOpen}>
+            <DialogContent className="sm:max-w-md" data-testid="dialog-marker-filter">
+              <DialogHeader>
+                <DialogTitle>{t.categories.all} 필터</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-2 py-4">
+                <Button
+                  variant={selectedMarkerIcon === "all" ? "default" : "outline"}
+                  className="justify-start"
+                  onClick={() => {
+                    onMarkerIconChange?.("all");
+                    setMarkerFilterOpen(false);
+                  }}
+                  data-testid="filter-marker-icon-all"
+                >
+                  <MapPin className="h-4 w-4 mr-2" />
+                  {t.categories.all}
+                </Button>
+                {Object.entries(MARKER_ICON_COMPONENTS).map(([icon, IconComponent]) => (
+                  <Button
+                    key={icon}
+                    variant={selectedMarkerIcon === icon ? "default" : "outline"}
+                    className="justify-start"
+                    onClick={() => {
+                      onMarkerIconChange?.(icon);
+                      setMarkerFilterOpen(false);
+                    }}
+                    data-testid={`filter-marker-icon-${icon}`}
+                  >
+                    <IconComponent className="h-4 w-4 mr-2" />
+                    {t.categories[icon as keyof typeof t.categories]}
+                  </Button>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* 그룹 필터 다이얼로그 */}
+          <Dialog open={groupFilterOpen} onOpenChange={setGroupFilterOpen}>
+            <DialogContent className="sm:max-w-md" data-testid="dialog-group-filter">
+              <DialogHeader>
+                <DialogTitle>그룹 필터</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-2 py-4">
+                <Button
+                  variant={selectedGroupId === "all" ? "default" : "outline"}
+                  className="justify-start"
+                  onClick={() => {
+                    onGroupIdChange?.("all");
+                    setGroupFilterOpen(false);
+                  }}
+                  data-testid="filter-group-all"
+                >
+                  전체 그룹
+                </Button>
+                <Button
+                  variant={selectedGroupId === "personal" ? "default" : "outline"}
+                  className="justify-start"
+                  onClick={() => {
+                    onGroupIdChange?.("personal");
+                    setGroupFilterOpen(false);
+                  }}
+                  data-testid="filter-group-personal"
+                >
+                  개인 메모
+                </Button>
+                {groups.map((group) => (
+                  <Button
+                    key={group.id}
+                    variant={selectedGroupId === group.id ? "default" : "outline"}
+                    className="justify-start"
+                    onClick={() => {
+                      onGroupIdChange?.(group.id);
+                      setGroupFilterOpen(false);
+                    }}
+                    data-testid={`filter-group-${group.id}`}
+                  >
+                    <div 
+                      className="w-3 h-3 rounded-full flex-shrink-0 mr-2" 
+                      style={{ backgroundColor: group.color }}
+                    />
+                    {group.name}
+                  </Button>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </div>

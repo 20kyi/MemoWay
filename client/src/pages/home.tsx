@@ -680,9 +680,7 @@ export default function Home() {
             onBulkDelete={(memoIds) => {
               if (confirm(`선택한 ${memoIds.length}개의 메모를 삭제하시겠습니까?`)) {
                 Promise.all(memoIds.map(id => 
-                  apiRequest(`/api/memos/${id}`, {
-                    method: 'DELETE'
-                  })
+                  apiRequest("DELETE", `/api/memos/${id}`)
                 )).then(() => {
                   queryClient.invalidateQueries({ queryKey: ['/api/memos'] });
                   toast({
