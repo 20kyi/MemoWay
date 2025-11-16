@@ -53,7 +53,13 @@ export function setupKakaoAuth(app: Express) {
     // Store state in session for verification
     (req.session as any).kakaoState = state;
     
-    const redirectUri = `${req.protocol}://${req.hostname}/api/kakao/callback`;
+    // Get the actual external domain from request headers or environment
+    const host = req.get('host') || req.hostname;
+    const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+    const redirectUri = `${protocol}://${host}/api/kakao/callback`;
+    
+    console.log('Kakao OAuth Redirect URI:', redirectUri);
+    
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
     res.redirect(kakaoAuthUrl);
   });
@@ -77,7 +83,12 @@ export function setupKakaoAuth(app: Express) {
 
     try {
       // Exchange code for access token
-      const redirectUri = `${req.protocol}://${req.hostname}/api/kakao/callback`;
+      const host = req.get('host') || req.hostname;
+      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+      const redirectUri = `${protocol}://${host}/api/kakao/callback`;
+      
+      console.log('Token exchange with Redirect URI:', redirectUri);
+      
       const tokenResponse = await fetch("https://kauth.kakao.com/oauth/token", {
         method: "POST",
         headers: {
