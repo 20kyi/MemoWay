@@ -10,27 +10,26 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Camera, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase } from "lucide-react";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
+import { useLanguage } from "@/lib/language-context";
 
-const MARKER_ICONS: Array<{ type: MarkerIconType; name: string; icon: any }> = [
-  { type: 'default', name: '기본', icon: MapPin },
-  { type: 'travel', name: '여행', icon: Plane },
-  { type: 'love', name: '사랑', icon: Heart },
-  { type: 'food', name: '맛집', icon: Utensils },
-  { type: 'cafe', name: '카페', icon: Coffee },
-  { type: 'shopping', name: '쇼핑', icon: ShoppingBag },
-  { type: 'sport', name: '운동', icon: Trophy },
-  { type: 'work', name: '업무', icon: Briefcase },
-];
+const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
+  default: MapPin,
+  travel: Plane,
+  love: Heart,
+  food: Utensils,
+  cafe: Coffee,
+  shopping: ShoppingBag,
+  sport: Trophy,
+  work: Briefcase,
+};
 
-const memoFormSchema = z.object({
-  buildingName: z.string().min(1, "건물명을 입력하세요"),
-  address: z.string().min(1, "주소를 입력하세요"),
-  content: z.string().min(1, "메모를 입력하세요"),
-  groupIds: z.array(z.string()).optional().default([]),
-  markerIcon: z.enum(markerIconTypes).default('default'),
-});
-
-type MemoFormValues = z.infer<typeof memoFormSchema>;
+type MemoFormValues = {
+  buildingName: string;
+  address: string;
+  content: string;
+  groupIds: string[];
+  markerIcon: MarkerIconType;
+};
 
 interface MemoFormSheetProps {
   open: boolean;
@@ -64,12 +63,21 @@ export function MemoFormSheet({
   currentMemberId,
   editMode = false
 }: MemoFormSheetProps) {
+  const { t } = useLanguage();
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<Array<{ id: string; url: string }>>(
     initialData?.existingPhotos || []
   );
   const [deletedPhotoIds, setDeletedPhotoIds] = useState<string[]>([]);
+
+  const memoFormSchema = z.object({
+    buildingName: z.string().min(1, t.memoForm.buildingName),
+    address: z.string().min(1, t.memoForm.address),
+    content: z.string().min(1, t.memoForm.content),
+    groupIds: z.array(z.string()).optional().default([]),
+    markerIcon: z.enum(markerIconTypes).default('default'),
+  });
 
   const form = useForm<MemoFormValues>({
     resolver: zodResolver(memoFormSchema),
@@ -135,7 +143,7 @@ export function MemoFormSheet({
         
         <div className="px-6 pb-6 h-full overflow-y-auto">
           <SheetHeader className="mb-6">
-            <SheetTitle className="text-2xl">{editMode ? "메모 편집" : "새 메모 추가"}</SheetTitle>
+            <SheetTitle className="text-2xl">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
           </SheetHeader>
 
           <Form {...form}>
@@ -145,9 +153,9 @@ export function MemoFormSheet({
                 name="buildingName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>건물명</FormLabel>
+                    <FormLabel>{t.memoForm.buildingName}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="건물명" data-testid="input-building-name" />
+                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} data-testid="input-building-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -159,9 +167,9 @@ export function MemoFormSheet({
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>주소</FormLabel>
+                    <FormLabel>{t.memoForm.address}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="주소" data-testid="input-address" />
+                      <Input {...field} placeholder={t.memoForm.addressPlaceholder} data-testid="input-address" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -169,7 +177,7 @@ export function MemoFormSheet({
               />
 
               <div>
-                <FormLabel>사진</FormLabel>
+                <FormLabel>{t.memoForm.photos}</FormLabel>
                 <div className="grid grid-cols-3 gap-2 mt-2">
                   {existingPhotos.map((photo) => (
                     <div key={photo.id} className="relative aspect-square">
@@ -222,23 +230,23 @@ export function MemoFormSheet({
                 name="markerIcon"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>마커 아이콘</FormLabel>
+                    <FormLabel>{t.memoForm.markerIcon}</FormLabel>
                     <FormControl>
                       <div className="grid grid-cols-4 gap-2">
-                        {MARKER_ICONS.map((markerIcon) => {
-                          const Icon = markerIcon.icon;
-                          const isSelected = field.value === markerIcon.type;
+                        {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
+                          const Icon = MARKER_ICON_COMPONENTS[type];
+                          const isSelected = field.value === type;
                           return (
                             <Button
-                              key={markerIcon.type}
+                              key={type}
                               type="button"
                               variant={isSelected ? "default" : "outline"}
                               className="h-auto py-3 flex flex-col items-center gap-1"
-                              onClick={() => field.onChange(markerIcon.type)}
-                              data-testid={`button-marker-${markerIcon.type}`}
+                              onClick={() => field.onChange(type)}
+                              data-testid={`button-marker-${type}`}
                             >
                               <Icon className="h-5 w-5" />
-                              <span className="text-xs">{markerIcon.name}</span>
+                              <span className="text-xs">{t.categories[type]}</span>
                             </Button>
                           );
                         })}
@@ -254,11 +262,11 @@ export function MemoFormSheet({
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>메모</FormLabel>
+                    <FormLabel>{t.memoForm.content}</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
-                        placeholder="메모를 입력하세요" 
+                        placeholder={t.memoForm.contentPlaceholder} 
                         className="min-h-32 resize-none"
                         data-testid="input-memo-content"
                       />
@@ -274,7 +282,7 @@ export function MemoFormSheet({
                   name="groupIds"
                   render={() => (
                     <FormItem>
-                      <FormLabel>그룹 공유 (선택 안 하면 개인 메모)</FormLabel>
+                      <FormLabel>{t.memoForm.groupShare}</FormLabel>
                       <div className="space-y-2">
                         {groups.filter(g => g.name !== "개인 메모").map(group => (
                           <FormField
@@ -324,7 +332,7 @@ export function MemoFormSheet({
                   onClick={() => onOpenChange(false)}
                   data-testid="button-cancel"
                 >
-                  취소
+                  {t.common.cancel}
                 </Button>
                 <Button 
                   type="submit" 
@@ -332,7 +340,7 @@ export function MemoFormSheet({
                   disabled={isLoading || (!isPersonalMemberReady && !currentMemberId)}
                   data-testid="button-save-memo"
                 >
-                  {isLoading ? "저장 중..." : "저장"}
+                  {isLoading ? `${t.common.save}...` : t.common.save}
                 </Button>
               </div>
             </form>
