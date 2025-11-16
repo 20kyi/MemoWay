@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
@@ -42,22 +42,45 @@ export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps
     );
   }
 
+  const getCategoryDisplay = (category: MarkerIconType | "all") => {
+    if (category === "all") {
+      return { label: "전체", icon: MapPin, count: memos.length };
+    }
+    const config = categoryConfig[category];
+    const count = memos.filter(m => m.markerIcon === category).length;
+    return { label: config.label, icon: config.icon, count };
+  };
+
+  const currentCategory = getCategoryDisplay(selectedCategory);
+  const CurrentIcon = currentCategory.icon;
+
   return (
     <div className="flex flex-col h-full">
-      {/* Category Filter */}
+      {/* Category Filter Dropdown */}
       <div className="px-4 pt-4 pb-2">
-        <ScrollArea className="w-full">
-          <div className="flex gap-2 pb-2">
-            <Button
-              variant={selectedCategory === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory("all")}
-              className="shrink-0"
-              data-testid="filter-all"
-            >
-              <MapPin className="w-4 h-4 mr-1" />
-              전체
-            </Button>
+        <Select
+          value={selectedCategory}
+          onValueChange={(value) => setSelectedCategory(value as MarkerIconType | "all")}
+        >
+          <SelectTrigger className="w-full" data-testid="category-select-trigger">
+            <div className="flex items-center gap-2 w-full">
+              <CurrentIcon className="w-4 h-4" />
+              <span className="flex-1 text-left">{currentCategory.label}</span>
+              <Badge variant="secondary" className="px-2 h-5 text-xs">
+                {currentCategory.count}
+              </Badge>
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all" data-testid="filter-all">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                <span>전체</span>
+                <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
+                  {memos.length}
+                </Badge>
+              </div>
+            </SelectItem>
             {(Object.entries(categoryConfig) as [MarkerIconType, typeof categoryConfig[MarkerIconType]][])
               .filter(([key]) => key !== "default")
               .map(([key, config]) => {
@@ -66,24 +89,19 @@ export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps
                 if (count === 0) return null;
                 
                 return (
-                  <Button
-                    key={key}
-                    variant={selectedCategory === key ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(key)}
-                    className="shrink-0"
-                    data-testid={`filter-${key}`}
-                  >
-                    <Icon className="w-4 h-4 mr-1" />
-                    {config.label}
-                    <Badge variant="secondary" className="ml-1.5 px-1.5 min-w-5 h-5 text-xs">
-                      {count}
-                    </Badge>
-                  </Button>
+                  <SelectItem key={key} value={key} data-testid={`filter-${key}`}>
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-4 h-4" />
+                      <span>{config.label}</span>
+                      <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
+                        {count}
+                      </Badge>
+                    </div>
+                  </SelectItem>
                 );
               })}
-          </div>
-        </ScrollArea>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Memo List */}

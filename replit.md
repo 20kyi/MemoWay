@@ -7,17 +7,17 @@ A mobile-first web application enabling users to create and share location-based
 ## Recent Changes (November 16, 2025)
 
 **Added Category Filter to Memo List Page**
-- User request: Add category filtering functionality to the memo list
+- User request: Add category filtering functionality to the memo list as a dropdown
 - Implementation:
-  - Added horizontal scrollable filter bar at the top of memo list
-  - Filter buttons for each category: 전체, 여행, 사랑, 맛집, 카페, 쇼핑, 운동, 업무
-  - Each button displays count badge showing number of memos in that category
-  - Category buttons only appear if memos exist in that category
-  - Active filter highlighted with blue background (variant="default")
-  - Icons for each category (Plane, Heart, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase)
+  - Added Select dropdown component at top of memo list
+  - Single dropdown button showing: current category icon + label + count badge
+  - Dropdown options for each category: 전체, 여행, 사랑, 맛집, 카페, 쇼핑, 운동, 업무
+  - Each dropdown item displays icon, label, and count badge
+  - Only categories with memos are shown in dropdown options
+  - Icons for each category (MapPin, Plane, Heart, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase)
 - Filtering logic: Filters memos by markerIcon field
 - Empty state: Shows appropriate message when selected category has no memos
-- Layout: ScrollArea for horizontal scrolling when many categories present
+- UI: Clean single-button design that expands to show all available categories
 
 **Updated Current Location Button Icon to Paper Plane**
 - User request: Change the floating button icon on the map to a paper plane (Send icon)
