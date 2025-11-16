@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
+import { useLanguage } from "@/lib/language-context";
 
 interface MemoListProps {
   memos: MemoWithDetails[];
@@ -15,19 +16,22 @@ interface MemoListProps {
   onMemoClick: (memoId: string) => void;
 }
 
-const categoryConfig: Record<MarkerIconType, { label: string; icon: any }> = {
-  default: { label: "전체", icon: MapPin },
-  travel: { label: "여행", icon: Plane },
-  love: { label: "사랑", icon: Heart },
-  food: { label: "맛집", icon: UtensilsCrossed },
-  cafe: { label: "카페", icon: Coffee },
-  shopping: { label: "쇼핑", icon: ShoppingBag },
-  sport: { label: "운동", icon: Dumbbell },
-  work: { label: "업무", icon: Briefcase },
+const categoryIcons: Record<MarkerIconType, any> = {
+  default: MapPin,
+  travel: Plane,
+  love: Heart,
+  food: UtensilsCrossed,
+  cafe: Coffee,
+  shopping: ShoppingBag,
+  sport: Dumbbell,
+  work: Briefcase,
 };
 
 export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps) {
+  const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
+
+  const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
 
   const filteredMemos = selectedCategory === "all" 
     ? memos 
@@ -36,19 +40,20 @@ export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps
   if (memos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-        <p className="text-muted-foreground text-lg mb-2">아직 메모가 없습니다</p>
-        <p className="text-muted-foreground text-sm">지도에서 위치를 선택하여 메모를 추가하세요</p>
+        <p className="text-muted-foreground text-lg mb-2">{t.memoList.noMemos}</p>
+        <p className="text-muted-foreground text-sm">{t.memoList.noMemosDesc}</p>
       </div>
     );
   }
 
   const getCategoryDisplay = (category: MarkerIconType | "all") => {
     if (category === "all") {
-      return { label: "전체", icon: MapPin, count: memos.length };
+      return { label: t.categories.all, icon: MapPin, count: memos.length };
     }
-    const config = categoryConfig[category];
+    const label = t.categories[category];
+    const icon = categoryIcons[category];
     const count = memos.filter(m => m.markerIcon === category).length;
-    return { label: config.label, icon: config.icon, count };
+    return { label, icon, count };
   };
 
   const currentCategory = getCategoryDisplay(selectedCategory);
@@ -75,16 +80,16 @@ export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps
             <SelectItem value="all" data-testid="filter-all">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                <span>전체</span>
+                <span>{t.categories.all}</span>
                 <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
                   {memos.length}
                 </Badge>
               </div>
             </SelectItem>
-            {(Object.entries(categoryConfig) as [MarkerIconType, typeof categoryConfig[MarkerIconType]][])
-              .filter(([key]) => key !== "default")
-              .map(([key, config]) => {
-                const Icon = config.icon;
+            {(Object.keys(categoryIcons) as MarkerIconType[])
+              .filter((key) => key !== "default")
+              .map((key) => {
+                const Icon = categoryIcons[key];
                 const count = memos.filter(m => m.markerIcon === key).length;
                 if (count === 0) return null;
                 
@@ -92,7 +97,7 @@ export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps
                   <SelectItem key={key} value={key} data-testid={`filter-${key}`}>
                     <div className="flex items-center gap-2">
                       <Icon className="w-4 h-4" />
-                      <span>{config.label}</span>
+                      <span>{t.categories[key]}</span>
                       <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
                         {count}
                       </Badge>
@@ -109,9 +114,9 @@ export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps
       {filteredMemos.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full p-8 text-center">
           <p className="text-muted-foreground text-lg mb-2">
-            {categoryConfig[selectedCategory as MarkerIconType]?.label || "선택한"} 카테고리에 메모가 없습니다
+            {t.memoList.noCategoryMemos}
           </p>
-          <p className="text-muted-foreground text-sm">다른 카테고리를 선택하거나 새 메모를 추가하세요</p>
+          <p className="text-muted-foreground text-sm">{t.memoList.noCategoryMemosDesc}</p>
         </div>
       ) : (
         filteredMemos.map(memo => (
@@ -133,7 +138,7 @@ export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps
                 </Badge>
               ) : (
                 <Badge variant="outline" className="shrink-0">
-                  개인
+                  {t.common.personal}
                 </Badge>
               )}
             </div>
@@ -162,10 +167,10 @@ export function MemoList({ memos, onEdit, onDelete, onMemoClick }: MemoListProps
           <CardFooter className="flex items-center justify-between pt-0">
             <div className="flex flex-col gap-1">
               <p className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(memo.createdAt), { addSuffix: true, locale: ko })}
+                {formatDistanceToNow(new Date(memo.createdAt), { addSuffix: true, locale: dateLocale })}
               </p>
               <p className="text-xs text-muted-foreground">
-                작성자: {memo.member.name}
+                {t.memoDetail.author}: {memo.member.name}
               </p>
             </div>
             <div className="flex gap-2">

@@ -1,4 +1,5 @@
 import { Map, List, Users, Settings } from "lucide-react";
+import { useLanguage } from "@/lib/language-context";
 
 interface BottomNavProps {
   activeTab: "map" | "memos" | "groups" | "settings";
@@ -6,11 +7,13 @@ interface BottomNavProps {
 }
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
+  const { t } = useLanguage();
+  
   const tabs = [
-    { id: "map" as const, label: "지도", icon: Map },
-    { id: "memos" as const, label: "메모", icon: List },
-    { id: "groups" as const, label: "그룹", icon: Users },
-    { id: "settings" as const, label: "설정", icon: Settings },
+    { id: "map" as const, label: t.nav.map, icon: Map },
+    { id: "memos" as const, label: t.nav.memos, icon: List },
+    { id: "groups" as const, label: t.nav.groups, icon: Users },
+    { id: "settings" as const, label: t.nav.settings, icon: Settings },
   ];
 
   return (
