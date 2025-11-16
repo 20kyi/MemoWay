@@ -61,7 +61,22 @@ export function setupKakaoAuth(app: Express) {
     console.log('Kakao OAuth Redirect URI:', redirectUri);
     
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
-    res.redirect(kakaoAuthUrl);
+    
+    // Break out of Replit preview iframe to avoid X-Frame-Options blocking
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>카카오 로그인으로 이동 중...</title>
+        </head>
+        <body>
+          <p>카카오 로그인 페이지로 이동 중입니다...</p>
+          <script>
+            window.top.location.href = ${JSON.stringify(kakaoAuthUrl)};
+          </script>
+        </body>
+      </html>
+    `);
   });
 
   // Kakao OAuth callback
