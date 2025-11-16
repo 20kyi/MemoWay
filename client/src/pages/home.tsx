@@ -34,6 +34,7 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const [notifiedMemoIds, setNotifiedMemoIds] = useState<Set<string>>(new Set());
   const [currentMemberId, setCurrentMemberId] = useState<string | null>(
     localStorage.getItem("currentMemberId")
   );
@@ -387,13 +388,29 @@ export default function Home() {
       return distance <= 100;
     });
 
+    // Only notify for new memos that haven't been notified yet
     nearbyMemos.forEach(memo => {
-      if (Notification.permission === "granted") {
+      if (Notification.permission === "granted" && !notifiedMemoIds.has(memo.id)) {
         new Notification("근처 메모 있음", {
           body: `${memo.buildingName}에 메모가 있습니다`,
           icon: "/favicon.png",
         });
+        
+        // Mark this memo as notified
+        setNotifiedMemoIds(prev => new Set(prev).add(memo.id));
       }
+    });
+    
+    // Clean up notified memos that are no longer nearby
+    const nearbyMemoIds = new Set(nearbyMemos.map(m => m.id));
+    setNotifiedMemoIds(prev => {
+      const updated = new Set<string>();
+      prev.forEach(id => {
+        if (nearbyMemoIds.has(id)) {
+          updated.add(id);
+        }
+      });
+      return updated;
     });
   };
 
