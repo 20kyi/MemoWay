@@ -5,10 +5,6 @@ import { useLanguage } from "@/lib/language-context";
 export default function Landing() {
   const { t, language } = useLanguage();
 
-  const handleLogin = () => {
-    window.location.href = "/api/login";
-  };
-
   const handleKakaoLogin = () => {
     // Open in new tab to avoid Replit iframe restrictions
     window.open("/api/kakao/login", "_blank");
@@ -73,10 +69,10 @@ export default function Landing() {
                 {language === 'ja' && '安全なログイン'}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {language === 'ko' && '이메일/비밀번호, Google, GitHub 로그인 지원'}
-                {language === 'en' && 'Email/password, Google, and GitHub login supported'}
-                {language === 'zh' && '支持电子邮件/密码、Google 和 GitHub 登录'}
-                {language === 'ja' && 'メール/パスワード、Google、GitHub ログイン対応'}
+                {language === 'ko' && '카카오 계정으로 간편하게 로그인하세요'}
+                {language === 'en' && 'Sign in easily with your Kakao account'}
+                {language === 'zh' && '使用 Kakao 账户轻松登录'}
+                {language === 'ja' && 'Kakao アカウントで簡単にログイン'}
               </p>
             </div>
           </div>
@@ -84,20 +80,7 @@ export default function Landing() {
           <div className="space-y-4 w-full max-w-md">
             <Button 
               size="lg" 
-              className="w-full text-lg h-14" 
-              onClick={handleLogin}
-              data-testid="button-login"
-            >
-              {language === 'ko' && '로그인 / 회원가입'}
-              {language === 'en' && 'Log In / Sign Up'}
-              {language === 'zh' && '登录 / 注册'}
-              {language === 'ja' && 'ログイン / サインアップ'}
-            </Button>
-
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="w-full text-lg h-14 bg-yellow-400 hover:bg-yellow-500 border-yellow-500 text-black"
+              className="w-full text-lg h-16 bg-yellow-400 hover:bg-yellow-500 border-2 border-yellow-500 text-black font-semibold"
               onClick={handleKakaoLogin}
               data-testid="button-kakao-login"
             >
@@ -108,10 +91,10 @@ export default function Landing() {
             </Button>
 
             <p className="text-sm text-muted-foreground">
-              {language === 'ko' && 'Google, GitHub, 이메일/비밀번호, 카카오로 로그인할 수 있습니다'}
-              {language === 'en' && 'Log in with Google, GitHub, email/password, or Kakao'}
-              {language === 'zh' && '使用 Google、GitHub、电子邮件/密码或 Kakao 登录'}
-              {language === 'ja' && 'Google、GitHub、メール/パスワード、または Kakao でログイン'}
+              {language === 'ko' && '카카오 계정으로 간편하게 로그인하세요'}
+              {language === 'en' && 'Sign in easily with your Kakao account'}
+              {language === 'zh' && '使用 Kakao 账户轻松登录'}
+              {language === 'ja' && 'Kakao アカウントで簡単にログイン'}
             </p>
           </div>
         </div>
