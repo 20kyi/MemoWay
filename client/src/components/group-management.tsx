@@ -12,37 +12,36 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
+import { useLanguage } from "@/lib/language-context";
 
-const groupFormSchema = z.object({
-  name: z.string().min(1, "그룹명을 입력하세요"),
-  memberName: z.string().min(1, "이름을 입력하세요"),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i, "유효한 색상 코드를 선택하세요").default('#3b82f6'),
-  markerIcon: z.enum(markerIconTypes).default('default'),
-});
-
-type GroupFormValues = z.infer<typeof groupFormSchema>;
+type GroupFormValues = {
+  name: string;
+  memberName: string;
+  color: string;
+  markerIcon: MarkerIconType;
+};
 
 const PRESET_COLORS = [
-  { name: '파랑', value: '#3b82f6' },
-  { name: '빨강', value: '#ef4444' },
-  { name: '초록', value: '#22c55e' },
-  { name: '노랑', value: '#eab308' },
-  { name: '보라', value: '#a855f7' },
-  { name: '분홍', value: '#ec4899' },
-  { name: '주황', value: '#f97316' },
-  { name: '청록', value: '#14b8a6' },
-];
+  { key: 'blue', value: '#3b82f6' },
+  { key: 'red', value: '#ef4444' },
+  { key: 'green', value: '#22c55e' },
+  { key: 'yellow', value: '#eab308' },
+  { key: 'purple', value: '#a855f7' },
+  { key: 'pink', value: '#ec4899' },
+  { key: 'orange', value: '#f97316' },
+  { key: 'teal', value: '#14b8a6' },
+] as const;
 
-const MARKER_ICONS: Array<{ type: MarkerIconType; name: string; icon: any }> = [
-  { type: 'default', name: '기본', icon: MapPin },
-  { type: 'travel', name: '여행', icon: Plane },
-  { type: 'love', name: '사랑', icon: Heart },
-  { type: 'food', name: '맛집', icon: Utensils },
-  { type: 'cafe', name: '카페', icon: Coffee },
-  { type: 'shopping', name: '쇼핑', icon: ShoppingBag },
-  { type: 'sport', name: '운동', icon: Trophy },
-  { type: 'work', name: '업무', icon: Briefcase },
-];
+const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
+  default: MapPin,
+  travel: Plane,
+  love: Heart,
+  food: Utensils,
+  cafe: Coffee,
+  shopping: ShoppingBag,
+  sport: Trophy,
+  work: Briefcase,
+};
 
 interface Group {
   id: string;
@@ -65,9 +64,17 @@ interface GroupManagementProps {
 }
 
 export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
+  const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const groupFormSchema = z.object({
+    name: z.string().min(1, t.groups.groupName),
+    memberName: z.string().min(1, t.groups.myName),
+    color: z.string().regex(/^#[0-9A-F]{6}$/i, t.groups.groupColor).default('#3b82f6'),
+    markerIcon: z.enum(markerIconTypes).default('default'),
+  });
 
   const createForm = useForm<GroupFormValues>({
     resolver: zodResolver(groupFormSchema),
@@ -81,8 +88,8 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
 
   const joinForm = useForm<{ inviteCode: string; memberName: string }>({
     resolver: zodResolver(z.object({
-      inviteCode: z.string().min(1, "초대 코드를 입력하세요"),
-      memberName: z.string().min(1, "이름을 입력하세요"),
+      inviteCode: z.string().min(1, t.groups.inviteCode),
+      memberName: z.string().min(1, t.groups.myName),
     })),
     defaultValues: {
       inviteCode: "",
@@ -106,8 +113,8 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
     const inviteUrl = `${window.location.origin}?join=${inviteCode}`;
     navigator.clipboard.writeText(inviteUrl);
     toast({
-      title: "초대 링크 복사됨",
-      description: "초대 링크가 클립보드에 복사되었습니다",
+      title: t.groups.inviteLinkCopied,
+      description: t.groups.inviteLinkCopied,
     });
   };
 
@@ -118,12 +125,12 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
           <DialogTrigger asChild>
             <Button className="flex-1" data-testid="button-create-group">
               <Plus className="h-4 w-4 mr-2" />
-              그룹 만들기
+              {t.groups.createGroup}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md rounded-3xl">
             <DialogHeader>
-              <DialogTitle>새 그룹 만들기</DialogTitle>
+              <DialogTitle>{t.groups.newGroup}</DialogTitle>
             </DialogHeader>
             <Form {...createForm}>
               <form onSubmit={createForm.handleSubmit(handleCreateGroup)} className="space-y-4">
@@ -132,7 +139,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>그룹명</FormLabel>
+                      <FormLabel>{t.groups.groupName}</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="예: 친구들" data-testid="input-group-name" />
                       </FormControl>
@@ -145,9 +152,9 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   name="memberName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>내 이름</FormLabel>
+                      <FormLabel>{t.groups.myName}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="홍길동" data-testid="input-member-name" />
+                        <Input {...field} placeholder={t.groups.myNamePlaceholder} data-testid="input-member-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -158,7 +165,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   name="color"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>그룹 색상</FormLabel>
+                      <FormLabel>{t.groups.groupColor}</FormLabel>
                       <FormControl>
                         <div className="space-y-3">
                           <div className="grid grid-cols-8 gap-2" data-testid="color-picker">
@@ -176,7 +183,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                                   field.onChange(color.value);
                                 }}
                                 data-testid={`color-option-${color.value}`}
-                                aria-label={color.name}
+                                aria-label={t.colors[color.key as keyof typeof t.colors]}
                               />
                             ))}
                           </div>
@@ -218,26 +225,26 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   name="markerIcon"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>마커 모양</FormLabel>
+                      <FormLabel>{t.groups.markerShape}</FormLabel>
                       <FormControl>
                         <div className="grid grid-cols-4 gap-2" data-testid="marker-icon-picker">
-                          {MARKER_ICONS.map((marker) => {
-                            const Icon = marker.icon;
+                          {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
+                            const Icon = MARKER_ICON_COMPONENTS[type];
                             return (
                               <button
-                                key={marker.type}
+                                key={type}
                                 type="button"
                                 className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${
-                                  field.value === marker.type 
+                                  field.value === type 
                                     ? 'border-foreground bg-accent' 
                                     : 'border-border hover:border-foreground/50 hover:bg-accent/50'
                                 }`}
-                                onClick={() => field.onChange(marker.type)}
-                                data-testid={`marker-icon-${marker.type}`}
-                                aria-label={marker.name}
+                                onClick={() => field.onChange(type)}
+                                data-testid={`marker-icon-${type}`}
+                                aria-label={t.categories[type]}
                               >
                                 <Icon className="h-5 w-5" />
-                                <span className="text-xs font-medium">{marker.name}</span>
+                                <span className="text-xs font-medium">{t.categories[type]}</span>
                               </button>
                             );
                           })}
@@ -248,7 +255,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   )}
                 />
                 <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-create-group">
-                  {isLoading ? "생성 중..." : "만들기"}
+                  {isLoading ? `${t.common.create}...` : t.common.create}
                 </Button>
               </form>
             </Form>
@@ -258,12 +265,12 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
         <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" className="flex-1" data-testid="button-join-group">
-              그룹 참여
+              {t.groups.joinGroup}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md rounded-3xl">
             <DialogHeader>
-              <DialogTitle>그룹 참여하기</DialogTitle>
+              <DialogTitle>{t.groups.joinGroup}</DialogTitle>
             </DialogHeader>
             <Form {...joinForm}>
               <form onSubmit={joinForm.handleSubmit(handleJoinGroup)} className="space-y-4">
@@ -272,9 +279,9 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   name="inviteCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>초대 코드</FormLabel>
+                      <FormLabel>{t.groups.inviteCode}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="초대 코드 입력" data-testid="input-invite-code" />
+                        <Input {...field} placeholder={t.groups.inviteCodePlaceholder} data-testid="input-invite-code" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -305,8 +312,8 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
       {groups.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
           <Users className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground text-lg mb-2">아직 그룹이 없습니다</p>
-          <p className="text-muted-foreground text-sm">그룹을 만들거나 초대 코드로 참여하세요</p>
+          <p className="text-muted-foreground text-lg mb-2">{t.groups.noGroups}</p>
+          <p className="text-muted-foreground text-sm">{t.groups.noGroupsDesc}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -369,7 +376,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   data-testid={`button-share-${group.id}`}
                 >
                   <Share2 className="h-4 w-4 mr-2" />
-                  초대 링크
+                  {t.groups.copyInviteLink}
                 </Button>
                 {(() => {
                   const myMember = group.members.find(m => myMemberIds.includes(m.id));
@@ -382,7 +389,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                       onClick={() => onLeaveGroup(group.id, myMember.id)}
                       data-testid={`button-leave-${group.id}`}
                     >
-                      나가기
+                      {t.common.leave}
                     </Button>
                   );
                 })()}
