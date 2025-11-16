@@ -688,7 +688,7 @@ export function MapView({
               }} />
               {!selectedGroupIds.includes("all") && (
                 <Badge 
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
                   data-testid="badge-group-filter-count"
                 >
                   {selectedGroupIds.filter(id => id !== "all").length}
