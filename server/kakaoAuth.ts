@@ -39,6 +39,8 @@ interface KakaoUserInfo {
 export function setupKakaoAuth(app: Express) {
   const clientId = process.env.KAKAO_CLIENT_ID;
   const clientSecret = process.env.KAKAO_CLIENT_SECRET;
+  const replSlug = process.env.REPL_SLUG;
+  const replOwner = process.env.REPL_OWNER;
   
   if (!clientId || !clientSecret) {
     console.warn("Kakao OAuth credentials not configured. Kakao login will be unavailable.");
@@ -53,10 +55,8 @@ export function setupKakaoAuth(app: Express) {
     // Store state in session for verification
     (req.session as any).kakaoState = state;
     
-    // Get the actual external domain from request headers or environment
-    const host = req.get('host') || req.hostname;
-    const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
-    const redirectUri = `${protocol}://${host}/api/kakao/callback`;
+    // Use Replit external domain for redirect URI
+    const redirectUri = `https://${replSlug}.${replOwner}.repl.co/api/kakao/callback`;
     
     console.log('Kakao OAuth Redirect URI:', redirectUri);
     
@@ -82,10 +82,8 @@ export function setupKakaoAuth(app: Express) {
     }
 
     try {
-      // Exchange code for access token
-      const host = req.get('host') || req.hostname;
-      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
-      const redirectUri = `${protocol}://${host}/api/kakao/callback`;
+      // Exchange code for access token (must match the redirect_uri used in authorization request)
+      const redirectUri = `https://${replSlug}.${replOwner}.repl.co/api/kakao/callback`;
       
       console.log('Token exchange with Redirect URI:', redirectUri);
       
