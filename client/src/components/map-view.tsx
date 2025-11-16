@@ -143,7 +143,7 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
   `;
 }
 
-function createClusterMarkerContent(color: string, count: number, iconType: string = 'default', scale: number = 1): string {
+function createClusterMarkerContent(color: string, count: number, iconType: string = 'default', photoUrl?: string, scale: number = 1): string {
   const iconPath = getMarkerIconPath(iconType);
   const width = 30 * scale;
   const height = 40 * scale;
@@ -151,6 +151,55 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
   const fontSize = 10 * scale;
   const badgeTop = -7 * scale;
   const badgeRight = -7 * scale;
+  
+  // If photo is provided, create photo marker with count badge
+  if (photoUrl) {
+    return `
+      <div 
+        style="
+          position: relative;
+          width: ${width}px;
+          height: ${height}px;
+          cursor: pointer;
+        "
+        data-marker-icon="${iconType}"
+        data-marker-count="${count}"
+        aria-label="${iconType} 마커 클러스터 (${count}개)"
+      >
+        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+          <defs>
+            <clipPath id="photoClip">
+              <circle cx="15" cy="15" r="8"/>
+            </clipPath>
+          </defs>
+          <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+                fill="${color}" 
+                stroke="#ffffff" 
+                stroke-width="2"/>
+          <circle cx="15" cy="15" r="8.5" fill="#ffffff"/>
+          <image href="${photoUrl}" x="7" y="7" width="16" height="16" clip-path="url(#photoClip)" preserveAspectRatio="xMidYMid slice"/>
+        </svg>
+        <div style="
+          position: absolute;
+          top: ${badgeTop}px;
+          right: ${badgeRight}px;
+          background-color: #ef4444;
+          color: white;
+          border-radius: 50%;
+          width: ${badgeSize}px;
+          height: ${badgeSize}px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: ${fontSize}px;
+          font-weight: bold;
+          border: ${2 * scale}px solid white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          pointer-events: none;
+        ">${count}</div>
+      </div>
+    `;
+  }
   
   return `
     <div 
@@ -442,12 +491,22 @@ export function MapView({
         const icons = cluster.memos.map(m => (m as any)?.markerIcon || (m.group as any)?.markerIcon || 'default');
         const uniqueIcons = new Set(icons);
         markerIcon = uniqueIcons.size === 1 ? icons[0] : 'default';
+        
+        // Find main memo and get its photo
+        const mainMemo = cluster.memos.find((m: any) => m.isMainMemo);
+        if (mainMemo) {
+          const mainPhotoId = (mainMemo as any).mainPhotoId;
+          if (mainPhotoId && mainMemo.photos && mainMemo.photos.length > 0) {
+            const mainPhoto = mainMemo.photos.find((p: any) => p.id === mainPhotoId);
+            mainPhotoUrl = mainPhoto?.url;
+          }
+        }
       }
       
       const contentDiv = document.createElement('div');
       contentDiv.innerHTML = isSingleMemo 
         ? createMarkerContent(markerColor, markerIcon, mainPhotoUrl, markerScale)
-        : createClusterMarkerContent(markerColor, cluster.memos.length, markerIcon, markerScale);
+        : createClusterMarkerContent(markerColor, cluster.memos.length, markerIcon, mainPhotoUrl, markerScale);
       contentDiv.style.cursor = 'pointer';
       
       const customOverlay = new window.kakao.maps.CustomOverlay({
