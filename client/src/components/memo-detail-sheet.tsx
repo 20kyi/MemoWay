@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Calendar, User, Users, Edit, Trash2, X, Navigation, Plus } from "lucide-react";
+import { MapPin, Calendar, User, Users, Edit, Trash2, X, Navigation } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { MemoWithDetails } from "@shared/schema";
@@ -17,7 +17,6 @@ interface MemoDetailSheetProps {
   onEdit: (memoId: string) => void;
   onDelete: (memoId: string) => void;
   onNavigateToLocation?: (lat: number, lng: number) => void;
-  onAddMemo?: () => void;
 }
 
 export function MemoDetailSheet({
@@ -27,7 +26,6 @@ export function MemoDetailSheet({
   onEdit,
   onDelete,
   onNavigateToLocation,
-  onAddMemo,
 }: MemoDetailSheetProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
@@ -134,20 +132,6 @@ export function MemoDetailSheet({
           </ScrollArea>
 
           <div className="p-6 pt-4 border-t space-y-3">
-            {onAddMemo && (
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={() => {
-                  onAddMemo();
-                  onOpenChange(false);
-                }}
-                data-testid="button-add-memo-detail"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                새 메모 추가
-              </Button>
-            )}
             {onNavigateToLocation && (
               <Button
                 variant="outline"

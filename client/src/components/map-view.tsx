@@ -225,61 +225,39 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
     if (!map || !window.kakao?.maps) return;
 
     const handleMapClick = (mouseEvent: any) => {
-      // Ignore map clicks if a marker was just clicked
-      if (markerClickedRef.current) {
-        // Reset the flag after a delay to ensure all events are processed
-        setTimeout(() => {
-          markerClickedRef.current = false;
-        }, 100);
-        return;
-      }
-      
       const latlng = mouseEvent.latLng;
-      const clickedLat = latlng.getLat().toFixed(6);
-      const clickedLng = latlng.getLng().toFixed(6);
       
-      // Check if there are memos at this location
-      const clusters = groupMemosByLocation(memos);
-      const existingCluster = clusters.find(cluster => {
-        const clusterLat = cluster.lat.toFixed(6);
-        const clusterLng = cluster.lng.toFixed(6);
-        return clusterLat === clickedLat && clusterLng === clickedLng;
-      });
-      
-      if (existingCluster) {
-        // Location has memos - show memo detail or cluster
-        markerClickedRef.current = true;
-        if (existingCluster.memos.length === 1) {
-          onMarkerClick(existingCluster.memos[0].id);
-        } else if (onClusterClick) {
-          onClusterClick(existingCluster.memos.map(m => m.id));
+      // Delay to allow marker click handler to execute first and set the flag
+      setTimeout(() => {
+        // Check flag again after delay
+        if (markerClickedRef.current) {
+          return;
         }
-        return;
-      }
-      
-      // No memos at this location - show memo form
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      
-      geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result: any, status: any) {
-        if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
-          const address = result[0]?.address?.address_name || '주소 없음';
-          const buildingName = result[0]?.road_address?.building_name || '건물명 없음';
-          
-          onLocationSelect({
-            lat: latlng.getLat(),
-            lng: latlng.getLng(),
-            address,
-            buildingName,
-          });
-        } else {
-          onLocationSelect({
-            lat: latlng.getLat(),
-            lng: latlng.getLng(),
-            address: `위도: ${latlng.getLat().toFixed(6)}, 경도: ${latlng.getLng().toFixed(6)}`,
-            buildingName: '위치 선택됨',
-          });
-        }
-      });
+        
+        // Directly show memo form for any map click (markers have their own handlers)
+        const geocoder = new window.kakao.maps.services.Geocoder();
+        
+        geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result: any, status: any) {
+          if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
+            const address = result[0]?.address?.address_name || '주소 없음';
+            const buildingName = result[0]?.road_address?.building_name || '건물명 없음';
+            
+            onLocationSelect({
+              lat: latlng.getLat(),
+              lng: latlng.getLng(),
+              address,
+              buildingName,
+            });
+          } else {
+            onLocationSelect({
+              lat: latlng.getLat(),
+              lng: latlng.getLng(),
+              address: `위도: ${latlng.getLat().toFixed(6)}, 경도: ${latlng.getLng().toFixed(6)}`,
+              buildingName: '위치 선택됨',
+            });
+          }
+        });
+      }, 50); // 50ms delay to allow marker click to set flag
     };
 
     window.kakao.maps.event.addListener(map, 'click', handleMapClick);
@@ -343,18 +321,22 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
       const clickHandler = (e: Event) => {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         
         // Set flag to prevent map click handler from firing
         markerClickedRef.current = true;
         
-        // Use setTimeout to ensure this runs after the current event cycle
+        // Execute immediately
+        if (isSingleMemo) {
+          onMarkerClick(memo.id);
+        } else if (onClusterClick) {
+          onClusterClick(cluster.memos.map(m => m.id));
+        }
+        
+        // Reset flag after a delay
         setTimeout(() => {
-          if (isSingleMemo) {
-            onMarkerClick(memo.id);
-          } else if (onClusterClick) {
-            onClusterClick(cluster.memos.map(m => m.id));
-          }
-        }, 0);
+          markerClickedRef.current = false;
+        }, 100);
       };
       
       contentDiv.addEventListener('click', clickHandler);
