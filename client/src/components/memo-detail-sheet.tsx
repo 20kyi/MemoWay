@@ -7,8 +7,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus } from "lucide-react";
 import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails } from "@shared/schema";
+import { useLanguage } from "@/lib/language-context";
 
 interface MemoDetailSheetProps {
   memo: MemoWithDetails | null;
@@ -29,7 +30,10 @@ export function MemoDetailSheet({
   onNavigateToLocation,
   onAddNewMemo,
 }: MemoDetailSheetProps) {
+  const { t, language } = useLanguage();
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+
+  const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
 
   if (!memo) return null;
 
@@ -52,7 +56,7 @@ export function MemoDetailSheet({
             <div className="space-y-6 pb-6">
               {memo.photos && memo.photos.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-sm text-muted-foreground">사진</h3>
+                  <h3 className="font-semibold text-sm text-muted-foreground">{t.memoDetail.photos}</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {memo.photos.map((photo) => (
                       <button
@@ -64,7 +68,7 @@ export function MemoDetailSheet({
                       >
                         <img
                           src={photo.url}
-                          alt="메모 사진"
+                          alt={t.memoDetail.photos}
                           className="w-full h-28 object-contain rounded"
                           data-testid={`img-photo-${photo.id}`}
                         />
@@ -75,7 +79,7 @@ export function MemoDetailSheet({
               )}
 
               <div className="space-y-3">
-                <h3 className="font-semibold text-sm text-muted-foreground">메모 내용</h3>
+                <h3 className="font-semibold text-sm text-muted-foreground">{t.memoDetail.content}</h3>
                 <p className="text-base leading-relaxed whitespace-pre-wrap" data-testid="text-memo-content">
                   {memo.content}
                 </p>
@@ -86,14 +90,14 @@ export function MemoDetailSheet({
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <User className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">작성자:</span>
+                  <span className="text-muted-foreground">{t.memoDetail.author}:</span>
                   <span className="font-medium" data-testid="text-memo-author">{memo.member.name}</span>
                 </div>
 
                 {memo.group && (
                   <div className="flex items-center gap-2 text-sm">
                     <Users className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">그룹:</span>
+                    <span className="text-muted-foreground">{t.memoDetail.group}:</span>
                     <Badge variant="secondary" data-testid="badge-memo-group">
                       {memo.group.name}
                     </Badge>
@@ -102,18 +106,18 @@ export function MemoDetailSheet({
 
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">작성:</span>
+                  <span className="text-muted-foreground">{t.memoDetail.created}:</span>
                   <span data-testid="text-memo-created">
-                    {format(new Date(memo.createdAt), "PPP p", { locale: ko })}
+                    {format(new Date(memo.createdAt), "PPP p", { locale: dateLocale })}
                   </span>
                 </div>
 
                 {memo.updatedAt && new Date(memo.updatedAt).getTime() !== new Date(memo.createdAt).getTime() && (
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">수정:</span>
+                    <span className="text-muted-foreground">{t.common.edit}:</span>
                     <span data-testid="text-memo-updated">
-                      {format(new Date(memo.updatedAt), "PPP p", { locale: ko })}
+                      {format(new Date(memo.updatedAt), "PPP p", { locale: dateLocale })}
                     </span>
                   </div>
                 )}
@@ -138,7 +142,7 @@ export function MemoDetailSheet({
                 data-testid="button-add-new-memo"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                새 메모 추가
+                {t.memoDetail.addMemoHere}
               </Button>
             )}
             {onNavigateToLocation && (
@@ -152,7 +156,7 @@ export function MemoDetailSheet({
                 data-testid="button-navigate-to-location"
               >
                 <Navigation className="w-4 h-4 mr-2" />
-                지도에서 위치 보기
+                {t.memoDetail.viewOnMap}
               </Button>
             )}
             <Button
@@ -164,7 +168,7 @@ export function MemoDetailSheet({
               data-testid="button-edit-memo"
             >
               <Edit className="w-4 h-4 mr-2" />
-              수정
+              {t.common.edit}
             </Button>
             <Button
               variant="destructive"
@@ -176,7 +180,7 @@ export function MemoDetailSheet({
               data-testid="button-delete-memo"
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              삭제
+              {t.common.delete}
             </Button>
           </div>
         </div>
