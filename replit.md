@@ -12,7 +12,14 @@ Preferred communication style: Simple, everyday language.
 
 ### UI/UX Decisions
 
-The frontend is designed for a mobile-first experience, adhering to Material Design principles. It prioritizes full-screen map interaction, intuitive bottom navigation, and touch-optimized components. Key UI elements include an interactive map with custom colored markers (group-specific, personal in purple), a language selector with flag emojis, and a single-button category filter for memo lists. The application supports full translation into Korean, English, Chinese, and Japanese.
+The frontend is designed for a mobile-first experience, adhering to Material Design principles. It prioritizes full-screen map interaction, intuitive bottom navigation, and touch-optimized components. Key UI elements include an interactive map with custom colored markers (group-specific, personal in purple), a language selector with flag emojis, floating action buttons for quick map filtering, and a single-button category filter for memo lists. The application supports full translation into Korean, English, Chinese, and Japanese.
+
+**Map Filtering Interface**: Two floating action buttons (FABs) are positioned in the bottom-right corner of the map view, providing quick access to filtering controls:
+- **Group Filter Button** (Users icon): Opens a dialog to filter memos by group (all groups, personal memos, or specific group)
+- **Marker Filter Button** (Filter icon): Opens a dialog to filter memos by category (all, travel, love, food, cafe, shopping, sport, work)
+- Both buttons display a badge indicator when a filter is active (not showing "all")
+- Positioned with `fixed` placement at `bottom-20 right-4` to stay above the bottom navigation bar
+- z-index of 50 ensures visibility above other UI elements
 
 ### Technical Implementations
 
