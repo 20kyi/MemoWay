@@ -39,8 +39,7 @@ interface KakaoUserInfo {
 export function setupKakaoAuth(app: Express) {
   const clientId = process.env.KAKAO_CLIENT_ID;
   const clientSecret = process.env.KAKAO_CLIENT_SECRET;
-  const replSlug = process.env.REPL_SLUG;
-  const replOwner = process.env.REPL_OWNER;
+  const replitDevDomain = process.env.REPLIT_DEV_DOMAIN;
   
   if (!clientId || !clientSecret) {
     console.warn("Kakao OAuth credentials not configured. Kakao login will be unavailable.");
@@ -55,8 +54,8 @@ export function setupKakaoAuth(app: Express) {
     // Store state in session for verification
     (req.session as any).kakaoState = state;
     
-    // Use Replit external domain for redirect URI
-    const redirectUri = `https://${replSlug}.${replOwner}.repl.co/api/kakao/callback`;
+    // Use Replit dev domain for redirect URI
+    const redirectUri = `https://${replitDevDomain}/api/kakao/callback`;
     
     console.log('Kakao OAuth Redirect URI:', redirectUri);
     
@@ -135,7 +134,7 @@ export function setupKakaoAuth(app: Express) {
 
     try {
       // Exchange code for access token (must match the redirect_uri used in authorization request)
-      const redirectUri = `https://${replSlug}.${replOwner}.repl.co/api/kakao/callback`;
+      const redirectUri = `https://${replitDevDomain}/api/kakao/callback`;
       
       console.log('Token exchange with Redirect URI:', redirectUri);
       
