@@ -4,18 +4,30 @@
 
 A mobile-first web application enabling users to create and share location-based memos within defined groups. Key features include an interactive map for dropping memos at specific geographic locations, attaching photos, and real-time updates. The application aims to provide a seamless and intuitive experience for collaborative location-based information sharing.
 
-## Recent Changes (November 15, 2025)
+## Recent Changes (November 16, 2025)
 
-**Removed "새 메모 추가" Button from Existing Memo Views**
-- User requirement: When clicking on locations with existing memos, show only memo details (no creation button)
-- Removed "새 메모 추가" button from MemoDetailSheet and MemoClusterSheet
-- Detail views now show only: 수정, 삭제, 지도에서 위치 보기 buttons
+**Added "새 메모 추가" Button to Memo Detail View**
+- User request: Add button to create new memo at same location from detail view
+- Implementation:
+  - Added "새 메모 추가" button in MemoDetailSheet (positioned above "지도에서 위치 보기")
+  - Clicking button opens memo creation form with pre-filled location data
+  - Location info (latitude, longitude, address, buildingName) automatically populated from current memo
+- Button order in detail sheet: 새 메모 추가 → 지도에서 위치 보기 → 수정 → 삭제
+- Enables easy creation of multiple memos at the same location
+
+**Removed Duplicate Close Button from Memo Detail Title Area**
+- User request: Remove redundant X button next to memo title
+- Simplified detail sheet header by removing title-adjacent close button
+- Users can still close sheet using default sheet close mechanism
+
+**Removed "새 메모 추가" Button from Cluster Views**
+- Earlier requirement: When clicking existing memo locations, show only memo details
+- MemoClusterSheet displays only memo list without creation button
 - Empty map clicks still open creation form as expected
 
 **Fixed Marker Click Opening Both Detail and Creation Forms**
 - Root cause: Kakao Maps click events and DOM click events executed in unpredictable order
 - Solution: Added 50ms delay in map click handler to allow marker clicks to set flag first
-- Removed duplicate location detection logic from map click handler
 - Result: Marker clicks consistently open detail view only, empty clicks open creation form only
 
 ## User Preferences

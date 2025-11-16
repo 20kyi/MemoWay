@@ -618,6 +618,12 @@ export default function Home() {
           }
         }}
         onNavigateToLocation={handleNavigateToLocation}
+        onAddNewMemo={(location) => {
+          setMemoDetailOpen(false);
+          setSelectedMemo(null);
+          setSelectedLocation(location);
+          setMemoFormOpen(true);
+        }}
       />
     </div>
   );
