@@ -677,6 +677,27 @@ export default function Home() {
                 deleteMemoMutation.mutate(memoId);
               }
             }}
+            onBulkDelete={(memoIds) => {
+              if (confirm(`선택한 ${memoIds.length}개의 메모를 삭제하시겠습니까?`)) {
+                Promise.all(memoIds.map(id => 
+                  apiRequest(`/api/memos/${id}`, {
+                    method: 'DELETE'
+                  })
+                )).then(() => {
+                  queryClient.invalidateQueries({ queryKey: ['/api/memos'] });
+                  toast({
+                    title: t.toast.deleteSuccess,
+                    description: `${memoIds.length}개의 메모가 삭제되었습니다.`,
+                  });
+                }).catch((error) => {
+                  toast({
+                    title: t.toast.deleteError,
+                    description: error.message,
+                    variant: "destructive",
+                  });
+                });
+              }
+            }}
             onMemoClick={(memoId) => {
               const memo = memos.find(m => m.id === memoId);
               if (memo) {
