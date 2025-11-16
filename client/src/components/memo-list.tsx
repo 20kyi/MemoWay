@@ -249,7 +249,11 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, o
           return (
             <Card 
               key={memo.id} 
-              className={`rounded-2xl cursor-pointer hover-elevate ${isSelected ? 'ring-2 ring-primary' : ''}`}
+              className={`rounded-3xl cursor-pointer hover-elevate transition-all overflow-hidden border-2 ${
+                isSelected 
+                  ? 'ring-4 ring-primary/50 border-primary shadow-lg scale-105' 
+                  : 'border-primary/10 hover:border-primary/30 hover:shadow-xl'
+              }`}
               onClick={() => handleMemoClick(memo.id)}
               onTouchStart={() => handleLongPressStart(memo.id)}
               onTouchEnd={handleLongPressEnd}
@@ -258,7 +262,8 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, o
               onMouseLeave={handleLongPressEnd}
               data-testid={`card-memo-${memo.id}`}
             >
-              <CardHeader className="pb-3">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-accent opacity-40" />
+              <CardHeader className="pb-3 bg-gradient-to-br from-card to-card/50">
                 <div className="flex items-start justify-between gap-2">
                   {isSelectionMode && (
                     <Checkbox
@@ -270,15 +275,23 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, o
                     />
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-medium truncate">{memo.buildingName}</h3>
+                    <h3 className="text-lg font-bold truncate bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                      {memo.buildingName}
+                    </h3>
                     <p className="text-sm text-muted-foreground truncate">{memo.address}</p>
                   </div>
                   {memo.group && memo.group.name !== "개인 메모" ? (
-                    <Badge variant="secondary" className="shrink-0">
+                    <Badge 
+                      variant="secondary" 
+                      className="shrink-0 rounded-full px-3 bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30"
+                    >
                       {memo.group.name}
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="shrink-0">
+                    <Badge 
+                      variant="outline" 
+                      className="shrink-0 rounded-full px-3 bg-accent/10 border-accent/40"
+                    >
                       {t.common.personal}
                     </Badge>
                   )}
@@ -289,7 +302,10 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, o
             <CardContent className="pb-3">
               <div className="grid grid-cols-3 gap-2">
                 {memo.photos.slice(0, 3).map((photo, index) => (
-                  <div key={index} className="aspect-square rounded-lg overflow-hidden">
+                  <div 
+                    key={index} 
+                    className="aspect-square rounded-2xl overflow-hidden shadow-md border-2 border-primary/10 hover:border-primary/30 transition-all hover:scale-105"
+                  >
                     <img 
                       src={photo.url} 
                       alt={`Photo ${index + 1}`}
@@ -301,26 +317,27 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, o
             </CardContent>
           )}
 
-          <CardContent className="pb-3">
-            <p className="text-sm line-clamp-2">{memo.content}</p>
+          <CardContent className="pb-3 bg-gradient-to-br from-transparent to-accent/5">
+            <p className="text-sm line-clamp-2 leading-relaxed">{memo.content}</p>
           </CardContent>
 
-          <CardFooter className="flex items-center justify-between pt-0">
+          <CardFooter className="flex items-center justify-between pt-0 bg-gradient-to-r from-transparent via-muted/5 to-transparent">
             <div className="flex flex-col gap-1">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground font-medium">
                 {formatDistanceToNow(new Date(memo.createdAt), { addSuffix: true, locale: dateLocale })}
               </p>
               <p className="text-xs text-muted-foreground">
-                {t.memoDetail.author}: {memo.member.name}
+                {t.memoDetail.author}: <span className="font-medium text-foreground/70">{memo.member.name}</span>
               </p>
             </div>
             {!isSelectionMode && (
-              <div className="flex gap-2">
+              <div className="flex gap-1">
                 {/* Show main memo button if there are 2+ memos at same location */}
                 {getMemosAtSameLocation(memo).length >= 2 && onSetMainMemo && (
                   <Button
                     size="icon"
                     variant="ghost"
+                    className={`rounded-full ${(memo as any).isMainMemo ? 'bg-primary/10' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       onSetMainMemo(memo.id);
@@ -328,13 +345,18 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, o
                     data-testid={`button-set-main-${memo.id}`}
                   >
                     <Star 
-                      className={`h-4 w-4 ${(memo as any).isMainMemo ? 'fill-yellow-400 text-yellow-400' : ''}`} 
+                      className={`h-4 w-4 transition-all ${
+                        (memo as any).isMainMemo 
+                          ? 'fill-primary text-primary animate-pulse' 
+                          : 'text-muted-foreground'
+                      }`} 
                     />
                   </Button>
                 )}
                 <Button
                   size="icon"
                   variant="ghost"
+                  className="rounded-full text-muted-foreground hover:text-foreground"
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit(memo.id);
@@ -346,6 +368,7 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, o
                 <Button
                   size="icon"
                   variant="ghost"
+                  className="rounded-full text-muted-foreground hover:text-destructive"
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(memo.id);
