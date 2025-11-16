@@ -117,6 +117,9 @@ export const translations = {
       version: "버전",
       developer: "개발자",
       developerName: "Location Memo Team",
+      account: "계정",
+      logout: "로그아웃",
+      logoutDesc: "현재 계정에서 로그아웃합니다",
     },
     // Toast messages
     toast: {
@@ -266,6 +269,9 @@ export const translations = {
       version: "Version",
       developer: "Developer",
       developerName: "Location Memo Team",
+      account: "Account",
+      logout: "Log Out",
+      logoutDesc: "Sign out from your current account",
     },
     // Toast messages
     toast: {
@@ -415,6 +421,9 @@ export const translations = {
       version: "版本",
       developer: "开发者",
       developerName: "Location Memo Team",
+      account: "账户",
+      logout: "退出登录",
+      logoutDesc: "从当前账户退出登录",
     },
     // Toast messages
     toast: {
@@ -564,6 +573,9 @@ export const translations = {
       version: "バージョン",
       developer: "開発者",
       developerName: "Location Memo Team",
+      account: "アカウント",
+      logout: "ログアウト",
+      logoutDesc: "現在のアカウントからログアウトします",
     },
     // Toast messages
     toast: {
@@ -706,6 +718,9 @@ type Translation = {
     version: string;
     developer: string;
     developerName: string;
+    account: string;
+    logout: string;
+    logoutDesc: string;
   };
   toast: {
     newMemo: string;

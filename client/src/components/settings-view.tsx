@@ -2,7 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bell, MapPin, Languages } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, MapPin, Languages, LogOut } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 
 interface SettingsViewProps {
@@ -26,6 +27,10 @@ export function SettingsView({
   onLocationChange,
 }: SettingsViewProps) {
   const { language, setLanguage, t } = useLanguage();
+
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
+  };
 
   return (
     <div className="px-4 py-6 space-y-4 overflow-y-auto h-full">
@@ -107,6 +112,28 @@ export function SettingsView({
               data-testid="switch-location"
             />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LogOut className="h-5 w-5" />
+            {t.settings.account}
+          </CardTitle>
+          <CardDescription>
+            {t.settings.logoutDesc}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            variant="destructive" 
+            className="w-full"
+            onClick={handleLogout}
+            data-testid="button-logout"
+          >
+            {t.settings.logout}
+          </Button>
         </CardContent>
       </Card>
 
