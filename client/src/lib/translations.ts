@@ -107,6 +107,19 @@ export const translations = {
       title: "설정",
       language: "언어 / Language",
       languageDesc: "앱 표시 언어를 선택하세요",
+      font: "폰트 설정",
+      fontDesc: "앱에서 사용할 폰트와 크기를 선택하세요",
+      fontFamily: "폰트 선택",
+      fontSize: "글자 크기",
+      fontDefault: "기본 (Roboto)",
+      fontNotoSans: "깔끔한 (Noto Sans KR)",
+      fontNanumGothic: "부드러운 (나눔고딕)",
+      fontGamjaFlower: "귀여운 (감자꽃)",
+      fontDokdo: "귀여운 (독도)",
+      fontNanumPen: "손글씨 (나눔펜)",
+      fontSizeSmall: "작게",
+      fontSizeMedium: "보통",
+      fontSizeLarge: "크게",
       notifications: "알림",
       notificationsDesc: "근처 메모가 있을 때 알림을 받습니다",
       notificationsEnable: "알림 활성화",
@@ -264,6 +277,19 @@ export const translations = {
       title: "Settings",
       language: "Language",
       languageDesc: "Select app display language",
+      font: "Font Settings",
+      fontDesc: "Choose font and size for the app",
+      fontFamily: "Font",
+      fontSize: "Font Size",
+      fontDefault: "Default (Roboto)",
+      fontNotoSans: "Clean (Noto Sans KR)",
+      fontNanumGothic: "Soft (Nanum Gothic)",
+      fontGamjaFlower: "Cute (Gamja Flower)",
+      fontDokdo: "Cute (Dokdo)",
+      fontNanumPen: "Handwriting (Nanum Pen)",
+      fontSizeSmall: "Small",
+      fontSizeMedium: "Medium",
+      fontSizeLarge: "Large",
       notifications: "Notifications",
       notificationsDesc: "Receive notifications when there are nearby memos",
       notificationsEnable: "Enable Notifications",
@@ -421,6 +447,19 @@ export const translations = {
       title: "设置",
       language: "语言",
       languageDesc: "选择应用显示语言",
+      font: "字体设置",
+      fontDesc: "选择应用的字体和大小",
+      fontFamily: "字体",
+      fontSize: "字体大小",
+      fontDefault: "默认 (Roboto)",
+      fontNotoSans: "简洁 (Noto Sans KR)",
+      fontNanumGothic: "柔和 (Nanum Gothic)",
+      fontGamjaFlower: "可爱 (Gamja Flower)",
+      fontDokdo: "可爱 (Dokdo)",
+      fontNanumPen: "手写 (Nanum Pen)",
+      fontSizeSmall: "小",
+      fontSizeMedium: "中",
+      fontSizeLarge: "大",
       notifications: "通知",
       notificationsDesc: "当附近有备忘录时接收通知",
       notificationsEnable: "启用通知",
@@ -578,6 +617,19 @@ export const translations = {
       title: "設定",
       language: "言語",
       languageDesc: "アプリの表示言語を選択してください",
+      font: "フォント設定",
+      fontDesc: "アプリで使用するフォントとサイズを選択してください",
+      fontFamily: "フォント",
+      fontSize: "フォントサイズ",
+      fontDefault: "デフォルト (Roboto)",
+      fontNotoSans: "きれいな (Noto Sans KR)",
+      fontNanumGothic: "柔らかい (Nanum Gothic)",
+      fontGamjaFlower: "可愛い (Gamja Flower)",
+      fontDokdo: "可愛い (Dokdo)",
+      fontNanumPen: "手書き (Nanum Pen)",
+      fontSizeSmall: "小",
+      fontSizeMedium: "中",
+      fontSizeLarge: "大",
       notifications: "通知",
       notificationsDesc: "近くにメモがあるときに通知を受け取ります",
       notificationsEnable: "通知を有効にする",
@@ -728,9 +780,27 @@ type Translation = {
     title: string;
     language: string;
     languageDesc: string;
+    font: string;
+    fontDesc: string;
+    fontFamily: string;
+    fontSize: string;
+    fontDefault: string;
+    fontNotoSans: string;
+    fontNanumGothic: string;
+    fontGamjaFlower: string;
+    fontDokdo: string;
+    fontNanumPen: string;
+    fontSizeSmall: string;
+    fontSizeMedium: string;
+    fontSizeLarge: string;
     notifications: string;
     notificationsDesc: string;
     notificationsEnable: string;
+    proximityRadius: string;
+    proximityRadiusDesc: string;
+    radius50m: string;
+    radius100m: string;
+    radius200m: string;
     location: string;
     locationDesc: string;
     locationTracking: string;

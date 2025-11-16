@@ -4,6 +4,8 @@
 
 /* LIGHT MODE - Pastel Couple Theme */
 :root {
+  --font-family: 'Roboto', sans-serif;
+  --font-size-base: 16px;
   --button-outline: rgba(255, 182, 193, .15);
   --badge-outline: rgba(255, 182, 193, .08);
   --opaque-button-border-intensity: -5;
@@ -284,5 +286,11 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
+  }
+
+  /* Font customization */
+  body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
   }
 }

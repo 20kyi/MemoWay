@@ -3,8 +3,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Bell, MapPin, Languages, LogOut } from "lucide-react";
+import { Bell, MapPin, Languages, LogOut, Type } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
+import { useFont, type FontFamily, type FontSize } from "@/lib/font-context";
 
 interface SettingsViewProps {
   notificationsEnabled: boolean;
@@ -31,17 +32,33 @@ export function SettingsView({
   onProximityRadiusChange,
 }: SettingsViewProps) {
   const { language, setLanguage, t } = useLanguage();
+  const { fontFamily, setFontFamily, fontSize, setFontSize } = useFont();
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
   };
 
+  const fontOptions: { value: FontFamily; label: string }[] = [
+    { value: "default", label: t.settings.fontDefault },
+    { value: "noto-sans", label: t.settings.fontNotoSans },
+    { value: "nanum-gothic", label: t.settings.fontNanumGothic },
+    { value: "gamja-flower", label: t.settings.fontGamjaFlower },
+    { value: "dokdo", label: t.settings.fontDokdo },
+    { value: "nanum-pen", label: t.settings.fontNanumPen },
+  ];
+
+  const fontSizeOptions: { value: FontSize; label: string }[] = [
+    { value: "small", label: t.settings.fontSizeSmall },
+    { value: "medium", label: t.settings.fontSizeMedium },
+    { value: "large", label: t.settings.fontSizeLarge },
+  ];
+
   return (
     <div className="px-4 py-6 space-y-4 overflow-y-auto h-full">
       <h1 className="text-2xl font-medium mb-6">{t.settings.title}</h1>
 
-      <Card className="rounded-2xl">
-        <CardHeader>
+      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
+        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
           <CardTitle className="flex items-center gap-2">
             <Languages className="h-5 w-5" />
             {t.settings.language}
@@ -50,7 +67,7 @@ export function SettingsView({
             {t.settings.languageDesc}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
             <SelectTrigger className="w-full" data-testid="select-language">
               <SelectValue />
@@ -69,8 +86,53 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
-        <CardHeader>
+      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
+        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
+          <CardTitle className="flex items-center gap-2">
+            <Type className="h-5 w-5" />
+            {t.settings.font}
+          </CardTitle>
+          <CardDescription>
+            {t.settings.fontDesc}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="font-family">{t.settings.fontFamily}</Label>
+            <Select value={fontFamily} onValueChange={(value) => setFontFamily(value as FontFamily)}>
+              <SelectTrigger id="font-family" className="w-full" data-testid="select-font-family">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value} data-testid={`font-${option.value}`}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="font-size">{t.settings.fontSize}</Label>
+            <Select value={fontSize} onValueChange={(value) => setFontSize(value as FontSize)}>
+              <SelectTrigger id="font-size" className="w-full" data-testid="select-font-size">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontSizeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value} data-testid={`size-${option.value}`}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
+        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             {t.settings.notifications}
@@ -79,7 +141,7 @@ export function SettingsView({
             {t.settings.notificationsDesc}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-6">
           <div className="flex items-center justify-between">
             <Label htmlFor="notifications" className="cursor-pointer">
               {t.settings.notificationsEnable}
@@ -116,8 +178,8 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
-        <CardHeader>
+      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
+        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
             {t.settings.location}
@@ -126,7 +188,7 @@ export function SettingsView({
             {t.settings.locationDesc}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <Label htmlFor="location" className="cursor-pointer">
               {t.settings.locationTracking}
@@ -141,8 +203,8 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
-        <CardHeader>
+      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
+        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
           <CardTitle className="flex items-center gap-2">
             <LogOut className="h-5 w-5" />
             {t.settings.account}
@@ -151,10 +213,10 @@ export function SettingsView({
             {t.settings.logoutDesc}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <Button 
             variant="destructive" 
-            className="w-full"
+            className="w-full rounded-full border-2"
             onClick={handleLogout}
             data-testid="button-logout"
           >
@@ -163,7 +225,7 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
         <CardHeader>
           <CardTitle>{t.settings.appInfo}</CardTitle>
         </CardHeader>
