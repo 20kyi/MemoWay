@@ -43,9 +43,24 @@ export function MemoDetailSheet({
       <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0">
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 pb-4">
-            <SheetTitle className="text-2xl font-bold mb-2" data-testid="text-memo-title">
-              {memo.buildingName}
-            </SheetTitle>
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <SheetTitle className="text-2xl font-bold" data-testid="text-memo-title">
+                {memo.buildingName}
+              </SheetTitle>
+              {onNavigateToLocation && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    onNavigateToLocation(memo.latitude, memo.longitude);
+                    onOpenChange(false);
+                  }}
+                  data-testid="button-navigate-to-location"
+                >
+                  <Navigation className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <MapPin className="w-4 h-4" />
               <span data-testid="text-memo-address">{memo.address}</span>
@@ -143,20 +158,6 @@ export function MemoDetailSheet({
               >
                 <Plus className="w-4 h-4 mr-2" />
                 {t.memoDetail.addMemoHere}
-              </Button>
-            )}
-            {onNavigateToLocation && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  onNavigateToLocation(memo.latitude, memo.longitude);
-                  onOpenChange(false);
-                }}
-                data-testid="button-navigate-to-location"
-              >
-                <Navigation className="w-4 h-4 mr-2" />
-                {t.memoDetail.viewOnMap}
               </Button>
             )}
             <Button
