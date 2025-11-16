@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Navigation, Search, X } from "lucide-react";
+import { Navigation, Search, X, Send } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
 import { useToast } from "@/hooks/use-toast";
 import type { MemoWithDetails } from "@shared/schema";
@@ -509,7 +509,7 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
             onClick={handleMyLocation}
             data-testid="button-my-location"
           >
-            <Navigation className="h-5 w-5" />
+            <Send className="h-5 w-5" />
           </Button>
         </>
       )}

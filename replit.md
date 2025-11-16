@@ -6,6 +6,13 @@ A mobile-first web application enabling users to create and share location-based
 
 ## Recent Changes (November 16, 2025)
 
+**Updated Current Location Button Icon to Paper Plane**
+- User request: Change the floating button icon on the map to a paper plane (Send icon)
+- Changed from Navigation icon to Send icon (lucide-react)
+- Button remains in bottom-right position (bottom-20 right-4)
+- Circular design with shadow, 48px x 48px
+- Functionality unchanged: Clicking moves map to user's current GPS location
+
 **Added "새 메모 추가" Button to Memo Detail View**
 - User request: Add button to create new memo at same location from detail view
 - Implementation:
