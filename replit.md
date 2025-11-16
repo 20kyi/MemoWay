@@ -9,9 +9,11 @@ A mobile-first web application enabling users to create and share location-based
 **Updated Current Location Button Icon to Paper Plane**
 - User request: Change the floating button icon on the map to a paper plane (Send icon)
 - Changed from Navigation icon to Send icon (lucide-react)
-- Button remains in bottom-right position (bottom-20 right-4)
+- Button positioned in bottom-right (bottom-20 right-4, z-50)
+- Moved button from MapView to home.tsx to fix visibility issues caused by overflow-hidden
 - Circular design with shadow, 48px x 48px
-- Functionality unchanged: Clicking moves map to user's current GPS location
+- Functionality: Clicking moves map to user's current GPS location using navigator.geolocation
+- Button appears 16px above bottom navigation bar (nav bar is h-16 = 64px, button is bottom-20 = 80px)
 
 **Added "새 메모 추가" Button to Memo Detail View**
 - User request: Add button to create new memo at same location from detail view

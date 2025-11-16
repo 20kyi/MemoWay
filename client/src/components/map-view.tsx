@@ -13,6 +13,7 @@ interface MapViewProps {
   onClusterClick?: (memoIds: string[]) => void;
   userLocation: { lat: number; lng: number } | null;
   onMapReady?: (map: any) => void;
+  onMyLocationClick?: () => void;
 }
 
 const PERSONAL_MEMO_COLOR = '#9333ea';
@@ -502,15 +503,6 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
               </Button>
             </div>
           </div>
-          
-          <Button
-            size="icon"
-            className="absolute bottom-20 right-4 h-12 w-12 rounded-full shadow-lg"
-            onClick={handleMyLocation}
-            data-testid="button-my-location"
-          >
-            <Send className="h-5 w-5" />
-          </Button>
         </>
       )}
     </div>

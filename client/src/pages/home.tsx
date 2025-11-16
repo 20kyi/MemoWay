@@ -9,7 +9,7 @@ import { GroupManagement } from "@/components/group-management";
 import { SettingsView } from "@/components/settings-view";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -493,6 +493,23 @@ export default function Home() {
               userLocation={userLocation}
               onMapReady={setMapInstance}
             />
+            <Button
+              size="icon"
+              className="absolute bottom-20 right-4 h-12 w-12 rounded-full shadow-lg z-50"
+              onClick={() => {
+                if (navigator.geolocation && mapInstance) {
+                  navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const latlng = new window.kakao.maps.LatLng(lat, lng);
+                    mapInstance.setCenter(latlng);
+                  });
+                }
+              }}
+              data-testid="button-my-location"
+            >
+              <Send className="h-5 w-5" />
+            </Button>
           </div>
         )}
         {activeTab === "memos" && (
