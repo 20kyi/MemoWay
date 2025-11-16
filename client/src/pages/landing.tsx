@@ -10,7 +10,8 @@ export default function Landing() {
   };
 
   const handleKakaoLogin = () => {
-    window.location.href = "/api/kakao/login";
+    // Open in new tab to avoid Replit iframe restrictions
+    window.open("/api/kakao/login", "_blank");
   };
 
   return (
