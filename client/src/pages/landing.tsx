@@ -89,8 +89,8 @@ export default function Landing() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 w-full max-w-5xl animate-in fade-in slide-in-from-bottom duration-700 delay-200">
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-2xl border-2 border-primary/20 shadow-lg hover-elevate transition-all hover:scale-105 hover:shadow-xl">
-              <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-primary/20 shadow-lg hover-elevate transition-all hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-md">
                 <Globe className="h-8 w-8 text-primary" />
               </div>
               <h3 className="font-bold text-xl mb-3 text-primary">
@@ -107,8 +107,8 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-2xl border-2 border-secondary/20 shadow-lg hover-elevate transition-all hover:scale-105 hover:shadow-xl">
-              <div className="bg-gradient-to-br from-secondary/20 to-accent/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-secondary/20 shadow-lg hover-elevate transition-all hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-secondary/20 to-accent/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-md">
                 <Users className="h-8 w-8 text-secondary" />
               </div>
               <h3 className="font-bold text-xl mb-3 text-secondary">
@@ -125,8 +125,8 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-2xl border-2 border-accent/30 shadow-lg hover-elevate transition-all hover:scale-105 hover:shadow-xl">
-              <div className="bg-gradient-to-br from-accent/20 to-primary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-accent/30 shadow-lg hover-elevate transition-all hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-accent/20 to-primary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-md">
                 <Heart className="h-8 w-8 text-destructive fill-destructive" />
               </div>
               <h3 className="font-bold text-xl mb-3 text-accent-foreground">
@@ -159,7 +159,7 @@ export default function Landing() {
               
               <Button 
                 size="lg" 
-                className="w-full text-lg h-16 bg-yellow-400 hover:bg-yellow-500 border-2 border-yellow-500 text-black font-bold rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                className="w-full text-lg h-16 bg-yellow-400 border-2 border-yellow-500 text-black font-bold rounded-full shadow-lg hover:shadow-2xl transition-all active-elevate-2"
                 onClick={handleKakaoLogin}
                 data-testid="button-kakao-login"
               >

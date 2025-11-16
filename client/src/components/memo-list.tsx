@@ -251,7 +251,7 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, o
               key={memo.id} 
               className={`rounded-3xl cursor-pointer hover-elevate transition-all overflow-hidden border-2 ${
                 isSelected 
-                  ? 'ring-4 ring-primary/50 border-primary shadow-lg scale-105' 
+                  ? 'ring-4 ring-primary/50 border-primary shadow-2xl' 
                   : 'border-primary/10 hover:border-primary/30 hover:shadow-xl'
               }`}
               onClick={() => handleMemoClick(memo.id)}
@@ -304,7 +304,7 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, o
                 {memo.photos.slice(0, 3).map((photo, index) => (
                   <div 
                     key={index} 
-                    className="aspect-square rounded-2xl overflow-hidden shadow-md border-2 border-primary/10 hover:border-primary/30 transition-all hover:scale-105"
+                    className="aspect-square rounded-2xl overflow-hidden shadow-md border-2 border-primary/10 hover:border-primary/30 hover:shadow-lg transition-all"
                   >
                     <img 
                       src={photo.url} 
