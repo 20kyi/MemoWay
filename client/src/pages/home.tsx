@@ -447,6 +447,37 @@ export default function Home() {
     },
   });
 
+  const copyGroupMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      return apiRequest("POST", `/api/groups/${groupId}/copy-to-personal`);
+    },
+    onSuccess: (data: any) => {
+      if (data.member?.id) {
+        setMyMemberIds(prev => {
+          if (prev.includes(data.member.id)) return prev;
+          const newIds = [...prev, data.member.id];
+          localStorage.setItem("myMemberIds", JSON.stringify(newIds));
+          return newIds;
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      
+      toast({
+        title: "그룹 복사 완료",
+        description: `${data.copiedCount}개의 메모가 "${data.group.name}" 그룹으로 복사되었습니다`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "그룹 복사 실패",
+        description: error.message || "그룹 메모 복사 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!locationEnabled || !navigator.geolocation) return;
 
@@ -663,6 +694,11 @@ export default function Home() {
             onLeaveGroup={(groupId, memberId) => {
               if (confirm("정말로 이 그룹에서 나가시겠습니까?")) {
                 leaveGroupMutation.mutate({ groupId, memberId });
+              }
+            }}
+            onCopyGroup={(groupId) => {
+              if (confirm("이 그룹의 모든 메모를 개인 메모로 복사하시겠습니까?")) {
+                copyGroupMutation.mutate(groupId);
               }
             }}
             isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}

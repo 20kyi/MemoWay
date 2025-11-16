@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
@@ -58,12 +58,13 @@ interface GroupManagementProps {
   onCreateGroup: (data: { name: string; memberName: string; color: string; markerIcon: string }) => void;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
+  onCopyGroup?: (groupId: string) => void;
   myMemberIds: string[];
   personalMemberId?: string | null;
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
@@ -329,6 +330,18 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                       data-testid={`color-dot-${group.id}`}
                     />
                     <h3 className="text-xl font-medium truncate">{group.name}</h3>
+                    {onCopyGroup && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 flex-shrink-0"
+                        onClick={() => onCopyGroup(group.id)}
+                        data-testid={`button-copy-${group.id}`}
+                        title="개인 메모로 복사"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                   <Badge variant="secondary" className="flex-shrink-0">
                     {group.members.length}명
