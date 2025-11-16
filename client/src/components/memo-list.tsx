@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X } from "lucide-react";
+import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
@@ -16,6 +16,7 @@ interface MemoListProps {
   onDelete: (memoId: string) => void;
   onBulkDelete?: (memoIds: string[]) => void;
   onMemoClick: (memoId: string) => void;
+  onSetMainMemo?: (memoId: string) => void;
 }
 
 const categoryIcons: Record<MarkerIconType, any> = {
@@ -29,7 +30,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick }: MemoListProps) {
+export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -43,6 +44,24 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick }:
   const filteredMemos = selectedCategory === "all" 
     ? memos 
     : memos.filter(memo => memo.markerIcon === selectedCategory);
+
+  // Group memos by location to determine if main memo button should be shown
+  const memosByLocation = useMemo(() => {
+    const grouped = new Map<string, MemoWithDetails[]>();
+    memos.forEach(memo => {
+      const key = `${memo.latitude},${memo.longitude}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
+      grouped.get(key)!.push(memo);
+    });
+    return grouped;
+  }, [memos]);
+
+  const getMemosAtSameLocation = (memo: MemoWithDetails) => {
+    const key = `${memo.latitude},${memo.longitude}`;
+    return memosByLocation.get(key) || [];
+  };
 
   const handleLongPressStart = (memoId: string) => {
     pressStartTimeRef.current = Date.now();
@@ -297,6 +316,22 @@ export function MemoList({ memos, onEdit, onDelete, onBulkDelete, onMemoClick }:
             </div>
             {!isSelectionMode && (
               <div className="flex gap-2">
+                {/* Show main memo button if there are 2+ memos at same location */}
+                {getMemosAtSameLocation(memo).length >= 2 && onSetMainMemo && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSetMainMemo(memo.id);
+                    }}
+                    data-testid={`button-set-main-${memo.id}`}
+                  >
+                    <Star 
+                      className={`h-4 w-4 ${(memo as any).isMainMemo ? 'fill-yellow-400 text-yellow-400' : ''}`} 
+                    />
+                  </Button>
+                )}
                 <Button
                   size="icon"
                   variant="ghost"

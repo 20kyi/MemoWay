@@ -365,6 +365,19 @@ export default function Home() {
     },
   });
 
+  const setMainMemoMutation = useMutation({
+    mutationFn: async (memoId: string) => {
+      return apiRequest("POST", `/api/memos/${memoId}/set-main`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      toast({
+        title: "메인 메모 설정 완료",
+        description: "이 메모가 지도에 표시됩니다.",
+      });
+    },
+  });
+
   const createGroupMutation = useMutation({
     mutationFn: async (data: { name: string; memberName: string; color: string; markerIcon: string }) => {
       return apiRequest("POST", "/api/groups", data);
@@ -704,6 +717,9 @@ export default function Home() {
                 setSelectedMemo(memo);
                 setMemoDetailOpen(true);
               }
+            }}
+            onSetMainMemo={(memoId) => {
+              setMainMemoMutation.mutate(memoId);
             }}
           />
         )}
