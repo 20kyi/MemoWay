@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Calendar, User, Users, Edit, Trash2, X, Navigation } from "lucide-react";
+import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { MemoWithDetails } from "@shared/schema";
@@ -37,24 +37,12 @@ export function MemoDetailSheet({
       <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0">
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 pb-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <SheetTitle className="text-2xl font-bold mb-2" data-testid="text-memo-title">
-                  {memo.buildingName}
-                </SheetTitle>
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                  <MapPin className="w-4 h-4" />
-                  <span data-testid="text-memo-address">{memo.address}</span>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onOpenChange(false)}
-                data-testid="button-close-detail"
-              >
-                <X className="w-5 h-5" />
-              </Button>
+            <SheetTitle className="text-2xl font-bold mb-2" data-testid="text-memo-title">
+              {memo.buildingName}
+            </SheetTitle>
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <MapPin className="w-4 h-4" />
+              <span data-testid="text-memo-address">{memo.address}</span>
             </div>
           </SheetHeader>
 
