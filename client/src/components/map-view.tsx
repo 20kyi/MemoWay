@@ -68,8 +68,10 @@ function getMarkerIconPath(iconType: string): string {
   }
 }
 
-function createMarkerContent(color: string, iconType: string = 'default', photoUrl?: string): string {
+function createMarkerContent(color: string, iconType: string = 'default', photoUrl?: string, scale: number = 1): string {
   const iconPath = getMarkerIconPath(iconType);
+  const width = 30 * scale;
+  const height = 40 * scale;
   
   // If photo is provided, create photo marker
   if (photoUrl) {
@@ -77,25 +79,25 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
       <div 
         style="
           position: relative;
-          width: 45px;
-          height: 60px;
+          width: ${width}px;
+          height: ${height}px;
           cursor: pointer;
         "
         data-marker-icon="${iconType}"
         aria-label="${iconType} 마커"
       >
-        <svg width="45" height="60" viewBox="0 0 45 60" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
           <defs>
             <clipPath id="photoClip">
-              <circle cx="22.5" cy="22.5" r="12"/>
+              <circle cx="15" cy="15" r="8"/>
             </clipPath>
           </defs>
-          <path d="M22.5 0C10.074 0 0 10.074 0 22.5c0 12.426 22.5 37.5 22.5 37.5s22.5-25.074 22.5-37.5C45 10.074 34.926 0 22.5 0z" 
+          <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
                 fill="${color}" 
                 stroke="#ffffff" 
-                stroke-width="3"/>
-          <circle cx="22.5" cy="22.5" r="13" fill="#ffffff"/>
-          <image href="${photoUrl}" x="10.5" y="10.5" width="24" height="24" clip-path="url(#photoClip)" preserveAspectRatio="xMidYMid slice"/>
+                stroke-width="2"/>
+          <circle cx="15" cy="15" r="8.5" fill="#ffffff"/>
+          <image href="${photoUrl}" x="7" y="7" width="16" height="16" clip-path="url(#photoClip)" preserveAspectRatio="xMidYMid slice"/>
         </svg>
       </div>
     `;
@@ -106,20 +108,20 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
     <div 
       style="
         position: relative;
-        width: 45px;
-        height: 60px;
+        width: ${width}px;
+        height: ${height}px;
         cursor: pointer;
       "
       data-marker-icon="${iconType}"
       aria-label="${iconType} 마커"
     >
-      <svg width="45" height="60" viewBox="0 0 45 60" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
-        <path d="M22.5 0C10.074 0 0 10.074 0 22.5c0 12.426 22.5 37.5 22.5 37.5s22.5-25.074 22.5-37.5C45 10.074 34.926 0 22.5 0z" 
+      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
               fill="${color}" 
               stroke="#ffffff" 
-              stroke-width="3"/>
-        <circle cx="22.5" cy="22.5" r="12" fill="#ffffff"/>
-        <g transform="translate(9, 9)" fill="${color}">
+              stroke-width="2"/>
+        <circle cx="15" cy="15" r="8" fill="#ffffff"/>
+        <g transform="translate(6, 6)" fill="${color}">
           <path d="${iconPath}" />
         </g>
       </svg>
@@ -127,45 +129,52 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
   `;
 }
 
-function createClusterMarkerContent(color: string, count: number, iconType: string = 'default'): string {
+function createClusterMarkerContent(color: string, count: number, iconType: string = 'default', scale: number = 1): string {
   const iconPath = getMarkerIconPath(iconType);
+  const width = 30 * scale;
+  const height = 40 * scale;
+  const badgeSize = 20 * scale;
+  const fontSize = 10 * scale;
+  const badgeTop = -7 * scale;
+  const badgeRight = -7 * scale;
+  
   return `
     <div 
       style="
         position: relative;
-        width: 45px;
-        height: 60px;
+        width: ${width}px;
+        height: ${height}px;
         cursor: pointer;
       "
       data-marker-icon="${iconType}"
       data-marker-count="${count}"
       aria-label="${iconType} 마커 클러스터 (${count}개)"
     >
-      <svg width="45" height="60" viewBox="0 0 45 60" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
-        <path d="M22.5 0C10.074 0 0 10.074 0 22.5c0 12.426 22.5 37.5 22.5 37.5s22.5-25.074 22.5-37.5C45 10.074 34.926 0 22.5 0z" 
+      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
               fill="${color}" 
               stroke="#ffffff" 
-              stroke-width="3"/>
-        <circle cx="22.5" cy="22.5" r="12" fill="#ffffff"/>
-        <g transform="translate(9, 9)" fill="${color}">
+              stroke-width="2"/>
+        <circle cx="15" cy="15" r="8" fill="#ffffff"/>
+        <g transform="translate(6, 6)" fill="${color}">
           <path d="${iconPath}" />
         </g>
       </svg>
       <div style="
         position: absolute;
-        top: -10px;
-        right: -10px;
+        top: ${badgeTop}px;
+        right: ${badgeRight}px;
         background-color: #ef4444;
         color: white;
         border-radius: 50%;
-        width: 28px;
-        height: 28px;
+        width: ${badgeSize}px;
+        height: ${badgeSize}px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
+        font-size: ${fontSize}px;
         font-weight: bold;
-        border: 3px solid white;
+        border: ${2 * scale}px solid white;
         box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         pointer-events: none;
       ">${count}</div>
@@ -213,6 +222,7 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
   const [mapError, setMapError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [markerScale, setMarkerScale] = useState(1);
   const markerClickedRef = useRef(false);
   const { toast } = useToast();
 
@@ -252,6 +262,29 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
         setMapError("지도를 불러올 수 없습니다. API 키를 확인해주세요.");
       });
   }, []);
+
+  // Update marker scale based on zoom level
+  useEffect(() => {
+    if (!map || !window.kakao?.maps) return;
+
+    const updateScale = () => {
+      const level = map.getLevel();
+      // Scale formula: larger at zoom in (smaller level), smaller at zoom out (larger level)
+      // level 3 is baseline (scale = 1.0)
+      const scale = Math.pow(1.3, (3 - level));
+      setMarkerScale(scale);
+    };
+
+    // Set initial scale
+    updateScale();
+
+    // Listen to zoom changes
+    window.kakao.maps.event.addListener(map, 'zoom_changed', updateScale);
+
+    return () => {
+      window.kakao.maps.event.removeListener(map, 'zoom_changed', updateScale);
+    };
+  }, [map]);
 
   // Register map click handler with fresh memos
   useEffect(() => {
@@ -348,8 +381,8 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
       
       const contentDiv = document.createElement('div');
       contentDiv.innerHTML = isSingleMemo 
-        ? createMarkerContent(markerColor, markerIcon, mainPhotoUrl)
-        : createClusterMarkerContent(markerColor, cluster.memos.length, markerIcon);
+        ? createMarkerContent(markerColor, markerIcon, mainPhotoUrl, markerScale)
+        : createClusterMarkerContent(markerColor, cluster.memos.length, markerIcon, markerScale);
       contentDiv.style.cursor = 'pointer';
       
       const customOverlay = new window.kakao.maps.CustomOverlay({
@@ -402,7 +435,7 @@ export function MapView({ onLocationSelect, memos, onMarkerClick, onClusterClick
         }
       });
     };
-  }, [map, memos, onMarkerClick, onClusterClick]);
+  }, [map, memos, onMarkerClick, onClusterClick, markerScale]);
 
   useEffect(() => {
     if (!map || !userLocation) return;
