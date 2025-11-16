@@ -33,6 +33,7 @@ export interface IStorage {
   getGroupByInviteCode(inviteCode: string): Promise<Group | undefined>;
   getGroups(): Promise<GroupWithMembers[]>;
   deleteGroup(groupId: string): Promise<void>;
+  copyGroupMemosToPersonal(groupId: string, userId: string): Promise<{ group: Group; member: Member; copiedCount: number }>;
   
   // Members
   createMember(member: InsertMember): Promise<Member>;
@@ -190,6 +191,101 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGroup(groupId: string): Promise<void> {
     await db.delete(groups).where(eq(groups.id, groupId));
+  }
+
+  async copyGroupMemosToPersonal(
+    groupId: string, 
+    userId: string
+  ): Promise<{ group: Group; member: Member; copiedCount: number }> {
+    // Get the source group
+    const sourceGroup = await db.query.groups.findFirst({
+      where: eq(groups.id, groupId),
+    });
+    
+    if (!sourceGroup) {
+      throw new Error("Source group not found");
+    }
+
+    // Get all memos from the source group with photos
+    const groupMemos = await db.query.memos.findMany({
+      where: eq(memos.groupId, groupId),
+      with: {
+        photos: true,
+      },
+    });
+
+    // Generate unique invite code
+    const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    // Create new group with "{원그룹명} 복사본" format
+    const newGroupName = `${sourceGroup.name} 복사본`;
+    const [newGroup] = await db
+      .insert(groups)
+      .values({
+        name: newGroupName,
+        inviteCode,
+        color: sourceGroup.color,
+        markerIcon: sourceGroup.markerIcon,
+      })
+      .returning();
+
+    // Create member for the user in the new group
+    const [newMember] = await db
+      .insert(members)
+      .values({
+        name: "나",
+        groupId: newGroup.id,
+        userId: userId,
+      })
+      .returning();
+
+    // Copy all memos to the new group
+    let copiedCount = 0;
+    for (const memo of groupMemos) {
+      const [newMemo] = await db
+        .insert(memos)
+        .values({
+          buildingName: memo.buildingName,
+          address: memo.address,
+          latitude: memo.latitude,
+          longitude: memo.longitude,
+          content: memo.content,
+          markerIcon: memo.markerIcon,
+          memberId: newMember.id,
+          groupId: newGroup.id,
+          mainPhotoId: null, // Will be set after photos are copied
+        })
+        .returning();
+
+      // Copy photos
+      let newMainPhotoId: string | null = null;
+      for (const photo of memo.photos) {
+        const [newPhoto] = await db
+          .insert(photos)
+          .values({
+            url: photo.url, // URL stays the same since files are shared
+            memoId: newMemo.id,
+          })
+          .returning();
+
+        // If this was the main photo, track it
+        if (memo.mainPhotoId === photo.id) {
+          newMainPhotoId = newPhoto.id;
+        }
+      }
+
+      // Update the main photo ID if there was one
+      if (newMainPhotoId) {
+        await db
+          .update(memos)
+          .set({ mainPhotoId: newMainPhotoId })
+          .where(eq(memos.id, newMemo.id));
+      }
+
+      copiedCount++;
+    }
+
+    return { group: newGroup, member: newMember, copiedCount };
   }
 
   // Photos

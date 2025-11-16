@@ -116,6 +116,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/groups/:groupId/copy-to-personal", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { groupId } = req.params;
+
+      const result = await storage.copyGroupMemosToPersonal(groupId, userId);
+      
+      res.json({
+        success: true,
+        group: result.group,
+        member: result.member,
+        copiedCount: result.copiedCount,
+      });
+    } catch (error: any) {
+      console.error("Error copying group memos:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.delete("/api/groups/:groupId/members/:memberId", isAuthenticated, async (req, res) => {
     try {
       const { groupId, memberId } = req.params;
