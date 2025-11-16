@@ -1,5 +1,6 @@
 import type { Express, RequestHandler } from "express";
 import { storage } from "./storage";
+import { randomBytes } from "crypto";
 
 interface KakaoTokenResponse {
   access_token: string;
@@ -47,8 +48,7 @@ export function setupKakaoAuth(app: Express) {
   // Kakao login initiation
   app.get("/api/kakao/login", (req, res) => {
     // Generate CSRF state token
-    const crypto = require("crypto");
-    const state = crypto.randomBytes(32).toString("hex");
+    const state = randomBytes(32).toString("hex");
     
     // Store state in session for verification
     (req.session as any).kakaoState = state;
