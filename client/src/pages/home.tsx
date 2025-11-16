@@ -193,6 +193,10 @@ export default function Home() {
       data.photos.forEach((photo: File) => {
         formData.append("photos", photo);
       });
+      
+      if (data.mainPhotoIndex !== undefined) {
+        formData.append("mainPhotoIndex", data.mainPhotoIndex.toString());
+      }
 
       return apiRequest("POST", "/api/memos", formData);
     },
@@ -234,6 +238,12 @@ export default function Home() {
       data.photos.forEach((photo: File) => {
         formData.append("photos", photo);
       });
+      
+      if (data.mainPhotoId) {
+        formData.append("mainPhotoId", data.mainPhotoId);
+      } else if (data.mainPhotoIndex !== undefined) {
+        formData.append("mainPhotoIndex", data.mainPhotoIndex.toString());
+      }
 
       return apiRequest("PATCH", `/api/memos/${memoId}`, formData);
     },
@@ -608,6 +618,7 @@ export default function Home() {
           content: editingMemo.content,
           groupIds: editingMemo.groupId ? [editingMemo.groupId] : [],
           markerIcon: editingMemo.markerIcon || 'default',
+          mainPhotoId: (editingMemo as any).mainPhotoId,
           existingPhotos: editingMemo.photos.map(p => ({ id: p.id, url: p.url })),
         } : selectedLocation ? {
           buildingName: selectedLocation.buildingName,

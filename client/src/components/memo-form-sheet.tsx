@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Camera, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase } from "lucide-react";
+import { Camera, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Star } from "lucide-react";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
 
@@ -34,7 +34,7 @@ type MemoFormValues = {
 interface MemoFormSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: MemoFormValues & { photos: File[]; deletedPhotoIds?: string[] }) => void;
+  onSubmit: (data: MemoFormValues & { photos: File[]; deletedPhotoIds?: string[]; mainPhotoId?: string; mainPhotoIndex?: number }) => void;
   initialData?: {
     buildingName: string;
     address: string;
@@ -43,6 +43,7 @@ interface MemoFormSheetProps {
     content?: string;
     groupIds?: string[];
     markerIcon?: string;
+    mainPhotoId?: string;
     existingPhotos?: Array<{ id: string; url: string }>;
   } | null;
   groups: Array<{ id: string; name: string }>;
@@ -70,6 +71,8 @@ export function MemoFormSheet({
     initialData?.existingPhotos || []
   );
   const [deletedPhotoIds, setDeletedPhotoIds] = useState<string[]>([]);
+  const [mainPhotoId, setMainPhotoId] = useState<string | undefined>(initialData?.mainPhotoId);
+  const [mainPhotoIndex, setMainPhotoIndex] = useState<number | undefined>();
 
   const memoFormSchema = z.object({
     buildingName: z.string().min(1, t.memoForm.buildingName),
@@ -104,6 +107,8 @@ export function MemoFormSheet({
       setDeletedPhotoIds([]);
       setPhotos([]);
       setPhotoPreviews([]);
+      setMainPhotoId(initialData.mainPhotoId);
+      setMainPhotoIndex(undefined);
     }
   }, [initialData, open, form]);
 
@@ -125,15 +130,23 @@ export function MemoFormSheet({
   const removePhoto = (index: number) => {
     setPhotos(prev => prev.filter((_, i) => i !== index));
     setPhotoPreviews(prev => prev.filter((_, i) => i !== index));
+    if (mainPhotoIndex === index) {
+      setMainPhotoIndex(undefined);
+    } else if (mainPhotoIndex !== undefined && mainPhotoIndex > index) {
+      setMainPhotoIndex(mainPhotoIndex - 1);
+    }
   };
 
   const removeExistingPhoto = (photoId: string) => {
     setExistingPhotos(prev => prev.filter(p => p.id !== photoId));
     setDeletedPhotoIds(prev => [...prev, photoId]);
+    if (mainPhotoId === photoId) {
+      setMainPhotoId(undefined);
+    }
   };
 
   const handleSubmit = (data: MemoFormValues) => {
-    onSubmit({ ...data, photos, deletedPhotoIds });
+    onSubmit({ ...data, photos, deletedPhotoIds, mainPhotoId, mainPhotoIndex });
   };
 
   return (
@@ -185,6 +198,19 @@ export function MemoFormSheet({
                       <Button
                         type="button"
                         size="icon"
+                        variant={mainPhotoId === photo.id ? "default" : "secondary"}
+                        className="absolute top-1 left-1 h-6 w-6 rounded-full"
+                        onClick={() => {
+                          setMainPhotoId(photo.id);
+                          setMainPhotoIndex(undefined);
+                        }}
+                        data-testid={`button-set-main-photo-${photo.id}`}
+                      >
+                        <Star className={`h-3 w-3 ${mainPhotoId === photo.id ? 'fill-current' : ''}`} />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
                         variant="destructive"
                         className="absolute top-1 right-1 h-6 w-6 rounded-full"
                         onClick={() => removeExistingPhoto(photo.id)}
@@ -197,6 +223,19 @@ export function MemoFormSheet({
                   {photoPreviews.map((preview, index) => (
                     <div key={`new-${index}`} className="relative aspect-square">
                       <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover rounded-lg" />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant={mainPhotoIndex === index ? "default" : "secondary"}
+                        className="absolute top-1 left-1 h-6 w-6 rounded-full"
+                        onClick={() => {
+                          setMainPhotoIndex(index);
+                          setMainPhotoId(undefined);
+                        }}
+                        data-testid={`button-set-main-photo-new-${index}`}
+                      >
+                        <Star className={`h-3 w-3 ${mainPhotoIndex === index ? 'fill-current' : ''}`} />
+                      </Button>
                       <Button
                         type="button"
                         size="icon"
