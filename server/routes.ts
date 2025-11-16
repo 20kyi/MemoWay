@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertGroupSchema, insertMemberSchema, insertMemoSchema, type InsertMemo } from "@shared/schema";
 import { randomBytes } from "crypto";
 import { z } from "zod";
@@ -24,9 +25,31 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Groups
-  app.post("/api/groups", async (req, res) => {
+  // Setup authentication
+  await setupAuth(app);
+  const { setupKakaoAuth } = await import("./kakaoAuth");
+  setupKakaoAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Groups
+  app.post("/api/groups", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
       const bodySchema = z.object({
         name: z.string().min(1, "그룹명을 입력하세요").max(100),
         memberName: z.string().min(1, "이름을 입력하세요").max(50),
@@ -40,7 +63,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const group = await storage.createGroup({ name, inviteCode, color, markerIcon });
       const member = await storage.createMember({ 
         groupId: group.id, 
-        name: memberName 
+        name: memberName,
+        userId 
       });
       
       res.json({ group, member });
@@ -52,8 +76,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/groups/join", async (req, res) => {
+  app.post("/api/groups/join", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
+      
       const bodySchema = z.object({
         inviteCode: z.string().min(1, "초대 코드를 입력하세요"),
         memberName: z.string().min(1, "이름을 입력하세요").max(50),
@@ -68,7 +94,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const member = await storage.createMember({ 
         groupId: group.id, 
-        name: memberName 
+        name: memberName,
+        userId 
       });
       
       res.json({ group, member });
@@ -80,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/groups", async (req, res) => {
+  app.get("/api/groups", isAuthenticated, async (req, res) => {
     try {
       const groups = await storage.getGroups();
       res.json(groups);
@@ -89,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/groups/:groupId/members/:memberId", async (req, res) => {
+  app.delete("/api/groups/:groupId/members/:memberId", isAuthenticated, async (req, res) => {
     try {
       const { groupId, memberId } = req.params;
       
@@ -122,7 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Memos
-  app.post("/api/memos", upload.array("photos", 10), async (req, res) => {
+  app.post("/api/memos", isAuthenticated, upload.array("photos", 10), async (req, res) => {
     try {
       const bodySchema = z.object({
         buildingName: z.string().min(1, "건물명을 입력하세요").max(200),
@@ -191,7 +218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/memos", async (req, res) => {
+  app.get("/api/memos", isAuthenticated, async (req, res) => {
     try {
       const memos = await storage.getMemos();
       res.json(memos);
@@ -200,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/memos/:id", async (req, res) => {
+  app.get("/api/memos/:id", isAuthenticated, async (req, res) => {
     try {
       const memo = await storage.getMemoById(req.params.id);
       if (!memo) {
@@ -212,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/memos/:id", upload.array("photos", 10), async (req, res) => {
+  app.patch("/api/memos/:id", isAuthenticated, upload.array("photos", 10), async (req, res) => {
     try {
       const bodySchema = z.object({
         buildingName: z.string().min(1, "건물명을 입력하세요").max(200),
@@ -296,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/memos/:id", async (req, res) => {
+  app.delete("/api/memos/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deleteMemo(req.params.id);
       

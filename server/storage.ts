@@ -1,9 +1,12 @@
 // Reference: javascript_database blueprint - updated with app-specific storage
 import { 
+  users,
   groups, 
   members, 
   memos, 
   photos,
+  type User,
+  type UpsertUser,
   type Group, 
   type Member, 
   type Memo, 
@@ -19,6 +22,12 @@ import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
+  // Users (required for Replit Auth)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByKakaoId(kakaoId: string): Promise<User | undefined>;
+  
   // Groups
   createGroup(group: InsertGroup): Promise<Group>;
   getGroupByInviteCode(inviteCode: string): Promise<Group | undefined>;
@@ -45,6 +54,37 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // Users (required for Replit Auth)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUserByKakaoId(kakaoId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.kakaoId, kakaoId));
+    return user;
+  }
+
   // Groups
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
     const [group] = await db

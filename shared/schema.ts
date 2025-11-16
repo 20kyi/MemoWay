@@ -1,7 +1,33 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, doublePrecision, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, doublePrecision, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Session storage table (required for Replit Auth)
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// User storage table (required for Replit Auth)
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  // Kakao OAuth fields
+  kakaoId: varchar("kakao_id").unique(),
+  // Authentication provider: 'replit' or 'kakao'
+  provider: varchar("provider").notNull().default('replit'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 // Groups table
 export const groups = pgTable("groups", {
@@ -17,6 +43,7 @@ export const groups = pgTable("groups", {
 export const members = pgTable("members", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   groupId: varchar("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
 });
@@ -45,6 +72,10 @@ export const photos = pgTable("photos", {
 });
 
 // Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  members: many(members),
+}));
+
 export const groupsRelations = relations(groups, ({ many }) => ({
   members: many(members),
   memos: many(memos),
@@ -54,6 +85,10 @@ export const membersRelations = relations(members, ({ one, many }) => ({
   group: one(groups, {
     fields: [members.groupId],
     references: [groups.id],
+  }),
+  user: one(users, {
+    fields: [members.userId],
+    references: [users.id],
   }),
   memos: many(memos),
 }));
@@ -109,6 +144,9 @@ export const insertPhotoSchema = createInsertSchema(photos).omit({
 });
 
 // Types
+export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.$inferInsert;
+
 export type Group = typeof groups.$inferSelect;
 export type InsertGroup = z.infer<typeof insertGroupSchema>;
 

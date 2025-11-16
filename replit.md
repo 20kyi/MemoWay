@@ -6,6 +6,38 @@ A mobile-first web application enabling users to create and share location-based
 
 ## Recent Changes (November 16, 2025)
 
+**Implemented User Authentication with Replit Auth**
+- User request: Add app-native login (email/password) + Kakao OAuth login
+- Implementation:
+  - **Database Schema**: Added `users` and `sessions` tables
+    - users table: id, email, firstName, lastName, profileImageUrl, provider (replit/kakao), kakaoId, createdAt, updatedAt
+    - sessions table: sid, sess (JSON), expire (for express-session with PostgreSQL)
+    - members table: Added userId column to link authenticated users with group members
+  - **Server-Side Auth** (`server/replitAuth.ts`):
+    - Replit Auth using OpenID Connect (passport + openid-client)
+    - Supports email/password, Google, GitHub, Apple logins automatically
+    - Session management with connect-pg-simple (PostgreSQL session store)
+    - `isAuthenticated` middleware to protect routes
+    - Automatic user upsert on login (creates or updates user record)
+  - **Storage Layer** (`server/storage.ts`):
+    - Added user CRUD operations: getUser, upsertUser, getUserByEmail, getUserByKakaoId
+    - Member creation now includes userId to link users with their group memberships
+  - **API Routes** (`server/routes.ts`):
+    - All API routes protected with isAuthenticated middleware
+    - `/api/auth/user` returns current user info
+    - `/api/login`, `/api/callback`, `/api/logout` handle authentication flow
+    - Group and member creation automatically associates userId with created members
+  - **Client-Side Auth**:
+    - `useAuth` hook (`client/src/hooks/useAuth.ts`): Returns user, isLoading, isAuthenticated
+    - `authUtils` (`client/src/lib/authUtils.ts`): Helper to detect 401 errors
+    - Landing page (`client/src/pages/landing.tsx`): Shows when user is not authenticated
+    - App.tsx: Conditional rendering - landing page for logged-out users, home page for authenticated users
+  - **Landing Page**: Multi-language support with features overview and login button
+- Authentication flow: Landing page → /api/login → Replit Auth → /api/callback → Home page
+- Member-User relationship: One user can have multiple members (different names in different groups)
+- Environment variables required: SESSION_SECRET, REPL_ID (ISSUER_URL optional, defaults to https://replit.com/oidc)
+- Next step: Implement Kakao OAuth integration
+
 **Completed Full App Translation (Korean, English, Chinese, Japanese)**
 - User request: Complete translation of entire app into 4 languages
 - Implementation:
@@ -93,7 +125,14 @@ The backend utilizes **Express.js** with **TypeScript** and ESM modules, providi
 
 ### Data Storage
 
-The database schema includes `groups`, `members`, `memos`, and `photos` tables. Relationships are designed with cascade deletes to maintain integrity. Memos can be personal or group-assigned. Denormalization is used for performance, and a separate photos table allows multiple images per memo.
+The database schema includes `users`, `sessions`, `groups`, `members`, `memos`, and `photos` tables. Relationships are designed with cascade deletes to maintain integrity. Memos can be personal or group-assigned. Denormalization is used for performance, and a separate photos table allows multiple images per memo.
+
+**Authentication Tables**:
+- `users`: Stores authenticated user information (id, email, firstName, lastName, profileImageUrl, provider, kakaoId)
+- `sessions`: PostgreSQL-backed session storage for Passport.js
+- `members`: Now includes userId foreign key to link group members with authenticated users
+
+One user can have multiple members (different names/roles in different groups). All members created by a user are linked via the userId column.
 
 ### Real-Time Communication
 
@@ -116,6 +155,20 @@ A **WebSocket server** runs alongside the Express HTTP server, powered by the `w
 - **Multer**: Multipart form parsing for file uploads.
 - **ws**: WebSocket implementation for Node.js.
 
+### Authentication System
+
+The app uses **Replit Auth** (OpenID Connect) for primary authentication, providing email/password, Google, GitHub, Apple login options automatically. Authentication is session-based using express-session with PostgreSQL storage.
+
+**Authentication Flow**:
+1. Unauthenticated users see landing page
+2. Click "로그인 / 회원가입" redirects to `/api/login`
+3. Replit Auth handles authentication
+4. Callback to `/api/callback` creates/updates user record and session
+5. User redirected to home page with authenticated session
+
+All API routes are protected with `isAuthenticated` middleware, ensuring only authenticated users can access the application.
+
 ### Configuration Notes
-- Requires `DATABASE_URL` and `VITE_KAKAO_API_KEY` environment variables.
+- Requires `DATABASE_URL`, `SESSION_SECRET`, `REPL_ID`, and `VITE_KAKAO_API_KEY` environment variables.
+- Optional: `ISSUER_URL` (defaults to https://replit.com/oidc)
 - File uploads are limited to 5MB and image formats.
