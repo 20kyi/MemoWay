@@ -68,11 +68,48 @@ export function setupKakaoAuth(app: Express) {
       <html>
         <head>
           <title>카카오 로그인으로 이동 중...</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+              background: #fee500;
+            }
+            .message { margin: 20px; text-align: center; }
+            .button {
+              background: #000;
+              color: #fee500;
+              padding: 12px 24px;
+              border-radius: 6px;
+              text-decoration: none;
+              font-weight: bold;
+            }
+          </style>
         </head>
         <body>
-          <p>카카오 로그인 페이지로 이동 중입니다...</p>
+          <div class="message">
+            <p>카카오 로그인 페이지로 이동 중입니다...</p>
+            <p>자동으로 이동되지 않으면 아래 버튼을 클릭하세요:</p>
+            <a href="${kakaoAuthUrl.replace(/"/g, '&quot;')}" class="button">카카오 로그인하기</a>
+          </div>
           <script>
-            window.top.location.href = ${JSON.stringify(kakaoAuthUrl)};
+            try {
+              // Try multiple redirect methods
+              if (window.top !== window.self) {
+                // In iframe - try to break out
+                try { window.top.location.href = ${JSON.stringify(kakaoAuthUrl)}; } catch(e) {}
+              }
+              // Fallback: redirect current window
+              setTimeout(() => {
+                window.location.href = ${JSON.stringify(kakaoAuthUrl)};
+              }, 100);
+            } catch(e) {
+              console.error('Redirect failed:', e);
+            }
           </script>
         </body>
       </html>
