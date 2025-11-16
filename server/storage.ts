@@ -47,6 +47,7 @@ export interface IStorage {
   updateMemo(id: string, memo: Partial<InsertMemo>): Promise<Memo>;
   deleteMemo(id: string): Promise<void>;
   clearGroupFromMemos(groupId: string): Promise<void>;
+  setMainMemo(memoId: string): Promise<Memo>;
   
   // Photos
   createPhoto(photo: InsertPhoto): Promise<Photo>;
@@ -187,6 +188,42 @@ export class DatabaseStorage implements IStorage {
       .update(memos)
       .set({ groupId: null })
       .where(eq(memos.groupId, groupId));
+  }
+
+  async setMainMemo(memoId: string): Promise<Memo> {
+    // Get the memo to find its location
+    const targetMemo = await db.query.memos.findFirst({
+      where: eq(memos.id, memoId),
+    });
+
+    if (!targetMemo) {
+      throw new Error("MEMO_NOT_FOUND");
+    }
+
+    // Find all memos at the same location
+    const memosAtLocation = await db.query.memos.findMany({
+      where: and(
+        eq(memos.latitude, targetMemo.latitude),
+        eq(memos.longitude, targetMemo.longitude)
+      ),
+    });
+
+    // Reset isMainMemo for all memos at this location
+    for (const memo of memosAtLocation) {
+      await db
+        .update(memos)
+        .set({ isMainMemo: false, updatedAt: new Date() })
+        .where(eq(memos.id, memo.id));
+    }
+
+    // Set the selected memo as main
+    const [updatedMemo] = await db
+      .update(memos)
+      .set({ isMainMemo: true, updatedAt: new Date() })
+      .where(eq(memos.id, memoId))
+      .returning();
+
+    return updatedMemo;
   }
 
   async deleteGroup(groupId: string): Promise<void> {

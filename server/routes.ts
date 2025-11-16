@@ -395,6 +395,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/memos/:id/set-main", isAuthenticated, async (req, res) => {
+    try {
+      const updatedMemo = await storage.setMainMemo(req.params.id);
+      
+      // Broadcast to WebSocket clients
+      broadcast({ 
+        type: "memo_updated", 
+        memo: await storage.getMemoById(updatedMemo.id)
+      });
+      
+      res.json(updatedMemo);
+    } catch (error: any) {
+      if (error.message === "MEMO_NOT_FOUND") {
+        return res.status(404).json({ error: "메모를 찾을 수 없습니다" });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time memo updates

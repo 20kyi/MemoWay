@@ -60,6 +60,7 @@ export const memos = pgTable("memos", {
   memberId: varchar("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
   markerIcon: varchar("marker_icon").notNull().default('default'),
   mainPhotoId: varchar("main_photo_id"),
+  isMainMemo: boolean("is_main_memo").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
