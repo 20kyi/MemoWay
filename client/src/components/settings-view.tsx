@@ -11,6 +11,8 @@ interface SettingsViewProps {
   onNotificationsChange: (enabled: boolean) => void;
   locationEnabled: boolean;
   onLocationChange: (enabled: boolean) => void;
+  proximityRadius: number;
+  onProximityRadiusChange: (radius: number) => void;
 }
 
 const languageOptions: { value: Language; label: string; flag: string }[] = [
@@ -25,6 +27,8 @@ export function SettingsView({
   onNotificationsChange,
   locationEnabled,
   onLocationChange,
+  proximityRadius,
+  onProximityRadiusChange,
 }: SettingsViewProps) {
   const { language, setLanguage, t } = useLanguage();
 
@@ -75,7 +79,7 @@ export function SettingsView({
             {t.settings.notificationsDesc}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <Label htmlFor="notifications" className="cursor-pointer">
               {t.settings.notificationsEnable}
@@ -87,6 +91,28 @@ export function SettingsView({
               data-testid="switch-notifications"
             />
           </div>
+          
+          {notificationsEnabled && (
+            <div className="space-y-2">
+              <Label htmlFor="proximity-radius">{t.settings.proximityRadius}</Label>
+              <Select 
+                value={proximityRadius.toString()} 
+                onValueChange={(value) => onProximityRadiusChange(Number(value))}
+              >
+                <SelectTrigger id="proximity-radius" data-testid="select-proximity-radius">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="50" data-testid="radius-50m">{t.settings.radius50m}</SelectItem>
+                  <SelectItem value="100" data-testid="radius-100m">{t.settings.radius100m}</SelectItem>
+                  <SelectItem value="200" data-testid="radius-200m">{t.settings.radius200m}</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                {t.settings.proximityRadiusDesc}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

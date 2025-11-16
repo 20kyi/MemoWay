@@ -16,6 +16,21 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/language-context";
 import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 
+// Calculate distance between two coordinates using Haversine formula (in meters)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Distance in meters
+}
+
 export default function Home() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"map" | "memos" | "groups" | "settings">("map");
@@ -32,8 +47,16 @@ export default function Home() {
     buildingName: string;
   } | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [locationEnabled, setLocationEnabled] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    return localStorage.getItem("notificationsEnabled") === "true";
+  });
+  const [locationEnabled, setLocationEnabled] = useState(() => {
+    return localStorage.getItem("locationEnabled") === "true";
+  });
+  const [proximityRadius, setProximityRadius] = useState<number>(() => {
+    const saved = localStorage.getItem("proximityRadius");
+    return saved ? Number(saved) : 100;
+  });
   const [notifiedMemoIds, setNotifiedMemoIds] = useState<Set<string>>(new Set());
   const [currentMemberId, setCurrentMemberId] = useState<string | null>(
     localStorage.getItem("currentMemberId")
@@ -121,6 +144,72 @@ export default function Home() {
       localStorage.setItem("myMemberIds", JSON.stringify(validMemberIds));
     }
   }, [groups, groupsIsFetched, currentMemberId, personalMemberId, myMemberIds]);
+
+  // Track user location and check for nearby memos
+  useEffect(() => {
+    if (!locationEnabled || !notificationsEnabled) return;
+
+    let watchId: number | null = null;
+
+    const startTracking = () => {
+      if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation({ lat: latitude, lng: longitude });
+
+            // Check for nearby memos
+            memos.forEach((memo) => {
+              // Skip if already notified
+              if (notifiedMemoIds.has(memo.id)) return;
+
+              const distance = calculateDistance(latitude, longitude, memo.latitude, memo.longitude);
+
+              if (distance <= proximityRadius) {
+                // Notify user
+                toast({
+                  title: memo.buildingName || "근처 메모",
+                  description: `${Math.round(distance)}m 내에 메모가 있습니다`,
+                });
+
+                // Mark as notified
+                setNotifiedMemoIds((prev) => new Set(prev).add(memo.id));
+              }
+            });
+          },
+          (error) => {
+            console.error("위치 추적 오류:", error);
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 10000,
+            timeout: 5000,
+          }
+        );
+      }
+    };
+
+    startTracking();
+
+    return () => {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [locationEnabled, notificationsEnabled, memos, proximityRadius, notifiedMemoIds, toast]);
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem("notificationsEnabled", notificationsEnabled.toString());
+  }, [notificationsEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem("locationEnabled", locationEnabled.toString());
+  }, [locationEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem("proximityRadius", proximityRadius.toString());
+  }, [proximityRadius]);
 
   // 개인 메모용 멤버 자동 생성
   useEffect(() => {
@@ -582,9 +671,11 @@ export default function Home() {
         {activeTab === "settings" && (
           <SettingsView
             notificationsEnabled={notificationsEnabled}
-            onNotificationsChange={handleNotificationsChange}
+            onNotificationsChange={setNotificationsEnabled}
             locationEnabled={locationEnabled}
-            onLocationChange={handleLocationChange}
+            onLocationChange={setLocationEnabled}
+            proximityRadius={proximityRadius}
+            onProximityRadiusChange={setProximityRadius}
           />
         )}
       </div>
