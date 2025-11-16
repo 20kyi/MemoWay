@@ -197,14 +197,25 @@ export class DatabaseStorage implements IStorage {
     groupId: string, 
     userId: string
   ): Promise<{ group: Group; member: Member; copiedCount: number }> {
-    // Get the source group
-    const sourceGroup = await db.query.groups.findFirst({
+    // Get the source group with members
+    const sourceGroupData = await db.query.groups.findFirst({
       where: eq(groups.id, groupId),
+      with: {
+        members: true,
+      },
     });
     
-    if (!sourceGroup) {
-      throw new Error("Source group not found");
+    if (!sourceGroupData) {
+      throw new Error("GROUP_NOT_FOUND");
     }
+
+    // Verify user is a member of the source group
+    const userMembership = sourceGroupData.members.find(m => m.userId === userId);
+    if (!userMembership) {
+      throw new Error("MEMBERSHIP_REQUIRED");
+    }
+
+    const sourceGroup = sourceGroupData;
 
     // Get all memos from the source group with photos
     const groupMemos = await db.query.memos.findMany({

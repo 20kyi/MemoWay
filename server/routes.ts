@@ -121,20 +121,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { groupId } = req.params;
 
-      // Get all groups to verify user membership
-      const groups = await storage.getGroups();
-      const sourceGroup = groups.find(g => g.id === groupId);
-      
-      if (!sourceGroup) {
-        return res.status(404).json({ error: "그룹을 찾을 수 없습니다" });
-      }
-
-      // Verify user is a member of the source group
-      const userMembership = sourceGroup.members.find(m => m.userId === userId);
-      if (!userMembership) {
-        return res.status(403).json({ error: "이 그룹의 멤버만 복사할 수 있습니다" });
-      }
-
       const result = await storage.copyGroupMemosToPersonal(groupId, userId);
       
       res.json({
@@ -145,6 +131,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Error copying group memos:", error);
+      
+      if (error.message === "GROUP_NOT_FOUND") {
+        return res.status(404).json({ error: "그룹을 찾을 수 없습니다" });
+      }
+      
+      if (error.message === "MEMBERSHIP_REQUIRED") {
+        return res.status(403).json({ error: "이 그룹의 멤버만 복사할 수 있습니다" });
+      }
+      
       res.status(500).json({ error: error.message });
     }
   });

@@ -6,6 +6,33 @@ A mobile-first web application enabling users to create and share location-based
 
 ## Recent Changes (November 16, 2025)
 
+**Implemented Group Memo Copying Feature**
+- User request: Add ability to copy all memos from any group to personal memos
+- Implementation:
+  - **Backend API** (`server/routes.ts`):
+    - POST /api/groups/:groupId/copy-to-personal endpoint
+    - Authorization checks: Verifies user is member of source group (403 if not)
+    - Error handling: Returns 404 if group not found, 403 if not a member
+    - Returns new group, member, and count of copied memos
+  - **Storage Layer** (`server/storage.ts`):
+    - copyGroupMemosToPersonal(groupId, userId) method
+    - Creates new group with "{원본그룹명} 복사본" naming
+    - Copies all memos with their photos from source group
+    - Maintains main photo ID for each copied memo
+    - Creates new member "나" in the copied group
+  - **Frontend UI** (`client/src/components/group-management.tsx`):
+    - Copy icon button (lucide-react Copy) next to each group name
+    - Button positioned after group name in card header
+    - Only visible for groups user is a member of
+  - **Frontend Logic** (`client/src/pages/home.tsx`):
+    - copyGroupMutation with confirmation dialog
+    - Success toast shows "{count}개의 메모가 '{groupName}' 그룹으로 복사되었습니다"
+    - Error handling for membership/permission errors
+    - Invalidates groups and memos queries after copy
+- Security: Authorization ensures only group members can copy group data
+- UI: Copy button appears next to group name with ghost variant, size icon (h-7 w-7)
+- Photo handling: Copied memos reference same photo URLs (files are shared, not duplicated)
+
 **Implemented User Authentication with Replit Auth**
 - User request: Add app-native login (email/password) + Kakao OAuth login
 - Implementation:
