@@ -199,7 +199,7 @@ export function MemoFormSheet({
                         type="button"
                         size="icon"
                         variant={mainPhotoId === photo.id ? "default" : "secondary"}
-                        className="absolute top-1 left-1 h-6 w-6 rounded-full"
+                        className="absolute bottom-1 left-1 h-6 w-6 rounded-full"
                         onClick={() => {
                           setMainPhotoId(photo.id);
                           setMainPhotoIndex(undefined);
@@ -227,7 +227,7 @@ export function MemoFormSheet({
                         type="button"
                         size="icon"
                         variant={mainPhotoIndex === index ? "default" : "secondary"}
-                        className="absolute top-1 left-1 h-6 w-6 rounded-full"
+                        className="absolute bottom-1 left-1 h-6 w-6 rounded-full"
                         onClick={() => {
                           setMainPhotoIndex(index);
                           setMainPhotoId(undefined);
