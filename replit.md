@@ -6,6 +6,19 @@ A mobile-first web application enabling users to create and share location-based
 
 ## Recent Changes (November 16, 2025)
 
+**Added Language Settings (Korean, English, Chinese, Japanese)**
+- User request: Add language selection in settings (중국어, 영어, 일본어, 한국어)
+- Implementation:
+  - Created LanguageContext for global language state management
+  - Added language selection dropdown in Settings page
+  - Supported languages: 한국어 (ko), English (en), 中文 (zh), 日本語 (ja)
+  - Each option displays flag emoji and language name
+  - Language preference persisted in localStorage
+  - LanguageProvider wraps entire app in App.tsx
+- UI: Card with Languages icon, Select dropdown with flag emojis
+- Storage: localStorage key "language", default "ko"
+- Hook: `useLanguage()` provides { language, setLanguage } to any component
+
 **Added Category Filter to Memo List Page**
 - User request: Add category filtering functionality to the memo list as a dropdown
 - Implementation:

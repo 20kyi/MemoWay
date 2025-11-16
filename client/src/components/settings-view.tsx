@@ -1,7 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Bell, MapPin, Moon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Bell, MapPin, Languages } from "lucide-react";
+import { useLanguage, type Language } from "@/lib/language-context";
 
 interface SettingsViewProps {
   notificationsEnabled: boolean;
@@ -10,15 +12,53 @@ interface SettingsViewProps {
   onLocationChange: (enabled: boolean) => void;
 }
 
+const languageOptions: { value: Language; label: string; flag: string }[] = [
+  { value: "ko", label: "한국어", flag: "🇰🇷" },
+  { value: "en", label: "English", flag: "🇺🇸" },
+  { value: "zh", label: "中文", flag: "🇨🇳" },
+  { value: "ja", label: "日本語", flag: "🇯🇵" },
+];
+
 export function SettingsView({
   notificationsEnabled,
   onNotificationsChange,
   locationEnabled,
   onLocationChange,
 }: SettingsViewProps) {
+  const { language, setLanguage } = useLanguage();
+
   return (
     <div className="px-4 py-6 space-y-4 overflow-y-auto h-full">
       <h1 className="text-2xl font-medium mb-6">설정</h1>
+
+      <Card className="rounded-2xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Languages className="h-5 w-5" />
+            언어 / Language
+          </CardTitle>
+          <CardDescription>
+            앱 표시 언어를 선택하세요
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
+            <SelectTrigger className="w-full" data-testid="select-language">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {languageOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value} data-testid={`language-${option.value}`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{option.flag}</span>
+                    <span>{option.label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
       <Card className="rounded-2xl">
         <CardHeader>
