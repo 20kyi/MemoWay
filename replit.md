@@ -36,7 +36,13 @@ A mobile-first web application enabling users to create and share location-based
 - Authentication flow: Landing page → /api/login → Replit Auth → /api/callback → Home page
 - Member-User relationship: One user can have multiple members (different names in different groups)
 - Environment variables required: SESSION_SECRET, REPL_ID (ISSUER_URL optional, defaults to https://replit.com/oidc)
-- Next step: Implement Kakao OAuth integration
+- **Kakao OAuth Integration** (`server/kakaoAuth.ts`):
+  - Complete OAuth 2.0 flow with Kakao API
+  - Token exchange and user info retrieval from Kakao
+  - User upsert with kakaoId and provider='kakao'
+  - Dedicated yellow Kakao login button on landing page
+  - Routes: `/api/kakao/login`, `/api/kakao/callback`
+  - Requires KAKAO_CLIENT_ID and KAKAO_CLIENT_SECRET environment variables
 
 **Completed Full App Translation (Korean, English, Chinese, Japanese)**
 - User request: Complete translation of entire app into 4 languages
@@ -169,6 +175,7 @@ The app uses **Replit Auth** (OpenID Connect) for primary authentication, provid
 All API routes are protected with `isAuthenticated` middleware, ensuring only authenticated users can access the application.
 
 ### Configuration Notes
-- Requires `DATABASE_URL`, `SESSION_SECRET`, `REPL_ID`, and `VITE_KAKAO_API_KEY` environment variables.
+- Requires `DATABASE_URL`, `SESSION_SECRET`, `REPL_ID`, `VITE_KAKAO_API_KEY`, `KAKAO_CLIENT_ID`, and `KAKAO_CLIENT_SECRET` environment variables.
 - Optional: `ISSUER_URL` (defaults to https://replit.com/oidc)
 - File uploads are limited to 5MB and image formats.
+- Sessions table auto-creates on first run (connect-pg-simple with createTableIfMissing: true)

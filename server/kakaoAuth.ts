@@ -46,14 +46,30 @@ export function setupKakaoAuth(app: Express) {
 
   // Kakao login initiation
   app.get("/api/kakao/login", (req, res) => {
+    // Generate CSRF state token
+    const crypto = require("crypto");
+    const state = crypto.randomBytes(32).toString("hex");
+    
+    // Store state in session for verification
+    (req.session as any).kakaoState = state;
+    
     const redirectUri = `${req.protocol}://${req.hostname}/api/kakao/callback`;
-    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
     res.redirect(kakaoAuthUrl);
   });
 
   // Kakao OAuth callback
   app.get("/api/kakao/callback", async (req, res) => {
-    const { code } = req.query;
+    const { code, state } = req.query;
+
+    // Verify CSRF state token
+    const sessionState = (req.session as any).kakaoState;
+    if (!state || state !== sessionState) {
+      return res.status(403).json({ error: "Invalid state parameter - possible CSRF attack" });
+    }
+    
+    // Clear state from session
+    delete (req.session as any).kakaoState;
 
     if (!code || typeof code !== "string") {
       return res.status(400).json({ error: "Authorization code is missing" });
