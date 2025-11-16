@@ -198,8 +198,18 @@ export function MemoFormSheet({
                       <Button
                         type="button"
                         size="icon"
+                        variant="destructive"
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full"
+                        onClick={() => removeExistingPhoto(photo.id)}
+                        data-testid={`button-remove-existing-photo-${photo.id}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
                         variant={mainPhotoId === photo.id ? "default" : "secondary"}
-                        className="absolute bottom-1 left-1 h-6 w-6 rounded-full"
+                        className="absolute top-8 right-1 h-6 w-6 rounded-full"
                         onClick={() => {
                           setMainPhotoId(photo.id);
                           setMainPhotoIndex(undefined);
@@ -207,16 +217,6 @@ export function MemoFormSheet({
                         data-testid={`button-set-main-photo-${photo.id}`}
                       >
                         <Star className={`h-3 w-3 ${mainPhotoId === photo.id ? 'fill-current' : ''}`} />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full"
-                        onClick={() => removeExistingPhoto(photo.id)}
-                        data-testid={`button-remove-existing-photo-${photo.id}`}
-                      >
-                        <X className="h-3 w-3" />
                       </Button>
                     </div>
                   ))}
@@ -226,8 +226,18 @@ export function MemoFormSheet({
                       <Button
                         type="button"
                         size="icon"
+                        variant="destructive"
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full"
+                        onClick={() => removePhoto(index)}
+                        data-testid={`button-remove-photo-${index}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
                         variant={mainPhotoIndex === index ? "default" : "secondary"}
-                        className="absolute bottom-1 left-1 h-6 w-6 rounded-full"
+                        className="absolute top-8 right-1 h-6 w-6 rounded-full"
                         onClick={() => {
                           setMainPhotoIndex(index);
                           setMainPhotoId(undefined);
@@ -235,16 +245,6 @@ export function MemoFormSheet({
                         data-testid={`button-set-main-photo-new-${index}`}
                       >
                         <Star className={`h-3 w-3 ${mainPhotoIndex === index ? 'fill-current' : ''}`} />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full"
-                        onClick={() => removePhoto(index)}
-                        data-testid={`button-remove-photo-${index}`}
-                      >
-                        <X className="h-3 w-3" />
                       </Button>
                     </div>
                   ))}
