@@ -116,11 +116,8 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
           <path d="M 14 28 L 18 38 L 22 28 Z" 
                 fill="${color}" 
                 stroke="#ffffff" 
-                stroke="#ffffff" 
                 stroke-width="2.5"
                 stroke-linejoin="round"/>
-          <!-- 사진 배경 -->
-          <circle cx="18" cy="14" r="10" fill="#ffffff"/>
           <!-- 사진 -->
           <image 
             href="${photoUrl}" 
@@ -160,9 +157,8 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
               stroke="#ffffff" 
               stroke-width="2.5"
               stroke-linejoin="round"/>
-        <!-- 아이콘 배경 -->
-        <circle cx="18" cy="15" r="9" fill="#ffffff"/>
-        <g transform="translate(9, 6)" fill="${color}">
+        <!-- 아이콘 -->
+        <g transform="translate(9, 6)" fill="#ffffff">
           <path d="${iconPath}" />
         </g>
       </svg>
@@ -211,8 +207,6 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
                 stroke="#ffffff" 
                 stroke-width="2.5"
                 stroke-linejoin="round"/>
-          <!-- 사진 배경 -->
-          <circle cx="18" cy="14" r="10" fill="#ffffff"/>
           <!-- 사진 -->
           <image 
             href="${photoUrl}" 
@@ -270,9 +264,8 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
               stroke="#ffffff" 
               stroke-width="2.5"
               stroke-linejoin="round"/>
-        <!-- 아이콘 배경 -->
-        <circle cx="18" cy="15" r="9" fill="#ffffff"/>
-        <g transform="translate(9, 6)" fill="${color}">
+        <!-- 아이콘 -->
+        <g transform="translate(9, 6)" fill="#ffffff">
           <path d="${iconPath}" />
         </g>
       </svg>
