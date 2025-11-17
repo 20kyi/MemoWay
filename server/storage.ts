@@ -31,7 +31,9 @@ export interface IStorage {
   // Groups
   createGroup(group: InsertGroup): Promise<Group>;
   getGroupByInviteCode(inviteCode: string): Promise<Group | undefined>;
-  getGroups(): Promise<GroupWithMembers[]>;
+  getGroups(userId: string): Promise<GroupWithMembers[]>;
+  getGroupById(groupId: string): Promise<GroupWithMembers | undefined>;
+  getGroupForUser(groupId: string, userId: string): Promise<GroupWithMembers | undefined>;
   deleteGroup(groupId: string): Promise<void>;
   copyGroupMemosToPersonal(groupId: string, userId: string): Promise<{ group: Group; member: Member; copiedCount: number }>;
   
@@ -105,13 +107,43 @@ export class DatabaseStorage implements IStorage {
     return group || undefined;
   }
 
-  async getGroups(): Promise<GroupWithMembers[]> {
+  async getGroups(userId: string): Promise<GroupWithMembers[]> {
     const allGroups = await db.query.groups.findMany({
       with: {
         members: true,
       },
     });
-    return allGroups;
+    
+    // Filter to only groups where user is a member
+    return allGroups.filter(group => 
+      group.members.some(member => member.userId === userId)
+    );
+  }
+
+  async getGroupById(groupId: string): Promise<GroupWithMembers | undefined> {
+    const group = await db.query.groups.findFirst({
+      where: eq(groups.id, groupId),
+      with: {
+        members: true,
+      },
+    });
+    return group || undefined;
+  }
+
+  async getGroupForUser(groupId: string, userId: string): Promise<GroupWithMembers | undefined> {
+    const group = await db.query.groups.findFirst({
+      where: eq(groups.id, groupId),
+      with: {
+        members: true,
+      },
+    });
+    
+    // Verify user is a member of this group
+    if (group && group.members.some(member => member.userId === userId)) {
+      return group;
+    }
+    
+    return undefined;
   }
 
   // Members

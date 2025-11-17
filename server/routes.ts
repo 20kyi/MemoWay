@@ -109,9 +109,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/groups", isAuthenticated, async (req, res) => {
+  app.get("/api/groups", isAuthenticated, async (req: any, res) => {
     try {
-      const groups = await storage.getGroups();
+      const userId = req.user.claims.sub;
+      const groups = await storage.getGroups(userId);
       res.json(groups);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -205,8 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.requireLeaderRole(userId, groupId);
 
       // Check if trying to delete personal group
-      const groups = await storage.getGroups();
-      const group = groups.find(g => g.id === groupId);
+      const group = await storage.getGroupById(groupId);
       
       if (group && group.name === "개인 메모") {
         return res.status(400).json({ error: "개인 메모는 삭제할 수 없습니다" });
@@ -269,10 +269,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if trying to delete a member from the personal group
-      const groups = await storage.getGroups();
-      const personalGroup = groups.find(g => g.name === "개인 메모");
+      const group = await storage.getGroupById(groupId);
       
-      if (personalGroup && personalGroup.members.some(m => m.id === memberId)) {
+      if (group && group.name === "개인 메모") {
         return res.status(400).json({ 
           error: "개인 메모 멤버는 삭제할 수 없습니다" 
         });
@@ -299,11 +298,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteMember(memberId);
       
       // Check if this was the last member in the group
-      const updatedGroups = await storage.getGroups();
-      const group = updatedGroups.find(g => g.id === groupId);
+      const updatedGroup = await storage.getGroupById(groupId);
       
       // If group has no members left and is not the personal group, delete it
-      if (group && group.members.length === 0 && group.name !== "개인 메모") {
+      if (updatedGroup && updatedGroup.members.length === 0 && updatedGroup.name !== "개인 메모") {
         await storage.deleteGroup(groupId);
       }
       
@@ -333,9 +331,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon, mainPhotoIndex } = bodySchema.parse(req.body);
       
-      // Verify member exists
-      const memberGroups = await storage.getGroups();
-      const memberExists = memberGroups.some(g => g.members.some(m => m.id === memberId));
+      // Verify member exists and belongs to a group the user can access
+      const userId = req.user.claims.sub;
+      const userGroups = await storage.getGroups(userId);
+      const memberExists = userGroups.some(g => g.members.some(m => m.id === memberId));
       if (!memberExists) {
         return res.status(403).json({ error: "유효하지 않은 멤버입니다" });
       }
