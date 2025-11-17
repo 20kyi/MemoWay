@@ -136,6 +136,7 @@ export const translations = {
       developer: "개발자",
       developerName: "Location Memo Team",
       account: "계정",
+      accountInfo: "로그인된 계정 정보",
       logout: "로그아웃",
       logoutDesc: "현재 계정에서 로그아웃합니다",
     },
@@ -308,6 +309,7 @@ export const translations = {
       developer: "Developer",
       developerName: "Location Memo Team",
       account: "Account",
+      accountInfo: "Logged in account information",
       logout: "Log Out",
       logoutDesc: "Sign out from your current account",
     },
@@ -480,6 +482,7 @@ export const translations = {
       developer: "开发者",
       developerName: "Location Memo Team",
       account: "账户",
+      accountInfo: "已登录账户信息",
       logout: "退出登录",
       logoutDesc: "从当前账户退出登录",
     },
@@ -652,6 +655,7 @@ export const translations = {
       developer: "開発者",
       developerName: "Location Memo Team",
       account: "アカウント",
+      accountInfo: "ログイン中のアカウント情報",
       logout: "ログアウト",
       logoutDesc: "現在のアカウントからログアウトします",
     },
@@ -817,6 +821,7 @@ type Translation = {
     developer: string;
     developerName: string;
     account: string;
+    accountInfo: string;
     logout: string;
     logoutDesc: string;
   };

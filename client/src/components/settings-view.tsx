@@ -3,9 +3,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Bell, MapPin, Languages, LogOut, Type } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Bell, MapPin, Languages, LogOut, Type, User } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily, type FontSize } from "@/lib/font-context";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SettingsViewProps {
   notificationsEnabled: boolean;
@@ -33,9 +35,16 @@ export function SettingsView({
 }: SettingsViewProps) {
   const { language, setLanguage, t } = useLanguage();
   const { fontFamily, setFontFamily, fontSize, setFontSize } = useFont();
+  const { user } = useAuth();
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
+  };
+  
+  const getProviderName = (provider: string) => {
+    if (provider === 'kakao') return '카카오';
+    if (provider === 'replit') return 'Replit';
+    return provider;
   };
 
   const fontOptions: { value: FontFamily; label: string }[] = [
@@ -56,6 +65,44 @@ export function SettingsView({
   return (
     <div className="px-4 py-6 space-y-4 overflow-y-auto h-full">
       <h1 className="text-2xl font-medium mb-6">{t.settings.title}</h1>
+
+      {/* User Account Info Card */}
+      {user && (
+        <Card className="rounded-3xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 hover:border-primary/40 hover:shadow-xl transition-all">
+          <CardHeader className="bg-gradient-to-br from-card/50 to-muted/10">
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              {t.settings.account}
+            </CardTitle>
+            <CardDescription>
+              {t.settings.accountInfo}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16 border-2 border-primary/20">
+                <AvatarImage src={(user as any).profileImageUrl || undefined} alt={(user as any).firstName} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
+                  {(user as any).firstName?.[0] || (user as any).email?.[0]?.toUpperCase() || '?'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-1">
+                <p className="font-medium text-lg" data-testid="text-user-name">
+                  {(user as any).firstName} {(user as any).lastName}
+                </p>
+                <p className="text-sm text-muted-foreground" data-testid="text-user-email">
+                  {(user as any).email}
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                    {getProviderName((user as any).provider)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
         <CardHeader className="bg-gradient-to-br from-card to-muted/5">
