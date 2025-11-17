@@ -16,6 +16,7 @@ import { useLanguage } from "@/lib/language-context";
 
 type GroupFormValues = {
   name: string;
+  description: string;
   memberName: string;
   color: string;
   markerIcon: MarkerIconType;
@@ -46,6 +47,7 @@ const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
 interface Group {
   id: string;
   name: string;
+  description?: string | null;
   inviteCode: string;
   color: string;
   markerIcon?: string;
@@ -55,7 +57,7 @@ interface Group {
 
 interface GroupManagementProps {
   groups: Group[];
-  onCreateGroup: (data: { name: string; memberName: string; color: string; markerIcon: string }) => void;
+  onCreateGroup: (data: { name: string; description?: string; memberName: string; color: string; markerIcon: string }) => void;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
   onCopyGroup?: (groupId: string) => void;
@@ -76,6 +78,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
 
   const groupFormSchema = z.object({
     name: z.string().min(1, t.groups.groupName),
+    description: z.string().optional(),
     memberName: z.string().min(1, t.groups.myName),
     color: z.string().regex(/^#[0-9A-F]{6}$/i, t.groups.groupColor).default('#3b82f6'),
     markerIcon: z.enum(markerIconTypes).default('default'),
@@ -85,6 +88,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
     resolver: zodResolver(groupFormSchema),
     defaultValues: {
       name: "",
+      description: "",
       memberName: "",
       color: '#3b82f6',
       markerIcon: 'default',
@@ -146,6 +150,19 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                       <FormLabel>{t.groups.groupName}</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="예: 친구들" data-testid="input-group-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>상세내용</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="그룹에 대한 설명을 입력하세요" data-testid="input-group-description" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -363,22 +380,15 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
               </CardHeader>
 
               <CardContent className="pb-3">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="flex -space-x-3">
-                    {group.members.slice(0, 5).map((member, index) => (
-                      <Avatar key={member.id} className="h-10 w-10 border-2 border-background">
-                        <AvatarFallback className="text-xs font-semibold bg-primary/10">
-                          {member.name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                    ))}
+                {group.description ? (
+                  <div className="p-3 rounded-lg bg-muted/30">
+                    <p className="text-sm text-muted-foreground">{group.description}</p>
                   </div>
-                  {group.members.length > 5 && (
-                    <span className="text-sm text-muted-foreground font-medium bg-muted px-2 py-1 rounded-md">
-                      +{group.members.length - 5}
-                    </span>
-                  )}
-                </div>
+                ) : (
+                  <div className="p-3 rounded-lg bg-muted/30">
+                    <p className="text-sm text-muted-foreground italic">상세내용이 없습니다</p>
+                  </div>
+                )}
               </CardContent>
 
               <CardFooter className="pt-0 flex gap-2">

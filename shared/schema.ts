@@ -33,6 +33,7 @@ export const users = pgTable("users", {
 export const groups = pgTable("groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
+  description: text("description"),
   inviteCode: varchar("invite_code").notNull().unique(),
   color: varchar("color").notNull().default('#3b82f6'),
   markerIcon: varchar("marker_icon").notNull().default('default'),
