@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
@@ -49,7 +49,7 @@ interface Group {
   inviteCode: string;
   color: string;
   markerIcon?: string;
-  members: Array<{ id: string; name: string }>;
+  members: Array<{ id: string; name: string; role: string }>;
   memoCount?: number;
 }
 
@@ -59,12 +59,14 @@ interface GroupManagementProps {
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
   onCopyGroup?: (groupId: string) => void;
+  onDeleteGroup?: (groupId: string) => void;
+  onRemoveMember?: (groupId: string, memberId: string) => void;
   myMemberIds: string[];
   personalMemberId?: string | null;
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
@@ -378,16 +380,40 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                 </div>
 
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {group.members.map(member => (
-                    <div key={member.id} className="flex items-center gap-2 p-2 rounded-xl hover:bg-muted/30 transition-colors">
-                      <Avatar className="h-7 w-7 shadow-sm">
-                        <AvatarFallback className="text-xs font-medium bg-gradient-to-br from-accent/30 to-primary/20">
-                          {member.name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium">{member.name}</span>
-                    </div>
-                  ))}
+                  {group.members.map(member => {
+                    const isLeader = member.role === 'leader';
+                    const isCurrentUser = myMemberIds.includes(member.id);
+                    const currentUserMember = group.members.find(m => myMemberIds.includes(m.id));
+                    const canRemove = currentUserMember?.role === 'leader' && !isCurrentUser && onRemoveMember;
+
+                    return (
+                      <div key={member.id} className="flex items-center gap-2 p-2 rounded-xl hover:bg-muted/30 transition-colors">
+                        <Avatar className="h-7 w-7 shadow-sm">
+                          <AvatarFallback className="text-xs font-medium bg-gradient-to-br from-accent/30 to-primary/20">
+                            {member.name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium flex-1">{member.name}</span>
+                        {isLeader && (
+                          <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
+                            <Crown className="h-3 w-3 mr-1" />
+                            방장
+                          </Badge>
+                        )}
+                        {canRemove && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => onRemoveMember(group.id, member.id)}
+                            title="멤버 강퇴"
+                          >
+                            <UserMinus className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
 
@@ -403,17 +429,37 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                 </Button>
                 {(() => {
                   const myMember = group.members.find(m => myMemberIds.includes(m.id));
-                  // Don't show "leave" button for personal member
                   const isPersonalMember = myMember && personalMemberId && myMember.id === personalMemberId;
-                  return myMember && !isPersonalMember && (
-                    <Button
-                      variant="destructive"
-                      className="flex-1 rounded-full border-2 hover:shadow-lg"
-                      onClick={() => onLeaveGroup(group.id, myMember.id)}
-                      data-testid={`button-leave-${group.id}`}
-                    >
-                      {t.common.leave}
-                    </Button>
+                  const isLeader = myMember?.role === 'leader';
+                  
+                  return (
+                    <>
+                      {myMember && isLeader && !isPersonalMember && onDeleteGroup && (
+                        <Button
+                          variant="destructive"
+                          className="flex-1 rounded-full border-2 hover:shadow-lg"
+                          onClick={() => {
+                            if (confirm('정말 이 그룹을 삭제하시겠습니까? 그룹의 모든 메모가 삭제됩니다.')) {
+                              onDeleteGroup(group.id);
+                            }
+                          }}
+                          data-testid={`button-delete-group-${group.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          그룹 삭제
+                        </Button>
+                      )}
+                      {myMember && !isPersonalMember && (
+                        <Button
+                          variant="destructive"
+                          className="flex-1 rounded-full border-2 hover:shadow-lg"
+                          onClick={() => onLeaveGroup(group.id, myMember.id)}
+                          data-testid={`button-leave-${group.id}`}
+                        >
+                          {t.common.leave}
+                        </Button>
+                      )}
+                    </>
                   );
                 })()}
               </CardFooter>

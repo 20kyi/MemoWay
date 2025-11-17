@@ -146,10 +146,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/groups/:groupId/members/:memberId", isAuthenticated, async (req, res) => {
+  // Leader-only endpoints
+  app.patch("/api/groups/:groupId", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
+      const { groupId } = req.params;
+
+      // Check leader role
+      await storage.requireLeaderRole(userId, groupId);
+
+      const bodySchema = z.object({
+        name: z.string().min(1, "그룹명을 입력하세요").max(100).optional(),
+        color: z.string().regex(/^#[0-9A-F]{6}$/i, "유효한 색상 코드를 선택하세요").optional(),
+        markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).optional(),
+      });
+
+      const updateData = bodySchema.parse(req.body);
+      const group = await storage.updateGroup(groupId, updateData);
+
+      res.json(group);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      if (error.message === '방장 권한이 필요합니다') {
+        return res.status(403).json({ error: error.message });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/groups/:groupId/regenerate-code", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { groupId } = req.params;
+
+      // Check leader role
+      await storage.requireLeaderRole(userId, groupId);
+
+      const newInviteCode = randomBytes(6).toString("hex");
+      const group = await storage.regenerateInviteCode(groupId, newInviteCode);
+
+      res.json(group);
+    } catch (error: any) {
+      if (error.message === '방장 권한이 필요합니다') {
+        return res.status(403).json({ error: error.message });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/groups/:groupId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { groupId } = req.params;
+
+      // Check leader role
+      await storage.requireLeaderRole(userId, groupId);
+
+      // Check if trying to delete personal group
+      const groups = await storage.getGroups();
+      const group = groups.find(g => g.id === groupId);
+      
+      if (group && group.name === "개인 메모") {
+        return res.status(400).json({ error: "개인 메모는 삭제할 수 없습니다" });
+      }
+
+      await storage.deleteGroup(groupId);
+      res.json({ success: true });
+    } catch (error: any) {
+      if (error.message === '방장 권한이 필요합니다') {
+        return res.status(403).json({ error: error.message });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/groups/:groupId/transfer-leader", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { groupId } = req.params;
+
+      // Check leader role
+      await storage.requireLeaderRole(userId, groupId);
+
+      const bodySchema = z.object({
+        newLeaderId: z.string().min(1, "새 방장 멤버 ID가 필요합니다"),
+      });
+
+      const { newLeaderId } = bodySchema.parse(req.body);
+
+      // Get current leader member
+      const currentLeaderMember = await storage.getMemberByUserAndGroup(userId, groupId);
+      if (!currentLeaderMember) {
+        return res.status(404).json({ error: "현재 멤버를 찾을 수 없습니다" });
+      }
+
+      // Verify new leader is a member of this group
+      const members = await storage.getMembersByGroupId(groupId);
+      const newLeaderMember = members.find(m => m.id === newLeaderId);
+      if (!newLeaderMember) {
+        return res.status(404).json({ error: "새 방장이 이 그룹의 멤버가 아닙니다" });
+      }
+
+      // Transfer leadership atomically
+      await storage.updateMemberRole(currentLeaderMember.id, 'member');
+      await storage.updateMemberRole(newLeaderId, 'leader');
+
+      res.json({ success: true });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      if (error.message === '방장 권한이 필요합니다') {
+        return res.status(403).json({ error: error.message });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/groups/:groupId/members/:memberId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
       const { groupId, memberId } = req.params;
       
+      // Get the member being deleted and current user's member record
+      const members = await storage.getMembersByGroupId(groupId);
+      const memberToDelete = members.find(m => m.id === memberId);
+      const currentUserMember = await storage.getMemberByUserAndGroup(userId, groupId);
+      
+      if (!memberToDelete) {
+        return res.status(404).json({ error: "멤버를 찾을 수 없습니다" });
+      }
+
       // Check if trying to delete a member from the personal group
       const groups = await storage.getGroups();
       const personalGroup = groups.find(g => g.name === "개인 메모");
@@ -158,6 +287,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ 
           error: "개인 메모 멤버는 삭제할 수 없습니다" 
         });
+      }
+      
+      // Allow self-deletion (leaving group) or require leader role to delete others
+      const isSelfDelete = currentUserMember?.id === memberId;
+      if (!isSelfDelete) {
+        // Only leader can delete other members
+        await storage.requireLeaderRole(userId, groupId);
+      }
+
+      // Prevent leader from deleting themselves if they're the only leader
+      if (isSelfDelete && memberToDelete.role === 'leader') {
+        const leaderCount = members.filter(m => m.role === 'leader').length;
+        if (leaderCount === 1 && members.length > 1) {
+          return res.status(400).json({ 
+            error: "방장 권한을 다른 멤버에게 먼저 이양해주세요" 
+          });
+        }
       }
       
       // Delete the member (memos will be cascade deleted)
@@ -174,6 +320,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true });
     } catch (error: any) {
+      if (error.message === '방장 권한이 필요합니다') {
+        return res.status(403).json({ error: error.message });
+      }
       res.status(500).json({ error: error.message });
     }
   });

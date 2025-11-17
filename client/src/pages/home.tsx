@@ -497,6 +497,48 @@ export default function Home() {
     },
   });
 
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      return apiRequest("DELETE", `/api/groups/${groupId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      toast({
+        title: "그룹 삭제 완료",
+        description: "그룹이 삭제되었습니다",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "그룹 삭제 실패",
+        description: error.message || "그룹 삭제 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeMemberMutation = useMutation({
+    mutationFn: async (data: { groupId: string; memberId: string }) => {
+      return apiRequest("DELETE", `/api/groups/${data.groupId}/members/${data.memberId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      toast({
+        title: "멤버 강퇴 완료",
+        description: "멤버가 그룹에서 제거되었습니다",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "멤버 강퇴 실패",
+        description: error.message || "멤버 제거 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!locationEnabled || !navigator.geolocation) return;
 
@@ -747,6 +789,12 @@ export default function Home() {
             onCopyGroup={(groupId) => {
               if (confirm("이 그룹의 모든 메모를 개인 메모로 복사하시겠습니까?")) {
                 copyGroupMutation.mutate(groupId);
+              }
+            }}
+            onDeleteGroup={(groupId) => deleteGroupMutation.mutate(groupId)}
+            onRemoveMember={(groupId, memberId) => {
+              if (confirm("정말로 이 멤버를 그룹에서 제거하시겠습니까?")) {
+                removeMemberMutation.mutate({ groupId, memberId });
               }
             }}
             isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}

@@ -259,6 +259,28 @@ export class DatabaseStorage implements IStorage {
     return updatedMemo;
   }
 
+  async updateGroup(groupId: string, updateData: Partial<InsertGroup>): Promise<Group> {
+    const cleanedData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, v]) => v !== undefined)
+    );
+    
+    const [group] = await db
+      .update(groups)
+      .set(cleanedData)
+      .where(eq(groups.id, groupId))
+      .returning();
+    return group;
+  }
+
+  async regenerateInviteCode(groupId: string, newInviteCode: string): Promise<Group> {
+    const [group] = await db
+      .update(groups)
+      .set({ inviteCode: newInviteCode })
+      .where(eq(groups.id, groupId))
+      .returning();
+    return group;
+  }
+
   async deleteGroup(groupId: string): Promise<void> {
     await db.delete(groups).where(eq(groups.id, groupId));
   }
