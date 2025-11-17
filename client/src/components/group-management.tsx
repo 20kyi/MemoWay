@@ -455,14 +455,14 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                           variant="destructive"
                           className="flex-1 rounded-full border-2 hover:shadow-lg"
                           onClick={() => {
-                            if (confirm('정말 이 그룹을 삭제하시겠습니까? 그룹의 모든 메모가 삭제됩니다.')) {
+                            if (confirm(t.groups.confirmDeleteGroup)) {
                               onDeleteGroup(group.id);
                             }
                           }}
                           data-testid={`button-delete-group-${group.id}`}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          그룹 삭제
+                          {t.groups.deleteGroup}
                         </Button>
                       )}
                       {myMember && !isPersonalMember && (

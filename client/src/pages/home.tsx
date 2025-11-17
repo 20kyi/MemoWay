@@ -505,14 +505,14 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
-        title: "그룹 삭제 완료",
-        description: "그룹이 삭제되었습니다",
+        title: t.toast.groupDeleted,
+        description: t.toast.groupDeletedDesc,
       });
     },
     onError: (error: any) => {
       toast({
-        title: "그룹 삭제 실패",
-        description: error.message || "그룹 삭제 중 오류가 발생했습니다",
+        title: t.toast.deleteError,
+        description: error.message,
         variant: "destructive",
       });
     },

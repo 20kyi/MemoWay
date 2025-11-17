@@ -101,6 +101,8 @@ export const translations = {
       noGroupsDesc: "새 그룹을 만들거나 초대 코드로 참여하세요",
       members: "명",
       copyInviteCode: "초대 코드 복사",
+      deleteGroup: "그룹 삭제",
+      confirmDeleteGroup: "정말 이 그룹을 삭제하시겠습니까? 그룹의 모든 메모가 삭제됩니다.",
     },
     // Settings
     settings: {
@@ -160,6 +162,8 @@ export const translations = {
       groupJoinedDesc: "그룹에 참여했습니다",
       groupLeft: "그룹 나가기 완료",
       groupLeftDesc: "그룹에서 나갔습니다",
+      groupDeleted: "그룹 삭제 완료",
+      groupDeletedDesc: "그룹이 삭제되었습니다",
       deleteSuccess: "삭제 완료",
       deleteError: "삭제 실패",
     },
@@ -274,6 +278,8 @@ export const translations = {
       noGroupsDesc: "Create a new group or join with an invite code",
       members: " members",
       copyInviteCode: "Copy Invite Code",
+      deleteGroup: "Delete Group",
+      confirmDeleteGroup: "Are you sure you want to delete this group? All memos in the group will be deleted.",
     },
     // Settings
     settings: {
@@ -333,6 +339,8 @@ export const translations = {
       groupJoinedDesc: "You have joined the group",
       groupLeft: "Left Group",
       groupLeftDesc: "You have left the group",
+      groupDeleted: "Group Deleted",
+      groupDeletedDesc: "The group has been deleted",
       deleteSuccess: "Deleted successfully",
       deleteError: "Delete failed",
     },
@@ -447,6 +455,8 @@ export const translations = {
       noGroupsDesc: "创建新群组或使用邀请码加入",
       members: "名成员",
       copyInviteCode: "复制邀请码",
+      deleteGroup: "删除群组",
+      confirmDeleteGroup: "确定要删除此群组吗？群组中的所有备忘录将被删除。",
     },
     // Settings
     settings: {
@@ -506,6 +516,8 @@ export const translations = {
       groupJoinedDesc: "您已加入该群组",
       groupLeft: "退出群组成功",
       groupLeftDesc: "您已退出该群组",
+      groupDeleted: "群组删除成功",
+      groupDeletedDesc: "群组已删除",
       deleteSuccess: "删除成功",
       deleteError: "删除失败",
     },
@@ -620,6 +632,8 @@ export const translations = {
       noGroupsDesc: "新しいグループを作成するか、招待コードで参加してください",
       members: "名のメンバー",
       copyInviteCode: "招待コードをコピー",
+      deleteGroup: "グループを削除",
+      confirmDeleteGroup: "このグループを削除してもよろしいですか？グループ内のすべてのメモが削除されます。",
     },
     // Settings
     settings: {
@@ -679,6 +693,8 @@ export const translations = {
       groupJoinedDesc: "グループに参加しました",
       groupLeft: "グループから退出しました",
       groupLeftDesc: "グループから退出しました",
+      groupDeleted: "グループが削除されました",
+      groupDeletedDesc: "グループが削除されました",
       deleteSuccess: "削除しました",
       deleteError: "削除に失敗しました",
     },
@@ -787,6 +803,8 @@ type Translation = {
     noGroupsDesc: string;
     members: string;
     copyInviteCode: string;
+    deleteGroup: string;
+    confirmDeleteGroup: string;
   };
   settings: {
     title: string;
@@ -844,6 +862,8 @@ type Translation = {
     groupJoinedDesc: string;
     groupLeft: string;
     groupLeftDesc: string;
+    groupDeleted: string;
+    groupDeletedDesc: string;
     deleteSuccess: string;
     deleteError: string;
   };
