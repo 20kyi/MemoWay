@@ -668,7 +668,7 @@ export function MapView({
           
           {/* 주소 검색 바 */}
           <div className="absolute top-4 left-4 right-4 z-10">
-            <div className="flex gap-2 bg-background rounded-2xl shadow-lg p-2">
+            <div className="flex gap-2 bg-card/80 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-primary/30 p-2">
               <div className="relative flex-1">
                 <Input
                   value={searchQuery}
@@ -708,7 +708,7 @@ export function MapView({
             {/* GPS 위치 이동 버튼 */}
             <Button
               size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg bg-background border border-border"
+              className="h-10 w-10 rounded-lg shadow-lg bg-card/80 backdrop-blur-sm border-2 border-primary/30 hover:shadow-2xl transition-all"
               onClick={() => {
                 if (navigator.geolocation && map) {
                   navigator.geolocation.getCurrentPosition((position) => {
@@ -727,8 +727,8 @@ export function MapView({
             {/* 그룹 필터 버튼 */}
             <Button
               size="icon"
-              className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible ${
-                selectedGroupIds.includes("all") ? 'bg-background border border-border' : ''
+              className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
+                selectedGroupIds.includes("all") ? 'bg-card/80 backdrop-blur-sm border-2 border-primary/30' : ''
               }`}
               onClick={() => setGroupFilterOpen(true)}
               data-testid="button-group-filter"
@@ -782,7 +782,7 @@ export function MapView({
             {/* 마커 필터 버튼 */}
             <Button
               size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg relative bg-background border border-border"
+              className="h-10 w-10 rounded-lg shadow-lg relative bg-card/80 backdrop-blur-sm border-2 border-primary/30 hover:shadow-2xl transition-all"
               onClick={() => setMarkerFilterOpen(true)}
               data-testid="button-marker-filter"
             >
