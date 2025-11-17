@@ -66,8 +66,7 @@ export function setupKakaoAuth(app: Express) {
     
     console.log('Kakao OAuth Redirect URI:', redirectUri);
     
-    // Add prompt=login to force login screen every time (not auto-login)
-    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}&prompt=login`;
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
     
     // Break out of Replit preview iframe to avoid X-Frame-Options blocking
     res.send(`
