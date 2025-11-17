@@ -403,7 +403,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                         className="h-8 w-8 flex-shrink-0"
                         onClick={() => onCopyGroup(group.id)}
                         data-testid={`button-copy-${group.id}`}
-                        title="개인 메모로 복사"
+                        title="새 그룹으로 복사 (그룹 생성)"
                       >
                         <Copy className="h-4 w-4 text-primary" />
                       </Button>

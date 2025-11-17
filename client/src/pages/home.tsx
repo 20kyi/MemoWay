@@ -531,8 +531,8 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       
       toast({
-        title: "그룹 복사 완료",
-        description: `${data.copiedCount}개의 메모가 "${data.group.name}" 그룹으로 복사되었습니다`,
+        title: "✅ 그룹 복사 완료",
+        description: `새로운 그룹 "${data.group.name}"이(가) 생성되었고, ${data.copiedCount}개의 메모가 복사되었습니다`,
       });
     },
     onError: (error: any) => {
@@ -871,7 +871,7 @@ export default function Home() {
               }
             }}
             onCopyGroup={(groupId) => {
-              if (confirm("이 그룹의 모든 메모를 개인 메모로 복사하시겠습니까?")) {
+              if (confirm("이 그룹의 모든 메모를 새 그룹으로 복사하시겠습니까?\n새로운 그룹이 생성됩니다.")) {
                 copyGroupMutation.mutate(groupId);
               }
             }}
