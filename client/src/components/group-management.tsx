@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
@@ -85,6 +85,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [memberDialogOpen, setMemberDialogOpen] = useState<string | null>(null);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const groupFormSchema = z.object({
@@ -174,8 +176,15 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
     });
   };
 
+  // 검색 필터링된 그룹 목록
+  const filteredGroups = groups.filter(group => {
+    if (!searchQuery) return true;
+    return group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           group.description?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   return (
-    <div className="px-4 py-6 space-y-4 overflow-y-auto h-full">
+    <div className="px-4 py-6 space-y-4 overflow-y-auto h-full relative">
       <div className="flex gap-3">
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -388,7 +397,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </div>
       ) : (
         <div className="space-y-4">
-          {groups.map(group => (
+          {filteredGroups.map(group => (
             <Card key={group.id} className="hover-elevate transition-all shadow-lg border-2 border-primary/30 hover:border-primary/50 rounded-3xl bg-card/80 backdrop-blur-sm hover:shadow-2xl" data-testid={`card-group-${group.id}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-2">
@@ -730,6 +739,100 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
           </Dialog>
         );
       })()}
+
+      {/* 검색 버튼 (오른쪽 하단 고정) */}
+      <Button
+        className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-50"
+        size="icon"
+        onClick={() => setSearchDialogOpen(true)}
+        data-testid="button-search-groups"
+      >
+        <Search className="h-6 w-6" />
+      </Button>
+
+      {/* 검색 다이얼로그 */}
+      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              그룹 검색
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="그룹 이름 또는 설명으로 검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-query"
+                autoFocus
+              />
+            </div>
+            
+            {searchQuery && (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {filteredGroups.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">검색 결과가 없습니다</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      {filteredGroups.length}개의 그룹을 찾았습니다
+                    </p>
+                    {filteredGroups.map(group => (
+                      <div
+                        key={group.id}
+                        className="p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setSearchDialogOpen(false);
+                          // 해당 그룹 카드로 스크롤
+                          const groupCard = document.querySelector(`[data-testid="card-group-${group.id}"]`);
+                          if (groupCard) {
+                            groupCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // 강조 효과
+                            groupCard.classList.add('ring-2', 'ring-primary');
+                            setTimeout(() => {
+                              groupCard.classList.remove('ring-2', 'ring-primary');
+                            }, 2000);
+                          }
+                        }}
+                        data-testid={`search-result-${group.id}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" 
+                            style={{ backgroundColor: `${group.color}40` }}
+                          >
+                            {(() => {
+                              const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
+                              return <IconComponent className="h-5 w-5" style={{ color: group.color }} />;
+                            })()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium truncate">{group.name}</h4>
+                            {group.description && (
+                              <p className="text-xs text-muted-foreground truncate">{group.description}</p>
+                            )}
+                          </div>
+                          <Badge variant="secondary" className="flex-shrink-0">
+                            <Users className="h-3 w-3 mr-1" />
+                            {group.members.length}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
