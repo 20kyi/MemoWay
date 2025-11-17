@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -65,13 +65,22 @@ interface GroupManagementProps {
   myMemberIds: string[];
   personalMemberId?: string | null;
   isLoading?: boolean;
+  autoInviteCode?: string;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, isLoading = false, autoInviteCode }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  // 초대 링크로 접속 시 자동으로 다이얼로그 열기
+  useEffect(() => {
+    if (autoInviteCode && autoInviteCode.trim()) {
+      joinForm.setValue("inviteCode", autoInviteCode);
+      setJoinDialogOpen(true);
+    }
+  }, [autoInviteCode]);
 
   const groupFormSchema = z.object({
     name: z.string().min(1, t.groups.groupName),

@@ -84,7 +84,20 @@ export default function Home() {
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedMarkerIcons, setSelectedMarkerIcons] = useState<string[]>(["all"]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(["all"]);
+  const [autoInviteCode, setAutoInviteCode] = useState<string>("");
   const { toast } = useToast();
+
+  // URL 파라미터에서 초대코드 확인
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const joinCode = params.get("join");
+    if (joinCode) {
+      setAutoInviteCode(joinCode);
+      setActiveTab("groups");
+      // URL에서 파라미터 제거
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   // WebSocket for real-time updates
   const handleWebSocketMessage = useCallback((data: any) => {
@@ -800,9 +813,10 @@ export default function Home() {
             myMemberIds={myMemberIds}
             personalMemberId={personalMemberId}
             onCreateGroup={(data) => createGroupMutation.mutate(data)}
-            onJoinGroup={(inviteCode, memberName) =>
-              joinGroupMutation.mutate({ inviteCode, memberName })
-            }
+            onJoinGroup={(inviteCode, memberName) => {
+              joinGroupMutation.mutate({ inviteCode, memberName });
+              setAutoInviteCode(""); // 참여 후 초대코드 초기화
+            }}
             onLeaveGroup={(groupId, memberId) => {
               if (confirm("정말로 이 그룹에서 나가시겠습니까?")) {
                 leaveGroupMutation.mutate({ groupId, memberId });
@@ -822,6 +836,7 @@ export default function Home() {
             onTransferLeadership={(groupId, newLeaderId) =>
               transferLeadershipMutation.mutate({ groupId, newLeaderId })
             }
+            autoInviteCode={autoInviteCode}
             isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}
           />
         )}
