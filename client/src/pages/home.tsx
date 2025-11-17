@@ -10,7 +10,7 @@ import { SettingsView } from "@/components/settings-view";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
-import { Plus, Send } from "lucide-react";
+import { Plus, Send, Heart, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useAuth } from "@/hooks/useAuth";
@@ -775,8 +775,19 @@ export default function Home() {
   }, [mapInstance, pendingLocation]);
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="flex-1 overflow-hidden pb-16">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-20 left-10 opacity-10 pointer-events-none z-0">
+        <Heart className="h-16 w-16 text-primary fill-primary animate-pulse" />
+      </div>
+      <div className="absolute bottom-32 right-10 opacity-8 pointer-events-none z-0">
+        <Heart className="h-20 w-20 text-secondary fill-secondary animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+      <div className="absolute top-1/2 right-1/4 opacity-8 pointer-events-none z-0">
+        <Sparkles className="h-12 w-12 text-accent animate-pulse" style={{ animationDelay: '0.5s' }} />
+      </div>
+      
+      <div className="flex-1 overflow-hidden pb-16 relative z-10">
         {activeTab === "map" && (
           <div className="relative h-full">
             <MapView
