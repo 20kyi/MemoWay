@@ -398,7 +398,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                         {isLeader && (
                           <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
                             <Crown className="h-3 w-3 mr-1" />
-                            방장
+                            {t.groups.leader}
                           </Badge>
                         )}
                         {canTransfer && (
@@ -407,11 +407,11 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                             size="icon"
                             className="h-7 w-7"
                             onClick={() => {
-                              if (confirm(`${member.name}님에게 방장 권한을 이양하시겠습니까?`)) {
+                              if (confirm(`${member.name}${t.groups.confirmTransferLeadership}`)) {
                                 onTransferLeadership(group.id, member.id);
                               }
                             }}
-                            title="방장 이양"
+                            title={t.groups.transferLeadership}
                           >
                             <RefreshCw className="h-4 w-4 text-primary" />
                           </Button>
@@ -422,7 +422,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                             size="icon"
                             className="h-7 w-7"
                             onClick={() => onRemoveMember(group.id, member.id)}
-                            title="멤버 강퇴"
+                            title={t.groups.removeMember}
                           >
                             <UserMinus className="h-4 w-4 text-destructive" />
                           </Button>

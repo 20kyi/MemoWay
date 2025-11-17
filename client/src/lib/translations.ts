@@ -103,6 +103,10 @@ export const translations = {
       copyInviteCode: "초대 코드 복사",
       deleteGroup: "그룹 삭제",
       confirmDeleteGroup: "정말 이 그룹을 삭제하시겠습니까? 그룹의 모든 메모가 삭제됩니다.",
+      leader: "방장",
+      transferLeadership: "방장 이양",
+      confirmTransferLeadership: "님에게 방장 권한을 이양하시겠습니까?",
+      removeMember: "멤버 강퇴",
     },
     // Settings
     settings: {
@@ -164,6 +168,9 @@ export const translations = {
       groupLeftDesc: "그룹에서 나갔습니다",
       groupDeleted: "그룹 삭제 완료",
       groupDeletedDesc: "그룹이 삭제되었습니다",
+      leadershipTransferred: "방장 이양 완료",
+      leadershipTransferredDesc: "방장 권한이 이양되었습니다",
+      leadershipTransferError: "방장 이양 실패",
       deleteSuccess: "삭제 완료",
       deleteError: "삭제 실패",
     },
@@ -280,6 +287,10 @@ export const translations = {
       copyInviteCode: "Copy Invite Code",
       deleteGroup: "Delete Group",
       confirmDeleteGroup: "Are you sure you want to delete this group? All memos in the group will be deleted.",
+      leader: "Leader",
+      transferLeadership: "Transfer Leadership",
+      confirmTransferLeadership: " to transfer leadership?",
+      removeMember: "Remove Member",
     },
     // Settings
     settings: {
@@ -341,6 +352,9 @@ export const translations = {
       groupLeftDesc: "You have left the group",
       groupDeleted: "Group Deleted",
       groupDeletedDesc: "The group has been deleted",
+      leadershipTransferred: "Leadership Transferred",
+      leadershipTransferredDesc: "Leadership has been transferred",
+      leadershipTransferError: "Transfer Failed",
       deleteSuccess: "Deleted successfully",
       deleteError: "Delete failed",
     },
@@ -457,6 +471,10 @@ export const translations = {
       copyInviteCode: "复制邀请码",
       deleteGroup: "删除群组",
       confirmDeleteGroup: "确定要删除此群组吗？群组中的所有备忘录将被删除。",
+      leader: "群主",
+      transferLeadership: "转让群主",
+      confirmTransferLeadership: " 转让群主权限？",
+      removeMember: "移除成员",
     },
     // Settings
     settings: {
@@ -518,6 +536,9 @@ export const translations = {
       groupLeftDesc: "您已退出该群组",
       groupDeleted: "群组删除成功",
       groupDeletedDesc: "群组已删除",
+      leadershipTransferred: "群主转让成功",
+      leadershipTransferredDesc: "群主权限已转让",
+      leadershipTransferError: "转让失败",
       deleteSuccess: "删除成功",
       deleteError: "删除失败",
     },
@@ -634,6 +655,10 @@ export const translations = {
       copyInviteCode: "招待コードをコピー",
       deleteGroup: "グループを削除",
       confirmDeleteGroup: "このグループを削除してもよろしいですか？グループ内のすべてのメモが削除されます。",
+      leader: "リーダー",
+      transferLeadership: "リーダー譲渡",
+      confirmTransferLeadership: " にリーダー権限を譲渡しますか？",
+      removeMember: "メンバーを削除",
     },
     // Settings
     settings: {
@@ -695,6 +720,9 @@ export const translations = {
       groupLeftDesc: "グループから退出しました",
       groupDeleted: "グループが削除されました",
       groupDeletedDesc: "グループが削除されました",
+      leadershipTransferred: "リーダー譲渡完了",
+      leadershipTransferredDesc: "リーダー権限が譲渡されました",
+      leadershipTransferError: "譲渡失敗",
       deleteSuccess: "削除しました",
       deleteError: "削除に失敗しました",
     },
@@ -805,6 +833,10 @@ type Translation = {
     copyInviteCode: string;
     deleteGroup: string;
     confirmDeleteGroup: string;
+    leader: string;
+    transferLeadership: string;
+    confirmTransferLeadership: string;
+    removeMember: string;
   };
   settings: {
     title: string;
@@ -864,6 +896,9 @@ type Translation = {
     groupLeftDesc: string;
     groupDeleted: string;
     groupDeletedDesc: string;
+    leadershipTransferred: string;
+    leadershipTransferredDesc: string;
+    leadershipTransferError: string;
     deleteSuccess: string;
     deleteError: string;
   };
