@@ -801,6 +801,10 @@ export default function Home() {
         {activeTab === "memos" && (
           <MemoList
             memos={memos}
+            groups={groups.filter(g => 
+              g.name !== "개인 메모" && 
+              g.members.some(m => myMemberIds.includes(m.id))
+            )}
             onEdit={handleEditMemo}
             onDelete={(memoId) => {
               if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
