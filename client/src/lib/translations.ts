@@ -23,6 +23,7 @@ export const translations = {
       yes: "예",
       no: "아니요",
       personal: "개인",
+      addressSearchPlaceholder: "주소를 입력하세요 (예: 서울시 강남구 역삼동)",
     },
     // Categories
     categories: {
@@ -213,6 +214,7 @@ export const translations = {
       yes: "Yes",
       no: "No",
       personal: "Personal",
+      addressSearchPlaceholder: "Enter address (e.g., Gangnam-gu, Seoul)",
     },
     // Categories
     categories: {
@@ -403,6 +405,7 @@ export const translations = {
       yes: "是",
       no: "否",
       personal: "个人",
+      addressSearchPlaceholder: "输入地址（例如：北京市朝阳区）",
     },
     // Categories
     categories: {
@@ -593,6 +596,7 @@ export const translations = {
       yes: "はい",
       no: "いいえ",
       personal: "個人",
+      addressSearchPlaceholder: "住所を入力してください（例：東京都渋谷区）",
     },
     // Categories
     categories: {
@@ -783,6 +787,7 @@ type Translation = {
     yes: string;
     no: string;
     personal: string;
+    addressSearchPlaceholder: string;
   };
   categories: {
     all: string;

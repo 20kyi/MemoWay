@@ -710,7 +710,7 @@ export function MapView({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleSearchKeyPress}
-                  placeholder="주소를 입력하세요 (예: 서울시 강남구 역삼동)"
+                  placeholder={t.common.addressSearchPlaceholder}
                   className="pr-10 border-0 focus-visible:ring-0"
                   disabled={isSearching}
                   data-testid="input-address-search"
