@@ -590,10 +590,12 @@ export default function Home() {
   });
 
   const updateGroupMutation = useMutation({
-    mutationFn: async (data: { groupId: string; name: string; description?: string }) => {
+    mutationFn: async (data: { groupId: string; name: string; description?: string; color: string; markerIcon: string }) => {
       return apiRequest("PATCH", `/api/groups/${data.groupId}`, {
         name: data.name,
         description: data.description,
+        color: data.color,
+        markerIcon: data.markerIcon,
       });
     },
     onSuccess: () => {

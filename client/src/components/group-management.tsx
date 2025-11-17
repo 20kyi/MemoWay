@@ -25,6 +25,8 @@ type GroupFormValues = {
 type EditGroupFormValues = {
   name: string;
   description: string;
+  color: string;
+  markerIcon: MarkerIconType;
 };
 
 const PRESET_COLORS = [
@@ -56,14 +58,14 @@ interface Group {
   inviteCode: string;
   color: string;
   markerIcon?: string;
-  members: Array<{ id: string; name: string; role: string; userId: string }>;
+  members: Array<{ id: string; name: string; role: string; userId: string | null }>;
   memoCount?: number;
 }
 
 interface GroupManagementProps {
   groups: Group[];
   onCreateGroup: (data: { name: string; description?: string; memberName: string; color: string; markerIcon: string }) => void;
-  onUpdateGroup?: (groupId: string, data: { name: string; description?: string }) => void;
+  onUpdateGroup?: (groupId: string, data: { name: string; description?: string; color: string; markerIcon: string }) => void;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
   onCopyGroup?: (groupId: string) => void;
@@ -107,6 +109,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
   const editGroupFormSchema = z.object({
     name: z.string().min(1, t.groups.groupName),
     description: z.string().optional(),
+    color: z.string().regex(/^#[0-9A-F]{6}$/i, t.groups.groupColor).default('#3b82f6'),
+    markerIcon: z.enum(markerIconTypes).default('default'),
   });
 
   const editForm = useForm<EditGroupFormValues>({
@@ -114,6 +118,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
     defaultValues: {
       name: "",
       description: "",
+      color: '#3b82f6',
+      markerIcon: 'default',
     },
   });
 
@@ -139,6 +145,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
     editForm.reset({
       name: group.name,
       description: group.description || "",
+      color: group.color || '#3b82f6',
+      markerIcon: (group.markerIcon as MarkerIconType) || 'default',
     });
     setEditDialogOpen(true);
   };
@@ -491,7 +499,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
       {/* 그룹 수정 다이얼로그 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>그룹 정보 수정</DialogTitle>
           </DialogHeader>
@@ -518,6 +526,100 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     <FormLabel>상세내용</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="그룹에 대한 설명을 입력하세요" data-testid="input-edit-group-description" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t.groups.groupColor}</FormLabel>
+                    <FormControl>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-8 gap-2" data-testid="edit-color-picker">
+                          {PRESET_COLORS.map((color) => (
+                            <button
+                              key={color.value}
+                              type="button"
+                              className={`h-8 w-8 rounded-md border transition-all ${
+                                field.value.toLowerCase() === color.value.toLowerCase()
+                                  ? 'border-foreground ring-2 ring-primary ring-offset-1' 
+                                  : 'border-border hover:border-foreground/50'
+                              }`}
+                              style={{ backgroundColor: color.value }}
+                              onClick={() => {
+                                field.onChange(color.value);
+                              }}
+                              data-testid={`edit-color-option-${color.value}`}
+                              aria-label={t.colors[color.key as keyof typeof t.colors]}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm text-muted-foreground">사용자 정의:</label>
+                          <Input
+                            type="color"
+                            value={field.value}
+                            onChange={(e) => {
+                              const newColor = e.target.value.toUpperCase();
+                              field.onChange(newColor);
+                            }}
+                            className="w-16 h-9 p-1 cursor-pointer"
+                            data-testid="edit-color-custom-picker"
+                          />
+                          <Input
+                            type="text"
+                            value={field.value}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value.match(/^#[0-9A-Fa-f]{0,6}$/)) {
+                                field.onChange(value.toUpperCase());
+                              }
+                            }}
+                            placeholder="#3B82F6"
+                            maxLength={7}
+                            className="flex-1 font-mono"
+                            data-testid="edit-color-custom-input"
+                          />
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="markerIcon"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t.groups.markerShape}</FormLabel>
+                    <FormControl>
+                      <div className="grid grid-cols-4 gap-2" data-testid="edit-marker-icon-picker">
+                        {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
+                          const Icon = MARKER_ICON_COMPONENTS[type];
+                          return (
+                            <button
+                              key={type}
+                              type="button"
+                              className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${
+                                field.value === type 
+                                  ? 'border-primary bg-accent' 
+                                  : 'border-border hover:border-foreground/50 hover:bg-accent/50'
+                              }`}
+                              onClick={() => field.onChange(type)}
+                              data-testid={`edit-marker-icon-${type}`}
+                              aria-label={t.categories[type]}
+                            >
+                              <Icon className="h-5 w-5" />
+                              <span className="text-xs font-medium">{t.categories[type]}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
