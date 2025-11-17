@@ -337,10 +337,10 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
           return (
             <Card 
               key={memo.id} 
-              className={`rounded-3xl cursor-pointer hover-elevate transition-all overflow-hidden border-2 ${
+              className={`rounded-2xl cursor-pointer hover-elevate transition-all overflow-visible shadow-lg border-4 bg-card ${
                 isSelected 
                   ? 'ring-4 ring-primary/50 border-primary shadow-2xl' 
-                  : 'border-primary/10 hover:border-primary/30 hover:shadow-xl'
+                  : 'border-white dark:border-card hover:border-primary/20 hover:shadow-xl'
               }`}
               onClick={() => handleMemoClick(memo.id)}
               onTouchStart={() => handleLongPressStart(memo.id)}
@@ -350,8 +350,10 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
               onMouseLeave={handleLongPressEnd}
               data-testid={`card-memo-${memo.id}`}
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-accent opacity-40" />
-              <CardHeader className="pb-3 bg-gradient-to-br from-card to-card/50">
+              <div className="absolute -top-1 left-4 w-8 h-8 bg-accent rounded-full shadow-md flex items-center justify-center">
+                <div className="w-3 h-3 bg-card rounded-full" />
+              </div>
+              <CardHeader className="pb-3 pt-6">
                 <div className="flex items-start justify-between gap-2">
                   {isSelectionMode && (
                     <Checkbox
@@ -363,7 +365,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
                     />
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold truncate bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    <h3 className="text-lg font-bold truncate text-foreground">
                       {memo.buildingName}
                     </h3>
                     <p className="text-sm text-muted-foreground truncate">{memo.address}</p>
@@ -371,14 +373,14 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
                   {memo.group && memo.group.name !== "개인 메모" ? (
                     <Badge 
                       variant="secondary" 
-                      className="shrink-0 rounded-full px-3 bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30"
+                      className="shrink-0 rounded-full px-3 bg-primary/10 border border-primary/30"
                     >
                       {memo.group.name}
                     </Badge>
                   ) : (
                     <Badge 
                       variant="outline" 
-                      className="shrink-0 rounded-full px-3 bg-accent/10 border-accent/40"
+                      className="shrink-0 rounded-full px-3 bg-accent/10 border border-accent/40"
                     >
                       {t.common.personal}
                     </Badge>
@@ -392,7 +394,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
                 {memo.photos.slice(0, 3).map((photo, index) => (
                   <div 
                     key={index} 
-                    className="aspect-square rounded-2xl overflow-hidden shadow-md border-2 border-primary/10 hover:border-primary/30 hover:shadow-lg transition-all"
+                    className="aspect-square rounded-lg overflow-hidden shadow-sm border-2 border-primary/10 hover:border-primary/30 hover:shadow-md transition-all"
                   >
                     <img 
                       src={photo.url} 
@@ -405,11 +407,11 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
             </CardContent>
           )}
 
-          <CardContent className="pb-3 bg-gradient-to-br from-transparent to-accent/5">
+          <CardContent className="pb-3">
             <p className="text-sm line-clamp-2 leading-relaxed">{memo.content}</p>
           </CardContent>
 
-          <CardFooter className="flex items-center justify-between pt-0 bg-gradient-to-r from-transparent via-muted/5 to-transparent">
+          <CardFooter className="flex items-center justify-between pt-0">
             <div className="flex flex-col gap-1">
               <p className="text-xs text-muted-foreground font-medium">
                 {formatDistanceToNow(new Date(memo.createdAt), { addSuffix: true, locale: dateLocale })}
