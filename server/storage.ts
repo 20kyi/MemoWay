@@ -45,7 +45,7 @@ export interface IStorage {
   
   // Memos
   createMemo(memo: InsertMemo): Promise<Memo>;
-  getMemos(): Promise<MemoWithDetails[]>;
+  getMemos(userId: string): Promise<MemoWithDetails[]>;
   getMemoById(id: string): Promise<MemoWithDetails | undefined>;
   updateMemo(id: string, memo: Partial<InsertMemo>): Promise<Memo>;
   deleteMemo(id: string): Promise<void>;
@@ -233,7 +233,21 @@ export class DatabaseStorage implements IStorage {
     return memo;
   }
 
-  async getMemos(): Promise<MemoWithDetails[]> {
+  async getMemos(userId: string): Promise<MemoWithDetails[]> {
+    // 1. 사용자가 속한 모든 멤버 ID와 그룹 ID 조회
+    const userMembers = await db
+      .select()
+      .from(members)
+      .where(eq(members.userId, userId));
+    
+    if (userMembers.length === 0) {
+      return [];
+    }
+    
+    const memberIds = userMembers.map(m => m.id);
+    const groupIds = userMembers.map(m => m.groupId);
+    
+    // 2. 모든 메모 조회
     const allMemos = await db.query.memos.findMany({
       with: {
         photos: true,
@@ -241,7 +255,23 @@ export class DatabaseStorage implements IStorage {
         group: true,
       },
     });
-    return allMemos;
+    
+    // 3. 사용자가 볼 수 있는 메모만 필터링
+    // - 사용자가 속한 그룹의 모든 메모 (다른 멤버가 작성한 것 포함)
+    // - 또는 사용자가 직접 작성한 개인 메모 (groupId가 null인 경우)
+    const userMemos = allMemos.filter(memo => {
+      // 그룹 메모: 사용자가 속한 그룹의 메모
+      if (memo.groupId && groupIds.includes(memo.groupId)) {
+        return true;
+      }
+      // 개인 메모: groupId가 null이고 사용자가 작성한 메모
+      if (!memo.groupId && memberIds.includes(memo.memberId)) {
+        return true;
+      }
+      return false;
+    });
+    
+    return userMemos;
   }
 
   async getMemoById(id: string): Promise<MemoWithDetails | undefined> {

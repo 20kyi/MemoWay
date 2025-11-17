@@ -397,9 +397,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/memos", isAuthenticated, async (req, res) => {
+  app.get("/api/memos", isAuthenticated, async (req: any, res) => {
     try {
-      const memos = await storage.getMemos();
+      const userId = req.user.claims.sub;
+      const memos = await storage.getMemos(userId);
       res.json(memos);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
