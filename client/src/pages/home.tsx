@@ -804,7 +804,7 @@ export default function Home() {
                 setUserLocation(location);
               }}
               groups={groups.filter(g => 
-                g.members.some(m => myMemberIds.includes(m.id))
+                g.members.some(m => m.userId === (user as any)?.id)
               )}
               selectedMarkerIcons={selectedMarkerIcons}
               selectedGroupIds={selectedGroupIds}
@@ -818,7 +818,7 @@ export default function Home() {
             memos={memos}
             groups={groups.filter(g => 
               g.name !== "개인 메모" && 
-              g.members.some(m => myMemberIds.includes(m.id))
+              g.members.some(m => m.userId === (user as any)?.id)
             )}
             onEdit={handleEditMemo}
             onDelete={(memoId) => {
@@ -944,7 +944,7 @@ export default function Home() {
         } : null}
         groups={groups.filter(g => 
           g.name !== "개인 메모" && 
-          g.members.some(m => myMemberIds.includes(m.id))
+          g.members.some(m => m.userId === (user as any)?.id)
         )}
         isLoading={createMemoMutation.isPending || updateMemoMutation.isPending}
         isPersonalMemberReady={!!personalMemberId}
