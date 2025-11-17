@@ -22,7 +22,7 @@ interface MapViewProps {
   onClusterClick?: (memoIds: string[]) => void;
   userLocation: { lat: number; lng: number } | null;
   onMapReady?: (map: any) => void;
-  onMyLocationClick?: () => void;
+  onMyLocationClick?: (location: { lat: number; lng: number }) => void;
   groups?: GroupWithMembers[];
   selectedMarkerIcons?: string[];
   selectedGroupIds?: string[];
@@ -295,6 +295,7 @@ export function MapView({
   onClusterClick, 
   userLocation, 
   onMapReady,
+  onMyLocationClick,
   groups = [],
   selectedMarkerIcons = ["all"],
   selectedGroupIds = ["all"],
@@ -566,18 +567,35 @@ export function MapView({
     if (!map || !userLocation) return;
 
     const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
-    map.setCenter(position);
 
+    // 내 위치 원형 마커
     const circle = new window.kakao.maps.Circle({
       center: position,
       radius: 50,
-      strokeWeight: 2,
+      strokeWeight: 3,
       strokeColor: '#2563eb',
-      strokeOpacity: 0.8,
+      strokeOpacity: 1,
       fillColor: '#3b82f6',
-      fillOpacity: 0.3,
+      fillOpacity: 0.4,
     });
     circle.setMap(map);
+
+    // 중심점 마커 (작은 점)
+    const centerMarker = new window.kakao.maps.Circle({
+      center: position,
+      radius: 8,
+      strokeWeight: 2,
+      strokeColor: '#ffffff',
+      strokeOpacity: 1,
+      fillColor: '#2563eb',
+      fillOpacity: 1,
+    });
+    centerMarker.setMap(map);
+
+    return () => {
+      circle.setMap(null);
+      centerMarker.setMap(null);
+    };
   }, [map, userLocation]);
 
   const handleMyLocation = () => {
@@ -716,6 +734,12 @@ export function MapView({
                     const lng = position.coords.longitude;
                     const latlng = new window.kakao.maps.LatLng(lat, lng);
                     map.setCenter(latlng);
+                    map.setLevel(3); // 줌 레벨을 3으로 설정 (더 세밀하게)
+                    
+                    // 부모 컴포넌트에 위치 전달
+                    if (onMyLocationClick) {
+                      onMyLocationClick({ lat, lng });
+                    }
                   });
                 }
               }}

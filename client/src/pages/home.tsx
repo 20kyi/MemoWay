@@ -795,6 +795,9 @@ export default function Home() {
               }}
               userLocation={userLocation}
               onMapReady={setMapInstance}
+              onMyLocationClick={(location) => {
+                setUserLocation(location);
+              }}
               groups={groups.filter(g => 
                 g.members.some(m => myMemberIds.includes(m.id))
               )}
