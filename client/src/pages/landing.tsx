@@ -39,14 +39,19 @@ export default function Landing() {
       </div>
       
       {/* Language Selector - Top Right */}
-      <div className="absolute top-6 right-6 z-10">
-        <DropdownMenu>
+      <div className="absolute top-6 right-6 z-50">
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-full shadow-lg bg-card/80 backdrop-blur-sm" data-testid="button-language-selector">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full shadow-lg bg-card/80 backdrop-blur-sm hover-elevate" 
+              data-testid="button-language-selector"
+            >
               <Languages className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="backdrop-blur-sm bg-card/95">
+          <DropdownMenuContent align="end" className="backdrop-blur-sm bg-card/95 z-50">
             {languageOptions.map((option) => (
               <DropdownMenuItem
                 key={option.value}
