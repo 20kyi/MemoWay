@@ -227,9 +227,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { groupId } = req.params;
 
-      // Check leader role
-      await storage.requireLeaderRole(userId, groupId);
-
       const bodySchema = z.object({
         newLeaderId: z.string().min(1, "새 방장 멤버 ID가 필요합니다"),
       });
@@ -242,23 +239,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "현재 멤버를 찾을 수 없습니다" });
       }
 
-      // Verify new leader is a member of this group
-      const members = await storage.getMembersByGroupId(groupId);
-      const newLeaderMember = members.find(m => m.id === newLeaderId);
-      if (!newLeaderMember) {
-        return res.status(404).json({ error: "새 방장이 이 그룹의 멤버가 아닙니다" });
-      }
-
-      // Transfer leadership atomically
-      await storage.updateMemberRole(currentLeaderMember.id, 'member');
-      await storage.updateMemberRole(newLeaderId, 'leader');
+      // Transfer leadership (includes all validation)
+      await storage.transferLeadership(groupId, currentLeaderMember.id, newLeaderId);
 
       res.json({ success: true });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors[0].message });
       }
-      if (error.message === '방장 권한이 필요합니다') {
+      if (error.message === '방장만 권한을 이양할 수 있습니다' || error.message === '멤버를 찾을 수 없습니다') {
         return res.status(403).json({ error: error.message });
       }
       res.status(500).json({ error: error.message });

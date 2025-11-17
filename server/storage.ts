@@ -39,6 +39,7 @@ export interface IStorage {
   createMember(member: InsertMember): Promise<Member>;
   getMembersByGroupId(groupId: string): Promise<Member[]>;
   deleteMember(memberId: string): Promise<void>;
+  transferLeadership(groupId: string, currentLeaderId: string, newLeaderId: string): Promise<void>;
   
   // Memos
   createMemo(memo: InsertMemo): Promise<Memo>;
@@ -131,6 +132,31 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMember(memberId: string): Promise<void> {
     await db.delete(members).where(eq(members.id, memberId));
+  }
+
+  async transferLeadership(groupId: string, currentLeaderId: string, newLeaderId: string): Promise<void> {
+    // Verify both members exist and belong to the group
+    const [currentLeader] = await db
+      .select()
+      .from(members)
+      .where(and(eq(members.id, currentLeaderId), eq(members.groupId, groupId)));
+    
+    const [newLeader] = await db
+      .select()
+      .from(members)
+      .where(and(eq(members.id, newLeaderId), eq(members.groupId, groupId)));
+
+    if (!currentLeader || !newLeader) {
+      throw new Error('멤버를 찾을 수 없습니다');
+    }
+
+    if (currentLeader.role !== 'leader') {
+      throw new Error('방장만 권한을 이양할 수 있습니다');
+    }
+
+    // Transfer leadership
+    await db.update(members).set({ role: 'member' }).where(eq(members.id, currentLeaderId));
+    await db.update(members).set({ role: 'leader' }).where(eq(members.id, newLeaderId));
   }
 
   async getMemberByUserAndGroup(userId: string, groupId: string): Promise<Member | undefined> {

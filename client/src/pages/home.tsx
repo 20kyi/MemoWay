@@ -539,6 +539,28 @@ export default function Home() {
     },
   });
 
+  const transferLeadershipMutation = useMutation({
+    mutationFn: async (data: { groupId: string; newLeaderId: string }) => {
+      return apiRequest("POST", `/api/groups/${data.groupId}/transfer-leader`, {
+        newLeaderId: data.newLeaderId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      toast({
+        title: "방장 이양 완료",
+        description: "방장 권한이 이양되었습니다",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "방장 이양 실패",
+        description: error.message || "방장 이양 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!locationEnabled || !navigator.geolocation) return;
 
@@ -797,6 +819,9 @@ export default function Home() {
                 removeMemberMutation.mutate({ groupId, memberId });
               }
             }}
+            onTransferLeadership={(groupId, newLeaderId) =>
+              transferLeadershipMutation.mutate({ groupId, newLeaderId })
+            }
             isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}
           />
         )}

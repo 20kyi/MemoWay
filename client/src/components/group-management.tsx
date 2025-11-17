@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
@@ -61,12 +61,13 @@ interface GroupManagementProps {
   onCopyGroup?: (groupId: string) => void;
   onDeleteGroup?: (groupId: string) => void;
   onRemoveMember?: (groupId: string, memberId: string) => void;
+  onTransferLeadership?: (groupId: string, newLeaderId: string) => void;
   myMemberIds: string[];
   personalMemberId?: string | null;
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
@@ -385,6 +386,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                     const isCurrentUser = myMemberIds.includes(member.id);
                     const currentUserMember = group.members.find(m => myMemberIds.includes(m.id));
                     const canRemove = currentUserMember?.role === 'leader' && !isCurrentUser && onRemoveMember;
+                    const canTransfer = currentUserMember?.role === 'leader' && !isLeader && onTransferLeadership;
 
                     return (
                       <div key={member.id} className="flex items-center gap-2 p-2 rounded-xl hover:bg-muted/30 transition-colors">
@@ -399,6 +401,21 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                             <Crown className="h-3 w-3 mr-1" />
                             방장
                           </Badge>
+                        )}
+                        {canTransfer && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => {
+                              if (confirm(`${member.name}님에게 방장 권한을 이양하시겠습니까?`)) {
+                                onTransferLeadership(group.id, member.id);
+                              }
+                            }}
+                            title="방장 이양"
+                          >
+                            <RefreshCw className="h-4 w-4 text-primary" />
+                          </Button>
                         )}
                         {canRemove && (
                           <Button
