@@ -518,7 +518,7 @@ export default function Home() {
       return apiRequest("POST", `/api/groups/${groupId}/copy-to-personal`);
     },
     onSuccess: (data: any) => {
-      // 먼저 myMemberIds에 새 멤버 ID 추가
+      // myMemberIds에 새 멤버 ID 추가 (useEffect가 동기화함)
       if (data.member?.id) {
         const newMemberId = data.member.id;
         setMyMemberIds(prev => {
@@ -527,17 +527,11 @@ export default function Home() {
           localStorage.setItem("myMemberIds", JSON.stringify(newIds));
           return newIds;
         });
-        
-        // state 업데이트 후 query invalidate (약간의 지연)
-        setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
-        }, 100);
-      } else {
-        // member 정보가 없으면 바로 invalidate
-        queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       }
+      
+      // 그룹 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       
       toast({
         title: "✅ 그룹 복사 완료",
@@ -865,7 +859,7 @@ export default function Home() {
           <GroupManagement
             groups={groups.filter(g => 
               g.name !== "개인 메모" && 
-              g.members.some(m => myMemberIds.includes(m.id))
+              g.members.some(m => m.userId === (user as any)?.id)
             )}
             myMemberIds={myMemberIds}
             personalMemberId={personalMemberId}
