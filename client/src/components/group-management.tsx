@@ -443,12 +443,11 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 </Button>
                 {(() => {
                   const myMember = group.members.find(m => myMemberIds.includes(m.id));
-                  const isPersonalMember = myMember && personalMemberId && myMember.id === personalMemberId;
                   const isLeader = myMember?.role === 'leader';
                   
                   return (
                     <>
-                      {myMember && !isPersonalMember && isLeader && onUpdateGroup && (
+                      {myMember && isLeader && onUpdateGroup && (
                         <Button
                           variant="outline"
                           className="flex-1"
@@ -459,7 +458,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           수정
                         </Button>
                       )}
-                      {myMember && !isPersonalMember && (
+                      {myMember && (
                         <Button
                           variant="outline"
                           className="flex-1"
@@ -470,7 +469,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           참여인원
                         </Button>
                       )}
-                      {myMember && !isPersonalMember && (
+                      {myMember && (
                         <Button
                           variant="destructive"
                           className="flex-1 rounded-full border-2 hover:shadow-lg"
