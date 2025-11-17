@@ -1,13 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export type FontFamily = "default" | "noto-sans" | "nanum-gothic" | "gamja-flower" | "dokdo" | "nanum-pen";
-export type FontSize = "small" | "medium" | "large";
 
 interface FontContextType {
   fontFamily: FontFamily;
   setFontFamily: (font: FontFamily) => void;
-  fontSize: FontSize;
-  setFontSize: (size: FontSize) => void;
+  fontSize: number;
+  setFontSize: (size: number) => void;
 }
 
 const FontContext = createContext<FontContextType | undefined>(undefined);
@@ -21,21 +20,15 @@ const fontFamilyMap: Record<FontFamily, string> = {
   "nanum-pen": "'Nanum Pen Script', cursive",
 };
 
-const fontSizeMap: Record<FontSize, string> = {
-  small: "14px",
-  medium: "16px",
-  large: "18px",
-};
-
 export function FontProvider({ children }: { children: ReactNode }) {
   const [fontFamily, setFontFamilyState] = useState<FontFamily>(() => {
     const saved = localStorage.getItem("fontFamily");
     return (saved as FontFamily) || "default";
   });
 
-  const [fontSize, setFontSizeState] = useState<FontSize>(() => {
+  const [fontSize, setFontSizeState] = useState<number>(() => {
     const saved = localStorage.getItem("fontSize");
-    return (saved as FontSize) || "medium";
+    return saved ? Number(saved) : 16;
   });
 
   useEffect(() => {
@@ -44,15 +37,16 @@ export function FontProvider({ children }: { children: ReactNode }) {
   }, [fontFamily]);
 
   useEffect(() => {
-    localStorage.setItem("fontSize", fontSize);
-    document.documentElement.style.setProperty("--font-size-base", fontSizeMap[fontSize]);
+    localStorage.setItem("fontSize", fontSize.toString());
+    document.documentElement.style.setProperty("--font-size-base", `${fontSize}px`);
+    document.body.style.fontSize = `${fontSize}px`;
   }, [fontSize]);
 
   const setFontFamily = (newFont: FontFamily) => {
     setFontFamilyState(newFont);
   };
 
-  const setFontSize = (newSize: FontSize) => {
+  const setFontSize = (newSize: number) => {
     setFontSizeState(newSize);
   };
 

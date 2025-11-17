@@ -2,11 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, MapPin, Languages, LogOut, Type, User } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
-import { useFont, type FontFamily, type FontSize } from "@/lib/font-context";
+import { useFont, type FontFamily } from "@/lib/font-context";
 import { useAuth } from "@/hooks/useAuth";
 
 interface SettingsViewProps {
@@ -54,12 +55,6 @@ export function SettingsView({
     { value: "gamja-flower", label: t.settings.fontGamjaFlower },
     { value: "dokdo", label: t.settings.fontDokdo },
     { value: "nanum-pen", label: t.settings.fontNanumPen },
-  ];
-
-  const fontSizeOptions: { value: FontSize; label: string }[] = [
-    { value: "small", label: t.settings.fontSizeSmall },
-    { value: "medium", label: t.settings.fontSizeMedium },
-    { value: "large", label: t.settings.fontSizeLarge },
   ];
 
   return (
@@ -159,20 +154,25 @@ export function SettingsView({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="font-size">{t.settings.fontSize}</Label>
-            <Select value={fontSize} onValueChange={(value) => setFontSize(value as FontSize)}>
-              <SelectTrigger id="font-size" className="w-full" data-testid="select-font-size">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {fontSizeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value} data-testid={`size-${option.value}`}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="font-size">{t.settings.fontSize}</Label>
+              <span className="text-sm font-medium text-muted-foreground">{fontSize}px</span>
+            </div>
+            <Slider
+              id="font-size"
+              min={12}
+              max={24}
+              step={1}
+              value={[fontSize]}
+              onValueChange={(value) => setFontSize(value[0])}
+              className="w-full"
+              data-testid="slider-font-size"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>12px</span>
+              <span>24px</span>
+            </div>
           </div>
         </CardContent>
       </Card>
