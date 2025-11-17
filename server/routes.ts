@@ -220,7 +220,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "최대 10개의 사진만 업로드할 수 있습니다" });
         }
         
-        for (const file of files) {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
           if (file.size > MAX_FILE_SIZE) {
             return res.status(400).json({ error: "파일 크기는 5MB를 초과할 수 없습니다" });
           }
@@ -229,17 +230,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const photo = await storage.createPhoto({
             memoId: memo.id,
             url: photoUrl,
+            order: i,
           });
           photoIds.push(photo.id);
         }
       }
       
-      // Set main photo if specified
-      if (mainPhotoIndex !== undefined && photoIds.length > 0) {
-        const index = parseInt(mainPhotoIndex);
-        if (index >= 0 && index < photoIds.length) {
-          await storage.updateMemo(memo.id, { mainPhotoId: photoIds[index] });
-        }
+      // Automatically set first photo as main photo
+      if (photoIds.length > 0) {
+        await storage.updateMemo(memo.id, { mainPhotoId: photoIds[0] });
       }
 
       const memoWithDetails = await storage.getMemoById(memo.id);
@@ -291,10 +290,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deletedPhotoIds: z.string().optional(),
         mainPhotoId: z.string().optional(),
         mainPhotoIndex: z.string().optional(),
+        photoOrders: z.string().optional(),
       });
       
       const parsed = bodySchema.parse(req.body);
-      const { deletedPhotoIds, mainPhotoId, mainPhotoIndex, ...updateData } = parsed;
+      const { deletedPhotoIds, mainPhotoId, mainPhotoIndex, photoOrders, ...updateData } = parsed;
       
       // Build update object - latitude/longitude/memberId are not editable
       const memoUpdate: Partial<InsertMemo> = {
@@ -317,6 +317,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.updateMemo(req.params.id, memoUpdate);
       
+      // Handle photo order updates
+      if (photoOrders) {
+        const orders = JSON.parse(photoOrders) as Array<{ id: string; order: number }>;
+        for (const { id, order } of orders) {
+          await storage.updatePhotoOrder(id, order);
+        }
+      }
+      
       // Handle deleted photos
       if (deletedPhotoIds) {
         const photoIds = JSON.parse(deletedPhotoIds);
@@ -335,7 +343,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "최대 10개의 사진만 업로드할 수 있습니다" });
         }
         
-        for (const file of files) {
+        const maxOrder = currentPhotos.length > 0 
+          ? Math.max(...currentPhotos.map(p => p.order || 0))
+          : -1;
+        
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
           if (file.size > MAX_FILE_SIZE) {
             return res.status(400).json({ error: "파일 크기는 5MB를 초과할 수 없습니다" });
           }
@@ -344,19 +357,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const photo = await storage.createPhoto({
             memoId: req.params.id,
             url: photoUrl,
+            order: maxOrder + i + 1,
           });
           newPhotoIds.push(photo.id);
         }
       }
       
-      // Set main photo if specified
-      if (mainPhotoId) {
-        await storage.updateMemo(req.params.id, { mainPhotoId });
-      } else if (mainPhotoIndex !== undefined && newPhotoIds.length > 0) {
-        const index = parseInt(mainPhotoIndex);
-        if (index >= 0 && index < newPhotoIds.length) {
-          await storage.updateMemo(req.params.id, { mainPhotoId: newPhotoIds[index] });
-        }
+      // Get all photos to determine main photo
+      const allPhotos = await storage.getPhotosByMemoId(req.params.id);
+      if (allPhotos.length > 0) {
+        const firstPhoto = allPhotos.sort((a, b) => (a.order || 0) - (b.order || 0))[0];
+        await storage.updateMemo(req.params.id, { mainPhotoId: firstPhoto.id });
       }
       
       const updatedMemo = await storage.getMemoById(req.params.id);

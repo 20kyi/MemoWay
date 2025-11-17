@@ -349,7 +349,15 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(photos)
-      .where(eq(photos.memoId, memoId));
+      .where(eq(photos.memoId, memoId))
+      .orderBy(photos.order);
+  }
+
+  async updatePhotoOrder(photoId: string, order: number): Promise<void> {
+    await db
+      .update(photos)
+      .set({ order })
+      .where(eq(photos.id, photoId));
   }
 
   async deletePhoto(photoId: string): Promise<void> {

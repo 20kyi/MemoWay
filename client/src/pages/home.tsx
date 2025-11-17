@@ -326,6 +326,10 @@ export default function Home() {
         formData.append("deletedPhotoIds", JSON.stringify(data.deletedPhotoIds));
       }
       
+      if (data.photoOrders && data.photoOrders.length > 0) {
+        formData.append("photoOrders", JSON.stringify(data.photoOrders));
+      }
+      
       data.photos.forEach((photo: File) => {
         formData.append("photos", photo);
       });
