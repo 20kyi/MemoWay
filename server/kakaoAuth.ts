@@ -206,7 +206,7 @@ export function setupKakaoAuth(app: Express) {
         kakaoId: userInfo.id.toString(),
       });
 
-      // Create session
+      // Create session - passport.serializeUser will store only the user ID
       (req as any).login(
         {
           id: user.id,
@@ -217,15 +217,13 @@ export function setupKakaoAuth(app: Express) {
             last_name: user.lastName,
             profile_image_url: user.profileImageUrl,
           },
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          expires_at: Math.floor(Date.now() / 1000) + tokenData.expires_in,
         },
         (err: any) => {
           if (err) {
             console.error("Session creation failed:", err);
             return res.status(500).json({ error: "Failed to create session" });
           }
+          console.log(`Kakao login successful for user ID: ${user.id}`);
           // Redirect with language parameter
           res.redirect(`/?lang=${lang}`);
         }

@@ -77,6 +77,9 @@ export async function setupAuth(app: Express) {
     verified: passport.AuthenticateCallback
   ) => {
     const claims = tokens.claims();
+    if (!claims) {
+      return verified(new Error('No claims found in token'));
+    }
     const user = {
       id: claims.sub,
       claims,
@@ -107,8 +110,34 @@ export async function setupAuth(app: Express) {
     }
   };
 
-  passport.serializeUser((user: Express.User, cb) => cb(null, user));
-  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+  passport.serializeUser((user: Express.User, cb) => {
+    // Only store user ID in session
+    cb(null, (user as any).id);
+  });
+  
+  passport.deserializeUser(async (id: string, cb) => {
+    try {
+      // Retrieve full user data from database using ID
+      const user = await storage.getUser(id);
+      if (!user) {
+        return cb(new Error('User not found'));
+      }
+      // Reconstruct the user object with claims
+      const userObj = {
+        id: user.id,
+        claims: {
+          sub: user.id,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          profile_image_url: user.profileImageUrl,
+        },
+      };
+      cb(null, userObj);
+    } catch (error) {
+      cb(error);
+    }
+  });
 
   app.get("/api/login", (req, res, next) => {
     ensureStrategy(req.hostname);
@@ -163,6 +192,9 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     const config = await getOidcConfig();
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     const claims = tokenResponse.claims();
+    if (!claims) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     user.claims = claims;
     user.access_token = tokenResponse.access_token;
     user.refresh_token = tokenResponse.refresh_token;
