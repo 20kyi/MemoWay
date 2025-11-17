@@ -708,7 +708,7 @@ export function MapView({
             {/* GPS 위치 이동 버튼 */}
             <Button
               size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg bg-background"
+              className="h-10 w-10 rounded-lg shadow-lg bg-background border border-border"
               onClick={() => {
                 if (navigator.geolocation && map) {
                   navigator.geolocation.getCurrentPosition((position) => {
@@ -721,13 +721,15 @@ export function MapView({
               }}
               data-testid="button-my-location"
             >
-              <Navigation className="h-5 w-5" />
+              <Navigation className="h-5 w-5 text-primary" />
             </Button>
 
             {/* 그룹 필터 버튼 */}
             <Button
               size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg relative overflow-visible bg-background"
+              className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible ${
+                selectedGroupIds.includes("all") ? 'bg-background border border-border' : ''
+              }`}
               onClick={() => setGroupFilterOpen(true)}
               data-testid="button-group-filter"
               style={(() => {
@@ -761,7 +763,9 @@ export function MapView({
                 };
               })()}
             >
-              <Users className="h-5 w-5" style={{
+              <Users className={`h-5 w-5 ${
+                selectedGroupIds.includes("all") ? 'text-primary' : ''
+              }`} style={{
                 color: selectedGroupIds.includes("all") ? undefined : 'white',
                 filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
               }} />
@@ -778,11 +782,11 @@ export function MapView({
             {/* 마커 필터 버튼 */}
             <Button
               size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg relative bg-background"
+              className="h-10 w-10 rounded-lg shadow-lg relative bg-background border border-border"
               onClick={() => setMarkerFilterOpen(true)}
               data-testid="button-marker-filter"
             >
-              <Filter className="h-5 w-5" />
+              <Filter className="h-5 w-5 text-primary" />
               {!selectedMarkerIcons.includes("all") && (
                 <Badge 
                   className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
