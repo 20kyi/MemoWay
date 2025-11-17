@@ -68,8 +68,8 @@ export function SettingsView({
 
       {/* User Account Info Card */}
       {user && (
-        <Card className="rounded-3xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 hover:border-primary/40 hover:shadow-xl transition-all">
-          <CardHeader className="bg-gradient-to-br from-card/50 to-muted/10">
+        <Card>
+          <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
               {t.settings.account}
@@ -80,21 +80,21 @@ export function SettingsView({
           </CardHeader>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-primary/20">
+              <Avatar className="h-16 w-16">
                 <AvatarImage src={(user as any).profileImageUrl || undefined} alt={(user as any).firstName} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
+                <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
                   {(user as any).firstName?.[0] || (user as any).email?.[0]?.toUpperCase() || '?'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1">
-                <p className="font-medium text-lg" data-testid="text-user-name">
+                <p className="font-semibold text-lg" data-testid="text-user-name">
                   {(user as any).firstName} {(user as any).lastName}
                 </p>
                 <p className="text-sm text-muted-foreground" data-testid="text-user-email">
                   {(user as any).email}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">
                     {getProviderName((user as any).provider)}
                   </span>
                 </div>
@@ -104,8 +104,8 @@ export function SettingsView({
         </Card>
       )}
 
-      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
-        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Languages className="h-5 w-5" />
             {t.settings.language}
@@ -133,8 +133,8 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
-        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Type className="h-5 w-5" />
             {t.settings.font}
@@ -178,8 +178,8 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
-        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             {t.settings.notifications}
@@ -225,8 +225,8 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
-        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
             {t.settings.location}
@@ -250,8 +250,8 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
-        <CardHeader className="bg-gradient-to-br from-card to-muted/5">
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <LogOut className="h-5 w-5" />
             {t.settings.account}
@@ -263,7 +263,7 @@ export function SettingsView({
         <CardContent className="pt-6">
           <Button 
             variant="destructive" 
-            className="w-full rounded-full border-2"
+            className="w-full"
             onClick={handleLogout}
             data-testid="button-logout"
           >
@@ -272,7 +272,7 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card className="rounded-3xl border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all">
+      <Card>
         <CardHeader>
           <CardTitle>{t.settings.appInfo}</CardTitle>
         </CardHeader>

@@ -13,7 +13,17 @@ Preferred language: Korean (한국어) - All task explanations and communication
 
 ### UI/UX Decisions
 
-The frontend is designed for a mobile-first experience, adhering to Material Design principles. It prioritizes full-screen map interaction, intuitive bottom navigation, and touch-optimized components. Key UI elements include an interactive map with custom colored markers (group-specific, personal in purple), a language selector with flag emojis, floating action buttons for quick map filtering, and a single-button category filter for memo lists. The application supports full translation into Korean, English, Chinese, and Japanese.
+The frontend is designed for a mobile-first experience, following modern design principles with a clean and professional aesthetic. It prioritizes full-screen map interaction, intuitive bottom navigation, and touch-optimized components. Key UI elements include an interactive map with custom colored markers (group-specific, personal in purple), a language selector with flag emojis, floating action buttons for quick map filtering, and a single-button category filter for memo lists. The application supports full translation into Korean, English, Chinese, and Japanese.
+
+**Design System**: The UI features a modern, minimalist design with:
+- **Color Palette**: Professional indigo-based primary color (#6366f1) with subtle neutral backgrounds for a sophisticated look
+- **Typography**: Clean, semibold headings with proper hierarchy and readable body text
+- **Spacing**: Consistent spacing using Tailwind's spacing scale for visual rhythm
+- **Shadows**: Subtle elevation shadows (shadow-sm, shadow-md) for depth without being distracting
+- **Borders**: Single-pixel borders with subtle colors for clean separation
+- **Rounded Corners**: Moderate border radius (rounded-lg) for a modern but not overly rounded appearance
+- **Card Design**: Simple, flat card components with hover effects for interactivity
+- **Interactive Elements**: Minimal hover states with subtle background changes for better UX
 
 **Map Filtering Interface**: Two floating action buttons (FABs) are positioned in the bottom-right corner of the map view, providing quick access to filtering controls:
 - **Group Filter Button** (Users icon): Opens a dialog to filter memos by group (all groups, personal memos, or specific group)

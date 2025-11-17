@@ -40,7 +40,7 @@ export function MemoDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0">
+      <SheetContent side="bottom" className="h-[90vh] p-0">
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 pb-4">
             <div className="flex items-center gap-2 mb-2">

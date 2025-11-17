@@ -131,7 +131,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
               {t.groups.createGroup}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md rounded-3xl">
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>{t.groups.newGroup}</DialogTitle>
             </DialogHeader>
@@ -176,9 +176,9 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                               <button
                                 key={color.value}
                                 type="button"
-                                className={`h-8 w-8 rounded-md border-2 transition-all ${
+                                className={`h-8 w-8 rounded-md border transition-all ${
                                   field.value.toLowerCase() === color.value.toLowerCase()
-                                    ? 'border-foreground ring-2 ring-foreground ring-offset-1' 
+                                    ? 'border-foreground ring-2 ring-primary ring-offset-1' 
                                     : 'border-border hover:border-foreground/50'
                                 }`}
                                 style={{ backgroundColor: color.value }}
@@ -237,9 +237,9 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                               <button
                                 key={type}
                                 type="button"
-                                className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${
+                                className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${
                                   field.value === type 
-                                    ? 'border-foreground bg-accent' 
+                                    ? 'border-primary bg-accent' 
                                     : 'border-border hover:border-foreground/50 hover:bg-accent/50'
                                 }`}
                                 onClick={() => field.onChange(type)}
@@ -271,7 +271,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
               {t.groups.joinGroup}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md rounded-3xl">
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>{t.groups.joinGroup}</DialogTitle>
             </DialogHeader>
@@ -314,35 +314,35 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
 
       {groups.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
-          <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full p-6 mb-4">
+          <div className="bg-primary/10 rounded-full p-6 mb-4">
             <Users className="h-12 w-12 text-primary" />
           </div>
-          <p className="text-foreground font-medium text-lg mb-2">{t.groups.noGroups}</p>
+          <p className="text-foreground font-semibold text-lg mb-2">{t.groups.noGroups}</p>
           <p className="text-muted-foreground text-sm">{t.groups.noGroupsDesc}</p>
         </div>
       ) : (
         <div className="space-y-4">
           {groups.map(group => (
-            <Card key={group.id} className="rounded-3xl overflow-hidden border-2 border-primary/10 hover:border-primary/30 hover:shadow-xl transition-all hover-elevate" data-testid={`card-group-${group.id}`}>
-              <div className="h-3 w-full bg-gradient-to-r opacity-60" style={{ 
-                background: `linear-gradient(90deg, ${group.color}40, ${group.color}, ${group.color}40)` 
+            <Card key={group.id} className="overflow-hidden hover-elevate" data-testid={`card-group-${group.id}`}>
+              <div className="h-2 w-full opacity-80" style={{ 
+                backgroundColor: group.color
               }} data-testid={`color-stripe-${group.id}`} />
-              <CardHeader className="pb-3 bg-gradient-to-br from-card to-muted/5">
+              <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div 
-                      className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center shadow-md border-2 border-white" 
-                      style={{ backgroundColor: `${group.color}40` }}
+                      className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm" 
+                      style={{ backgroundColor: `${group.color}20` }}
                       data-testid={`color-dot-${group.id}`}
                     >
                       <Heart className="h-5 w-5" style={{ color: group.color }} />
                     </div>
-                    <h3 className="text-xl font-bold truncate bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">{group.name}</h3>
+                    <h3 className="text-xl font-semibold truncate">{group.name}</h3>
                     {onCopyGroup && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 flex-shrink-0 rounded-full hover:bg-primary/10"
+                        className="h-8 w-8 flex-shrink-0"
                         onClick={() => onCopyGroup(group.id)}
                         data-testid={`button-copy-${group.id}`}
                         title="개인 메모로 복사"
@@ -353,7 +353,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   </div>
                   <Badge 
                     variant="secondary" 
-                    className="flex-shrink-0 rounded-full px-3 bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30"
+                    className="flex-shrink-0"
                   >
                     <Users className="h-3 w-3 mr-1" />
                     {group.members.length}명
@@ -361,19 +361,19 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                 </div>
               </CardHeader>
 
-              <CardContent className="pb-3 bg-gradient-to-br from-transparent to-accent/5">
-                <div className="flex items-center gap-3 mb-4 p-3 rounded-2xl bg-gradient-to-r from-primary/5 to-secondary/5">
+              <CardContent className="pb-3">
+                <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-muted/30">
                   <div className="flex -space-x-3">
                     {group.members.slice(0, 5).map((member, index) => (
-                      <Avatar key={member.id} className="h-10 w-10 border-3 border-background shadow-md ring-2 ring-white/50">
-                        <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-primary/30 to-secondary/30">
+                      <Avatar key={member.id} className="h-10 w-10 border-2 border-background">
+                        <AvatarFallback className="text-xs font-semibold bg-primary/10">
                           {member.name[0]}
                         </AvatarFallback>
                       </Avatar>
                     ))}
                   </div>
                   {group.members.length > 5 && (
-                    <span className="text-sm text-muted-foreground font-medium bg-muted/50 px-2 py-1 rounded-full">
+                    <span className="text-sm text-muted-foreground font-medium bg-muted px-2 py-1 rounded-md">
                       +{group.members.length - 5}
                     </span>
                   )}
@@ -388,9 +388,9 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                     const canTransfer = currentUserMember?.role === 'leader' && !isLeader && onTransferLeadership;
 
                     return (
-                      <div key={member.id} className="flex items-center gap-2 p-2 rounded-xl hover:bg-muted/30 transition-colors">
-                        <Avatar className="h-7 w-7 shadow-sm">
-                          <AvatarFallback className="text-xs font-medium bg-gradient-to-br from-accent/30 to-primary/20">
+                      <div key={member.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                        <Avatar className="h-7 w-7">
+                          <AvatarFallback className="text-xs font-medium bg-muted">
                             {member.name[0]}
                           </AvatarFallback>
                         </Avatar>
@@ -433,10 +433,10 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                 </div>
               </CardContent>
 
-              <CardFooter className="pt-0 flex gap-2 bg-gradient-to-r from-transparent via-muted/5 to-transparent">
+              <CardFooter className="pt-0 flex gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1 rounded-full border-2 hover:border-primary/50 hover:bg-primary/5"
+                  className="flex-1"
                   onClick={() => handleCopyInviteCode(group.inviteCode)}
                   data-testid={`button-copy-code-${group.id}`}
                 >
