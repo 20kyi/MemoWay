@@ -119,11 +119,11 @@ export default function Home() {
           description: `${data.memo?.buildingName}${t.toast.newMemoDesc}`,
           action: (
             <ToastAction 
-              altText={t.toast.viewLocation || "위치 보기"}
+              altText="위치 보기"
               onClick={() => moveToLocation(data.memo.latitude, data.memo.longitude, data.memo)}
               data-testid="button-view-memo-location"
             >
-              {t.toast.viewLocation || "위치 보기"}
+              위치 보기
             </ToastAction>
           ),
         });
@@ -133,11 +133,11 @@ export default function Home() {
           description: `${data.memo?.buildingName}${t.toast.memoUpdatedDesc}`,
           action: (
             <ToastAction 
-              altText={t.toast.viewLocation || "위치 보기"}
+              altText="위치 보기"
               onClick={() => moveToLocation(data.memo.latitude, data.memo.longitude, data.memo)}
               data-testid="button-view-memo-location"
             >
-              {t.toast.viewLocation || "위치 보기"}
+              위치 보기
             </ToastAction>
           ),
         });
