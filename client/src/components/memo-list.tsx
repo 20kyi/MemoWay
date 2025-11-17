@@ -337,10 +337,10 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
           return (
             <Card 
               key={memo.id} 
-              className={`rounded-2xl cursor-pointer hover-elevate transition-all overflow-visible shadow-lg border-4 bg-card ${
+              className={`rounded-3xl cursor-pointer hover-elevate transition-all overflow-visible shadow-lg border-2 bg-card/80 backdrop-blur-sm ${
                 isSelected 
                   ? 'ring-4 ring-primary/50 border-primary shadow-2xl' 
-                  : 'border-white dark:border-card hover:border-primary/20 hover:shadow-xl'
+                  : 'border-primary/30 hover:border-primary/50 hover:shadow-2xl'
               }`}
               onClick={() => handleMemoClick(memo.id)}
               onTouchStart={() => handleLongPressStart(memo.id)}
@@ -350,8 +350,8 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
               onMouseLeave={handleLongPressEnd}
               data-testid={`card-memo-${memo.id}`}
             >
-              <div className="absolute -top-1 left-4 w-8 h-8 bg-accent rounded-full shadow-md flex items-center justify-center">
-                <div className="w-3 h-3 bg-card rounded-full" />
+              <div className="absolute -top-2 left-6 w-10 h-10 bg-gradient-to-br from-primary/30 to-primary/10 rounded-full shadow-md flex items-center justify-center">
+                <div className="w-4 h-4 bg-card rounded-full shadow-inner" />
               </div>
               <CardHeader className="pb-3 pt-6">
                 <div className="flex items-start justify-between gap-2">
