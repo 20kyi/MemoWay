@@ -112,17 +112,17 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-secondary/20 shadow-lg hover-elevate transition-all hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-secondary/20 to-accent/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-md">
-                <Users className="h-8 w-8 text-secondary" />
+            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-primary/30 shadow-lg hover-elevate transition-all hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-primary/30 to-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-md">
+                <Users className="h-10 w-10 text-primary" />
               </div>
-              <h3 className="font-bold text-xl mb-3 text-secondary">
+              <h3 className="font-bold text-2xl mb-3 text-primary">
                 {language === 'ko' && '함께 공유하기'}
                 {language === 'en' && 'Share Together'}
                 {language === 'zh' && '一起分享'}
                 {language === 'ja' && '一緒に共有'}
               </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-relaxed font-medium">
                 {language === 'ko' && '연인, 친구, 가족과 그룹을 만들어 소중한 추억을 함께 만들어가세요'}
                 {language === 'en' && 'Create groups with your partner, friends, and family to build precious memories together'}
                 {language === 'zh' && '与恋人、朋友、家人创建群组，一起创造珍贵的回忆'}
@@ -130,17 +130,17 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-accent/30 shadow-lg hover-elevate transition-all hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-accent/20 to-primary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-md">
-                <Heart className="h-8 w-8 text-destructive fill-destructive" />
+            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-accent/50 shadow-lg hover-elevate transition-all hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-accent/30 to-accent/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-md">
+                <Heart className="h-10 w-10 text-accent fill-accent" />
               </div>
-              <h3 className="font-bold text-xl mb-3 text-accent-foreground">
+              <h3 className="font-bold text-2xl mb-3 text-accent">
                 {language === 'ko' && '추억을 간직하기'}
                 {language === 'en' && 'Cherish Memories'}
                 {language === 'zh' && '珍藏回忆'}
                 {language === 'ja' && '思い出を大切に'}
               </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-relaxed font-medium">
                 {language === 'ko' && '언제 어디서나 함께했던 순간들을 다시 떠올리며 행복을 느껴보세요'}
                 {language === 'en' && 'Feel the happiness by recalling the moments you shared together, anytime, anywhere'}
                 {language === 'zh' && '随时随地回忆一起度过的时光，感受幸福'}
