@@ -9,6 +9,7 @@ import { GroupManagement } from "@/components/group-management";
 import { SettingsView } from "@/components/settings-view";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
+import { ToastAction } from "@/components/ui/toast";
 import { Plus, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -117,14 +118,13 @@ export default function Home() {
           title: t.toast.newMemo,
           description: `${data.memo?.buildingName}${t.toast.newMemoDesc}`,
           action: (
-            <Button 
-              size="sm" 
-              variant="outline"
+            <ToastAction 
+              altText={t.toast.viewLocation || "위치 보기"}
               onClick={() => moveToLocation(data.memo.latitude, data.memo.longitude, data.memo)}
               data-testid="button-view-memo-location"
             >
               {t.toast.viewLocation || "위치 보기"}
-            </Button>
+            </ToastAction>
           ),
         });
       } else if (data.type === "memo_updated" && data.memo) {
@@ -132,14 +132,13 @@ export default function Home() {
           title: t.toast.memoUpdated,
           description: `${data.memo?.buildingName}${t.toast.memoUpdatedDesc}`,
           action: (
-            <Button 
-              size="sm" 
-              variant="outline"
+            <ToastAction 
+              altText={t.toast.viewLocation || "위치 보기"}
               onClick={() => moveToLocation(data.memo.latitude, data.memo.longitude, data.memo)}
               data-testid="button-view-memo-location"
             >
               {t.toast.viewLocation || "위치 보기"}
-            </Button>
+            </ToastAction>
           ),
         });
       }

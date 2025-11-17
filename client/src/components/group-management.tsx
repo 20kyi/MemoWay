@@ -71,6 +71,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const [memberDialogOpen, setMemberDialogOpen] = useState<string | null>(null);
   const { toast } = useToast();
 
   const groupFormSchema = z.object({
@@ -362,7 +363,7 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
               </CardHeader>
 
               <CardContent className="pb-3">
-                <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-muted/30">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="flex -space-x-3">
                     {group.members.slice(0, 5).map((member, index) => (
                       <Avatar key={member.id} className="h-10 w-10 border-2 border-background">
@@ -377,59 +378,6 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                       +{group.members.length - 5}
                     </span>
                   )}
-                </div>
-
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {group.members.map(member => {
-                    const isLeader = member.role === 'leader';
-                    const isCurrentUser = myMemberIds.includes(member.id);
-                    const currentUserMember = group.members.find(m => myMemberIds.includes(m.id));
-                    const canRemove = currentUserMember?.role === 'leader' && !isCurrentUser && onRemoveMember;
-                    const canTransfer = currentUserMember?.role === 'leader' && !isLeader && onTransferLeadership;
-
-                    return (
-                      <div key={member.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                        <Avatar className="h-7 w-7">
-                          <AvatarFallback className="text-xs font-medium bg-muted">
-                            {member.name[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium flex-1">{member.name}</span>
-                        {isLeader && (
-                          <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
-                            <Crown className="h-3 w-3 mr-1" />
-                            {t.groups.leader}
-                          </Badge>
-                        )}
-                        {canTransfer && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => {
-                              if (confirm(`${member.name}${t.groups.confirmTransferLeadership}`)) {
-                                onTransferLeadership(group.id, member.id);
-                              }
-                            }}
-                            title={t.groups.transferLeadership}
-                          >
-                            <RefreshCw className="h-4 w-4 text-primary" />
-                          </Button>
-                        )}
-                        {canRemove && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => onRemoveMember(group.id, member.id)}
-                            title={t.groups.removeMember}
-                          >
-                            <UserMinus className="h-4 w-4 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })}
                 </div>
               </CardContent>
 
@@ -450,19 +398,15 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   
                   return (
                     <>
-                      {myMember && isLeader && !isPersonalMember && onDeleteGroup && (
+                      {myMember && !isPersonalMember && (
                         <Button
-                          variant="destructive"
-                          className="flex-1 rounded-full border-2 hover:shadow-lg"
-                          onClick={() => {
-                            if (confirm(t.groups.confirmDeleteGroup)) {
-                              onDeleteGroup(group.id);
-                            }
-                          }}
-                          data-testid={`button-delete-group-${group.id}`}
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => setMemberDialogOpen(group.id)}
+                          data-testid={`button-members-${group.id}`}
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          {t.groups.deleteGroup}
+                          <Users className="h-4 w-4 mr-2" />
+                          참여인원
                         </Button>
                       )}
                       {myMember && !isPersonalMember && (
@@ -483,6 +427,87 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
           ))}
         </div>
       )}
+
+      {/* 참여인원 다이얼로그 */}
+      {memberDialogOpen && (() => {
+        const group = groups.find(g => g.id === memberDialogOpen);
+        if (!group) return null;
+
+        const currentUserMember = group.members.find(m => myMemberIds.includes(m.id));
+        const isCurrentUserLeader = currentUserMember?.role === 'leader';
+
+        return (
+          <Dialog open={true} onOpenChange={() => setMemberDialogOpen(null)}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  참여인원 ({group.members.length}명)
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {group.members.map(member => {
+                  const isLeader = member.role === 'leader';
+                  const isCurrentUser = myMemberIds.includes(member.id);
+                  const canRemove = isCurrentUserLeader && !isCurrentUser && onRemoveMember;
+                  const canTransfer = isCurrentUserLeader && !isLeader && onTransferLeadership;
+
+                  return (
+                    <div key={member.id} className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback className="text-sm font-medium bg-muted">
+                          {member.name[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium flex-1">{member.name}</span>
+                      {isLeader && (
+                        <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
+                          <Crown className="h-3 w-3 mr-1" />
+                          {t.groups.leader}
+                        </Badge>
+                      )}
+                      <div className="flex gap-1">
+                        {canTransfer && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-3"
+                            onClick={() => {
+                              if (confirm(`${member.name}${t.groups.confirmTransferLeadership}`)) {
+                                onTransferLeadership(group.id, member.id);
+                                setMemberDialogOpen(null);
+                              }
+                            }}
+                            data-testid={`button-transfer-${member.id}`}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-1" />
+                            위임
+                          </Button>
+                        )}
+                        {canRemove && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-3 text-destructive hover:text-destructive"
+                            onClick={() => {
+                              onRemoveMember(group.id, member.id);
+                              setMemberDialogOpen(null);
+                            }}
+                            data-testid={`button-remove-${member.id}`}
+                          >
+                            <UserMinus className="h-4 w-4 mr-1" />
+                            내보내기
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 }
