@@ -385,7 +385,8 @@ export function MapView({
       const level = map.getLevel();
       // Scale formula: larger at zoom in (smaller level), smaller at zoom out (larger level)
       // level 3 is baseline (scale = 1.0)
-      const scale = Math.pow(1.3, (3 - level));
+      // Minimum scale of 1.0 ensures markers are never smaller than 30px
+      const scale = Math.max(1.0, Math.pow(1.3, (3 - level)));
       setMarkerScale(scale);
     };
 
