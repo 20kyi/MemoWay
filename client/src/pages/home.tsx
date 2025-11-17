@@ -586,6 +586,30 @@ export default function Home() {
     },
   });
 
+  const updateGroupMutation = useMutation({
+    mutationFn: async (data: { groupId: string; name: string; description?: string }) => {
+      return apiRequest("PATCH", `/api/groups/${data.groupId}`, {
+        name: data.name,
+        description: data.description,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      toast({
+        title: "그룹 수정 완료",
+        description: "그룹 정보가 수정되었습니다",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "그룹 수정 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const transferLeadershipMutation = useMutation({
     mutationFn: async (data: { groupId: string; newLeaderId: string }) => {
       return apiRequest("POST", `/api/groups/${data.groupId}/transfer-leader`, {
@@ -851,6 +875,7 @@ export default function Home() {
             myMemberIds={myMemberIds}
             personalMemberId={personalMemberId}
             onCreateGroup={(data) => createGroupMutation.mutate(data)}
+            onUpdateGroup={(groupId, data) => updateGroupMutation.mutate({ groupId, ...data })}
             onJoinGroup={(inviteCode, memberName) => {
               joinGroupMutation.mutate({ inviteCode, memberName });
             }}

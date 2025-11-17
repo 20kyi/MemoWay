@@ -34,6 +34,7 @@ export interface IStorage {
   getGroups(userId: string): Promise<GroupWithMembers[]>;
   getGroupById(groupId: string): Promise<GroupWithMembers | undefined>;
   getGroupForUser(groupId: string, userId: string): Promise<GroupWithMembers | undefined>;
+  updateGroup(groupId: string, updateData: Partial<InsertGroup>): Promise<Group>;
   deleteGroup(groupId: string): Promise<void>;
   copyGroupMemosToPersonal(groupId: string, userId: string): Promise<{ group: Group; member: Member; copiedCount: number }>;
   

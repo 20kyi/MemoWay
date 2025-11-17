@@ -170,6 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const bodySchema = z.object({
         name: z.string().min(1, "그룹명을 입력하세요").max(100).optional(),
+        description: z.string().optional(),
         color: z.string().regex(/^#[0-9A-F]{6}$/i, "유효한 색상 코드를 선택하세요").optional(),
         markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).optional(),
       });

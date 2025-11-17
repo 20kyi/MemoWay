@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
@@ -20,6 +20,11 @@ type GroupFormValues = {
   memberName: string;
   color: string;
   markerIcon: MarkerIconType;
+};
+
+type EditGroupFormValues = {
+  name: string;
+  description: string;
 };
 
 const PRESET_COLORS = [
@@ -58,6 +63,7 @@ interface Group {
 interface GroupManagementProps {
   groups: Group[];
   onCreateGroup: (data: { name: string; description?: string; memberName: string; color: string; markerIcon: string }) => void;
+  onUpdateGroup?: (groupId: string, data: { name: string; description?: string }) => void;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
   onCopyGroup?: (groupId: string) => void;
@@ -69,9 +75,11 @@ interface GroupManagementProps {
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [memberDialogOpen, setMemberDialogOpen] = useState<string | null>(null);
   const { toast } = useToast();
@@ -95,6 +103,19 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
     },
   });
 
+  const editGroupFormSchema = z.object({
+    name: z.string().min(1, t.groups.groupName),
+    description: z.string().optional(),
+  });
+
+  const editForm = useForm<EditGroupFormValues>({
+    resolver: zodResolver(editGroupFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
   const joinForm = useForm<{ inviteCode: string; memberName: string }>({
     resolver: zodResolver(z.object({
       inviteCode: z.string().min(1, t.groups.inviteCode),
@@ -110,6 +131,24 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
     onCreateGroup(data);
     createForm.reset();
     setCreateDialogOpen(false);
+  };
+
+  const handleOpenEditDialog = (group: Group) => {
+    setEditingGroup(group);
+    editForm.reset({
+      name: group.name,
+      description: group.description || "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateGroup = (data: EditGroupFormValues) => {
+    if (editingGroup && onUpdateGroup) {
+      onUpdateGroup(editingGroup.id, data);
+      editForm.reset();
+      setEditDialogOpen(false);
+      setEditingGroup(null);
+    }
   };
 
   const handleJoinGroup = (data: { inviteCode: string; memberName: string }) => {
@@ -408,6 +447,17 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                   
                   return (
                     <>
+                      {myMember && !isPersonalMember && isLeader && onUpdateGroup && (
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleOpenEditDialog(group)}
+                          data-testid={`button-edit-${group.id}`}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          수정
+                        </Button>
+                      )}
                       {myMember && !isPersonalMember && (
                         <Button
                           variant="outline"
@@ -437,6 +487,63 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
           ))}
         </div>
       )}
+
+      {/* 그룹 수정 다이얼로그 */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>그룹 정보 수정</DialogTitle>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(handleUpdateGroup)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t.groups.groupName}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="예: 친구들" data-testid="input-edit-group-name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>상세내용</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="그룹에 대한 설명을 입력하세요" data-testid="input-edit-group-description" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    editForm.reset();
+                    setEditDialogOpen(false);
+                    setEditingGroup(null);
+                  }}
+                  data-testid="button-cancel-edit"
+                >
+                  취소
+                </Button>
+                <Button type="submit" className="flex-1" data-testid="button-submit-edit-group">
+                  수정
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       {/* 참여인원 다이얼로그 */}
       {memberDialogOpen && (() => {
