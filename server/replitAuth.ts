@@ -111,19 +111,39 @@ export async function setupAuth(app: Express) {
   };
 
   passport.serializeUser((user: Express.User, cb) => {
-    // Only store user ID in session
-    cb(null, (user as any).id);
+    const userObj = user as any;
+    // For Replit Auth users (with tokens), store full session data
+    // For Kakao users, store only ID
+    if (userObj.access_token || userObj.expires_at) {
+      // Replit Auth user - store tokens for refresh
+      cb(null, {
+        id: userObj.id,
+        access_token: userObj.access_token,
+        refresh_token: userObj.refresh_token,
+        expires_at: userObj.expires_at,
+      });
+    } else {
+      // Kakao user or simple session - store only ID
+      cb(null, { id: userObj.id });
+    }
   });
   
-  passport.deserializeUser(async (id: string, cb) => {
+  passport.deserializeUser(async (sessionData: any, cb) => {
     try {
+      // Handle both object format { id, access_token, ... } and legacy string format
+      const userId = typeof sessionData === 'string' ? sessionData : sessionData.id;
+      console.log(`Deserializing user session for ID: ${userId}`);
+      
       // Retrieve full user data from database using ID
-      const user = await storage.getUser(id);
+      const user = await storage.getUser(userId);
       if (!user) {
-        return cb(new Error('User not found'));
+        // User not found - session is invalid, return null to clear it
+        console.warn(`Session deserialization failed: User ${userId} not found`);
+        return cb(null, false);
       }
+      
       // Reconstruct the user object with claims
-      const userObj = {
+      const userObj: any = {
         id: user.id,
         claims: {
           sub: user.id,
@@ -133,9 +153,18 @@ export async function setupAuth(app: Express) {
           profile_image_url: user.profileImageUrl,
         },
       };
+      
+      // If session data includes tokens (Replit Auth), restore them
+      if (typeof sessionData === 'object' && sessionData.access_token) {
+        userObj.access_token = sessionData.access_token;
+        userObj.refresh_token = sessionData.refresh_token;
+        userObj.expires_at = sessionData.expires_at;
+      }
+      
       cb(null, userObj);
     } catch (error) {
-      cb(error);
+      console.error('Session deserialization error:', error);
+      cb(null, false);
     }
   });
 
@@ -173,7 +202,19 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 
   const user = req.user as any;
-
+  
+  // Check if user exists in database to verify session is still valid
+  const dbUser = await storage.getUser(user.id);
+  if (!dbUser) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  // For Kakao users, no token refresh is needed - just verify user exists
+  if (dbUser.provider === 'kakao') {
+    return next();
+  }
+  
+  // For Replit Auth users, check and refresh OIDC tokens if needed
   if (!user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
