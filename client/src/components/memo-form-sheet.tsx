@@ -8,9 +8,26 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Camera, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Star } from "lucide-react";
+import { Camera, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, GripVertical, Star } from "lucide-react";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
   default: MapPin,
@@ -31,10 +48,18 @@ type MemoFormValues = {
   markerIcon: MarkerIconType;
 };
 
+type PhotoItem = {
+  id: string;
+  url: string;
+  file?: File;
+  isExisting: boolean;
+  order: number;
+};
+
 interface MemoFormSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: MemoFormValues & { photos: File[]; deletedPhotoIds?: string[]; mainPhotoId?: string; mainPhotoIndex?: number }) => void;
+  onSubmit: (data: MemoFormValues & { photos: File[]; deletedPhotoIds?: string[]; mainPhotoId?: string; mainPhotoIndex?: number; photoOrders?: { id: string; order: number }[] }) => void;
   initialData?: {
     buildingName: string;
     address: string;
@@ -44,13 +69,72 @@ interface MemoFormSheetProps {
     groupIds?: string[];
     markerIcon?: string;
     mainPhotoId?: string;
-    existingPhotos?: Array<{ id: string; url: string }>;
+    existingPhotos?: Array<{ id: string; url: string; order?: number }>;
   } | null;
   groups: Array<{ id: string; name: string }>;
   isLoading?: boolean;
   isPersonalMemberReady: boolean;
   currentMemberId: string | null;
   editMode?: boolean;
+}
+
+function SortablePhotoItem({ photo, onRemove }: { photo: PhotoItem; onRemove: () => void }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: photo.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative aspect-square bg-card rounded-lg overflow-hidden border-2 border-border"
+      data-testid={`photo-item-${photo.id}`}
+    >
+      <img src={photo.url} alt="Photo" className="w-full h-full object-cover" />
+      
+      {photo.order === 0 && (
+        <div className="absolute top-1 left-1 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+          <Star className="h-3 w-3 fill-current" />
+          대표
+        </div>
+      )}
+      
+      <div className="absolute top-1 right-1 flex gap-1">
+        <Button
+          type="button"
+          size="icon"
+          variant="secondary"
+          className="h-6 w-6 rounded-full cursor-grab active:cursor-grabbing"
+          {...attributes}
+          {...listeners}
+          data-testid={`button-drag-photo-${photo.id}`}
+        >
+          <GripVertical className="h-3 w-3" />
+        </Button>
+        <Button
+          type="button"
+          size="icon"
+          variant="destructive"
+          className="h-6 w-6 rounded-full"
+          onClick={onRemove}
+          data-testid={`button-remove-photo-${photo.id}`}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export function MemoFormSheet({ 
@@ -65,14 +149,15 @@ export function MemoFormSheet({
   editMode = false
 }: MemoFormSheetProps) {
   const { t } = useLanguage();
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
-  const [existingPhotos, setExistingPhotos] = useState<Array<{ id: string; url: string }>>(
-    initialData?.existingPhotos || []
-  );
+  const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
   const [deletedPhotoIds, setDeletedPhotoIds] = useState<string[]>([]);
-  const [mainPhotoId, setMainPhotoId] = useState<string | undefined>(initialData?.mainPhotoId);
-  const [mainPhotoIndex, setMainPhotoIndex] = useState<number | undefined>();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const memoFormSchema = z.object({
     buildingName: z.string().min(1, t.memoForm.buildingName),
@@ -93,7 +178,6 @@ export function MemoFormSheet({
     },
   });
 
-  // Update form when initialData changes
   useEffect(() => {
     if (initialData && open) {
       form.reset({
@@ -103,50 +187,101 @@ export function MemoFormSheet({
         groupIds: initialData.groupIds || [],
         markerIcon: (initialData.markerIcon as MarkerIconType) || 'default',
       });
-      setExistingPhotos(initialData.existingPhotos || []);
+      
+      const existingPhotoItems: PhotoItem[] = (initialData.existingPhotos || [])
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map((photo, index) => ({
+          id: photo.id,
+          url: photo.url,
+          isExisting: true,
+          order: index,
+        }));
+      
+      setPhotoItems(existingPhotoItems);
       setDeletedPhotoIds([]);
-      setPhotos([]);
-      setPhotoPreviews([]);
-      setMainPhotoId(initialData.mainPhotoId);
-      setMainPhotoIndex(undefined);
+    } else if (!open) {
+      setPhotoItems([]);
+      setDeletedPhotoIds([]);
     }
   }, [initialData, open, form]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      setPhotos(prev => [...prev, ...newFiles]);
+      const currentMaxOrder = photoItems.length > 0 
+        ? Math.max(...photoItems.map(p => p.order)) 
+        : -1;
       
-      newFiles.forEach(file => {
+      newFiles.forEach((file, index) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-          setPhotoPreviews(prev => [...prev, reader.result as string]);
+          const newPhotoItem: PhotoItem = {
+            id: `new-${Date.now()}-${index}`,
+            url: reader.result as string,
+            file,
+            isExisting: false,
+            order: currentMaxOrder + index + 1,
+          };
+          setPhotoItems(prev => [...prev, newPhotoItem]);
         };
         reader.readAsDataURL(file);
       });
     }
+    e.target.value = '';
   };
 
-  const removePhoto = (index: number) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index));
-    setPhotoPreviews(prev => prev.filter((_, i) => i !== index));
-    if (mainPhotoIndex === index) {
-      setMainPhotoIndex(undefined);
-    } else if (mainPhotoIndex !== undefined && mainPhotoIndex > index) {
-      setMainPhotoIndex(mainPhotoIndex - 1);
+  const removePhoto = (photoId: string) => {
+    const photo = photoItems.find(p => p.id === photoId);
+    if (photo?.isExisting) {
+      setDeletedPhotoIds(prev => [...prev, photoId]);
     }
+    
+    setPhotoItems(prev => {
+      const filtered = prev.filter(p => p.id !== photoId);
+      return filtered.map((p, index) => ({ ...p, order: index }));
+    });
   };
 
-  const removeExistingPhoto = (photoId: string) => {
-    setExistingPhotos(prev => prev.filter(p => p.id !== photoId));
-    setDeletedPhotoIds(prev => [...prev, photoId]);
-    if (mainPhotoId === photoId) {
-      setMainPhotoId(undefined);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setPhotoItems((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        const reordered = arrayMove(items, oldIndex, newIndex);
+        return reordered.map((item, index) => ({ ...item, order: index }));
+      });
     }
   };
 
   const handleSubmit = (data: MemoFormValues) => {
-    onSubmit({ ...data, photos, deletedPhotoIds, mainPhotoId, mainPhotoIndex });
+    const newPhotos = photoItems
+      .filter(p => !p.isExisting && p.file)
+      .sort((a, b) => a.order - b.order)
+      .map(p => p.file!);
+    
+    const mainPhotoId = photoItems.length > 0 && photoItems[0].isExisting 
+      ? photoItems[0].id 
+      : undefined;
+    
+    const mainPhotoIndex = photoItems.length > 0 && !photoItems[0].isExisting
+      ? 0
+      : undefined;
+
+    const photoOrders = photoItems
+      .filter(p => p.isExisting)
+      .map(p => ({ id: p.id, order: p.order }));
+
+    onSubmit({ 
+      ...data, 
+      photos: newPhotos, 
+      deletedPhotoIds, 
+      mainPhotoId,
+      mainPhotoIndex,
+      photoOrders
+    });
   };
 
   return (
@@ -191,77 +326,43 @@ export function MemoFormSheet({
 
               <div>
                 <FormLabel>{t.memoForm.photos}</FormLabel>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {existingPhotos.map((photo) => (
-                    <div key={photo.id} className="relative aspect-square">
-                      <img src={photo.url} alt="Existing photo" className="w-full h-full object-cover rounded-lg" />
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant={mainPhotoId === photo.id ? "default" : "secondary"}
-                        className="absolute top-1 right-8 h-6 w-6 rounded-full"
-                        onClick={() => {
-                          setMainPhotoId(photo.id);
-                          setMainPhotoIndex(undefined);
-                        }}
-                        data-testid={`button-set-main-photo-${photo.id}`}
-                      >
-                        <Star className={`h-3 w-3 ${mainPhotoId === photo.id ? 'fill-current' : ''}`} />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full"
-                        onClick={() => removeExistingPhoto(photo.id)}
-                        data-testid={`button-remove-existing-photo-${photo.id}`}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                <p className="text-xs text-muted-foreground mt-1 mb-3">
+                  첫 번째 사진이 대표 사진으로 표시됩니다. 드래그하여 순서를 변경할 수 있습니다.
+                </p>
+                
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={photoItems.map(p => p.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="grid grid-cols-3 gap-2">
+                      {photoItems.map((photo) => (
+                        <SortablePhotoItem
+                          key={photo.id}
+                          photo={photo}
+                          onRemove={() => removePhoto(photo.id)}
+                        />
+                      ))}
+                      {photoItems.length < 10 && (
+                        <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover-elevate">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handlePhotoChange}
+                            className="hidden"
+                            data-testid="input-photo-upload"
+                          />
+                          <Camera className="h-8 w-8 text-muted-foreground" />
+                        </label>
+                      )}
                     </div>
-                  ))}
-                  {photoPreviews.map((preview, index) => (
-                    <div key={`new-${index}`} className="relative aspect-square">
-                      <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover rounded-lg" />
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant={mainPhotoIndex === index ? "default" : "secondary"}
-                        className="absolute top-1 right-8 h-6 w-6 rounded-full"
-                        onClick={() => {
-                          setMainPhotoIndex(index);
-                          setMainPhotoId(undefined);
-                        }}
-                        data-testid={`button-set-main-photo-new-${index}`}
-                      >
-                        <Star className={`h-3 w-3 ${mainPhotoIndex === index ? 'fill-current' : ''}`} />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full"
-                        onClick={() => removePhoto(index)}
-                        data-testid={`button-remove-photo-${index}`}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                  {(existingPhotos.length + photoPreviews.length) < 10 && (
-                    <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover-elevate">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handlePhotoChange}
-                        className="hidden"
-                        data-testid="input-photo-upload"
-                      />
-                      <Camera className="h-8 w-8 text-muted-foreground" />
-                    </label>
-                  )}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </div>
 
               <FormField
