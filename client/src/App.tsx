@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider, useLanguage, type Language } from "./lib/language-context";
 import { FontProvider } from "./lib/font-context";
+import { ThemeProvider } from "./lib/theme-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import Home from "@/pages/home";
@@ -44,14 +45,16 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <FontProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </FontProvider>
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <FontProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </FontProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

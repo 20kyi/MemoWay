@@ -5,9 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, MapPin, Languages, LogOut, Type, User } from "lucide-react";
+import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily } from "@/lib/font-context";
+import { useTheme } from "@/lib/theme-context";
 import { useAuth } from "@/hooks/useAuth";
 
 interface SettingsViewProps {
@@ -36,6 +37,7 @@ export function SettingsView({
 }: SettingsViewProps) {
   const { language, setLanguage, t } = useLanguage();
   const { fontFamily, setFontFamily, fontSize, setFontSize } = useFont();
+  const { theme, setTheme } = useTheme();
   const { user } = useAuth();
 
   const handleLogout = () => {
@@ -111,6 +113,31 @@ export function SettingsView({
           </CardContent>
         </Card>
       ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {theme === "dark" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            다크모드
+          </CardTitle>
+          <CardDescription>
+            화면 테마를 변경합니다
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="theme" className="cursor-pointer">
+              다크모드 활성화
+            </Label>
+            <Switch
+              id="theme"
+              checked={theme === "dark"}
+              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              data-testid="switch-theme"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
