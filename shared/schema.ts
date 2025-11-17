@@ -70,6 +70,7 @@ export const photos = pgTable("photos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   memoId: varchar("memo_id").notNull().references(() => memos.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
+  order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
