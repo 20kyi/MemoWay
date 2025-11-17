@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Navigation, Search, X, Send, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users } from "lucide-react";
+import { Navigation, Search, X, Send, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, User } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -568,30 +568,35 @@ export function MapView({
 
     const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
 
-    // 귀여운 사람 모양 마커
+    // User 아이콘 마커
     const markerContent = document.createElement('div');
     markerContent.innerHTML = `
-      <div style="position: relative; width: 40px; height: 50px; cursor: default;">
-        <svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
-          <!-- 그림자 -->
-          <ellipse cx="20" cy="47" rx="8" ry="2" fill="#000000" opacity="0.2"/>
-          
-          <!-- 몸통 -->
-          <circle cx="20" cy="12" r="7" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/>
-          <rect x="14" y="18" width="12" height="16" rx="6" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/>
-          
-          <!-- 팔 -->
-          <line x1="14" y1="22" x2="8" y2="28" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
-          <line x1="26" y1="22" x2="32" y2="28" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
-          
-          <!-- 다리 -->
-          <line x1="17" y1="34" x2="15" y2="44" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
-          <line x1="23" y1="34" x2="25" y2="44" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
-          
-          <!-- 얼굴 -->
-          <circle cx="17" cy="10" r="1.5" fill="#ffffff"/>
-          <circle cx="23" cy="10" r="1.5" fill="#ffffff"/>
-          <path d="M 17 14 Q 20 16 23 14" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <div style="
+        position: relative;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #3b82f6;
+        border-radius: 50%;
+        border: 3px solid #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        cursor: default;
+      ">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="28" 
+          height="28" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="#ffffff" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        >
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
         </svg>
       </div>
     `;
@@ -599,7 +604,7 @@ export function MapView({
     const userMarker = new window.kakao.maps.CustomOverlay({
       position: position,
       content: markerContent,
-      yAnchor: 1,
+      yAnchor: 0.5,
     });
     
     userMarker.setMap(map);
