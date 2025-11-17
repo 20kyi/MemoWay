@@ -94,17 +94,17 @@ export default function Landing() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 w-full max-w-5xl animate-in fade-in slide-in-from-bottom duration-700 delay-200">
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-primary/20 shadow-lg hover-elevate transition-all hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-md">
-                <Globe className="h-8 w-8 text-primary" />
+            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-primary/30 shadow-lg hover-elevate transition-all hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-primary/30 to-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-md">
+                <Globe className="h-10 w-10 text-primary" />
               </div>
-              <h3 className="font-bold text-xl mb-3 text-primary">
+              <h3 className="font-bold text-2xl mb-3 text-primary">
                 {language === 'ko' && '지도에 메모 남기기'}
                 {language === 'en' && 'Pin Memos on Map'}
                 {language === 'zh' && '在地图上添加备忘录'}
                 {language === 'ja' && '地図にメモを追加'}
               </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-relaxed font-medium">
                 {language === 'ko' && '데이트했던 카페, 처음 만난 장소... 특별한 위치에 사진과 함께 메모를 남겨보세요'}
                 {language === 'en' && 'The cafe from your date, where you first met... Save memories with photos at special locations'}
                 {language === 'zh' && '约会的咖啡馆，第一次见面的地方...在特殊的地方用照片保存回忆'}
@@ -112,11 +112,11 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-primary/30 shadow-lg hover-elevate transition-all hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-primary/30 to-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-md">
-                <Users className="h-10 w-10 text-primary" />
+            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-purple-500/40 shadow-lg hover-elevate transition-all hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-purple-500/30 to-purple-500/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-md">
+                <Users className="h-10 w-10 text-purple-500" />
               </div>
-              <h3 className="font-bold text-2xl mb-3 text-primary">
+              <h3 className="font-bold text-2xl mb-3 text-purple-600 dark:text-purple-400">
                 {language === 'ko' && '함께 공유하기'}
                 {language === 'en' && 'Share Together'}
                 {language === 'zh' && '一起分享'}
