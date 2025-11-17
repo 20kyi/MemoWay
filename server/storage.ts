@@ -133,6 +133,39 @@ export class DatabaseStorage implements IStorage {
     await db.delete(members).where(eq(members.id, memberId));
   }
 
+  async getMemberByUserAndGroup(userId: string, groupId: string): Promise<Member | undefined> {
+    const [member] = await db
+      .select()
+      .from(members)
+      .where(and(eq(members.userId, userId), eq(members.groupId, groupId)));
+    return member || undefined;
+  }
+
+  async checkMemberRole(userId: string, groupId: string, requiredRole: 'leader' | 'member'): Promise<boolean> {
+    const member = await this.getMemberByUserAndGroup(userId, groupId);
+    if (!member) return false;
+    if (requiredRole === 'leader') {
+      return member.role === 'leader';
+    }
+    return member.role === 'leader' || member.role === 'member';
+  }
+
+  async requireLeaderRole(userId: string, groupId: string): Promise<void> {
+    const isLeader = await this.checkMemberRole(userId, groupId, 'leader');
+    if (!isLeader) {
+      throw new Error('방장 권한이 필요합니다');
+    }
+  }
+
+  async updateMemberRole(memberId: string, role: 'leader' | 'member'): Promise<Member> {
+    const [member] = await db
+      .update(members)
+      .set({ role })
+      .where(eq(members.id, memberId))
+      .returning();
+    return member;
+  }
+
   // Memos
   async createMemo(insertMemo: InsertMemo): Promise<Memo> {
     const [memo] = await db
