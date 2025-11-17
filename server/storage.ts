@@ -428,6 +428,7 @@ export class DatabaseStorage implements IStorage {
         name: "나",
         groupId: newGroup.id,
         userId: userId,
+        role: "leader",
       })
       .returning();
 
