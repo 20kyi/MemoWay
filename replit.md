@@ -7,6 +7,7 @@ This mobile-first web application facilitates the creation and sharing of locati
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Preferred language: Korean (한국어) - All task explanations and communication should be in Korean.
 
 ## System Architecture
 
