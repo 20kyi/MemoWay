@@ -66,8 +66,7 @@ export function SettingsView({
     <div className="px-4 py-6 space-y-4 overflow-y-auto h-full">
       <h1 className="text-2xl font-medium mb-6">{t.settings.title}</h1>
 
-      {/* User Account Info Card */}
-      {user && (
+      {user ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -102,7 +101,7 @@ export function SettingsView({
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       <Card>
         <CardHeader>
