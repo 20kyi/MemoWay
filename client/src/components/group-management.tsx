@@ -380,11 +380,13 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
       ) : (
         <div className="space-y-4">
           {groups.map(group => (
-            <Card key={group.id} className="overflow-hidden hover-elevate" data-testid={`card-group-${group.id}`}>
-              <div className="h-2 w-full opacity-80" style={{ 
-                backgroundColor: group.color
-              }} data-testid={`color-stripe-${group.id}`} />
-              <CardHeader className="pb-3">
+            <Card key={group.id} className="overflow-visible hover-elevate shadow-lg border-4 border-white dark:border-card rounded-2xl bg-card" data-testid={`card-group-${group.id}`}>
+              <div className="absolute -top-1 left-4 w-8 h-8 rounded-full shadow-md flex items-center justify-center" 
+                style={{ backgroundColor: group.color }}
+                data-testid={`color-pin-${group.id}`}>
+                <div className="w-3 h-3 bg-card rounded-full" />
+              </div>
+              <CardHeader className="pb-3 pt-6">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div 
