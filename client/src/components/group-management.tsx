@@ -398,7 +398,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                       style={{ backgroundColor: `${group.color}20` }}
                       data-testid={`color-dot-${group.id}`}
                     >
-                      <Heart className="h-5 w-5" style={{ color: group.color }} />
+                      {(() => {
+                        const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
+                        return <IconComponent className="h-5 w-5" style={{ color: group.color }} />;
+                      })()}
                     </div>
                     <h3 className="text-xl font-semibold truncate">{group.name}</h3>
                     {onCopyGroup && (
