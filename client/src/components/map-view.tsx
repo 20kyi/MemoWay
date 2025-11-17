@@ -84,10 +84,10 @@ function getMarkerIconPath(iconType: string): string {
 
 function createMarkerContent(color: string, iconType: string = 'default', photoUrl?: string, scale: number = 1): string {
   const iconPath = getMarkerIconPath(iconType);
-  const width = 30 * scale;
-  const height = 40 * scale;
+  const width = 36 * scale;
+  const height = 42 * scale;
   
-  // If photo is provided, create photo marker
+  // If photo is provided, create photo marker (speech bubble)
   if (photoUrl) {
     return `
       <div 
@@ -100,24 +100,32 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
         data-marker-icon="${iconType}"
         aria-label="${iconType} 마커"
       >
-        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <svg width="${width}" height="${height}" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
           <defs>
-            <clipPath id="photoClip">
-              <circle cx="15" cy="15" r="8"/>
+            <clipPath id="photoClip-${Math.random()}">
+              <circle cx="18" cy="14" r="10"/>
             </clipPath>
           </defs>
-          <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+          <!-- 말풍선 본체 -->
+          <rect x="3" y="2" width="30" height="26" rx="13" ry="13" 
                 fill="${color}" 
                 stroke="#ffffff" 
-                stroke-width="2"/>
-          <circle cx="15" cy="15" r="8.5" fill="#ffffff"/>
-          <image href="${photoUrl}" x="7" y="7" width="16" height="16" clip-path="url(#photoClip)" preserveAspectRatio="xMidYMid slice"/>
+                stroke-width="2.5"/>
+          <!-- 말풍선 꼬리 -->
+          <path d="M 14 28 L 18 38 L 22 28 Z" 
+                fill="${color}" 
+                stroke="#ffffff" 
+                stroke-width="2.5"
+                stroke-linejoin="round"/>
+          <!-- 사진 배경 -->
+          <circle cx="18" cy="14" r="10.5" fill="#ffffff"/>
+          <image href="${photoUrl}" x="8" y="4" width="20" height="20" clip-path="url(#photoClip-${Math.random()})" preserveAspectRatio="xMidYMid slice"/>
         </svg>
       </div>
     `;
   }
   
-  // Icon marker (no photo)
+  // Icon marker (no photo) - speech bubble
   return `
     <div 
       style="
@@ -129,13 +137,21 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
       data-marker-icon="${iconType}"
       aria-label="${iconType} 마커"
     >
-      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
-        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+      <svg width="${width}" height="${height}" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+        <!-- 말풍선 본체 -->
+        <rect x="3" y="2" width="30" height="26" rx="13" ry="13" 
               fill="${color}" 
               stroke="#ffffff" 
-              stroke-width="2"/>
-        <circle cx="15" cy="15" r="8" fill="#ffffff"/>
-        <g transform="translate(6, 6)" fill="${color}">
+              stroke-width="2.5"/>
+        <!-- 말풍선 꼬리 -->
+        <path d="M 14 28 L 18 38 L 22 28 Z" 
+              fill="${color}" 
+              stroke="#ffffff" 
+              stroke-width="2.5"
+              stroke-linejoin="round"/>
+        <!-- 아이콘 배경 -->
+        <circle cx="18" cy="15" r="9" fill="#ffffff"/>
+        <g transform="translate(9, 6)" fill="${color}">
           <path d="${iconPath}" />
         </g>
       </svg>
@@ -145,14 +161,14 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
 
 function createClusterMarkerContent(color: string, count: number, iconType: string = 'default', photoUrl?: string, scale: number = 1): string {
   const iconPath = getMarkerIconPath(iconType);
-  const width = 30 * scale;
-  const height = 40 * scale;
+  const width = 36 * scale;
+  const height = 42 * scale;
   const badgeSize = 20 * scale;
   const fontSize = 10 * scale;
-  const badgeTop = -7 * scale;
-  const badgeRight = -7 * scale;
+  const badgeTop = -5 * scale;
+  const badgeRight = -5 * scale;
   
-  // If photo is provided, create photo marker with count badge
+  // If photo is provided, create photo marker with count badge (speech bubble)
   if (photoUrl) {
     return `
       <div 
@@ -166,18 +182,26 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
         data-marker-count="${count}"
         aria-label="${iconType} 마커 클러스터 (${count}개)"
       >
-        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <svg width="${width}" height="${height}" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
           <defs>
-            <clipPath id="photoClip">
-              <circle cx="15" cy="15" r="8"/>
+            <clipPath id="photoClipCluster-${Math.random()}">
+              <circle cx="18" cy="14" r="10"/>
             </clipPath>
           </defs>
-          <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+          <!-- 말풍선 본체 -->
+          <rect x="3" y="2" width="30" height="26" rx="13" ry="13" 
                 fill="${color}" 
                 stroke="#ffffff" 
-                stroke-width="2"/>
-          <circle cx="15" cy="15" r="8.5" fill="#ffffff"/>
-          <image href="${photoUrl}" x="7" y="7" width="16" height="16" clip-path="url(#photoClip)" preserveAspectRatio="xMidYMid slice"/>
+                stroke-width="2.5"/>
+          <!-- 말풍선 꼬리 -->
+          <path d="M 14 28 L 18 38 L 22 28 Z" 
+                fill="${color}" 
+                stroke="#ffffff" 
+                stroke-width="2.5"
+                stroke-linejoin="round"/>
+          <!-- 사진 배경 -->
+          <circle cx="18" cy="14" r="10.5" fill="#ffffff"/>
+          <image href="${photoUrl}" x="8" y="4" width="20" height="20" clip-path="url(#photoClipCluster-${Math.random()})" preserveAspectRatio="xMidYMid slice"/>
         </svg>
         <div style="
           position: absolute;
@@ -213,13 +237,21 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
       data-marker-count="${count}"
       aria-label="${iconType} 마커 클러스터 (${count}개)"
     >
-      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
-        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+      <svg width="${width}" height="${height}" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+        <!-- 말풍선 본체 -->
+        <rect x="3" y="2" width="30" height="26" rx="13" ry="13" 
               fill="${color}" 
               stroke="#ffffff" 
-              stroke-width="2"/>
-        <circle cx="15" cy="15" r="8" fill="#ffffff"/>
-        <g transform="translate(6, 6)" fill="${color}">
+              stroke-width="2.5"/>
+        <!-- 말풍선 꼬리 -->
+        <path d="M 14 28 L 18 38 L 22 28 Z" 
+              fill="${color}" 
+              stroke="#ffffff" 
+              stroke-width="2.5"
+              stroke-linejoin="round"/>
+        <!-- 아이콘 배경 -->
+        <circle cx="18" cy="15" r="9" fill="#ffffff"/>
+        <g transform="translate(9, 6)" fill="${color}">
           <path d="${iconPath}" />
         </g>
       </svg>
