@@ -217,9 +217,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>상세내용</FormLabel>
+                      <FormLabel>{t.groups.description}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="그룹에 대한 설명을 입력하세요" data-testid="input-group-description" />
+                        <Input {...field} placeholder={t.groups.descriptionPlaceholder} data-testid="input-group-description" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -434,7 +434,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     className="flex-shrink-0"
                   >
                     <Users className="h-3 w-3 mr-1" />
-                    {group.members.length}명
+                    {group.members.length}{t.groups.members}
                   </Badge>
                 </div>
               </CardHeader>
@@ -446,7 +446,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   </div>
                 ) : (
                   <div className="p-3 rounded-lg bg-muted/30">
-                    <p className="text-sm text-muted-foreground italic">상세내용이 없습니다</p>
+                    <p className="text-sm text-muted-foreground italic">{t.groups.noDescription}</p>
                   </div>
                 )}
               </CardContent>
@@ -534,9 +534,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>상세내용</FormLabel>
+                    <FormLabel>{t.groups.description}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="그룹에 대한 설명을 입력하세요" data-testid="input-edit-group-description" />
+                      <Input {...field} placeholder={t.groups.descriptionPlaceholder} data-testid="input-edit-group-description" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -756,7 +756,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
-              그룹 검색
+              {t.groups.searchGroups}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -764,7 +764,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="그룹 이름 또는 설명으로 검색..."
+                placeholder={t.groups.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -777,12 +777,12 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {filteredGroups.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">검색 결과가 없습니다</p>
+                    <p className="text-muted-foreground">{t.groups.noSearchResults}</p>
                   </div>
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground">
-                      {filteredGroups.length}개의 그룹을 찾았습니다
+                      {filteredGroups.length}{t.groups.searchResultsCount}
                     </p>
                     {filteredGroups.map(group => (
                       <div
@@ -821,7 +821,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           </div>
                           <Badge variant="secondary" className="flex-shrink-0">
                             <Users className="h-3 w-3 mr-1" />
-                            {group.members.length}
+                            {group.members.length}{t.groups.members}
                           </Badge>
                         </div>
                       </div>

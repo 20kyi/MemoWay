@@ -91,6 +91,9 @@ export const translations = {
       editGroup: "그룹 정보 수정",
       groupName: "그룹명",
       groupNamePlaceholder: "예: 친구들",
+      description: "상세내용",
+      descriptionPlaceholder: "그룹에 대한 설명을 입력하세요",
+      noDescription: "상세내용이 없습니다",
       myName: "내 이름",
       myNamePlaceholder: "홍길동",
       groupColor: "그룹 색상",
@@ -110,6 +113,10 @@ export const translations = {
       transferLeadership: "방장 이양",
       confirmTransferLeadership: "님에게 방장 권한을 이양하시겠습니까?",
       removeMember: "멤버 강퇴",
+      searchGroups: "그룹 검색",
+      searchPlaceholder: "그룹 이름 또는 설명으로 검색...",
+      noSearchResults: "검색 결과가 없습니다",
+      searchResultsCount: "개의 그룹을 찾았습니다",
     },
     // Settings
     settings: {
@@ -282,6 +289,9 @@ export const translations = {
       editGroup: "Edit Group Info",
       groupName: "Group Name",
       groupNamePlaceholder: "e.g., Friends",
+      description: "Description",
+      descriptionPlaceholder: "Enter group description",
+      noDescription: "No description available",
       myName: "My Name",
       myNamePlaceholder: "John Doe",
       groupColor: "Group Color",
@@ -301,6 +311,10 @@ export const translations = {
       transferLeadership: "Transfer Leadership",
       confirmTransferLeadership: " to transfer leadership?",
       removeMember: "Remove Member",
+      searchGroups: "Search Groups",
+      searchPlaceholder: "Search by name or description...",
+      noSearchResults: "No search results",
+      searchResultsCount: " groups found",
     },
     // Settings
     settings: {
@@ -473,6 +487,9 @@ export const translations = {
       editGroup: "编辑群组信息",
       groupName: "群组名称",
       groupNamePlaceholder: "例如：朋友们",
+      description: "详细说明",
+      descriptionPlaceholder: "输入群组说明",
+      noDescription: "暂无说明",
       myName: "我的名字",
       myNamePlaceholder: "张三",
       groupColor: "群组颜色",
@@ -492,6 +509,10 @@ export const translations = {
       transferLeadership: "转让群主",
       confirmTransferLeadership: " 转让群主权限？",
       removeMember: "移除成员",
+      searchGroups: "搜索群组",
+      searchPlaceholder: "按名称或说明搜索...",
+      noSearchResults: "无搜索结果",
+      searchResultsCount: "个群组",
     },
     // Settings
     settings: {
@@ -664,6 +685,9 @@ export const translations = {
       editGroup: "グループ情報を編集",
       groupName: "グループ名",
       groupNamePlaceholder: "例：友達",
+      description: "詳細説明",
+      descriptionPlaceholder: "グループの説明を入力してください",
+      noDescription: "説明がありません",
       myName: "私の名前",
       myNamePlaceholder: "山田太郎",
       groupColor: "グループカラー",
@@ -683,6 +707,10 @@ export const translations = {
       transferLeadership: "リーダー譲渡",
       confirmTransferLeadership: " にリーダー権限を譲渡しますか？",
       removeMember: "メンバーを削除",
+      searchGroups: "グループを検索",
+      searchPlaceholder: "名前または説明で検索...",
+      noSearchResults: "検索結果がありません",
+      searchResultsCount: "個のグループ",
     },
     // Settings
     settings: {
@@ -849,6 +877,9 @@ type Translation = {
     editGroup: string;
     groupName: string;
     groupNamePlaceholder: string;
+    description: string;
+    descriptionPlaceholder: string;
+    noDescription: string;
     myName: string;
     myNamePlaceholder: string;
     groupColor: string;
@@ -868,6 +899,10 @@ type Translation = {
     transferLeadership: string;
     confirmTransferLeadership: string;
     removeMember: string;
+    searchGroups: string;
+    searchPlaceholder: string;
+    noSearchResults: string;
+    searchResultsCount: string;
   };
   settings: {
     title: string;
