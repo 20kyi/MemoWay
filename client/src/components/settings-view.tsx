@@ -64,13 +64,27 @@ export function SettingsView({
       {user ? (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              {t.settings.account}
-            </CardTitle>
-            <CardDescription>
-              {t.settings.accountInfo}
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  {t.settings.account}
+                </CardTitle>
+                <CardDescription>
+                  {t.settings.accountInfo}
+                </CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleLogout}
+                data-testid="button-logout"
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                {t.settings.logout}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
@@ -246,28 +260,6 @@ export function SettingsView({
               data-testid="switch-location"
             />
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LogOut className="h-5 w-5" />
-            {t.settings.account}
-          </CardTitle>
-          <CardDescription>
-            {t.settings.logoutDesc}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <Button 
-            variant="destructive" 
-            className="w-full"
-            onClick={handleLogout}
-            data-testid="button-logout"
-          >
-            {t.settings.logout}
-          </Button>
         </CardContent>
       </Card>
 
