@@ -740,14 +740,14 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         );
       })()}
 
-      {/* 검색 버튼 (오른쪽 하단 고정) */}
+      {/* 검색 버튼 (플로팅 액션 버튼) */}
       <Button
         size="icon"
-        className="fixed bottom-24 right-4 h-10 w-10 rounded-lg shadow-lg bg-card/80 backdrop-blur-sm border-2 border-primary/30 hover:shadow-2xl transition-all z-50"
+        className="fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 hover:shadow-2xl transition-all z-50"
         onClick={() => setSearchDialogOpen(true)}
         data-testid="button-search-groups"
       >
-        <Search className="h-5 w-5 text-primary" />
+        <Search className="h-6 w-6 text-primary-foreground" />
       </Button>
 
       {/* 검색 다이얼로그 */}
