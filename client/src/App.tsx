@@ -33,6 +33,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/home" component={Home} />
         </>
       )}
       <Route component={NotFound} />
