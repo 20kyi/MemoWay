@@ -113,6 +113,9 @@ export const translations = {
     // Settings
     settings: {
       title: "설정",
+      darkMode: "다크모드",
+      darkModeDesc: "화면 테마를 변경합니다",
+      darkModeEnable: "다크모드 활성화",
       language: "언어 / Language",
       languageDesc: "앱 표시 언어를 선택하세요",
       font: "폰트 설정",
@@ -300,6 +303,9 @@ export const translations = {
     // Settings
     settings: {
       title: "Settings",
+      darkMode: "Dark Mode",
+      darkModeDesc: "Change the screen theme",
+      darkModeEnable: "Enable Dark Mode",
       language: "Language",
       languageDesc: "Select app display language",
       font: "Font Settings",
@@ -487,6 +493,9 @@ export const translations = {
     // Settings
     settings: {
       title: "设置",
+      darkMode: "深色模式",
+      darkModeDesc: "更改屏幕主题",
+      darkModeEnable: "启用深色模式",
       language: "语言",
       languageDesc: "选择应用显示语言",
       font: "字体设置",
@@ -674,6 +683,9 @@ export const translations = {
     // Settings
     settings: {
       title: "設定",
+      darkMode: "ダークモード",
+      darkModeDesc: "画面テーマを変更します",
+      darkModeEnable: "ダークモードを有効にする",
       language: "言語",
       languageDesc: "アプリの表示言語を選択してください",
       font: "フォント設定",
@@ -829,6 +841,7 @@ type Translation = {
     createGroup: string;
     joinGroup: string;
     newGroup: string;
+    editGroup: string;
     groupName: string;
     groupNamePlaceholder: string;
     myName: string;
@@ -842,6 +855,7 @@ type Translation = {
     noGroups: string;
     noGroupsDesc: string;
     members: string;
+    memberCount: string;
     copyInviteCode: string;
     deleteGroup: string;
     confirmDeleteGroup: string;
@@ -852,6 +866,9 @@ type Translation = {
   };
   settings: {
     title: string;
+    darkMode: string;
+    darkModeDesc: string;
+    darkModeEnable: string;
     language: string;
     languageDesc: string;
     font: string;

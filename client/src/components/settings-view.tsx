@@ -118,16 +118,16 @@ export function SettingsView({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {theme === "dark" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-            다크모드
+            {t.settings.darkMode}
           </CardTitle>
           <CardDescription>
-            화면 테마를 변경합니다
+            {t.settings.darkModeDesc}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <Label htmlFor="theme" className="cursor-pointer">
-              다크모드 활성화
+              {t.settings.darkModeEnable}
             </Label>
             <Switch
               id="theme"
