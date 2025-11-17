@@ -39,7 +39,6 @@ export function FontProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem("fontSize", fontSize.toString());
     document.documentElement.style.setProperty("--font-size-base", `${fontSize}px`);
-    document.body.style.fontSize = `${fontSize}px`;
   }, [fontSize]);
 
   const setFontFamily = (newFont: FontFamily) => {
