@@ -88,24 +88,63 @@ export default function Home() {
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(["all"]);
   const { toast } = useToast();
 
+  // Function to move map to specific location
+  const moveToLocation = useCallback((lat: number, lng: number, memo?: MemoWithDetails) => {
+    if (mapInstance) {
+      const moveLatLon = new window.kakao.maps.LatLng(lat, lng);
+      mapInstance.panTo(moveLatLon);
+      
+      // Switch to map tab
+      setActiveTab("map");
+      
+      // If memo is provided, open its detail after a short delay
+      if (memo) {
+        setTimeout(() => {
+          setSelectedMemo(memo);
+          setMemoDetailOpen(true);
+        }, 300);
+      }
+    }
+  }, [mapInstance]);
+
   // WebSocket for real-time updates
   const handleWebSocketMessage = useCallback((data: any) => {
     if (data.type === "memo_created" || data.type === "memo_deleted" || data.type === "memo_updated") {
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       
-      if (data.type === "memo_created") {
+      if (data.type === "memo_created" && data.memo) {
         toast({
           title: t.toast.newMemo,
           description: `${data.memo?.buildingName}${t.toast.newMemoDesc}`,
+          action: (
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => moveToLocation(data.memo.latitude, data.memo.longitude, data.memo)}
+              data-testid="button-view-memo-location"
+            >
+              {t.toast.viewLocation || "위치 보기"}
+            </Button>
+          ),
         });
-      } else if (data.type === "memo_updated") {
+      } else if (data.type === "memo_updated" && data.memo) {
         toast({
           title: t.toast.memoUpdated,
           description: `${data.memo?.buildingName}${t.toast.memoUpdatedDesc}`,
+          action: (
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => moveToLocation(data.memo.latitude, data.memo.longitude, data.memo)}
+              data-testid="button-view-memo-location"
+            >
+              {t.toast.viewLocation || "위치 보기"}
+            </Button>
+          ),
         });
       }
     }
-  }, [toast, t]);
+  }, [toast, t, moveToLocation]);
 
   useWebSocket(handleWebSocketMessage);
 

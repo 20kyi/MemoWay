@@ -173,6 +173,7 @@ export const translations = {
       leadershipTransferError: "방장 이양 실패",
       deleteSuccess: "삭제 완료",
       deleteError: "삭제 실패",
+      viewLocation: "위치 보기",
     },
     // Time
     time: {
@@ -357,6 +358,7 @@ export const translations = {
       leadershipTransferError: "Transfer Failed",
       deleteSuccess: "Deleted successfully",
       deleteError: "Delete failed",
+      viewLocation: "View Location",
     },
     // Time
     time: {
@@ -541,6 +543,7 @@ export const translations = {
       leadershipTransferError: "转让失败",
       deleteSuccess: "删除成功",
       deleteError: "删除失败",
+      viewLocation: "查看位置",
     },
     // Time
     time: {
@@ -725,6 +728,7 @@ export const translations = {
       leadershipTransferError: "譲渡失敗",
       deleteSuccess: "削除しました",
       deleteError: "削除に失敗しました",
+      viewLocation: "位置を表示",
     },
     // Time
     time: {
