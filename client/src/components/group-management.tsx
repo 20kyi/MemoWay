@@ -65,22 +65,13 @@ interface GroupManagementProps {
   myMemberIds: string[];
   personalMemberId?: string | null;
   isLoading?: boolean;
-  autoInviteCode?: string;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, isLoading = false, autoInviteCode }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const { toast } = useToast();
-
-  // 초대 링크로 접속 시 자동으로 다이얼로그 열기
-  useEffect(() => {
-    if (autoInviteCode && autoInviteCode.trim()) {
-      joinForm.setValue("inviteCode", autoInviteCode);
-      setJoinDialogOpen(true);
-    }
-  }, [autoInviteCode]);
 
   const groupFormSchema = z.object({
     name: z.string().min(1, t.groups.groupName),
@@ -122,12 +113,11 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
     setJoinDialogOpen(false);
   };
 
-  const handleShareInvite = (inviteCode: string) => {
-    const inviteUrl = `${window.location.origin}?join=${inviteCode}`;
-    navigator.clipboard.writeText(inviteUrl);
+  const handleCopyInviteCode = (inviteCode: string) => {
+    navigator.clipboard.writeText(inviteCode);
     toast({
-      title: t.groups.inviteLinkCopied,
-      description: t.groups.inviteLinkCopied,
+      title: t.groups.inviteCodeCopied,
+      description: `${t.groups.inviteCode}: ${inviteCode}`,
     });
   };
 
@@ -447,11 +437,11 @@ export function GroupManagement({ groups, onCreateGroup, onJoinGroup, onLeaveGro
                 <Button
                   variant="outline"
                   className="flex-1 rounded-full border-2 hover:border-primary/50 hover:bg-primary/5"
-                  onClick={() => handleShareInvite(group.inviteCode)}
-                  data-testid={`button-share-${group.id}`}
+                  onClick={() => handleCopyInviteCode(group.inviteCode)}
+                  data-testid={`button-copy-code-${group.id}`}
                 >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  {t.groups.copyInviteLink}
+                  <Copy className="h-4 w-4 mr-2" />
+                  {t.groups.copyInviteCode}
                 </Button>
                 {(() => {
                   const myMember = group.members.find(m => myMemberIds.includes(m.id));

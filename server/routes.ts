@@ -58,7 +58,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const { name, memberName, color, markerIcon } = bodySchema.parse(req.body);
-      const inviteCode = randomBytes(6).toString("hex");
+      
+      // 6자리 대문자 영숫자 초대 코드 생성
+      const generateInviteCode = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        const bytes = randomBytes(6);
+        for (let i = 0; i < 6; i++) {
+          code += chars[bytes[i] % chars.length];
+        }
+        return code;
+      };
+      const inviteCode = generateInviteCode();
       
       const group = await storage.createGroup({ name, inviteCode, color, markerIcon });
       const member = await storage.createMember({ 

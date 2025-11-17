@@ -95,12 +95,12 @@ export const translations = {
       markerShape: "마커 모양",
       inviteCode: "초대 코드",
       inviteCodePlaceholder: "6자리 코드 입력",
-      inviteLinkCopied: "초대 링크 복사됨",
+      inviteCodeCopied: "초대 코드 복사됨",
       leftGroup: "그룹에서 나갔습니다",
       noGroups: "아직 참여한 그룹이 없습니다",
       noGroupsDesc: "새 그룹을 만들거나 초대 코드로 참여하세요",
       members: "명",
-      copyInviteLink: "초대 링크 복사",
+      copyInviteCode: "초대 코드 복사",
     },
     // Settings
     settings: {
@@ -159,6 +159,8 @@ export const translations = {
       groupJoinedDesc: "그룹에 참여했습니다",
       groupLeft: "그룹 나가기 완료",
       groupLeftDesc: "그룹에서 나갔습니다",
+      deleteSuccess: "삭제 완료",
+      deleteError: "삭제 실패",
     },
     // Time
     time: {
@@ -265,12 +267,12 @@ export const translations = {
       markerShape: "Marker Shape",
       inviteCode: "Invite Code",
       inviteCodePlaceholder: "Enter 6-digit code",
-      inviteLinkCopied: "Invite link copied",
+      inviteCodeCopied: "Invite code copied",
       leftGroup: "Left the group",
       noGroups: "No groups joined yet",
       noGroupsDesc: "Create a new group or join with an invite code",
       members: " members",
-      copyInviteLink: "Copy Invite Link",
+      copyInviteCode: "Copy Invite Code",
     },
     // Settings
     settings: {
@@ -329,6 +331,8 @@ export const translations = {
       groupJoinedDesc: "You have joined the group",
       groupLeft: "Left Group",
       groupLeftDesc: "You have left the group",
+      deleteSuccess: "Deleted successfully",
+      deleteError: "Delete failed",
     },
     // Time
     time: {
@@ -435,12 +439,12 @@ export const translations = {
       markerShape: "标记形状",
       inviteCode: "邀请码",
       inviteCodePlaceholder: "输入6位数代码",
-      inviteLinkCopied: "邀请链接已复制",
+      inviteCodeCopied: "邀请码已复制",
       leftGroup: "已退出群组",
       noGroups: "尚未加入任何群组",
       noGroupsDesc: "创建新群组或使用邀请码加入",
       members: "名成员",
-      copyInviteLink: "复制邀请链接",
+      copyInviteCode: "复制邀请码",
     },
     // Settings
     settings: {
@@ -499,6 +503,8 @@ export const translations = {
       groupJoinedDesc: "您已加入该群组",
       groupLeft: "退出群组成功",
       groupLeftDesc: "您已退出该群组",
+      deleteSuccess: "删除成功",
+      deleteError: "删除失败",
     },
     // Time
     time: {
@@ -605,12 +611,12 @@ export const translations = {
       markerShape: "マーカー形状",
       inviteCode: "招待コード",
       inviteCodePlaceholder: "6桁のコードを入力",
-      inviteLinkCopied: "招待リンクをコピーしました",
+      inviteCodeCopied: "招待コードをコピーしました",
       leftGroup: "グループから退出しました",
       noGroups: "まだグループに参加していません",
       noGroupsDesc: "新しいグループを作成するか、招待コードで参加してください",
       members: "名のメンバー",
-      copyInviteLink: "招待リンクをコピー",
+      copyInviteCode: "招待コードをコピー",
     },
     // Settings
     settings: {
@@ -669,6 +675,8 @@ export const translations = {
       groupJoinedDesc: "グループに参加しました",
       groupLeft: "グループから退出しました",
       groupLeftDesc: "グループから退出しました",
+      deleteSuccess: "削除しました",
+      deleteError: "削除に失敗しました",
     },
     // Time
     time: {
@@ -769,12 +777,12 @@ type Translation = {
     markerShape: string;
     inviteCode: string;
     inviteCodePlaceholder: string;
-    inviteLinkCopied: string;
+    inviteCodeCopied: string;
     leftGroup: string;
     noGroups: string;
     noGroupsDesc: string;
     members: string;
-    copyInviteLink: string;
+    copyInviteCode: string;
   };
   settings: {
     title: string;
@@ -817,6 +825,22 @@ type Translation = {
     newMemoDesc: string;
     memoUpdated: string;
     memoUpdatedDesc: string;
+    personalSetupFailed: string;
+    personalSetupFailedDesc: string;
+    memoCreated: string;
+    memoCreatedDesc: string;
+    memoEditSuccess: string;
+    memoEditSuccessDesc: string;
+    memoDeleted: string;
+    memoDeletedDesc: string;
+    groupCreated: string;
+    groupCreatedDesc: string;
+    groupJoined: string;
+    groupJoinedDesc: string;
+    groupLeft: string;
+    groupLeftDesc: string;
+    deleteSuccess: string;
+    deleteError: string;
   };
   time: {
     ago: string;
