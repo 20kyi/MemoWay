@@ -394,13 +394,16 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div 
-                      className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm" 
-                      style={{ backgroundColor: `${group.color}20` }}
+                      className="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center shadow-lg border-2" 
+                      style={{ 
+                        backgroundColor: `${group.color}40`,
+                        borderColor: `${group.color}80`
+                      }}
                       data-testid={`color-dot-${group.id}`}
                     >
                       {(() => {
                         const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
-                        return <IconComponent className="h-5 w-5" style={{ color: group.color }} />;
+                        return <IconComponent className="h-6 w-6" style={{ color: group.color }} />;
                       })()}
                     </div>
                     <h3 className="text-xl font-semibold truncate">{group.name}</h3>
