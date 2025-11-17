@@ -89,6 +89,7 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
   
   // If photo is provided, create photo marker (speech bubble)
   if (photoUrl) {
+    const clipId = `photoClip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     return `
       <div 
         style="
@@ -102,8 +103,8 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
       >
         <svg width="${width}" height="${height}" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
           <defs>
-            <clipPath id="photoClip-${Math.random()}">
-              <circle cx="18" cy="14" r="10"/>
+            <clipPath id="${clipId}">
+              <circle cx="18" cy="14" r="9.5"/>
             </clipPath>
           </defs>
           <!-- 말풍선 본체 -->
@@ -115,11 +116,21 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
           <path d="M 14 28 L 18 38 L 22 28 Z" 
                 fill="${color}" 
                 stroke="#ffffff" 
+                stroke="#ffffff" 
                 stroke-width="2.5"
                 stroke-linejoin="round"/>
           <!-- 사진 배경 -->
-          <circle cx="18" cy="14" r="10.5" fill="#ffffff"/>
-          <image href="${photoUrl}" x="8" y="4" width="20" height="20" clip-path="url(#photoClip-${Math.random()})" preserveAspectRatio="xMidYMid slice"/>
+          <circle cx="18" cy="14" r="10" fill="#ffffff"/>
+          <!-- 사진 -->
+          <image 
+            href="${photoUrl}" 
+            x="8.5" 
+            y="4.5" 
+            width="19" 
+            height="19" 
+            clip-path="url(#${clipId})" 
+            preserveAspectRatio="xMidYMid slice"
+            style="object-fit: cover;"/>
         </svg>
       </div>
     `;
@@ -170,6 +181,7 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
   
   // If photo is provided, create photo marker with count badge (speech bubble)
   if (photoUrl) {
+    const clipId = `photoClipCluster-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     return `
       <div 
         style="
@@ -184,8 +196,8 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
       >
         <svg width="${width}" height="${height}" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
           <defs>
-            <clipPath id="photoClipCluster-${Math.random()}">
-              <circle cx="18" cy="14" r="10"/>
+            <clipPath id="${clipId}">
+              <circle cx="18" cy="14" r="9.5"/>
             </clipPath>
           </defs>
           <!-- 말풍선 본체 -->
@@ -200,8 +212,17 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
                 stroke-width="2.5"
                 stroke-linejoin="round"/>
           <!-- 사진 배경 -->
-          <circle cx="18" cy="14" r="10.5" fill="#ffffff"/>
-          <image href="${photoUrl}" x="8" y="4" width="20" height="20" clip-path="url(#photoClipCluster-${Math.random()})" preserveAspectRatio="xMidYMid slice"/>
+          <circle cx="18" cy="14" r="10" fill="#ffffff"/>
+          <!-- 사진 -->
+          <image 
+            href="${photoUrl}" 
+            x="8.5" 
+            y="4.5" 
+            width="19" 
+            height="19" 
+            clip-path="url(#${clipId})" 
+            preserveAspectRatio="xMidYMid slice"
+            style="object-fit: cover;"/>
         </svg>
         <div style="
           position: absolute;
