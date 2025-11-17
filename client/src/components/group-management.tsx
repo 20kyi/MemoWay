@@ -56,7 +56,7 @@ interface Group {
   inviteCode: string;
   color: string;
   markerIcon?: string;
-  members: Array<{ id: string; name: string; role: string }>;
+  members: Array<{ id: string; name: string; role: string; userId: string }>;
   memoCount?: number;
 }
 
@@ -72,10 +72,11 @@ interface GroupManagementProps {
   onTransferLeadership?: (groupId: string, newLeaderId: string) => void;
   myMemberIds: string[];
   personalMemberId?: string | null;
+  userId?: string;
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, userId, isLoading = false }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -442,7 +443,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   {t.groups.copyInviteCode}
                 </Button>
                 {(() => {
-                  const myMember = group.members.find(m => myMemberIds.includes(m.id));
+                  const myMember = group.members.find(m => m.userId === userId);
                   const isLeader = myMember?.role === 'leader';
                   
                   return (
@@ -550,7 +551,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         const group = groups.find(g => g.id === memberDialogOpen);
         if (!group) return null;
 
-        const currentUserMember = group.members.find(m => myMemberIds.includes(m.id));
+        const currentUserMember = group.members.find(m => m.userId === userId);
         const isCurrentUserLeader = currentUserMember?.role === 'leader';
 
         return (
@@ -565,7 +566,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {group.members.map(member => {
                   const isLeader = member.role === 'leader';
-                  const isCurrentUser = myMemberIds.includes(member.id);
+                  const isCurrentUser = member.userId === userId;
                   const canRemove = isCurrentUserLeader && !isCurrentUser && onRemoveMember;
                   const canTransfer = isCurrentUserLeader && !isLeader && onTransferLeadership;
 

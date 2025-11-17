@@ -863,6 +863,7 @@ export default function Home() {
             )}
             myMemberIds={myMemberIds}
             personalMemberId={personalMemberId}
+            userId={(user as any)?.id}
             onCreateGroup={(data) => createGroupMutation.mutate(data)}
             onUpdateGroup={(groupId, data) => updateGroupMutation.mutate({ groupId, ...data })}
             onJoinGroup={(inviteCode, memberName) => {
