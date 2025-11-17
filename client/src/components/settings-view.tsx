@@ -64,7 +64,7 @@ export function SettingsView({
       <h1 className="text-2xl font-medium mb-6">{t.settings.title}</h1>
 
       {user ? (
-        <Card>
+        <Card className="rounded-3xl bg-card/80 backdrop-blur-sm border-2 border-primary/30 shadow-lg hover:shadow-2xl transition-all">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex-1">
@@ -114,7 +114,7 @@ export function SettingsView({
         </Card>
       ) : null}
 
-      <Card>
+      <Card className="rounded-3xl bg-card/80 backdrop-blur-sm border-2 border-purple-500/40 shadow-lg hover:shadow-2xl transition-all">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {theme === "dark" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
@@ -139,7 +139,7 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-3xl bg-card/80 backdrop-blur-sm border-2 border-primary/30 shadow-lg hover:shadow-2xl transition-all">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Languages className="h-5 w-5" />
@@ -168,7 +168,7 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-3xl bg-card/80 backdrop-blur-sm border-2 border-primary/30 shadow-lg hover:shadow-2xl transition-all">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Type className="h-5 w-5" />
@@ -218,7 +218,7 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-3xl bg-card/80 backdrop-blur-sm border-2 border-purple-500/40 shadow-lg hover:shadow-2xl transition-all">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
@@ -265,7 +265,7 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-3xl bg-card/80 backdrop-blur-sm border-2 border-primary/30 shadow-lg hover:shadow-2xl transition-all">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
@@ -290,7 +290,7 @@ export function SettingsView({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-3xl bg-card/80 backdrop-blur-sm border-2 border-primary/30 shadow-lg hover:shadow-2xl transition-all">
         <CardHeader>
           <CardTitle>{t.settings.appInfo}</CardTitle>
         </CardHeader>
