@@ -704,11 +704,30 @@ export function MapView({
           </div>
 
           {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
-          <div className="fixed bottom-20 right-4 flex flex-col gap-3 z-50">
+          <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
+            {/* GPS 위치 이동 버튼 */}
+            <Button
+              size="icon"
+              className="h-10 w-10 rounded-lg shadow-lg bg-background"
+              onClick={() => {
+                if (navigator.geolocation && map) {
+                  navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const latlng = new window.kakao.maps.LatLng(lat, lng);
+                    map.setCenter(latlng);
+                  });
+                }
+              }}
+              data-testid="button-my-location"
+            >
+              <Navigation className="h-5 w-5" />
+            </Button>
+
             {/* 그룹 필터 버튼 */}
             <Button
               size="icon"
-              className="h-12 w-12 rounded-full shadow-lg relative overflow-visible"
+              className="h-10 w-10 rounded-lg shadow-lg relative overflow-visible bg-background"
               onClick={() => setGroupFilterOpen(true)}
               data-testid="button-group-filter"
               style={(() => {
@@ -759,7 +778,7 @@ export function MapView({
             {/* 마커 필터 버튼 */}
             <Button
               size="icon"
-              className="h-12 w-12 rounded-full shadow-lg relative"
+              className="h-10 w-10 rounded-lg shadow-lg relative bg-background"
               onClick={() => setMarkerFilterOpen(true)}
               data-testid="button-marker-filter"
             >
