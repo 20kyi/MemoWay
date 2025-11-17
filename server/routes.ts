@@ -340,14 +340,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mainPhotoIndex: z.string().optional(),
       });
       
-      const { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon, mainPhotoIndex } = bodySchema.parse(req.body);
+      let { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon, mainPhotoIndex } = bodySchema.parse(req.body);
       
-      // Verify member exists and belongs to a group the user can access
+      // Verify member and get correct member ID
       const userId = req.user.claims.sub;
       const userGroups = await storage.getGroups(userId);
-      const memberExists = userGroups.some(g => g.members.some(m => m.id === memberId));
-      if (!memberExists) {
-        return res.status(403).json({ error: "유효하지 않은 멤버입니다" });
+      
+      // If groupId is provided, find the user's member in that group
+      if (groupId) {
+        const targetGroup = userGroups.find(g => g.id === groupId);
+        if (!targetGroup) {
+          return res.status(403).json({ error: "접근 권한이 없는 그룹입니다" });
+        }
+        
+        // Find the user's member in this group
+        const userMember = targetGroup.members.find(m => m.userId === userId);
+        if (!userMember) {
+          return res.status(403).json({ error: "해당 그룹의 멤버가 아닙니다" });
+        }
+        
+        // Use the correct member ID for this group
+        memberId = userMember.id;
+      } else {
+        // For personal memos, verify the provided memberId belongs to the user
+        const memberExists = userGroups.some(g => g.members.some(m => m.id === memberId && m.userId === userId));
+        if (!memberExists) {
+          return res.status(403).json({ error: "유효하지 않은 멤버입니다" });
+        }
       }
       
       const memo = await storage.createMemo({
