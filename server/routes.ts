@@ -343,30 +343,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon, mainPhotoIndex } = bodySchema.parse(req.body);
       
       // Verify member and get correct member ID
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "인증이 필요합니다" });
+      }
+      
       const userGroups = await storage.getGroups(userId);
+      
+      console.log('메모 생성 요청:', { userId, memberId, groupId, userGroupsCount: userGroups.length });
       
       // If groupId is provided, find the user's member in that group
       if (groupId) {
         const targetGroup = userGroups.find(g => g.id === groupId);
         if (!targetGroup) {
+          console.log('그룹을 찾을 수 없음:', groupId);
           return res.status(403).json({ error: "접근 권한이 없는 그룹입니다" });
         }
         
         // Find the user's member in this group
         const userMember = targetGroup.members.find(m => m.userId === userId);
         if (!userMember) {
+          console.log('그룹의 멤버가 아님:', { groupId, userId, members: targetGroup.members.map(m => ({ id: m.id, userId: m.userId })) });
           return res.status(403).json({ error: "해당 그룹의 멤버가 아닙니다" });
         }
         
         // Use the correct member ID for this group
         memberId = userMember.id;
+        console.log('그룹 메모 생성 - memberId:', memberId);
       } else {
         // For personal memos, verify the provided memberId belongs to the user
-        const memberExists = userGroups.some(g => g.members.some(m => m.id === memberId && m.userId === userId));
+        console.log('개인 메모 검증:', { memberId, userId });
+        
+        // Find all members that belong to this user
+        const userMembers = userGroups.flatMap(g => g.members.filter(m => m.userId === userId));
+        console.log('사용자의 모든 멤버:', userMembers.map(m => ({ id: m.id, name: m.name, groupId: userGroups.find(g => g.members.some(mem => mem.id === m.id))?.id })));
+        
+        const memberExists = userMembers.some(m => m.id === memberId);
         if (!memberExists) {
+          console.log('멤버를 찾을 수 없음:', { memberId, availableMembers: userMembers.map(m => m.id) });
           return res.status(403).json({ error: "유효하지 않은 멤버입니다" });
         }
+        console.log('개인 메모 생성 - 멤버 검증 성공');
       }
       
       const memo = await storage.createMemo({
