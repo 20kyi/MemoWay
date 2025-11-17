@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/language-context";
 import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
@@ -33,6 +34,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 export default function Home() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"map" | "memos" | "groups" | "settings">("map");
   const [memoFormOpen, setMemoFormOpen] = useState(false);
   const [memoDetailOpen, setMemoDetailOpen] = useState(false);
