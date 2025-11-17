@@ -39,10 +39,13 @@ The backend uses Express.js with TypeScript and ESM modules, providing a RESTful
 - **Quick Memo Creation**: Option to add new memos at the same location directly from a memo's detail view.
 - **Map Marker Filtering**: Dual filter system (marker icon + group) to show only selected categories and groups on the map.
 - **Multi-Selection and Bulk Delete**: Long-press (500ms) to enter selection mode, select multiple memos with checkboxes, and delete them all at once.
+- **Group Leader Permissions**: Comprehensive role-based access control system with group leaders having special authority to delete groups, remove members, regenerate invite codes, and transfer leadership. Leaders are visually distinguished with crown badges in the UI.
 
 ### System Design Choices
 
 The architecture employs a Repository pattern for data access and utilizes shared Zod schemas for validation between client and server. UUIDs are used for primary keys. Database schema includes `users`, `sessions`, `groups`, `members`, `memos`, and `photos` tables, with relationships designed for data integrity via cascade deletes. Denormalization is used for performance where appropriate. A user can be associated with multiple members (different names/roles) across various groups through a `userId` foreign key in the `members` table.
+
+**Security Architecture**: All group-related API endpoints use scoped storage helpers (`getGroupForUser`, `getGroupById`) to ensure users can only access groups where they are members. Role-based access control (RBAC) is enforced via `requireLeaderRole` and `checkMemberRole` helper methods. The `members` table includes a `role` field ('leader'|'member') with the group creator automatically assigned leader status. All data queries are scoped to authenticated users to prevent cross-tenant data exposure.
 
 ## External Dependencies
 
