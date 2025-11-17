@@ -475,7 +475,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           data-testid={`button-edit-${group.id}`}
                         >
                           <Edit className="h-4 w-4 mr-2" />
-                          수정
+                          {t.common.edit}
                         </Button>
                       )}
                       {myMember && (
@@ -486,7 +486,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           data-testid={`button-members-${group.id}`}
                         >
                           <Users className="h-4 w-4 mr-2" />
-                          참여인원
+                          {t.groups.memberCount}
                         </Button>
                       )}
                       {myMember && (
@@ -512,7 +512,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>그룹 정보 수정</DialogTitle>
+            <DialogTitle>{t.groups.editGroup}</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(handleUpdateGroup)} className="space-y-4">
@@ -648,10 +648,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   }}
                   data-testid="button-cancel-edit"
                 >
-                  취소
+                  {t.common.cancel}
                 </Button>
                 <Button type="submit" className="flex-1" data-testid="button-submit-edit-group">
-                  수정
+                  {t.common.edit}
                 </Button>
               </div>
             </form>
@@ -673,7 +673,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  참여인원 ({group.members.length}명)
+                  {t.groups.memberCount} ({group.members.length}{t.groups.members})
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-2 max-h-96 overflow-y-auto">
