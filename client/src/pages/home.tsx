@@ -216,46 +216,53 @@ export default function Home() {
   // 개인 메모용 멤버 자동 생성
   useEffect(() => {
     // groups 쿼리가 완료될 때까지 대기
-    if (!groupsIsFetched) {
+    if (!groupsIsFetched || !user) {
       return;
     }
 
     // 이미 개인 메모 그룹이 있는지 확인
     const existingPersonalGroup = groups.find(g => g.name === "개인 메모");
     if (existingPersonalGroup && existingPersonalGroup.members.length > 0) {
-      if (!personalMemberId || personalMemberId !== existingPersonalGroup.members[0].id) {
-        setPersonalMemberId(existingPersonalGroup.members[0].id);
-        localStorage.setItem("personalMemberId", existingPersonalGroup.members[0].id);
+      // 현재 사용자의 멤버 찾기
+      const currentUserId = (user as any).id;
+      const myMember = existingPersonalGroup.members.find(m => m.userId === currentUserId);
+      
+      if (myMember) {
+        // 현재 personalMemberId가 내 멤버 ID와 다르면 업데이트
+        if (!personalMemberId || personalMemberId !== myMember.id) {
+          console.log('개인 메모 멤버 ID 업데이트:', myMember.id);
+          setPersonalMemberId(myMember.id);
+          localStorage.setItem("personalMemberId", myMember.id);
+        }
+        return;
       }
-      return;
     }
 
-    // 개인 메모 그룹이 없고 personalMemberId도 없으면 생성
-    if (!personalMemberId) {
-      const createPersonalMember = async () => {
-        try {
-          const response = await apiRequest("POST", "/api/groups", {
-            name: "개인 메모",
-            memberName: "나",
-          });
-          if (response.member?.id) {
-            setPersonalMemberId(response.member.id);
-            localStorage.setItem("personalMemberId", response.member.id);
-            // groups 쿼리 무효화하여 최신 상태 유지
-            queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
-          }
-        } catch (error) {
-          console.error("개인 메모 멤버 생성 실패:", error);
-          toast({
-            title: t.toast.personalSetupFailed,
-            description: t.toast.personalSetupFailedDesc,
-            variant: "destructive",
-          });
+    // 개인 메모 그룹이 없거나 내 멤버가 없으면 생성
+    const createPersonalMember = async () => {
+      try {
+        const response = await apiRequest("POST", "/api/groups", {
+          name: "개인 메모",
+          memberName: "나",
+        });
+        if (response.member?.id) {
+          console.log('개인 메모 멤버 생성 완료:', response.member.id);
+          setPersonalMemberId(response.member.id);
+          localStorage.setItem("personalMemberId", response.member.id);
+          // groups 쿼리 무효화하여 최신 상태 유지
+          queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
         }
-      };
-      createPersonalMember();
-    }
-  }, [personalMemberId, groups, groupsIsFetched, toast, queryClient]);
+      } catch (error) {
+        console.error("개인 메모 멤버 생성 실패:", error);
+        toast({
+          title: t.toast.personalSetupFailed,
+          description: t.toast.personalSetupFailedDesc,
+          variant: "destructive",
+        });
+      }
+    };
+    createPersonalMember();
+  }, [personalMemberId, groups, groupsIsFetched, user, toast, queryClient, t]);
 
   const createMemoMutation = useMutation({
     mutationFn: async (data: any) => {
