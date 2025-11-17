@@ -39,12 +39,17 @@ export const groups = pgTable("groups", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Member roles
+export const memberRoles = ['leader', 'member'] as const;
+export type MemberRole = typeof memberRoles[number];
+
 // Members table (users in groups)
 export const members = pgTable("members", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   groupId: varchar("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
+  role: varchar("role").notNull().default('member'),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
 });
 
@@ -131,6 +136,8 @@ export const insertGroupSchema = createInsertSchema(groups).omit({
 export const insertMemberSchema = createInsertSchema(members).omit({
   id: true,
   joinedAt: true,
+}).extend({
+  role: z.enum(memberRoles).default('member'),
 });
 
 export const insertMemoSchema = createInsertSchema(memos).omit({

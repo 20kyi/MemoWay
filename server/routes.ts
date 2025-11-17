@@ -64,7 +64,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const member = await storage.createMember({ 
         groupId: group.id, 
         name: memberName,
-        userId 
+        userId,
+        role: 'leader'
       });
       
       res.json({ group, member });
@@ -95,7 +96,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const member = await storage.createMember({ 
         groupId: group.id, 
         name: memberName,
-        userId 
+        userId,
+        role: 'member'
       });
       
       res.json({ group, member });
