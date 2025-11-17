@@ -518,17 +518,26 @@ export default function Home() {
       return apiRequest("POST", `/api/groups/${groupId}/copy-to-personal`);
     },
     onSuccess: (data: any) => {
+      // 먼저 myMemberIds에 새 멤버 ID 추가
       if (data.member?.id) {
+        const newMemberId = data.member.id;
         setMyMemberIds(prev => {
-          if (prev.includes(data.member.id)) return prev;
-          const newIds = [...prev, data.member.id];
+          if (prev.includes(newMemberId)) return prev;
+          const newIds = [...prev, newMemberId];
           localStorage.setItem("myMemberIds", JSON.stringify(newIds));
           return newIds;
         });
+        
+        // state 업데이트 후 query invalidate (약간의 지연)
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+        }, 100);
+      } else {
+        // member 정보가 없으면 바로 invalidate
+        queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       }
-
-      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       
       toast({
         title: "✅ 그룹 복사 완료",
