@@ -573,21 +573,21 @@ export function MapView({
     markerContent.innerHTML = `
       <div style="
         position: relative;
-        width: 48px;
-        height: 48px;
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
         background: #3b82f6;
         border-radius: 50%;
-        border: 3px solid #ffffff;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         cursor: default;
       ">
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
-          width="28" 
-          height="28" 
+          width="18" 
+          height="18" 
           viewBox="0 0 24 24" 
           fill="none" 
           stroke="#ffffff" 
