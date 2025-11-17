@@ -568,33 +568,44 @@ export function MapView({
 
     const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
 
-    // 내 위치 원형 마커
-    const circle = new window.kakao.maps.Circle({
-      center: position,
-      radius: 50,
-      strokeWeight: 3,
-      strokeColor: '#2563eb',
-      strokeOpacity: 1,
-      fillColor: '#3b82f6',
-      fillOpacity: 0.4,
-    });
-    circle.setMap(map);
+    // 귀여운 사람 모양 마커
+    const markerContent = document.createElement('div');
+    markerContent.innerHTML = `
+      <div style="position: relative; width: 40px; height: 50px; cursor: default;">
+        <svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
+          <!-- 그림자 -->
+          <ellipse cx="20" cy="47" rx="8" ry="2" fill="#000000" opacity="0.2"/>
+          
+          <!-- 몸통 -->
+          <circle cx="20" cy="12" r="7" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/>
+          <rect x="14" y="18" width="12" height="16" rx="6" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/>
+          
+          <!-- 팔 -->
+          <line x1="14" y1="22" x2="8" y2="28" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+          <line x1="26" y1="22" x2="32" y2="28" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+          
+          <!-- 다리 -->
+          <line x1="17" y1="34" x2="15" y2="44" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+          <line x1="23" y1="34" x2="25" y2="44" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+          
+          <!-- 얼굴 -->
+          <circle cx="17" cy="10" r="1.5" fill="#ffffff"/>
+          <circle cx="23" cy="10" r="1.5" fill="#ffffff"/>
+          <path d="M 17 14 Q 20 16 23 14" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+    `;
 
-    // 중심점 마커 (작은 점)
-    const centerMarker = new window.kakao.maps.Circle({
-      center: position,
-      radius: 8,
-      strokeWeight: 2,
-      strokeColor: '#ffffff',
-      strokeOpacity: 1,
-      fillColor: '#2563eb',
-      fillOpacity: 1,
+    const userMarker = new window.kakao.maps.CustomOverlay({
+      position: position,
+      content: markerContent,
+      yAnchor: 1,
     });
-    centerMarker.setMap(map);
+    
+    userMarker.setMap(map);
 
     return () => {
-      circle.setMap(null);
-      centerMarker.setMap(null);
+      userMarker.setMap(null);
     };
   }, [map, userLocation]);
 
