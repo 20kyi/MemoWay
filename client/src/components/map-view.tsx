@@ -823,7 +823,7 @@ export function MapView({
             {/* GPS 위치 이동 버튼 */}
             <Button
               size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg bg-card/80 backdrop-blur-sm border-2 border-primary/30 hover:shadow-2xl transition-all"
+              className="h-10 w-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
               onClick={() => {
                 if (navigator.geolocation && map) {
                   navigator.geolocation.getCurrentPosition((position) => {
@@ -842,14 +842,14 @@ export function MapView({
               }}
               data-testid="button-my-location"
             >
-              <Navigation className="h-5 w-5 text-primary" />
+              <Navigation className="h-5 w-5 text-primary-foreground" />
             </Button>
 
             {/* 그룹 필터 버튼 */}
             <Button
               size="icon"
               className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
-                selectedGroupIds.includes("all") ? 'bg-card/80 backdrop-blur-sm border-2 border-primary/30' : ''
+                selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
               }`}
               onClick={() => setGroupFilterOpen(true)}
               data-testid="button-group-filter"
@@ -885,7 +885,7 @@ export function MapView({
               })()}
             >
               <Users className={`h-5 w-5 ${
-                selectedGroupIds.includes("all") ? 'text-primary' : ''
+                selectedGroupIds.includes("all") ? 'text-primary-foreground' : ''
               }`} style={{
                 color: selectedGroupIds.includes("all") ? undefined : 'white',
                 filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
@@ -903,11 +903,11 @@ export function MapView({
             {/* 마커 필터 버튼 */}
             <Button
               size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg relative bg-card/80 backdrop-blur-sm border-2 border-primary/30 hover:shadow-2xl transition-all"
+              className="h-10 w-10 rounded-lg shadow-lg relative bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
               onClick={() => setMarkerFilterOpen(true)}
               data-testid="button-marker-filter"
             >
-              <Filter className="h-5 w-5 text-primary" />
+              <Filter className="h-5 w-5 text-primary-foreground" />
               {!selectedMarkerIcons.includes("all") && (
                 <Badge 
                   className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
