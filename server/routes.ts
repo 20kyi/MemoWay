@@ -535,12 +535,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "메모를 찾을 수 없습니다" });
       }
       
-      // Set editorMemberId to the current user's member ID in the memo's group
+      // Check edit permissions
       const userId = (req as any).user.claims.sub;
+      let canEdit = false;
+      let currentMember = null;
+      
+      // Check if user is the original author
+      if (existingMemo.member.userId === userId) {
+        canEdit = true;
+      }
+      
+      // For group memos, check additional permissions
+      if (existingMemo.groupId && !canEdit) {
+        currentMember = await storage.getMemberByUserAndGroup(userId, existingMemo.groupId);
+        
+        if (currentMember) {
+          // Allow edit if user is the group leader or has canEditGroupMemos permission
+          if (currentMember.role === 'leader' || currentMember.canEditGroupMemos) {
+            canEdit = true;
+          }
+        }
+      }
+      
+      if (!canEdit) {
+        return res.status(403).json({ error: "메모를 수정할 권한이 없습니다" });
+      }
+      
+      // Set editorMemberId to the current user's member ID in the memo's group
       if (existingMemo.groupId) {
-        const editorMember = await storage.getMemberByUserAndGroup(userId, existingMemo.groupId);
-        if (editorMember) {
-          memoUpdate.editorMemberId = editorMember.id;
+        if (!currentMember) {
+          currentMember = await storage.getMemberByUserAndGroup(userId, existingMemo.groupId);
+        }
+        if (currentMember) {
+          memoUpdate.editorMemberId = currentMember.id;
         }
       }
       
