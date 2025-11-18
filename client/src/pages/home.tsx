@@ -644,6 +644,28 @@ export default function Home() {
     },
   });
 
+  const updateMemberPermissionsMutation = useMutation({
+    mutationFn: async (data: { groupId: string; memberId: string; canEditGroupMemos: boolean }) => {
+      return apiRequest("PATCH", `/api/members/${data.memberId}/permissions`, {
+        canEditGroupMemos: data.canEditGroupMemos,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      toast({
+        title: "권한 업데이트",
+        description: "멤버 권한이 업데이트되었습니다",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "권한 업데이트 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!locationEnabled || !navigator.geolocation) return;
 
@@ -896,6 +918,9 @@ export default function Home() {
             }}
             onTransferLeadership={(groupId, newLeaderId) =>
               transferLeadershipMutation.mutate({ groupId, newLeaderId })
+            }
+            onUpdateMemberPermissions={(groupId, memberId, canEditGroupMemos) =>
+              updateMemberPermissionsMutation.mutate({ groupId, memberId, canEditGroupMemos })
             }
             isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}
           />
