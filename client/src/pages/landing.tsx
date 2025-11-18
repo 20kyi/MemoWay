@@ -28,8 +28,8 @@ export default function Landing() {
   const handleGoogleLogin = () => {
     // Pass current language as query parameter
     const loginUrl = `/api/google/login?lang=${language}`;
-    // Direct navigation for Google OAuth
-    window.location.href = loginUrl;
+    // Open in new tab to avoid Replit iframe restrictions (like Kakao)
+    window.open(loginUrl, "_blank");
   };
 
   return (
