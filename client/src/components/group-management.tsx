@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
@@ -731,17 +731,21 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                         </div>
                       </div>
                       {!isLeader && isCurrentUserLeader && onUpdateMemberPermissions && (
-                        <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
-                          <span className="text-xs sm:text-sm text-muted-foreground">
-                            {t.groups.canEditGroupMemos}
-                          </span>
-                          <Switch
+                        <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
+                          <Checkbox
+                            id={`edit-permission-${member.id}`}
                             checked={member.canEditGroupMemos || false}
                             onCheckedChange={(checked) => {
-                              onUpdateMemberPermissions(group.id, member.id, checked);
+                              onUpdateMemberPermissions(group.id, member.id, checked as boolean);
                             }}
-                            data-testid={`switch-edit-permission-${member.id}`}
+                            data-testid={`checkbox-edit-permission-${member.id}`}
                           />
+                          <label
+                            htmlFor={`edit-permission-${member.id}`}
+                            className="text-xs sm:text-sm text-muted-foreground cursor-pointer flex-1"
+                          >
+                            {t.groups.canEditGroupMemos}
+                          </label>
                         </div>
                       )}
                     </div>
