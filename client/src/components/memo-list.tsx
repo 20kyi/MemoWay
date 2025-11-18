@@ -350,10 +350,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
               onMouseLeave={handleLongPressEnd}
               data-testid={`card-memo-${memo.id}`}
             >
-              <div className="absolute -top-2 left-6 w-10 h-10 bg-gradient-to-br from-primary/30 to-primary/10 rounded-full shadow-md flex items-center justify-center">
-                <div className="w-4 h-4 bg-card rounded-full shadow-inner" />
-              </div>
-              <CardHeader className="pb-3 pt-6">
+              <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   {isSelectionMode && (
                     <Checkbox
