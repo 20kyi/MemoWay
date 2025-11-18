@@ -118,6 +118,7 @@ export const translations = {
       searchPlaceholder: "그룹 이름 또는 설명으로 검색...",
       noSearchResults: "검색 결과가 없습니다",
       searchResultsCount: "개의 그룹을 찾았습니다",
+      canEditGroupMemos: "그룹 메모 수정 권한",
     },
     // Settings
     settings: {
@@ -317,6 +318,7 @@ export const translations = {
       searchPlaceholder: "Search by name or description...",
       noSearchResults: "No search results",
       searchResultsCount: " groups found",
+      canEditGroupMemos: "Can edit group memos",
     },
     // Settings
     settings: {
@@ -516,6 +518,7 @@ export const translations = {
       searchPlaceholder: "按名称或说明搜索...",
       noSearchResults: "无搜索结果",
       searchResultsCount: "个群组",
+      canEditGroupMemos: "可编辑群组备忘录",
     },
     // Settings
     settings: {
@@ -715,6 +718,7 @@ export const translations = {
       searchPlaceholder: "名前または説明で検索...",
       noSearchResults: "検索結果がありません",
       searchResultsCount: "個のグループ",
+      canEditGroupMemos: "グループメモの編集権限",
     },
     // Settings
     settings: {
@@ -908,6 +912,7 @@ type Translation = {
     searchPlaceholder: string;
     noSearchResults: string;
     searchResultsCount: string;
+    canEditGroupMemos: string;
   };
   settings: {
     title: string;
