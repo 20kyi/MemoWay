@@ -106,7 +106,7 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
         data-marker-icon="${iconType}"
         aria-label="${iconType} 마커"
       >
-        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
           <defs>
             <clipPath id="${clipId}">
               <circle cx="15" cy="15" r="8"/>
@@ -119,6 +119,7 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
           <circle cx="15" cy="15" r="8.5" fill="#ffffff"/>
           <image href="${photoUrl}" x="7" y="7" width="16" height="16" clip-path="url(#${clipId})" preserveAspectRatio="xMidYMid slice"/>
         </svg>
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;" data-click-area="true"></div>
       </div>
     `;
   }
@@ -135,7 +136,7 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
       data-marker-icon="${iconType}"
       aria-label="${iconType} 마커"
     >
-      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
         <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
               fill="${color}" 
               stroke="#ffffff" 
@@ -145,6 +146,7 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
           <path d="${iconPath}" />
         </g>
       </svg>
+      <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;" data-click-area="true"></div>
     </div>
   `;
 }
@@ -173,7 +175,7 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
         data-marker-count="${count}"
         aria-label="${iconType} 마커 클러스터 (${count}개)"
       >
-        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
           <defs>
             <clipPath id="${clipId}">
               <circle cx="15" cy="15" r="8"/>
@@ -204,6 +206,7 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
           box-shadow: 0 2px 6px rgba(0,0,0,0.3);
           pointer-events: none;
         ">${count}</div>
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;" data-click-area="true"></div>
       </div>
     `;
   }
@@ -220,7 +223,7 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
       data-marker-count="${count}"
       aria-label="${iconType} 마커 클러스터 (${count}개)"
     >
-      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
         <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
               fill="${color}" 
               stroke="#ffffff" 
@@ -248,6 +251,7 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
         box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         pointer-events: none;
       ">${count}</div>
+      <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;" data-click-area="true"></div>
     </div>
   `;
 }
