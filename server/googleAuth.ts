@@ -1,0 +1,96 @@
+import type { Express } from "express";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import passport from "passport";
+import { storage } from "./storage";
+
+export function setupGoogleAuth(app: Express) {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const replitDevDomain = process.env.REPLIT_DEV_DOMAIN;
+  
+  if (!clientId || !clientSecret) {
+    console.warn("Google OAuth credentials not configured. Google login will be unavailable.");
+    return;
+  }
+
+  const callbackURL = `https://${replitDevDomain}/api/google/callback`;
+
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: clientId,
+        clientSecret: clientSecret,
+        callbackURL: callbackURL,
+        passReqToCallback: true,
+      },
+      async (req: any, accessToken: string, refreshToken: string, profile: any, done: any) => {
+        try {
+          // Extract user info from Google profile
+          const email = profile.emails?.[0]?.value || `google_${profile.id}@placeholder.com`;
+          const firstName = profile.name?.givenName || "";
+          const lastName = profile.name?.familyName || "";
+          const profileImage = profile.photos?.[0]?.value;
+
+          // Upsert user with Google data
+          const user = await storage.upsertUser({
+            id: `google_${profile.id}`,
+            email,
+            firstName,
+            lastName,
+            profileImageUrl: profileImage || null,
+            provider: "google",
+            googleId: profile.id,
+          });
+
+          // Create user session object
+          const userSession = {
+            id: user.id,
+            claims: {
+              sub: user.id,
+              email: user.email,
+              first_name: user.firstName,
+              last_name: user.lastName,
+              profile_image_url: user.profileImageUrl,
+            },
+          };
+
+          console.log(`Google login successful for user ID: ${user.id}`);
+          done(null, userSession);
+        } catch (error) {
+          console.error("Google OAuth error:", error);
+          done(error);
+        }
+      }
+    )
+  );
+
+  // Google login initiation
+  app.get(
+    "/api/google/login",
+    (req, res, next) => {
+      // Store language in session
+      const lang = req.query.lang || 'ko';
+      (req.session as any).loginLang = lang;
+      next();
+    },
+    passport.authenticate("google", {
+      scope: ["profile", "email"],
+    })
+  );
+
+  // Google OAuth callback
+  app.get(
+    "/api/google/callback",
+    passport.authenticate("google", {
+      failureRedirect: "/",
+    }),
+    (req, res) => {
+      // Retrieve language from session
+      const lang = (req.session as any).loginLang || 'ko';
+      delete (req.session as any).loginLang;
+      
+      // Redirect to home with language parameter
+      res.redirect(`/?lang=${lang}`);
+    }
+  );
+}

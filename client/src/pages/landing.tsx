@@ -25,6 +25,13 @@ export default function Landing() {
     window.open(loginUrl, "_blank");
   };
 
+  const handleGoogleLogin = () => {
+    // Pass current language as query parameter
+    const loginUrl = `/api/google/login?lang=${language}`;
+    // Direct navigation for Google OAuth
+    window.location.href = loginUrl;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden">
       {/* Decorative hearts */}
@@ -166,7 +173,7 @@ export default function Landing() {
                 <Button 
                   size="lg" 
                   className="w-full text-lg h-16 bg-white dark:bg-gray-100 border-2 border-gray-300 text-black font-bold rounded-full shadow-lg hover:shadow-2xl transition-all active-elevate-2"
-                  onClick={() => window.location.href = `/api/login?lang=${language}`}
+                  onClick={handleGoogleLogin}
                   data-testid="button-google-login"
                 >
                   <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">

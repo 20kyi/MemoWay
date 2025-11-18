@@ -21,9 +21,10 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  // Kakao OAuth fields
+  // OAuth provider fields
   kakaoId: varchar("kakao_id").unique(),
-  // Authentication provider: 'replit' or 'kakao'
+  googleId: varchar("google_id").unique(),
+  // Authentication provider: 'replit', 'kakao', or 'google'
   provider: varchar("provider").notNull().default('replit'),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

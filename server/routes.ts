@@ -28,7 +28,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
   await setupAuth(app);
   const { setupKakaoAuth } = await import("./kakaoAuth");
+  const { setupGoogleAuth } = await import("./googleAuth");
   setupKakaoAuth(app);
+  setupGoogleAuth(app);
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
