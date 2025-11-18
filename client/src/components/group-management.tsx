@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
@@ -58,7 +59,7 @@ interface Group {
   inviteCode: string;
   color: string;
   markerIcon?: string;
-  members: Array<{ id: string; name: string; role: string; userId: string | null }>;
+  members: Array<{ id: string; name: string; role: string; userId: string | null; canEditGroupMemos: boolean }>;
   memoCount?: number;
 }
 
@@ -72,13 +73,14 @@ interface GroupManagementProps {
   onDeleteGroup?: (groupId: string) => void;
   onRemoveMember?: (groupId: string, memberId: string) => void;
   onTransferLeadership?: (groupId: string, newLeaderId: string) => void;
+  onUpdateMemberPermissions?: (groupId: string, memberId: string, canEditGroupMemos: boolean) => void;
   myMemberIds: string[];
   personalMemberId?: string | null;
   userId?: string;
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, myMemberIds, personalMemberId, userId, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, onUpdateMemberPermissions, myMemberIds, personalMemberId, userId, isLoading = false }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -675,57 +677,73 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   const canTransfer = isCurrentUserLeader && !isLeader && onTransferLeadership;
 
                   return (
-                    <div key={member.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-2 sm:p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
-                        <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
-                          <AvatarFallback className="text-xs sm:text-sm font-medium bg-muted">
-                            {member.name[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium flex-1">{member.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        {isLeader && (
-                          <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
-                            <Crown className="h-3 w-3 mr-1" />
-                            {t.groups.leader}
-                          </Badge>
-                        )}
-                        <div className="flex gap-1 flex-1 sm:flex-initial justify-end">
-                        {canTransfer && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
-                            onClick={() => {
-                              if (confirm(`${member.name}${t.groups.confirmTransferLeadership}`)) {
-                                onTransferLeadership(group.id, member.id);
+                    <div key={member.id} className="flex flex-col gap-2 p-2 sm:p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                        <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
+                          <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
+                            <AvatarFallback className="text-xs sm:text-sm font-medium bg-muted">
+                              {member.name[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium flex-1">{member.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          {isLeader && (
+                            <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
+                              <Crown className="h-3 w-3 mr-1" />
+                              {t.groups.leader}
+                            </Badge>
+                          )}
+                          <div className="flex gap-1 flex-1 sm:flex-initial justify-end">
+                          {canTransfer && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
+                              onClick={() => {
+                                if (confirm(`${member.name}${t.groups.confirmTransferLeadership}`)) {
+                                  onTransferLeadership(group.id, member.id);
+                                  setMemberDialogOpen(null);
+                                }
+                              }}
+                              data-testid={`button-transfer-${member.id}`}
+                            >
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                              위임
+                            </Button>
+                          )}
+                          {canRemove && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-destructive hover:text-destructive"
+                              onClick={() => {
+                                onRemoveMember(group.id, member.id);
                                 setMemberDialogOpen(null);
-                              }
-                            }}
-                            data-testid={`button-transfer-${member.id}`}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-1" />
-                            위임
-                          </Button>
-                        )}
-                        {canRemove && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-destructive hover:text-destructive"
-                            onClick={() => {
-                              onRemoveMember(group.id, member.id);
-                              setMemberDialogOpen(null);
-                            }}
-                            data-testid={`button-remove-${member.id}`}
-                          >
-                            <UserMinus className="h-4 w-4 mr-1" />
-                            내보내기
-                          </Button>
-                        )}
+                              }}
+                              data-testid={`button-remove-${member.id}`}
+                            >
+                              <UserMinus className="h-4 w-4 mr-1" />
+                              내보내기
+                            </Button>
+                          )}
+                          </div>
                         </div>
                       </div>
+                      {!isLeader && isCurrentUserLeader && onUpdateMemberPermissions && (
+                        <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
+                          <span className="text-xs sm:text-sm text-muted-foreground">
+                            {t.groups.canEditGroupMemos}
+                          </span>
+                          <Switch
+                            checked={member.canEditGroupMemos || false}
+                            onCheckedChange={(checked) => {
+                              onUpdateMemberPermissions(group.id, member.id, checked);
+                            }}
+                            data-testid={`switch-edit-permission-${member.id}`}
+                          />
+                        </div>
+                      )}
                     </div>
                   );
                 })}
