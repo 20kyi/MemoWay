@@ -9,6 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Navigation, Search, X, Send, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, User, Lock, Unlock } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
 import { useToast } from "@/hooks/use-toast";
@@ -844,125 +849,150 @@ export function MapView({
             </div>
           </div>
 
-          {/* 지도 고정 버튼 (오른쪽 상단) */}
-          <div className="absolute top-20 right-4 z-10">
-            <Button
-              size="icon"
-              onClick={toggleMapLock}
-              className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
-                isMapLocked 
-                  ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
-                  : 'bg-primary hover:bg-primary/90 border-2 border-primary'
-              }`}
-              data-testid="button-map-lock"
-            >
-              {isMapLocked ? (
-                <Lock className="h-5 w-5 text-primary-foreground" />
-              ) : (
-                <Unlock className="h-5 w-5 text-primary-foreground" />
-              )}
-            </Button>
-          </div>
-
           {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
           <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
+            {/* 지도 확대/축소 잠금 버튼 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  onClick={toggleMapLock}
+                  className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
+                    isMapLocked 
+                      ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
+                      : 'bg-primary hover:bg-primary/90 border-2 border-primary'
+                  }`}
+                  data-testid="button-map-lock"
+                >
+                  {isMapLocked ? (
+                    <Lock className="h-5 w-5 text-primary-foreground" />
+                  ) : (
+                    <Unlock className="h-5 w-5 text-primary-foreground" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>{isMapLocked ? "확대/축소 잠금 해제" : "확대/축소 잠금"}</p>
+              </TooltipContent>
+            </Tooltip>
+
             {/* GPS 위치 이동 버튼 */}
-            <Button
-              size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
-              onClick={() => {
-                if (navigator.geolocation && map) {
-                  navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const latlng = new window.kakao.maps.LatLng(lat, lng);
-                    map.setCenter(latlng);
-                    map.setLevel(3); // 줌 레벨을 3으로 설정 (더 세밀하게)
-                    
-                    // 부모 컴포넌트에 위치 전달
-                    if (onMyLocationClick) {
-                      onMyLocationClick({ lat, lng });
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  className="h-10 w-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
+                  onClick={() => {
+                    if (navigator.geolocation && map) {
+                      navigator.geolocation.getCurrentPosition((position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const latlng = new window.kakao.maps.LatLng(lat, lng);
+                        map.setCenter(latlng);
+                        map.setLevel(3);
+                        
+                        if (onMyLocationClick) {
+                          onMyLocationClick({ lat, lng });
+                        }
+                      });
                     }
-                  });
-                }
-              }}
-              data-testid="button-my-location"
-            >
-              <Navigation className="h-5 w-5 text-primary-foreground" />
-            </Button>
+                  }}
+                  data-testid="button-my-location"
+                >
+                  <Navigation className="h-5 w-5 text-primary-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>내 위치로 이동</p>
+              </TooltipContent>
+            </Tooltip>
 
             {/* 그룹 필터 버튼 */}
-            <Button
-              size="icon"
-              className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
-                selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
-              }`}
-              onClick={() => setGroupFilterOpen(true)}
-              data-testid="button-group-filter"
-              style={(() => {
-                if (selectedGroupIds.includes("all")) return {};
-                
-                const colors: string[] = [];
-                selectedGroupIds.forEach(id => {
-                  if (id === "personal") {
-                    colors.push(PERSONAL_MEMO_COLOR);
-                  } else {
-                    const group = groups.find(g => g.id === id);
-                    if (group) colors.push(group.color);
-                  }
-                });
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
+                    selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
+                  }`}
+                  onClick={() => setGroupFilterOpen(true)}
+                  data-testid="button-group-filter"
+                  style={(() => {
+                    if (selectedGroupIds.includes("all")) return {};
+                    
+                    const colors: string[] = [];
+                    selectedGroupIds.forEach(id => {
+                      if (id === "personal") {
+                        colors.push(PERSONAL_MEMO_COLOR);
+                      } else {
+                        const group = groups.find(g => g.id === id);
+                        if (group) colors.push(group.color);
+                      }
+                    });
 
-                if (colors.length === 0) return {};
-                if (colors.length === 1) {
-                  return { backgroundColor: colors[0], borderColor: colors[0] };
-                }
+                    if (colors.length === 0) return {};
+                    if (colors.length === 1) {
+                      return { backgroundColor: colors[0], borderColor: colors[0] };
+                    }
 
-                const step = 100 / colors.length;
-                const gradientStops = colors.map((color, index) => {
-                  const start = index * step;
-                  const end = (index + 1) * step;
-                  return `${color} ${start}%, ${color} ${end}%`;
-                }).join(', ');
+                    const step = 100 / colors.length;
+                    const gradientStops = colors.map((color, index) => {
+                      const start = index * step;
+                      const end = (index + 1) * step;
+                      return `${color} ${start}%, ${color} ${end}%`;
+                    }).join(', ');
 
-                return {
-                  background: `linear-gradient(135deg, ${gradientStops})`,
-                  borderColor: colors[0]
-                };
-              })()}
-            >
-              <Users className={`h-5 w-5 ${
-                selectedGroupIds.includes("all") ? 'text-primary-foreground' : ''
-              }`} style={{
-                color: selectedGroupIds.includes("all") ? undefined : 'white',
-                filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
-              }} />
-              {!selectedGroupIds.includes("all") && (
-                <Badge 
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
-                  data-testid="badge-group-filter-count"
+                    return {
+                      background: `linear-gradient(135deg, ${gradientStops})`,
+                      borderColor: colors[0]
+                    };
+                  })()}
                 >
-                  {selectedGroupIds.filter(id => id !== "all").length}
-                </Badge>
-              )}
-            </Button>
+                  <Users className={`h-5 w-5 ${
+                    selectedGroupIds.includes("all") ? 'text-primary-foreground' : ''
+                  }`} style={{
+                    color: selectedGroupIds.includes("all") ? undefined : 'white',
+                    filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
+                  }} />
+                  {!selectedGroupIds.includes("all") && (
+                    <Badge 
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
+                      data-testid="badge-group-filter-count"
+                    >
+                      {selectedGroupIds.filter(id => id !== "all").length}
+                    </Badge>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>그룹 필터</p>
+              </TooltipContent>
+            </Tooltip>
 
             {/* 마커 필터 버튼 */}
-            <Button
-              size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg relative bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
-              onClick={() => setMarkerFilterOpen(true)}
-              data-testid="button-marker-filter"
-            >
-              <Filter className="h-5 w-5 text-primary-foreground" />
-              {!selectedMarkerIcons.includes("all") && (
-                <Badge 
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
-                  data-testid="badge-marker-filter-count"
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  className="h-10 w-10 rounded-lg shadow-lg relative bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
+                  onClick={() => setMarkerFilterOpen(true)}
+                  data-testid="button-marker-filter"
                 >
-                  {selectedMarkerIcons.filter(icon => icon !== "all").length}
-                </Badge>
-              )}
-            </Button>
+                  <Filter className="h-5 w-5 text-primary-foreground" />
+                  {!selectedMarkerIcons.includes("all") && (
+                    <Badge 
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
+                      data-testid="badge-marker-filter-count"
+                    >
+                      {selectedMarkerIcons.filter(icon => icon !== "all").length}
+                    </Badge>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>카테고리 필터</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* 마커 필터 다이얼로그 */}
