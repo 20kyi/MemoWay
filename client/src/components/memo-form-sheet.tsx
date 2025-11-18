@@ -178,8 +178,12 @@ export function MemoFormSheet({
     },
   });
 
+  // Track if form has been initialized for this open session
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
+
   useEffect(() => {
-    if (initialData && open) {
+    if (open && !isFormInitialized && initialData) {
+      // Initialize form only once when opening
       form.reset({
         buildingName: initialData.buildingName || "",
         address: initialData.address || "",
@@ -199,11 +203,14 @@ export function MemoFormSheet({
       
       setPhotoItems(existingPhotoItems);
       setDeletedPhotoIds([]);
+      setIsFormInitialized(true);
     } else if (!open) {
+      // Reset when closing
       setPhotoItems([]);
       setDeletedPhotoIds([]);
+      setIsFormInitialized(false);
     }
-  }, [initialData, open, form]);
+  }, [open, isFormInitialized, initialData, form]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
