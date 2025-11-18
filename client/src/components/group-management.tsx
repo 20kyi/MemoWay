@@ -679,24 +679,41 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   const canTransfer = isCurrentUserLeader && !isLeader && onTransferLeadership;
 
                   return (
-                    <div key={member.id} className="flex flex-col gap-2 p-2 sm:p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                        <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
-                          <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
-                            <AvatarFallback className="text-xs sm:text-sm font-medium bg-muted">
-                              {member.name[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm font-medium flex-1">{member.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                          {isLeader && (
-                            <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
-                              <Crown className="h-3 w-3 mr-1" />
-                              {t.groups.leader}
-                            </Badge>
-                          )}
-                          <div className="flex gap-1 flex-1 sm:flex-initial justify-end">
+                    <div key={member.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-2 sm:p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
+                        <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
+                          <AvatarFallback className="text-xs sm:text-sm font-medium bg-muted">
+                            {member.name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium flex-1">{member.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                        {isLeader && (
+                          <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
+                            <Crown className="h-3 w-3 mr-1" />
+                            {t.groups.leader}
+                          </Badge>
+                        )}
+                        {!isLeader && isCurrentUserLeader && onUpdateMemberPermissions && (
+                          <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md">
+                            <Checkbox
+                              id={`edit-permission-${member.id}`}
+                              checked={member.canEditGroupMemos || false}
+                              onCheckedChange={(checked) => {
+                                onUpdateMemberPermissions(group.id, member.id, checked as boolean);
+                              }}
+                              data-testid={`checkbox-edit-permission-${member.id}`}
+                            />
+                            <label
+                              htmlFor={`edit-permission-${member.id}`}
+                              className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap"
+                            >
+                              {t.groups.canEditGroupMemos}
+                            </label>
+                          </div>
+                        )}
+                        <div className="flex gap-1 flex-1 sm:flex-initial justify-end">
                           {canTransfer && (
                             <Button
                               variant="ghost"
@@ -729,27 +746,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                               내보내기
                             </Button>
                           )}
-                          </div>
                         </div>
                       </div>
-                      {!isLeader && isCurrentUserLeader && onUpdateMemberPermissions && (
-                        <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-                          <Checkbox
-                            id={`edit-permission-${member.id}`}
-                            checked={member.canEditGroupMemos || false}
-                            onCheckedChange={(checked) => {
-                              onUpdateMemberPermissions(group.id, member.id, checked as boolean);
-                            }}
-                            data-testid={`checkbox-edit-permission-${member.id}`}
-                          />
-                          <label
-                            htmlFor={`edit-permission-${member.id}`}
-                            className="text-xs sm:text-sm text-muted-foreground cursor-pointer flex-1"
-                          >
-                            {t.groups.canEditGroupMemos}
-                          </label>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
