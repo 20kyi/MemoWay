@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Navigation, Search, X, Send, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, User } from "lucide-react";
+import { Navigation, Search, X, Send, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, User, Lock, Unlock } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -313,6 +313,7 @@ export function MapView({
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [markerScale, setMarkerScale] = useState(1);
+  const [isMapLocked, setIsMapLocked] = useState(false);
   const markerClickedRef = useRef(false);
   const [markerFilterOpen, setMarkerFilterOpen] = useState(false);
   const [groupFilterOpen, setGroupFilterOpen] = useState(false);
@@ -765,6 +766,31 @@ export function MapView({
     setSearchQuery("");
   };
 
+  const toggleMapLock = () => {
+    if (!map) return;
+    
+    const newLockState = !isMapLocked;
+    setIsMapLocked(newLockState);
+    
+    if (newLockState) {
+      // 지도 고정: 드래그와 줌 비활성화
+      map.setDraggable(false);
+      map.setZoomable(false);
+      toast({
+        title: "지도 고정됨",
+        description: "지도를 움직이거나 확대/축소할 수 없습니다",
+      });
+    } else {
+      // 지도 고정 해제: 드래그와 줌 활성화
+      map.setDraggable(true);
+      map.setZoomable(true);
+      toast({
+        title: "지도 고정 해제됨",
+        description: "지도를 자유롭게 움직일 수 있습니다",
+      });
+    }
+  };
+
   return (
     <div className="relative w-full h-full">
       {mapError ? (
@@ -816,6 +842,26 @@ export function MapView({
                 <Search className="h-5 w-5" />
               </Button>
             </div>
+          </div>
+
+          {/* 지도 고정 버튼 (오른쪽 상단) */}
+          <div className="absolute top-20 right-4 z-10">
+            <Button
+              size="icon"
+              onClick={toggleMapLock}
+              className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
+                isMapLocked 
+                  ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
+                  : 'bg-primary hover:bg-primary/90 border-2 border-primary'
+              }`}
+              data-testid="button-map-lock"
+            >
+              {isMapLocked ? (
+                <Lock className="h-5 w-5 text-primary-foreground" />
+              ) : (
+                <Unlock className="h-5 w-5 text-primary-foreground" />
+              )}
+            </Button>
           </div>
 
           {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
