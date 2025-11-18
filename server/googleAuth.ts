@@ -71,20 +71,34 @@ export function setupGoogleAuth(app: Express) {
       // Store language in session
       const lang = req.query.lang || 'ko';
       (req.session as any).loginLang = lang;
-      next();
+      
+      // Save session before redirecting to Google
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+        }
+        next();
+      });
     },
     passport.authenticate("google", {
       scope: ["profile", "email"],
+      accessType: 'offline',
+      prompt: 'consent',
     })
   );
 
   // Google OAuth callback
   app.get(
     "/api/google/callback",
-    passport.authenticate("google", {
-      failureRedirect: "/",
-    }),
+    (req, res, next) => {
+      console.log('Google callback received');
+      passport.authenticate("google", {
+        failureRedirect: "/",
+        failureMessage: true,
+      })(req, res, next);
+    },
     (req, res) => {
+      console.log('Google authentication successful');
       // Retrieve language from session
       const lang = (req.session as any).loginLang || 'ko';
       delete (req.session as any).loginLang;

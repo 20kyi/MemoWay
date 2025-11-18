@@ -113,7 +113,7 @@ export async function setupAuth(app: Express) {
   passport.serializeUser((user: Express.User, cb) => {
     const userObj = user as any;
     // For Replit Auth users (with tokens), store full session data
-    // For Kakao users, store only ID
+    // For Kakao/Google users, store only ID
     if (userObj.access_token || userObj.expires_at) {
       // Replit Auth user - store tokens for refresh
       cb(null, {
@@ -123,7 +123,7 @@ export async function setupAuth(app: Express) {
         expires_at: userObj.expires_at,
       });
     } else {
-      // Kakao user or simple session - store only ID
+      // Kakao/Google user or simple session - store only ID
       cb(null, { id: userObj.id });
     }
   });
@@ -209,8 +209,8 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
   
-  // For Kakao users, no token refresh is needed - just verify user exists
-  if (dbUser.provider === 'kakao') {
+  // For Kakao/Google users, no token refresh is needed - just verify user exists
+  if (dbUser.provider === 'kakao' || dbUser.provider === 'google') {
     return next();
   }
   
