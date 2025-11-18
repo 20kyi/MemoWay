@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -744,19 +745,22 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         );
       })()}
 
-      {/* 검색 버튼 (플로팅 액션 버튼) */}
-      <Button
-        size="icon"
-        className="fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 hover:shadow-2xl transition-all z-50"
-        onClick={() => setSearchDialogOpen(true)}
-        data-testid="button-search-groups"
-      >
-        <Search className="h-6 w-6 text-primary-foreground" />
-      </Button>
+      {/* 검색 버튼과 다이얼로그를 포탈로 렌더링 */}
+      {typeof window !== 'undefined' && createPortal(
+        <>
+          {/* 검색 버튼 (플로팅 액션 버튼) */}
+          <Button
+            size="icon"
+            className="fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 hover:shadow-2xl transition-all z-50"
+            onClick={() => setSearchDialogOpen(true)}
+            data-testid="button-search-groups"
+          >
+            <Search className="h-6 w-6 text-primary-foreground" />
+          </Button>
 
-      {/* 검색 다이얼로그 */}
-      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
-        <DialogContent className="max-w-md mx-3 sm:mx-0">
+          {/* 검색 다이얼로그 */}
+          <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+            <DialogContent className="max-w-md mx-3 sm:mx-0">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
@@ -837,6 +841,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
           </div>
         </DialogContent>
       </Dialog>
+        </>,
+        document.body
+      )}
     </div>
   );
 }
