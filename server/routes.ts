@@ -269,6 +269,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/groups/:groupId/members/:memberId/permissions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { groupId, memberId } = req.params;
+      
+      // Only leader can update member permissions
+      await storage.requireLeaderRole(userId, groupId);
+      
+      const bodySchema = z.object({
+        canEditGroupMemos: z.boolean(),
+      });
+      
+      const { canEditGroupMemos } = bodySchema.parse(req.body);
+      
+      // Update member permissions
+      const updatedMember = await storage.updateMemberPermissions(memberId, canEditGroupMemos);
+      
+      res.json(updatedMember);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      if (error.message === '방장 권한이 필요합니다') {
+        return res.status(403).json({ error: error.message });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.delete("/api/groups/:groupId/members/:memberId", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

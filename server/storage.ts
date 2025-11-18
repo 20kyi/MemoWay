@@ -43,6 +43,7 @@ export interface IStorage {
   getMembersByGroupId(groupId: string): Promise<Member[]>;
   deleteMember(memberId: string): Promise<void>;
   transferLeadership(groupId: string, currentLeaderId: string, newLeaderId: string): Promise<void>;
+  updateMemberPermissions(memberId: string, canEditGroupMemos: boolean): Promise<Member>;
   
   // Memos
   createMemo(memo: InsertMemo): Promise<Memo>;
@@ -220,6 +221,15 @@ export class DatabaseStorage implements IStorage {
     const [member] = await db
       .update(members)
       .set({ role })
+      .where(eq(members.id, memberId))
+      .returning();
+    return member;
+  }
+
+  async updateMemberPermissions(memberId: string, canEditGroupMemos: boolean): Promise<Member> {
+    const [member] = await db
+      .update(members)
+      .set({ canEditGroupMemos })
       .where(eq(members.id, memberId))
       .returning();
     return member;
