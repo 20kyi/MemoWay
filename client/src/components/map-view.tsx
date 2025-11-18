@@ -926,18 +926,42 @@ export function MapView({
                   size="icon"
                   className="h-10 w-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
                   onClick={() => {
-                    if (navigator.geolocation && map) {
-                      navigator.geolocation.getCurrentPosition((position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        const latlng = new window.kakao.maps.LatLng(lat, lng);
-                        map.setCenter(latlng);
-                        map.setLevel(3);
-                        
-                        if (onMyLocationClick) {
-                          onMyLocationClick({ lat, lng });
+                    if (map && currentUserLocation) {
+                      const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
+                      map.setCenter(latlng);
+                      map.setLevel(3);
+                      
+                      if (onMyLocationClick) {
+                        onMyLocationClick({ lat: currentUserLocation.lat, lng: currentUserLocation.lng });
+                      }
+                    } else if (navigator.geolocation && map) {
+                      // 현재 위치가 없으면 다시 가져오기
+                      navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                          const lat = position.coords.latitude;
+                          const lng = position.coords.longitude;
+                          const latlng = new window.kakao.maps.LatLng(lat, lng);
+                          map.setCenter(latlng);
+                          map.setLevel(3);
+                          
+                          if (onMyLocationClick) {
+                            onMyLocationClick({ lat, lng });
+                          }
+                        },
+                        (error) => {
+                          console.error("위치 정보를 가져올 수 없습니다:", error);
+                          toast({
+                            title: "위치 정보 오류",
+                            description: "현재 위치를 가져올 수 없습니다. GPS가 켜져 있는지 확인해주세요.",
+                            variant: "destructive"
+                          });
+                        },
+                        {
+                          enableHighAccuracy: true,
+                          timeout: 10000,
+                          maximumAge: 0
                         }
-                      });
+                      );
                     }
                   }}
                   data-testid="button-my-location"
