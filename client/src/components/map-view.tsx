@@ -503,7 +503,7 @@ export function MapView({
       const latlng = mouseEvent.latLng;
       
       // Delay to allow marker click handler to execute first and set the flag
-      // Increased delay for mobile touch events which can be delayed by ~300ms
+      // Increased delay for mobile touch events which can be delayed significantly
       setTimeout(() => {
         // Check flag again after delay
         if (markerClickedRef.current) {
@@ -533,7 +533,7 @@ export function MapView({
             });
           }
         });
-      }, 200); // Increased to 200ms for mobile touch event compatibility
+      }, 400); // Increased to 400ms for mobile touch event compatibility
     };
 
     window.kakao.maps.event.addListener(map, 'click', handleMapClick);
@@ -609,11 +609,12 @@ export function MapView({
         position,
         content: contentDiv,
         yAnchor: 1,
+        zIndex: 100, // Ensure marker is above map
       });
       
       customOverlay.setMap(map);
       
-      const clickHandler = (e: Event) => {
+      const handleMarkerInteraction = (e: Event) => {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -631,15 +632,24 @@ export function MapView({
         // Reset flag after a delay (increased for mobile compatibility)
         setTimeout(() => {
           markerClickedRef.current = false;
-        }, 300);
+        }, 500);
       };
       
-      contentDiv.addEventListener('click', clickHandler);
+      // Handle both click and touch events for better mobile support
+      contentDiv.addEventListener('click', handleMarkerInteraction, true); // Use capture phase
+      contentDiv.addEventListener('touchend', handleMarkerInteraction, true); // Use capture phase
+      
+      // Prevent default touch behavior
+      contentDiv.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        markerClickedRef.current = true;
+      }, true);
 
       return { 
         overlay: customOverlay, 
         element: contentDiv,
-        handler: clickHandler
+        handler: handleMarkerInteraction
       };
     });
 
@@ -648,7 +658,8 @@ export function MapView({
     return () => {
       newMarkers.forEach(marker => {
         if (marker.handler && marker.element) {
-          marker.element.removeEventListener('click', marker.handler);
+          marker.element.removeEventListener('click', marker.handler, true);
+          marker.element.removeEventListener('touchend', marker.handler, true);
         }
         if (marker.overlay) {
           marker.overlay.setMap(null);
