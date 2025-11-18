@@ -646,7 +646,7 @@ export default function Home() {
 
   const updateMemberPermissionsMutation = useMutation({
     mutationFn: async (data: { groupId: string; memberId: string; canEditGroupMemos: boolean }) => {
-      return apiRequest("PATCH", `/api/members/${data.memberId}/permissions`, {
+      return apiRequest("PATCH", `/api/groups/${data.groupId}/members/${data.memberId}/permissions`, {
         canEditGroupMemos: data.canEditGroupMemos,
       });
     },
