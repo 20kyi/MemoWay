@@ -773,20 +773,20 @@ export function MapView({
     setIsMapLocked(newLockState);
     
     if (newLockState) {
-      // 지도 고정: 드래그와 줌 비활성화
-      map.setDraggable(false);
+      // 지도 고정: 줌만 비활성화 (드래그는 가능)
+      map.setDraggable(true);
       map.setZoomable(false);
       toast({
-        title: "지도 고정됨",
-        description: "지도를 움직이거나 확대/축소할 수 없습니다",
+        title: "지도 확대/축소 잠금",
+        description: "지도를 움직일 수 있지만 확대/축소는 불가능합니다",
       });
     } else {
       // 지도 고정 해제: 드래그와 줌 활성화
       map.setDraggable(true);
       map.setZoomable(true);
       toast({
-        title: "지도 고정 해제됨",
-        description: "지도를 자유롭게 움직일 수 있습니다",
+        title: "지도 확대/축소 잠금 해제",
+        description: "지도를 자유롭게 움직이고 확대/축소할 수 있습니다",
       });
     }
   };
