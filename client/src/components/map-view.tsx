@@ -380,6 +380,52 @@ export function MapView({
       });
   }, []);
 
+  // Auto-move to user location when map first loads
+  const hasMovedToUserLocationRef = useRef(false);
+  useEffect(() => {
+    if (!map || hasMovedToUserLocationRef.current) return;
+
+    // Try to get current position and move to it
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const latlng = new window.kakao.maps.LatLng(lat, lng);
+          map.setCenter(latlng);
+          map.setLevel(3);
+          hasMovedToUserLocationRef.current = true;
+          
+          // Also notify parent about user location
+          if (onMyLocationClick) {
+            onMyLocationClick({ lat, lng });
+          }
+        },
+        (error) => {
+          console.log("위치 정보를 가져올 수 없습니다:", error);
+          // If geolocation fails and we have userLocation, use it
+          if (userLocation && !hasMovedToUserLocationRef.current) {
+            const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
+            map.setCenter(position);
+            map.setLevel(3);
+            hasMovedToUserLocationRef.current = true;
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        }
+      );
+    } else if (userLocation && !hasMovedToUserLocationRef.current) {
+      // Fallback to userLocation prop if geolocation not available
+      const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
+      map.setCenter(position);
+      map.setLevel(3);
+      hasMovedToUserLocationRef.current = true;
+    }
+  }, [map, userLocation, onMyLocationClick]);
+
   // Update marker scale based on zoom level
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
