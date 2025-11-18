@@ -432,10 +432,10 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
 
-    // Copy all memos to the new group
+    // Copy all memos to the new group (without photos)
     let copiedCount = 0;
     for (const memo of groupMemos) {
-      const [newMemo] = await db
+      await db
         .insert(memos)
         .values({
           buildingName: memo.buildingName,
@@ -446,34 +446,9 @@ export class DatabaseStorage implements IStorage {
           markerIcon: memo.markerIcon,
           memberId: newMember.id,
           groupId: newGroup.id,
-          mainPhotoId: null, // Will be set after photos are copied
+          mainPhotoId: null, // No photos are copied
         })
         .returning();
-
-      // Copy photos
-      let newMainPhotoId: string | null = null;
-      for (const photo of memo.photos) {
-        const [newPhoto] = await db
-          .insert(photos)
-          .values({
-            url: photo.url, // URL stays the same since files are shared
-            memoId: newMemo.id,
-          })
-          .returning();
-
-        // If this was the main photo, track it
-        if (memo.mainPhotoId === photo.id) {
-          newMainPhotoId = newPhoto.id;
-        }
-      }
-
-      // Update the main photo ID if there was one
-      if (newMainPhotoId) {
-        await db
-          .update(memos)
-          .set({ mainPhotoId: newMainPhotoId })
-          .where(eq(memos.id, newMemo.id));
-      }
 
       copiedCount++;
     }
