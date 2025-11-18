@@ -253,6 +253,7 @@ export class DatabaseStorage implements IStorage {
       with: {
         photos: true,
         member: true,
+        editorMember: true,
         group: true,
       },
     });
@@ -281,6 +282,7 @@ export class DatabaseStorage implements IStorage {
       with: {
         photos: true,
         member: true,
+        editorMember: true,
         group: true,
       },
     });

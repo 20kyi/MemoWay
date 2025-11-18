@@ -69,6 +69,7 @@ export const translations = {
       photos: "사진",
       content: "메모 내용",
       author: "작성자",
+      editor: "수정자",
       group: "그룹",
       created: "작성",
       viewOnMap: "지도에서 위치 보기",
@@ -267,6 +268,7 @@ export const translations = {
       photos: "Photos",
       content: "Memo Content",
       author: "Author",
+      editor: "Editor",
       group: "Group",
       created: "Created",
       viewOnMap: "View Location on Map",
@@ -465,6 +467,7 @@ export const translations = {
       photos: "照片",
       content: "备忘录内容",
       author: "作者",
+      editor: "编辑者",
       group: "群组",
       created: "创建",
       viewOnMap: "在地图上查看位置",
@@ -663,6 +666,7 @@ export const translations = {
       photos: "写真",
       content: "メモ内容",
       author: "作成者",
+      editor: "編集者",
       group: "グループ",
       created: "作成",
       viewOnMap: "地図で位置を表示",
@@ -857,6 +861,7 @@ type Translation = {
     photos: string;
     content: string;
     author: string;
+    editor: string;
     group: string;
     created: string;
     viewOnMap: string;

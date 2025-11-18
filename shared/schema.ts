@@ -65,6 +65,7 @@ export const memos = pgTable("memos", {
   content: text("content").notNull(),
   groupId: varchar("group_id").references(() => groups.id, { onDelete: "set null" }),
   memberId: varchar("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+  editorMemberId: varchar("editor_member_id").references(() => members.id, { onDelete: "set null" }),
   markerIcon: varchar("marker_icon").notNull().default('default'),
   mainPhotoId: varchar("main_photo_id"),
   isMainMemo: boolean("is_main_memo").notNull().default(false),
@@ -110,6 +111,10 @@ export const memosRelations = relations(memos, ({ one, many }) => ({
   }),
   member: one(members, {
     fields: [memos.memberId],
+    references: [members.id],
+  }),
+  editorMember: one(members, {
+    fields: [memos.editorMemberId],
     references: [members.id],
   }),
   photos: many(photos),
@@ -176,6 +181,7 @@ export type MemoWithPhotos = Memo & { photos: Photo[] };
 export type MemoWithDetails = Memo & { 
   photos: Photo[];
   member: Member;
+  editorMember: Member | null;
   group: Group | null;
 };
 export type GroupWithMembers = Group & { members: Member[] };

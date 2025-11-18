@@ -114,6 +114,14 @@ export function MemoDetailSheet({
                 <span className="font-medium text-foreground" data-testid="text-memo-author">{memo.member.name}</span>
               </div>
 
+              {memo.group && memo.editorMember && memo.editorMember.id !== memo.member.id && (
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <span>{t.memoDetail.editor}:</span>
+                  <span className="font-medium text-foreground" data-testid="text-memo-editor">{memo.editorMember.name}</span>
+                </div>
+              )}
+
               {memo.group && (
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4" />

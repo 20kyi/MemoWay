@@ -506,6 +506,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "메모를 찾을 수 없습니다" });
       }
       
+      // Set editorMemberId to the current user's member ID in the memo's group
+      const userId = (req as any).user.claims.sub;
+      if (existingMemo.groupId) {
+        const editorMember = await storage.getMemberByUserAndGroup(userId, existingMemo.groupId);
+        if (editorMember) {
+          memoUpdate.editorMemberId = editorMember.id;
+        }
+      }
+      
       await storage.updateMemo(req.params.id, memoUpdate);
       
       // Handle photo order updates
