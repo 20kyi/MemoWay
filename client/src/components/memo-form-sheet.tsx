@@ -286,16 +286,18 @@ export function MemoFormSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0">
+      <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0 flex flex-col">
         <div className="w-12 h-1 bg-muted rounded-full mx-auto mt-4 mb-6" />
         
-        <div className="px-6 pb-6 h-full overflow-y-auto">
+        <div className="px-6 flex-shrink-0">
           <SheetHeader className="mb-6">
             <SheetTitle className="text-2xl">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
           </SheetHeader>
+        </div>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col flex-1 min-h-0">
+            <div className="flex-1 overflow-y-auto px-6 space-y-6 pb-4">
               <FormField
                 control={form.control}
                 name="buildingName"
@@ -463,29 +465,29 @@ export function MemoFormSheet({
                   <p className="text-sm text-muted-foreground">개인 메모 준비 중...</p>
                 </div>
               )}
+            </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => onOpenChange(false)}
-                  data-testid="button-cancel"
-                >
-                  {t.common.cancel}
-                </Button>
-                <Button 
-                  type="submit" 
-                  className="flex-1"
-                  disabled={isLoading || (!isPersonalMemberReady && !currentMemberId)}
-                  data-testid="button-save-memo"
-                >
-                  {isLoading ? `${t.common.save}...` : t.common.save}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
+            <div className="flex gap-3 px-6 py-4 border-t bg-background flex-shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => onOpenChange(false)}
+                data-testid="button-cancel"
+              >
+                {t.common.cancel}
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1"
+                disabled={isLoading || (!isPersonalMemberReady && !currentMemberId)}
+                data-testid="button-save-memo"
+              >
+                {isLoading ? `${t.common.save}...` : t.common.save}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </SheetContent>
     </Sheet>
   );
