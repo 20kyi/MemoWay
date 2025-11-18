@@ -319,9 +319,11 @@ export function MapView({
   const [isSearching, setIsSearching] = useState(false);
   const [markerScale, setMarkerScale] = useState(1);
   const [isMapLocked, setIsMapLocked] = useState(false);
+  const [currentUserLocation, setCurrentUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const markerClickedRef = useRef(false);
   const [markerFilterOpen, setMarkerFilterOpen] = useState(false);
   const [groupFilterOpen, setGroupFilterOpen] = useState(false);
+  const watchIdRef = useRef<number | null>(null);
   const { toast } = useToast();
 
   // Filter memos based on selected marker icons and groups
@@ -650,10 +652,46 @@ export function MapView({
     };
   }, [map, filteredMemos, onMarkerClick, onClusterClick, markerScale]);
 
+  // Start watching user's real-time location
   useEffect(() => {
-    if (!map || !userLocation) return;
+    if (!map || !navigator.geolocation) return;
 
-    const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setCurrentUserLocation({ lat, lng });
+        
+        // Notify parent component
+        if (onMyLocationClick) {
+          onMyLocationClick({ lat, lng });
+        }
+      },
+      (error) => {
+        console.log("실시간 위치 추적 오류:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+
+    watchIdRef.current = watchId;
+
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, [map, onMyLocationClick]);
+
+  // Display user location marker (updates when currentUserLocation changes)
+  useEffect(() => {
+    if (!map || !currentUserLocation) return;
+
+    const position = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
 
     // User 아이콘 마커
     const markerContent = document.createElement('div');
@@ -670,6 +708,7 @@ export function MapView({
         border: 2px solid #ffffff;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         cursor: default;
+        transition: all 0.3s ease-out;
       ">
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
@@ -699,7 +738,7 @@ export function MapView({
     return () => {
       userMarker.setMap(null);
     };
-  }, [map, userLocation]);
+  }, [map, currentUserLocation]);
 
   const handleMyLocation = () => {
     if (navigator.geolocation && map) {
