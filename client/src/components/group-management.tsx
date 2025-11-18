@@ -503,15 +503,16 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
       {/* 그룹 수정 다이얼로그 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto mx-3 sm:mx-0">
-          <DialogHeader>
+        <DialogContent className="max-w-md max-h-[85vh] mx-3 sm:mx-0 flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>{t.groups.editGroup}</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(handleUpdateGroup)} className="space-y-4">
-              <FormField
-                control={editForm.control}
-                name="name"
+            <form onSubmit={editForm.handleSubmit(handleUpdateGroup)} className="flex flex-col flex-1 overflow-hidden">
+              <div className="space-y-4 overflow-y-auto flex-1 pr-2">
+                <FormField
+                  control={editForm.control}
+                  name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t.groups.groupName}</FormLabel>
@@ -521,10 +522,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-              <FormField
-                control={editForm.control}
-                name="description"
+                />
+                <FormField
+                  control={editForm.control}
+                  name="description"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t.groups.description}</FormLabel>
@@ -534,10 +535,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-              <FormField
-                control={editForm.control}
-                name="color"
+                />
+                <FormField
+                  control={editForm.control}
+                  name="color"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t.groups.groupColor}</FormLabel>
@@ -594,10 +595,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-              <FormField
-                control={editForm.control}
-                name="markerIcon"
+                />
+                <FormField
+                  control={editForm.control}
+                  name="markerIcon"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t.groups.markerShape}</FormLabel>
@@ -628,8 +629,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-              <div className="flex flex-col sm:flex-row gap-2">
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0 pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -662,14 +664,14 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
         return (
           <Dialog open={true} onOpenChange={() => setMemberDialogOpen(null)}>
-            <DialogContent className="max-w-md mx-3 sm:mx-0">
-              <DialogHeader>
+            <DialogContent className="max-w-md max-h-[85vh] mx-3 sm:mx-0 flex flex-col">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
                   {t.groups.memberCount} ({group.members.length}{t.groups.members})
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="space-y-2 overflow-y-auto flex-1 pr-2">
                 {group.members.map(member => {
                   const isLeader = member.role === 'leader';
                   const isCurrentUser = member.userId === userId;
