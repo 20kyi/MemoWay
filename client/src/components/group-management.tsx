@@ -184,16 +184,16 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
   });
 
   return (
-    <div className="px-4 py-6 space-y-4 overflow-y-auto h-full relative">
-      <div className="flex gap-3">
+    <div className="px-3 sm:px-4 py-4 sm:py-6 space-y-4 overflow-y-auto h-full relative">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex-1" data-testid="button-create-group">
+            <Button className="flex-1 w-full sm:w-auto" data-testid="button-create-group">
               <Plus className="h-4 w-4 mr-2" />
               {t.groups.createGroup}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md mx-3 sm:mx-0">
             <DialogHeader>
               <DialogTitle>{t.groups.newGroup}</DialogTitle>
             </DialogHeader>
@@ -246,7 +246,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                       <FormLabel>{t.groups.groupColor}</FormLabel>
                       <FormControl>
                         <div className="space-y-3">
-                          <div className="grid grid-cols-8 gap-2" data-testid="color-picker">
+                          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2" data-testid="color-picker">
                             {PRESET_COLORS.map((color) => (
                               <button
                                 key={color.value}
@@ -305,7 +305,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     <FormItem>
                       <FormLabel>{t.groups.markerShape}</FormLabel>
                       <FormControl>
-                        <div className="grid grid-cols-4 gap-2" data-testid="marker-icon-picker">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-testid="marker-icon-picker">
                           {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
                             const Icon = MARKER_ICON_COMPONENTS[type];
                             return (
@@ -342,11 +342,11 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
         <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="flex-1" data-testid="button-join-group">
+            <Button variant="outline" className="flex-1 w-full sm:w-auto" data-testid="button-join-group">
               {t.groups.joinGroup}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md mx-3 sm:mx-0">
             <DialogHeader>
               <DialogTitle>{t.groups.joinGroup}</DialogTitle>
             </DialogHeader>
@@ -399,11 +399,11 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         <div className="space-y-4">
           {filteredGroups.map(group => (
             <Card key={group.id} className="hover-elevate transition-all shadow-lg border-2 border-primary/30 hover:border-primary/50 rounded-3xl bg-card/80 backdrop-blur-sm hover:shadow-2xl" data-testid={`card-group-${group.id}`}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+              <CardHeader className="pb-3 px-3 sm:px-6 pt-4 sm:pt-6">
+                <div className="flex items-start sm:items-center justify-between gap-2 flex-col sm:flex-row">
+                  <div className="flex items-center gap-2 flex-1 min-w-0 w-full sm:w-auto">
                     <div 
-                      className="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center shadow-lg border-2" 
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 flex items-center justify-center shadow-lg border-2" 
                       style={{ 
                         backgroundColor: `${group.color}40`,
                         borderColor: `${group.color}80`
@@ -412,10 +412,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     >
                       {(() => {
                         const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
-                        return <IconComponent className="h-6 w-6" style={{ color: group.color }} />;
+                        return <IconComponent className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: group.color }} />;
                       })()}
                     </div>
-                    <h3 className="text-xl font-semibold truncate">{group.name}</h3>
+                    <h3 className="text-lg sm:text-xl font-semibold truncate">{group.name}</h3>
                     {onCopyGroup && (
                       <Button
                         variant="ghost"
@@ -439,22 +439,22 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 </div>
               </CardHeader>
 
-              <CardContent className="pb-3">
+              <CardContent className="pb-3 px-3 sm:px-6">
                 {group.description ? (
-                  <div className="p-3 rounded-lg bg-muted/30">
-                    <p className="text-sm text-muted-foreground">{group.description}</p>
+                  <div className="p-2 sm:p-3 rounded-lg bg-muted/30">
+                    <p className="text-xs sm:text-sm text-muted-foreground">{group.description}</p>
                   </div>
                 ) : (
-                  <div className="p-3 rounded-lg bg-muted/30">
-                    <p className="text-sm text-muted-foreground italic">{t.groups.noDescription}</p>
+                  <div className="p-2 sm:p-3 rounded-lg bg-muted/30">
+                    <p className="text-xs sm:text-sm text-muted-foreground italic">{t.groups.noDescription}</p>
                   </div>
                 )}
               </CardContent>
 
-              <CardFooter className="pt-0 flex gap-2">
+              <CardFooter className="pt-0 flex flex-col sm:flex-row gap-2 px-3 sm:px-6 pb-4 sm:pb-6">
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 w-full sm:w-auto"
                   onClick={() => handleCopyInviteCode(group.inviteCode)}
                   data-testid={`button-copy-code-${group.id}`}
                 >
@@ -470,7 +470,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                       {myMember && isLeader && onUpdateGroup && (
                         <Button
                           variant="outline"
-                          className="flex-1"
+                          className="flex-1 w-full sm:w-auto"
                           onClick={() => handleOpenEditDialog(group)}
                           data-testid={`button-edit-${group.id}`}
                         >
@@ -481,7 +481,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                       {myMember && (
                         <Button
                           variant="outline"
-                          className="flex-1"
+                          className="flex-1 w-full sm:w-auto"
                           onClick={() => setMemberDialogOpen(group.id)}
                           data-testid={`button-members-${group.id}`}
                         >
@@ -492,7 +492,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                       {myMember && (
                         <Button
                           variant="destructive"
-                          className="flex-1 rounded-full border-2 hover:shadow-lg"
+                          className="flex-1 w-full sm:w-auto rounded-full border-2 hover:shadow-lg"
                           onClick={() => onLeaveGroup(group.id, myMember.id)}
                           data-testid={`button-leave-${group.id}`}
                         >
@@ -510,7 +510,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
       {/* 그룹 수정 다이얼로그 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto mx-3 sm:mx-0">
           <DialogHeader>
             <DialogTitle>{t.groups.editGroup}</DialogTitle>
           </DialogHeader>
@@ -550,7 +550,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     <FormLabel>{t.groups.groupColor}</FormLabel>
                     <FormControl>
                       <div className="space-y-3">
-                        <div className="grid grid-cols-8 gap-2" data-testid="edit-color-picker">
+                        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2" data-testid="edit-color-picker">
                           {PRESET_COLORS.map((color) => (
                             <button
                               key={color.value}
@@ -609,7 +609,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   <FormItem>
                     <FormLabel>{t.groups.markerShape}</FormLabel>
                     <FormControl>
-                      <div className="grid grid-cols-4 gap-2" data-testid="edit-marker-icon-picker">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-testid="edit-marker-icon-picker">
                         {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
                           const Icon = MARKER_ICON_COMPONENTS[type];
                           return (
@@ -636,11 +636,11 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   </FormItem>
                 )}
               />
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button 
                   type="button" 
                   variant="outline" 
-                  className="flex-1"
+                  className="flex-1 w-full sm:w-auto"
                   onClick={() => {
                     editForm.reset();
                     setEditDialogOpen(false);
@@ -650,7 +650,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 >
                   {t.common.cancel}
                 </Button>
-                <Button type="submit" className="flex-1" data-testid="button-submit-edit-group">
+                <Button type="submit" className="flex-1 w-full sm:w-auto" data-testid="button-submit-edit-group">
                   {t.common.edit}
                 </Button>
               </div>
@@ -669,7 +669,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
         return (
           <Dialog open={true} onOpenChange={() => setMemberDialogOpen(null)}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md mx-3 sm:mx-0">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
@@ -684,25 +684,28 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   const canTransfer = isCurrentUserLeader && !isLeader && onTransferLeadership;
 
                   return (
-                    <div key={member.id} className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                      <Avatar className="h-9 w-9">
-                        <AvatarFallback className="text-sm font-medium bg-muted">
-                          {member.name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium flex-1">{member.name}</span>
-                      {isLeader && (
-                        <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
-                          <Crown className="h-3 w-3 mr-1" />
-                          {t.groups.leader}
-                        </Badge>
-                      )}
-                      <div className="flex gap-1">
+                    <div key={member.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-2 sm:p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
+                        <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
+                          <AvatarFallback className="text-xs sm:text-sm font-medium bg-muted">
+                            {member.name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium flex-1">{member.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        {isLeader && (
+                          <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
+                            <Crown className="h-3 w-3 mr-1" />
+                            {t.groups.leader}
+                          </Badge>
+                        )}
+                        <div className="flex gap-1 flex-1 sm:flex-initial justify-end">
                         {canTransfer && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-3"
+                            className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                             onClick={() => {
                               if (confirm(`${member.name}${t.groups.confirmTransferLeadership}`)) {
                                 onTransferLeadership(group.id, member.id);
@@ -719,7 +722,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-3 text-destructive hover:text-destructive"
+                            className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-destructive hover:text-destructive"
                             onClick={() => {
                               onRemoveMember(group.id, member.id);
                               setMemberDialogOpen(null);
@@ -730,6 +733,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                             내보내기
                           </Button>
                         )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -752,7 +756,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
       {/* 검색 다이얼로그 */}
       <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md mx-3 sm:mx-0">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
@@ -787,7 +791,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     {filteredGroups.map(group => (
                       <div
                         key={group.id}
-                        className="p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                        className="p-2 sm:p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
                         onClick={() => {
                           setSearchDialogOpen(false);
                           // 해당 그룹 카드로 스크롤
@@ -805,16 +809,16 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                       >
                         <div className="flex items-center gap-2">
                           <div 
-                            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" 
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0 flex items-center justify-center" 
                             style={{ backgroundColor: `${group.color}40` }}
                           >
                             {(() => {
                               const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
-                              return <IconComponent className="h-5 w-5" style={{ color: group.color }} />;
+                              return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: group.color }} />;
                             })()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium truncate">{group.name}</h4>
+                            <h4 className="text-sm sm:text-base font-medium truncate">{group.name}</h4>
                             {group.description && (
                               <p className="text-xs text-muted-foreground truncate">{group.description}</p>
                             )}
