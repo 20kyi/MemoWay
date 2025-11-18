@@ -52,6 +52,7 @@ export const members = pgTable("members", {
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   role: varchar("role").notNull().default('member'),
+  canEditGroupMemos: boolean("can_edit_group_memos").notNull().default(false),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
 });
 
