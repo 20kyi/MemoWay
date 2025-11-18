@@ -367,6 +367,25 @@ export function MemoFormSheet({
 
               <FormField
                 control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t.memoForm.content}</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        placeholder={t.memoForm.contentPlaceholder} 
+                        className="min-h-32 resize-none"
+                        data-testid="input-memo-content"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="markerIcon"
                 render={({ field }) => (
                   <FormItem>
@@ -391,25 +410,6 @@ export function MemoFormSheet({
                           );
                         })}
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t.memoForm.content}</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder={t.memoForm.contentPlaceholder} 
-                        className="min-h-32 resize-none"
-                        data-testid="input-memo-content"
-                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
