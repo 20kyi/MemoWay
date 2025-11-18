@@ -106,7 +106,7 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
         data-marker-icon="${iconType}"
         aria-label="${iconType} 마커"
       >
-        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <clipPath id="${clipId}">
               <circle cx="15" cy="15" r="8"/>
@@ -135,7 +135,7 @@ function createMarkerContent(color: string, iconType: string = 'default', photoU
       data-marker-icon="${iconType}"
       aria-label="${iconType} 마커"
     >
-      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
         <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
               fill="${color}" 
               stroke="#ffffff" 
@@ -173,7 +173,7 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
         data-marker-count="${count}"
         aria-label="${iconType} 마커 클러스터 (${count}개)"
       >
-        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <clipPath id="${clipId}">
               <circle cx="15" cy="15" r="8"/>
@@ -220,7 +220,7 @@ function createClusterMarkerContent(color: string, count: number, iconType: stri
       data-marker-count="${count}"
       aria-label="${iconType} 마커 클러스터 (${count}개)"
     >
-      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+      <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
         <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
               fill="${color}" 
               stroke="#ffffff" 
