@@ -95,7 +95,11 @@ export function MemoDetailSheet({
 
               <div className="space-y-3">
                 <h3 className="font-semibold text-sm text-muted-foreground">{t.memoDetail.content}</h3>
-                <p className="text-base leading-relaxed whitespace-pre-wrap" data-testid="text-memo-content">
+                <p 
+                  className="leading-relaxed whitespace-pre-wrap" 
+                  style={{ fontSize: 'var(--font-size-base, 16px)' }}
+                  data-testid="text-memo-content"
+                >
                   {memo.content}
                 </p>
               </div>
