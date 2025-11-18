@@ -405,7 +405,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
           )}
 
           <CardContent className="pb-3">
-            <p className="text-sm line-clamp-2 leading-relaxed">{memo.content}</p>
+            <p className="text-sm line-clamp-2 leading-relaxed whitespace-pre-wrap">{memo.content}</p>
           </CardContent>
 
           <CardFooter className="flex items-center justify-between pt-0">
