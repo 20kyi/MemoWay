@@ -503,6 +503,7 @@ export function MapView({
       const latlng = mouseEvent.latLng;
       
       // Delay to allow marker click handler to execute first and set the flag
+      // Increased delay for mobile touch events which can be delayed by ~300ms
       setTimeout(() => {
         // Check flag again after delay
         if (markerClickedRef.current) {
@@ -532,7 +533,7 @@ export function MapView({
             });
           }
         });
-      }, 50); // 50ms delay to allow marker click to set flag
+      }, 200); // Increased to 200ms for mobile touch event compatibility
     };
 
     window.kakao.maps.event.addListener(map, 'click', handleMapClick);
@@ -627,10 +628,10 @@ export function MapView({
           onClusterClick(cluster.memos.map(m => m.id));
         }
         
-        // Reset flag after a delay
+        // Reset flag after a delay (increased for mobile compatibility)
         setTimeout(() => {
           markerClickedRef.current = false;
-        }, 100);
+        }, 300);
       };
       
       contentDiv.addEventListener('click', clickHandler);
