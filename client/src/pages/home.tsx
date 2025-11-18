@@ -192,40 +192,47 @@ export default function Home() {
     if (!locationEnabled || !notificationsEnabled) return;
 
     let watchId: number | null = null;
+    const DESIRED_ACCURACY = 30; // meters
 
     const startTracking = () => {
       if (navigator.geolocation) {
         watchId = navigator.geolocation.watchPosition(
           (position) => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation({ lat: latitude, lng: longitude });
+            const { latitude, longitude, accuracy } = position.coords;
+            
+            // 정밀도가 30m 이하인 경우에만 위치 업데이트
+            if (accuracy <= DESIRED_ACCURACY) {
+              setUserLocation({ lat: latitude, lng: longitude });
 
-            // Check for nearby memos
-            memos.forEach((memo) => {
-              // Skip if already notified
-              if (notifiedMemoIds.has(memo.id)) return;
+              // Check for nearby memos
+              memos.forEach((memo) => {
+                // Skip if already notified
+                if (notifiedMemoIds.has(memo.id)) return;
 
-              const distance = calculateDistance(latitude, longitude, memo.latitude, memo.longitude);
+                const distance = calculateDistance(latitude, longitude, memo.latitude, memo.longitude);
 
-              if (distance <= proximityRadius) {
-                // Notify user
-                toast({
-                  title: memo.buildingName || "근처 메모",
-                  description: `${Math.round(distance)}m 내에 메모가 있습니다`,
-                });
+                if (distance <= proximityRadius) {
+                  // Notify user
+                  toast({
+                    title: memo.buildingName || "근처 메모",
+                    description: `${Math.round(distance)}m 내에 메모가 있습니다`,
+                  });
 
-                // Mark as notified
-                setNotifiedMemoIds((prev) => new Set(prev).add(memo.id));
-              }
-            });
+                  // Mark as notified
+                  setNotifiedMemoIds((prev) => new Set(prev).add(memo.id));
+                }
+              });
+            } else {
+              console.log(`위치 정밀도 부족: ${Math.round(accuracy)}m > 30m, 업데이트 건너뜀`);
+            }
           },
           (error) => {
             console.error("위치 추적 오류:", error);
           },
           {
             enableHighAccuracy: true,
-            maximumAge: 10000,
-            timeout: 5000,
+            maximumAge: 0, // 캐시 사용 안 함
+            timeout: 10000, // 10초로 증가
           }
         );
       }

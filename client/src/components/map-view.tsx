@@ -382,48 +382,81 @@ export function MapView({
 
   // Auto-move to user location when map first loads
   const hasMovedToUserLocationRef = useRef(false);
+  const gpsAttemptCountRef = useRef(0);
+  const MAX_GPS_ATTEMPTS = 3;
+  const DESIRED_ACCURACY = 30; // meters
+
   useEffect(() => {
     if (!map || hasMovedToUserLocationRef.current) return;
 
-    // Try to get current position and move to it
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const latlng = new window.kakao.maps.LatLng(lat, lng);
-          map.setCenter(latlng);
-          map.setLevel(3);
-          hasMovedToUserLocationRef.current = true;
-          
-          // Also notify parent about user location
-          if (onMyLocationClick) {
-            onMyLocationClick({ lat, lng });
+    const tryGetAccuratePosition = () => {
+      if (navigator.geolocation && gpsAttemptCountRef.current < MAX_GPS_ATTEMPTS) {
+        gpsAttemptCountRef.current += 1;
+        
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const accuracy = position.coords.accuracy;
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            console.log(`GPS 시도 ${gpsAttemptCountRef.current}/${MAX_GPS_ATTEMPTS}: 정밀도 ${Math.round(accuracy)}m`);
+            
+            // 정밀도가 30m 이하인 경우에만 사용
+            if (accuracy <= DESIRED_ACCURACY) {
+              const latlng = new window.kakao.maps.LatLng(lat, lng);
+              map.setCenter(latlng);
+              map.setLevel(3);
+              hasMovedToUserLocationRef.current = true;
+              
+              console.log(`정확한 위치 획득: ${Math.round(accuracy)}m 정밀도`);
+              
+              // Also notify parent about user location
+              if (onMyLocationClick) {
+                onMyLocationClick({ lat, lng });
+              }
+            } else if (gpsAttemptCountRef.current < MAX_GPS_ATTEMPTS) {
+              // 정밀도가 충분하지 않으면 다시 시도
+              console.log(`정밀도 부족(${Math.round(accuracy)}m > 30m), 재시도...`);
+              setTimeout(tryGetAccuratePosition, 1000);
+            } else {
+              // 최대 시도 횟수 도달, 현재 위치라도 사용
+              console.log(`최대 시도 횟수 도달, 현재 위치 사용: ${Math.round(accuracy)}m 정밀도`);
+              const latlng = new window.kakao.maps.LatLng(lat, lng);
+              map.setCenter(latlng);
+              map.setLevel(3);
+              hasMovedToUserLocationRef.current = true;
+              
+              if (onMyLocationClick) {
+                onMyLocationClick({ lat, lng });
+              }
+            }
+          },
+          (error) => {
+            console.log("위치 정보를 가져올 수 없습니다:", error);
+            // If geolocation fails and we have userLocation, use it
+            if (userLocation && !hasMovedToUserLocationRef.current) {
+              const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
+              map.setCenter(position);
+              map.setLevel(3);
+              hasMovedToUserLocationRef.current = true;
+            }
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000, // 10초로 증가
+            maximumAge: 0,
           }
-        },
-        (error) => {
-          console.log("위치 정보를 가져올 수 없습니다:", error);
-          // If geolocation fails and we have userLocation, use it
-          if (userLocation && !hasMovedToUserLocationRef.current) {
-            const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
-            map.setCenter(position);
-            map.setLevel(3);
-            hasMovedToUserLocationRef.current = true;
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        }
-      );
-    } else if (userLocation && !hasMovedToUserLocationRef.current) {
-      // Fallback to userLocation prop if geolocation not available
-      const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
-      map.setCenter(position);
-      map.setLevel(3);
-      hasMovedToUserLocationRef.current = true;
-    }
+        );
+      } else if (userLocation && !hasMovedToUserLocationRef.current) {
+        // Fallback to userLocation prop if geolocation not available
+        const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
+        map.setCenter(position);
+        map.setLevel(3);
+        hasMovedToUserLocationRef.current = true;
+      }
+    };
+
+    tryGetAccuratePosition();
   }, [map, userLocation, onMyLocationClick]);
 
   // Update marker scale based on zoom level
