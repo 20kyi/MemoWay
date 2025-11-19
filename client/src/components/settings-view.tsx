@@ -5,10 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun } from "lucide-react";
+import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun, Map } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily } from "@/lib/font-context";
 import { useTheme } from "@/lib/theme-context";
+import { useMapProvider, type MapProvider } from "@/lib/map-provider-context";
 import { useAuth } from "@/hooks/useAuth";
 
 interface SettingsViewProps {
@@ -38,6 +39,7 @@ export function SettingsView({
   const { language, setLanguage, t } = useLanguage();
   const { fontFamily, setFontFamily, fontSize, setFontSize } = useFont();
   const { theme, setTheme } = useTheme();
+  const { mapProvider, setMapProvider } = useMapProvider();
   const { user } = useAuth();
 
   const handleLogout = () => {
@@ -136,6 +138,33 @@ export function SettingsView({
               data-testid="switch-theme"
             />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-3xl bg-card/80 backdrop-blur-sm border-2 border-primary/30 shadow-lg hover:shadow-2xl transition-all">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Map className="h-5 w-5" />
+            {t.settings.mapProvider}
+          </CardTitle>
+          <CardDescription>
+            {t.settings.mapProviderDesc}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <Select value={mapProvider} onValueChange={(value) => setMapProvider(value as MapProvider)}>
+            <SelectTrigger className="w-full" data-testid="select-map-provider">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="kakao" data-testid="map-provider-kakao">
+                {t.settings.mapProviderKakao}
+              </SelectItem>
+              <SelectItem value="google" data-testid="map-provider-google">
+                {t.settings.mapProviderGoogle}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
 

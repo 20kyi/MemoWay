@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider, useLanguage, type Language } from "./lib/language-context";
 import { FontProvider } from "./lib/font-context";
 import { ThemeProvider } from "./lib/theme-context";
+import { MapProviderProvider } from "./lib/map-provider-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import Home from "@/pages/home";
@@ -48,10 +49,12 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <FontProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
+            <MapProviderProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </MapProviderProvider>
           </FontProvider>
         </LanguageProvider>
       </ThemeProvider>
