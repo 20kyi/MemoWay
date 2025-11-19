@@ -111,16 +111,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGroups(userId: string): Promise<GroupWithMembers[]> {
-    const allGroups = await db.query.groups.findMany({
+    // Get all member records for this user
+    const userMembers = await db.select().from(members).where(eq(members.userId, userId));
+    const groupIds = userMembers.map(m => m.groupId);
+    
+    if (groupIds.length === 0) {
+      return [];
+    }
+    
+    // Get only the groups where the user is a member
+    const userGroups = await db.query.groups.findMany({
+      where: (groups, { inArray }) => inArray(groups.id, groupIds),
       with: {
         members: true,
       },
     });
     
-    // Filter to only groups where user is a member
-    return allGroups.filter(group => 
-      group.members.some(member => member.userId === userId)
-    );
+    return userGroups;
   }
 
   async getGroupById(groupId: string): Promise<GroupWithMembers | undefined> {
