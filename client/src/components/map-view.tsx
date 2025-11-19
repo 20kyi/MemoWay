@@ -324,6 +324,7 @@ export function MapView({
   const [markerScale, setMarkerScale] = useState(1);
   const [isMapLocked, setIsMapLocked] = useState(false);
   const [currentUserLocation, setCurrentUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocationLocked, setIsLocationLocked] = useState(true); // 위치 고정 모드 (기본값: true)
   const markerClickedRef = useRef(false);
   const [markerFilterOpen, setMarkerFilterOpen] = useState(false);
   const [groupFilterOpen, setGroupFilterOpen] = useState(false);
@@ -678,6 +679,12 @@ export function MapView({
         const lng = position.coords.longitude;
         setCurrentUserLocation({ lat, lng });
         
+        // If location is locked, center map on user location
+        if (isLocationLocked) {
+          const latlng = new window.kakao.maps.LatLng(lat, lng);
+          map.panTo(latlng); // Smooth pan to location
+        }
+        
         // Notify parent component
         if (onMyLocationClick) {
           onMyLocationClick({ lat, lng });
@@ -701,11 +708,11 @@ export function MapView({
         watchIdRef.current = null;
       }
     };
-  }, [map, onMyLocationClick]);
+  }, [map, onMyLocationClick, isLocationLocked]);
 
-  // Display user location marker (updates when currentUserLocation changes)
+  // When location is NOT locked, display user location marker on map
   useEffect(() => {
-    if (!map || !currentUserLocation) return;
+    if (!map || !currentUserLocation || isLocationLocked) return;
 
     const position = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
 
@@ -754,7 +761,7 @@ export function MapView({
     return () => {
       userMarker.setMap(null);
     };
-  }, [map, currentUserLocation]);
+  }, [map, currentUserLocation, isLocationLocked]);
 
   const handleMyLocation = () => {
     if (navigator.geolocation && map) {
@@ -867,6 +874,31 @@ export function MapView({
         <>
           <div ref={mapRef} className="w-full h-full" data-testid="map-container" />
           
+          {/* 화면 중앙에 고정된 사용자 위치 마커 (위치 고정 모드일 때만 표시) */}
+          {isLocationLocked && currentUserLocation && (
+            <div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-40"
+              style={{ marginTop: '-16px' }} // Adjust for marker height
+            >
+              <div className="relative w-8 h-8 flex items-center justify-center bg-blue-500 rounded-full border-2 border-white shadow-lg">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="18" 
+                  height="18" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="#ffffff" 
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+            </div>
+          )}
+          
           {/* 주소 검색 바 */}
           <div className="absolute top-4 left-4 right-4 z-10">
             <div className="flex gap-2 bg-card/80 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-primary/30 p-2">
@@ -931,60 +963,91 @@ export function MapView({
               </TooltipContent>
             </Tooltip>
 
-            {/* GPS 위치 이동 버튼 */}
+            {/* 위치 고정 버튼 */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
-                  className="h-10 w-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
                   onClick={() => {
-                    if (map && currentUserLocation) {
-                      const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
-                      map.setCenter(latlng);
-                      map.setLevel(3);
-                      
-                      if (onMyLocationClick) {
-                        onMyLocationClick({ lat: currentUserLocation.lat, lng: currentUserLocation.lng });
-                      }
-                    } else if (navigator.geolocation && map) {
-                      // 현재 위치가 없으면 다시 가져오기
-                      navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                          const lat = position.coords.latitude;
-                          const lng = position.coords.longitude;
-                          const latlng = new window.kakao.maps.LatLng(lat, lng);
-                          map.setCenter(latlng);
-                          map.setLevel(3);
-                          
-                          if (onMyLocationClick) {
-                            onMyLocationClick({ lat, lng });
-                          }
-                        },
-                        (error) => {
-                          console.error("위치 정보를 가져올 수 없습니다:", error);
-                          toast({
-                            title: "위치 정보 오류",
-                            description: "현재 위치를 가져올 수 없습니다. GPS가 켜져 있는지 확인해주세요.",
-                            variant: "destructive"
-                          });
-                        },
-                        {
-                          enableHighAccuracy: true,
-                          timeout: 10000,
-                          maximumAge: 0
-                        }
-                      );
-                    }
+                    setIsLocationLocked(!isLocationLocked);
+                    toast({
+                      title: isLocationLocked ? "위치 고정 해제" : "위치 고정",
+                      description: isLocationLocked 
+                        ? "지도를 자유롭게 이동할 수 있습니다" 
+                        : "내 위치가 화면 중앙에 고정되며, 지도가 따라 움직입니다",
+                    });
                   }}
-                  data-testid="button-my-location"
+                  className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
+                    isLocationLocked 
+                      ? 'bg-blue-500 hover:bg-blue-600 border-2 border-blue-500' 
+                      : 'bg-muted hover:bg-muted/80 border-2 border-border'
+                  }`}
+                  data-testid="button-location-lock"
                 >
-                  <Navigation className="h-5 w-5 text-primary-foreground" />
+                  <User className={`h-5 w-5 ${isLocationLocked ? 'text-white' : 'text-muted-foreground'}`} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left">
-                <p>내 위치로 이동</p>
+                <p>{isLocationLocked ? "위치 고정 해제" : "위치 고정"}</p>
               </TooltipContent>
             </Tooltip>
+
+            {/* GPS 위치 이동 버튼 (위치 고정 모드가 아닐 때만 표시) */}
+            {!isLocationLocked && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    className="h-10 w-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
+                    onClick={() => {
+                      if (map && currentUserLocation) {
+                        const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
+                        map.setCenter(latlng);
+                        map.setLevel(3);
+                        
+                        if (onMyLocationClick) {
+                          onMyLocationClick({ lat: currentUserLocation.lat, lng: currentUserLocation.lng });
+                        }
+                      } else if (navigator.geolocation && map) {
+                        // 현재 위치가 없으면 다시 가져오기
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            const latlng = new window.kakao.maps.LatLng(lat, lng);
+                            map.setCenter(latlng);
+                            map.setLevel(3);
+                            
+                            if (onMyLocationClick) {
+                              onMyLocationClick({ lat, lng });
+                            }
+                          },
+                          (error) => {
+                            console.error("위치 정보를 가져올 수 없습니다:", error);
+                            toast({
+                              title: "위치 정보 오류",
+                              description: "현재 위치를 가져올 수 없습니다. GPS가 켜져 있는지 확인해주세요.",
+                              variant: "destructive"
+                            });
+                          },
+                          {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                          }
+                        );
+                      }
+                    }}
+                    data-testid="button-my-location"
+                  >
+                    <Navigation className="h-5 w-5 text-primary-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <p>내 위치로 이동</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
 
             {/* 그룹 필터 버튼 */}
             <Tooltip>
