@@ -496,6 +496,24 @@ export function MapView({
     };
   }, [map]);
 
+  // Detect user dragging the map and disable location lock
+  useEffect(() => {
+    if (!map || !window.kakao?.maps) return;
+
+    const handleDragStart = () => {
+      // User is manually dragging the map, disable location lock
+      if (isLocationLocked) {
+        setIsLocationLocked(false);
+      }
+    };
+
+    window.kakao.maps.event.addListener(map, 'dragstart', handleDragStart);
+
+    return () => {
+      window.kakao.maps.event.removeListener(map, 'dragstart', handleDragStart);
+    };
+  }, [map, isLocationLocked]);
+
   // Register map click handler with fresh memos
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
@@ -969,12 +987,20 @@ export function MapView({
                 <Button
                   size="icon"
                   onClick={() => {
-                    setIsLocationLocked(!isLocationLocked);
+                    const newLockState = !isLocationLocked;
+                    setIsLocationLocked(newLockState);
+                    
+                    // 위치 고정을 활성화할 때, 현재 위치로 지도 이동
+                    if (newLockState && map && currentUserLocation) {
+                      const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
+                      map.panTo(latlng);
+                    }
+                    
                     toast({
-                      title: isLocationLocked ? "위치 고정 해제" : "위치 고정",
-                      description: isLocationLocked 
-                        ? "지도를 자유롭게 이동할 수 있습니다" 
-                        : "내 위치가 화면 중앙에 고정되며, 지도가 따라 움직입니다",
+                      title: newLockState ? "위치 고정" : "위치 고정 해제",
+                      description: newLockState 
+                        ? "내 위치가 화면 중앙에 고정되며, 지도가 따라 움직입니다" 
+                        : "지도를 자유롭게 이동할 수 있습니다",
                     });
                   }}
                   className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
