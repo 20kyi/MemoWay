@@ -38,6 +38,7 @@ export const groups = pgTable("groups", {
   inviteCode: varchar("invite_code").notNull().unique(),
   color: varchar("color").notNull().default('#3b82f6'),
   markerIcon: varchar("marker_icon").notNull().default('default'),
+  maxMembers: integer("max_members").notNull().default(20),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

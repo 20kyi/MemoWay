@@ -34,6 +34,7 @@ export interface IStorage {
   getGroups(userId: string): Promise<GroupWithMembers[]>;
   getGroupById(groupId: string): Promise<GroupWithMembers | undefined>;
   getGroupForUser(groupId: string, userId: string): Promise<GroupWithMembers | undefined>;
+  getGroupMemberCount(groupId: string): Promise<number>;
   updateGroup(groupId: string, updateData: Partial<InsertGroup>): Promise<Group>;
   deleteGroup(groupId: string): Promise<void>;
   copyGroupMemosToPersonal(groupId: string, userId: string): Promise<{ group: Group; member: Member; copiedCount: number }>;
@@ -146,6 +147,14 @@ export class DatabaseStorage implements IStorage {
     }
     
     return undefined;
+  }
+
+  async getGroupMemberCount(groupId: string): Promise<number> {
+    const membersList = await db
+      .select()
+      .from(members)
+      .where(eq(members.groupId, groupId));
+    return membersList.length;
   }
 
   // Members

@@ -107,6 +107,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "그룹을 찾을 수 없습니다" });
       }
       
+      // Check if group has reached max members
+      const currentMemberCount = await storage.getGroupMemberCount(group.id);
+      const maxMembers = group.maxMembers || 20; // Default to 20 if not set
+      
+      if (currentMemberCount >= maxMembers) {
+        return res.status(400).json({ error: `그룹 인원이 가득 찼습니다 (${maxMembers}명 최대)` });
+      }
+      
       const member = await storage.createMember({ 
         groupId: group.id, 
         name: memberName,

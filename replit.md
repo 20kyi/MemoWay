@@ -51,6 +51,7 @@ The backend uses Express.js with TypeScript and ESM modules, providing a RESTful
 - **Map Marker Filtering**: Dual filter system (marker icon + group) to show only selected categories and groups on the map.
 - **Multi-Selection and Bulk Delete**: Long-press (500ms) to enter selection mode, select multiple memos with checkboxes, and delete them all at once.
 - **Group Leader Permissions**: Comprehensive role-based access control system with group leaders having special authority to delete groups, remove members, regenerate invite codes, and transfer leadership. Leaders are visually distinguished with crown badges in the UI.
+- **Group Member Limit**: Each group has a maximum member capacity of 20 people. The system validates member count on join requests and displays current/max member counts in the group UI.
 - **High-Precision GPS**: Automatic GPS positioning on map load with accuracy verification. The system attempts up to 3 times to obtain GPS coordinates with ≤30m accuracy using `enableHighAccuracy: true`, 10-second timeout, and zero cache age. Only positions meeting the 30m threshold are used for map centering and location tracking, ensuring precise memo placement and proximity notifications.
 
 ### System Design Choices

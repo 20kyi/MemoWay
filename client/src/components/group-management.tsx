@@ -59,6 +59,7 @@ interface Group {
   inviteCode: string;
   color: string;
   markerIcon?: string;
+  maxMembers?: number;
   members: Array<{ id: string; name: string; role: string; userId: string | null; canEditGroupMemos: boolean }>;
   memoCount?: number;
 }
@@ -427,7 +428,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     className="flex-shrink-0"
                   >
                     <Users className="h-3 w-3 mr-1" />
-                    {group.members.length}{t.groups.members}
+                    {group.members.length}/{group.maxMembers || 20}{t.groups.members}
                   </Badge>
                 </div>
               </CardHeader>
