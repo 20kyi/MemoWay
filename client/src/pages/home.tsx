@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { MapView } from "@/components/map-view";
+import { GoogleMapView } from "@/components/google-map-view";
 import { MemoFormSheet } from "@/components/memo-form-sheet";
 import { MemoDetailSheet } from "@/components/memo-detail-sheet";
 import { MemoClusterSheet } from "@/components/memo-cluster-sheet";
@@ -16,6 +17,7 @@ import { useWebSocket } from "@/hooks/use-websocket";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/language-context";
+import { useMapProvider } from "@/lib/map-provider-context";
 import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 
 // Calculate distance between two coordinates using Haversine formula (in meters)
@@ -36,6 +38,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 export default function Home() {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { mapProvider } = useMapProvider();
   const [activeTab, setActiveTab] = useState<"map" | "memos" | "groups" | "settings">("map");
   const [memoFormOpen, setMemoFormOpen] = useState(false);
   const [memoDetailOpen, setMemoDetailOpen] = useState(false);
@@ -813,33 +816,63 @@ export default function Home() {
       <div className="flex-1 overflow-hidden pb-16 relative z-10">
         {activeTab === "map" && (
           <div className="relative h-full">
-            <MapView
-              onLocationSelect={handleLocationSelect}
-              memos={memos}
-              onMarkerClick={(memoId) => {
-                const memo = memos.find(m => m.id === memoId);
-                if (memo) {
-                  setSelectedMemo(memo);
-                  setMemoDetailOpen(true);
-                }
-              }}
-              onClusterClick={(memoIds) => {
-                setClusterMemoIds(memoIds);
-                setMemoClusterOpen(true);
-              }}
-              userLocation={userLocation}
-              onMapReady={setMapInstance}
-              onMyLocationClick={(location) => {
-                setUserLocation(location);
-              }}
-              groups={groups.filter(g => 
-                g.members.some(m => m.userId === (user as any)?.id)
-              )}
-              selectedMarkerIcons={selectedMarkerIcons}
-              selectedGroupIds={selectedGroupIds}
-              onMarkerIconsChange={setSelectedMarkerIcons}
-              onGroupIdsChange={setSelectedGroupIds}
-            />
+            {mapProvider === "kakao" ? (
+              <MapView
+                onLocationSelect={handleLocationSelect}
+                memos={memos}
+                onMarkerClick={(memoId) => {
+                  const memo = memos.find(m => m.id === memoId);
+                  if (memo) {
+                    setSelectedMemo(memo);
+                    setMemoDetailOpen(true);
+                  }
+                }}
+                onClusterClick={(memoIds) => {
+                  setClusterMemoIds(memoIds);
+                  setMemoClusterOpen(true);
+                }}
+                userLocation={userLocation}
+                onMapReady={setMapInstance}
+                onMyLocationClick={(location) => {
+                  setUserLocation(location);
+                }}
+                groups={groups.filter(g => 
+                  g.members.some(m => m.userId === (user as any)?.id)
+                )}
+                selectedMarkerIcons={selectedMarkerIcons}
+                selectedGroupIds={selectedGroupIds}
+                onMarkerIconsChange={setSelectedMarkerIcons}
+                onGroupIdsChange={setSelectedGroupIds}
+              />
+            ) : (
+              <GoogleMapView
+                onLocationSelect={handleLocationSelect}
+                memos={memos}
+                onMarkerClick={(memoId) => {
+                  const memo = memos.find(m => m.id === memoId);
+                  if (memo) {
+                    setSelectedMemo(memo);
+                    setMemoDetailOpen(true);
+                  }
+                }}
+                onClusterClick={(memoIds) => {
+                  setClusterMemoIds(memoIds);
+                  setMemoClusterOpen(true);
+                }}
+                userLocation={userLocation}
+                onMapReady={setMapInstance}
+                onMyLocationClick={(location) => {
+                  setUserLocation(location);
+                }}
+                groups={groups.filter(g => 
+                  g.members.some(m => m.userId === (user as any)?.id)
+                )}
+                selectedMarkerIcons={selectedMarkerIcons}
+                selectedGroupIds={selectedGroupIds}
+                onMarkerIconsChange={setSelectedMarkerIcons}
+                onGroupIdsChange={setSelectedGroupIds}
+              />
+            )}
           </div>
         )}
         {activeTab === "memos" && (
