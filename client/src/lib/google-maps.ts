@@ -17,10 +17,14 @@ export async function loadGoogleMaps(): Promise<any> {
   googleMapsLoader = new Loader({
     apiKey,
     version: "weekly",
-    libraries: ["places", "geometry"],
+    libraries: ["places", "geometry", "marker"],
   });
 
-  googleMapsPromise = googleMapsLoader.importLibrary('maps').then(() => window.google);
+  googleMapsPromise = (async () => {
+    await googleMapsLoader!.importLibrary('maps');
+    await googleMapsLoader!.importLibrary('marker');
+    return window.google;
+  })();
   
   return googleMapsPromise;
 }

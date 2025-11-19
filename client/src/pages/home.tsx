@@ -95,8 +95,15 @@ export default function Home() {
   // Function to move map to specific location
   const moveToLocation = useCallback((lat: number, lng: number, memo?: MemoWithDetails) => {
     if (mapInstance) {
-      const moveLatLon = new window.kakao.maps.LatLng(lat, lng);
-      mapInstance.panTo(moveLatLon);
+      // Handle both Kakao Maps and Google Maps
+      if (mapProvider === "kakao" && window.kakao?.maps) {
+        const moveLatLon = new window.kakao.maps.LatLng(lat, lng);
+        mapInstance.panTo(moveLatLon);
+      } else if (mapProvider === "google") {
+        // Google Maps panTo
+        mapInstance.panTo({ lat, lng });
+        mapInstance.setZoom(15);
+      }
       
       // Switch to map tab
       setActiveTab("map");
@@ -109,7 +116,7 @@ export default function Home() {
         }, 300);
       }
     }
-  }, [mapInstance]);
+  }, [mapInstance, mapProvider]);
 
   // WebSocket for real-time updates
   const handleWebSocketMessage = useCallback((data: any) => {
@@ -803,13 +810,18 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (mapInstance && pendingLocation && window.kakao?.maps) {
-      const position = new window.kakao.maps.LatLng(pendingLocation.lat, pendingLocation.lng);
-      mapInstance.setCenter(position);
-      mapInstance.setLevel(3);
+    if (mapInstance && pendingLocation) {
+      if (mapProvider === "kakao" && window.kakao?.maps) {
+        const position = new window.kakao.maps.LatLng(pendingLocation.lat, pendingLocation.lng);
+        mapInstance.panTo(position);
+        mapInstance.setLevel(3);
+      } else if (mapProvider === "google") {
+        mapInstance.panTo({ lat: pendingLocation.lat, lng: pendingLocation.lng });
+        mapInstance.setZoom(16);
+      }
       setPendingLocation(null);
     }
-  }, [mapInstance, pendingLocation]);
+  }, [mapInstance, pendingLocation, mapProvider]);
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden">
