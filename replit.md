@@ -34,7 +34,16 @@ The frontend is designed for a mobile-first experience, following modern design 
 
 ### Technical Implementations
 
-The frontend is built with React 18 and TypeScript, using Vite for tooling. UI components are developed with shadcn/ui (based on Radix UI) and styled with Tailwind CSS. Client-side routing is managed by Wouter. State management utilizes TanStack Query for server state, React Hook Form with Zod for form validation, and local React state for UI specifics. The Kakao Maps SDK is integrated for map rendering, custom markers, and geocoding.
+The frontend is built with React 18 and TypeScript, using Vite for tooling. UI components are developed with shadcn/ui (based on Radix UI) and styled with Tailwind CSS. Client-side routing is managed by Wouter. State management utilizes TanStack Query for server state, React Hook Form with Zod for form validation, and local React state for UI specifics.
+
+**Map Provider System**: The application supports both Kakao Maps and Google Maps through a switchable provider system:
+- **MapProviderContext**: React context managing map provider selection (kakao/google) with localStorage persistence
+- **Kakao Maps SDK**: Integrated for Korean-optimized map rendering, custom markers, and geocoding
+- **Google Maps SDK**: Integrated via `@googlemaps/js-api-loader` with marker and places libraries for global coverage
+- **Conditional Rendering**: Home page renders MapView (Kakao) or GoogleMapView (Google) based on user preference
+- **Provider-Aware Navigation**: Map navigation functions (moveToLocation, pendingLocation) handle both providers' APIs
+- **Settings UI**: Radio button interface in settings allows users to switch between providers
+- Both map views implement identical features: markers, clustering, filtering, location lock, address search
 
 The backend uses Express.js with TypeScript and ESM modules, providing a RESTful API. Multer handles photo uploads. A WebSocket server, built with `ws`, provides real-time notifications for memo creation and deletion, ensuring UI synchronization across clients.
 
@@ -63,7 +72,8 @@ The architecture employs a Repository pattern for data access and utilizes share
 ## External Dependencies
 
 ### Third-Party Services
-- **Kakao Maps API**: For map rendering, geocoding, and reverse geocoding functionalities.
+- **Kakao Maps API**: For map rendering, geocoding, and reverse geocoding functionalities (Korean-optimized).
+- **Google Maps API**: For global map coverage with marker and places libraries. Requires `VITE_GOOGLE_MAPS_API_KEY` environment variable.
 - **Neon Database**: Serverless PostgreSQL hosting for all application data.
 - **Google Fonts CDN**: Delivers the Roboto font used in the application.
 
