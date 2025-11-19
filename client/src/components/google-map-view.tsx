@@ -38,7 +38,7 @@ interface GoogleMapViewProps {
 const PERSONAL_MEMO_COLOR = '#9333ea';
 
 interface MarkerData {
-  marker: google.maps.marker.AdvancedMarkerElement;
+  marker: google.maps.Marker;
   memoIds: string[];
 }
 
@@ -59,7 +59,7 @@ export function GoogleMapView({
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<MarkerData[]>([]);
-  const [userMarker, setUserMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentUserLocation, setCurrentUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -74,23 +74,23 @@ export function GoogleMapView({
   useEffect(() => {
     if (!mapRef.current) return;
 
-    loadGoogleMaps().then((google) => {
-      const mapInstance = new google.maps.Map(mapRef.current!, {
-        center: { lat: 37.5665, lng: 126.9780 }, // Seoul
-        zoom: 15,
-        mapId: "LOCATION_MEMO_MAP",
-        disableDefaultUI: true,
-        zoomControl: false,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-      });
+    loadGoogleMaps()
+      .then((google) => {
+        const mapInstance = new google.maps.Map(mapRef.current!, {
+          center: { lat: 37.5665, lng: 126.9780 }, // Seoul
+          zoom: 15,
+          disableDefaultUI: true,
+          zoomControl: false,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        });
 
-      setMap(mapInstance);
+        setMap(mapInstance);
 
-      if (onMapReady) {
-        onMapReady(mapInstance);
-      }
+        if (onMapReady) {
+          onMapReady(mapInstance);
+        }
 
       // Map click handler
       mapInstance.addListener("click", async (e: google.maps.MapMouseEvent) => {
@@ -161,9 +161,14 @@ export function GoogleMapView({
       }
     }).catch((error) => {
       console.error("Failed to load Google Maps:", error);
+      console.error("Error type:", typeof error);
+      console.error("Error message:", error?.message);
+      console.error("Error stack:", error?.stack);
+      console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      
       toast({
-        title: "Error",
-        description: "Failed to load Google Maps. Please check your API key.",
+        title: "Google Maps Error",
+        description: error?.message || "Failed to load Google Maps. Please check your API key and billing settings.",
         variant: "destructive",
       });
     });
