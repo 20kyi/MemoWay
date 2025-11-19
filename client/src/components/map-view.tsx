@@ -692,20 +692,85 @@ export function MapView({
         }, 500);
       };
       
-      // Handle both click and touch events for better mobile support
-      contentDiv.addEventListener('click', handleMarkerInteraction, true); // Use capture phase
-      contentDiv.addEventListener('touchend', handleMarkerInteraction, true); // Use capture phase
+      // Track touch movement to distinguish tap from drag
+      let touchStartPos: { x: number; y: number } | null = null;
+      let touchMoved = false;
       
-      // Prevent default touch behavior
-      contentDiv.addEventListener('touchstart', (e) => {
+      const handleTouchStart = (e: TouchEvent) => {
         // Ignore if map is being dragged or zoomed
         if (isMapInteractingRef.current) {
           return;
         }
+        
+        // Record touch start position
+        if (e.touches.length > 0) {
+          touchStartPos = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY
+          };
+          touchMoved = false;
+        }
+      };
+      
+      const handleTouchMove = (e: TouchEvent) => {
+        // If user moves finger, it's a drag, not a tap
+        if (touchStartPos && e.touches.length > 0) {
+          const deltaX = Math.abs(e.touches[0].clientX - touchStartPos.x);
+          const deltaY = Math.abs(e.touches[0].clientY - touchStartPos.y);
+          
+          // If moved more than 10px, consider it a drag
+          if (deltaX > 10 || deltaY > 10) {
+            touchMoved = true;
+            // Clear touch data
+            touchStartPos = null;
+          }
+        }
+      };
+      
+      const handleTouchEnd = (e: TouchEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        // Ignore if map is being dragged or zoomed
+        if (isMapInteractingRef.current) {
+          touchStartPos = null;
+          touchMoved = false;
+          return;
+        }
+        
+        // Ignore if touch was a drag movement
+        if (touchMoved) {
+          touchStartPos = null;
+          touchMoved = false;
+          return;
+        }
+        
+        // Set flag to prevent map click handler from firing
         markerClickedRef.current = true;
-      }, true);
+        
+        // Execute marker action
+        if (isSingleMemo) {
+          onMarkerClick(memo.id);
+        } else if (onClusterClick) {
+          onClusterClick(cluster.memos.map(m => m.id));
+        }
+        
+        // Reset flags
+        touchStartPos = null;
+        touchMoved = false;
+        
+        // Reset marker clicked flag after delay
+        setTimeout(() => {
+          markerClickedRef.current = false;
+        }, 500);
+      };
+      
+      // Handle both click and touch events for better mobile support
+      contentDiv.addEventListener('click', handleMarkerInteraction, true); // Use capture phase for desktop
+      contentDiv.addEventListener('touchstart', handleTouchStart, true);
+      contentDiv.addEventListener('touchmove', handleTouchMove, true);
+      contentDiv.addEventListener('touchend', handleTouchEnd, true);
 
       return { 
         overlay: customOverlay, 
@@ -718,9 +783,13 @@ export function MapView({
 
     return () => {
       newMarkers.forEach(marker => {
-        if (marker.handler && marker.element) {
-          marker.element.removeEventListener('click', marker.handler, true);
-          marker.element.removeEventListener('touchend', marker.handler, true);
+        if (marker.element) {
+          // Remove all event listeners
+          if (marker.handler) {
+            marker.element.removeEventListener('click', marker.handler, true);
+          }
+          // Note: touchstart, touchmove, touchend listeners are anonymous functions
+          // They will be automatically cleaned up when the element is removed
         }
         if (marker.overlay) {
           marker.overlay.setMap(null);
