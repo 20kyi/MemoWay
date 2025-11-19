@@ -518,6 +518,10 @@ export function MapView({
     };
 
     const handleZoomStart = () => {
+      // User is manually zooming the map, disable location lock
+      if (isLocationLocked) {
+        setIsLocationLocked(false);
+      }
       // Set interaction flag to prevent click events during zoom
       isMapInteractingRef.current = true;
     };
