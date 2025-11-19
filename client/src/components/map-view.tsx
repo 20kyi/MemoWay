@@ -1354,7 +1354,7 @@ export function MapView({
                   />
                   <span>개인 메모</span>
                 </label>
-                {groups.map((group) => (
+                {groups.filter(group => group.name !== "개인 메모").map((group) => (
                   <label key={group.id} className="flex items-center space-x-3 cursor-pointer">
                     <Checkbox
                       checked={selectedGroupIds.includes(group.id)}
