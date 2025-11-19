@@ -160,6 +160,10 @@ export const translations = {
       accountInfo: "로그인된 계정 정보",
       logout: "로그아웃",
       logoutDesc: "현재 계정에서 로그아웃합니다",
+      mapProvider: "지도 프로바이더",
+      mapProviderDesc: "사용할 지도 서비스를 선택하세요",
+      mapProviderKakao: "카카오맵",
+      mapProviderGoogle: "구글맵",
     },
     // Toast messages
     toast: {
@@ -360,6 +364,10 @@ export const translations = {
       accountInfo: "Logged in account information",
       logout: "Log Out",
       logoutDesc: "Sign out from your current account",
+      mapProvider: "Map Provider",
+      mapProviderDesc: "Select the map service to use",
+      mapProviderKakao: "Kakao Map",
+      mapProviderGoogle: "Google Maps",
     },
     // Toast messages
     toast: {
@@ -560,6 +568,10 @@ export const translations = {
       accountInfo: "已登录账户信息",
       logout: "退出登录",
       logoutDesc: "从当前账户退出登录",
+      mapProvider: "地图提供商",
+      mapProviderDesc: "选择要使用的地图服务",
+      mapProviderKakao: "Kakao地图",
+      mapProviderGoogle: "Google地图",
     },
     // Toast messages
     toast: {
@@ -760,6 +772,10 @@ export const translations = {
       accountInfo: "ログイン中のアカウント情報",
       logout: "ログアウト",
       logoutDesc: "現在のアカウントからログアウトします",
+      mapProvider: "地図プロバイダー",
+      mapProviderDesc: "使用する地図サービスを選択してください",
+      mapProviderKakao: "Kakao地図",
+      mapProviderGoogle: "Google地図",
     },
     // Toast messages
     toast: {
@@ -953,6 +969,10 @@ type Translation = {
     accountInfo: string;
     logout: string;
     logoutDesc: string;
+    mapProvider: string;
+    mapProviderDesc: string;
+    mapProviderKakao: string;
+    mapProviderGoogle: string;
   };
   toast: {
     newMemo: string;
