@@ -326,6 +326,7 @@ export function MapView({
   const [currentUserLocation, setCurrentUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocationLocked, setIsLocationLocked] = useState(true); // 위치 고정 모드 (기본값: true)
   const markerClickedRef = useRef(false);
+  const isMapInteractingRef = useRef(false); // 지도 조작 중 플래그 (드래그/줌)
   const [markerFilterOpen, setMarkerFilterOpen] = useState(false);
   const [groupFilterOpen, setGroupFilterOpen] = useState(false);
   const watchIdRef = useRef<number | null>(null);
@@ -505,12 +506,39 @@ export function MapView({
       if (isLocationLocked) {
         setIsLocationLocked(false);
       }
+      // Set interaction flag to prevent click events during drag
+      isMapInteractingRef.current = true;
+    };
+
+    const handleDragEnd = () => {
+      // Clear interaction flag after a short delay to prevent click events right after drag
+      setTimeout(() => {
+        isMapInteractingRef.current = false;
+      }, 300);
+    };
+
+    const handleZoomStart = () => {
+      // Set interaction flag to prevent click events during zoom
+      isMapInteractingRef.current = true;
+    };
+
+    const handleZoomChanged = () => {
+      // Clear interaction flag after zoom completes with a short delay
+      setTimeout(() => {
+        isMapInteractingRef.current = false;
+      }, 300);
     };
 
     window.kakao.maps.event.addListener(map, 'dragstart', handleDragStart);
+    window.kakao.maps.event.addListener(map, 'dragend', handleDragEnd);
+    window.kakao.maps.event.addListener(map, 'zoom_start', handleZoomStart);
+    window.kakao.maps.event.addListener(map, 'zoom_changed', handleZoomChanged);
 
     return () => {
       window.kakao.maps.event.removeListener(map, 'dragstart', handleDragStart);
+      window.kakao.maps.event.removeListener(map, 'dragend', handleDragEnd);
+      window.kakao.maps.event.removeListener(map, 'zoom_start', handleZoomStart);
+      window.kakao.maps.event.removeListener(map, 'zoom_changed', handleZoomChanged);
     };
   }, [map, isLocationLocked]);
 
@@ -524,6 +552,11 @@ export function MapView({
       // Delay to allow marker click handler to execute first and set the flag
       // Increased delay for mobile touch events which can be delayed significantly
       setTimeout(() => {
+        // Ignore clicks if map is being dragged or zoomed
+        if (isMapInteractingRef.current) {
+          return;
+        }
+        
         // Check flag again after delay
         if (markerClickedRef.current) {
           return;
@@ -638,6 +671,11 @@ export function MapView({
         e.stopPropagation();
         e.stopImmediatePropagation();
         
+        // Ignore clicks if map is being dragged or zoomed
+        if (isMapInteractingRef.current) {
+          return;
+        }
+        
         // Set flag to prevent map click handler from firing
         markerClickedRef.current = true;
         
@@ -660,6 +698,10 @@ export function MapView({
       
       // Prevent default touch behavior
       contentDiv.addEventListener('touchstart', (e) => {
+        // Ignore if map is being dragged or zoomed
+        if (isMapInteractingRef.current) {
+          return;
+        }
         e.preventDefault();
         e.stopPropagation();
         markerClickedRef.current = true;
