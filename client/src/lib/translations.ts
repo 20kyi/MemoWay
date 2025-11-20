@@ -204,6 +204,13 @@ export const translations = {
       monthsAgo: "개월 전",
       yearsAgo: "년 전",
     },
+    // Exit Dialog
+    exitDialog: {
+      title: "앱 종료",
+      description: "정말로 앱을 종료하시겠습니까?",
+      cancel: "취소",
+      confirm: "종료",
+    },
   },
   en: {
     // Navigation
@@ -407,6 +414,13 @@ export const translations = {
       daysAgo: " days ago",
       monthsAgo: " months ago",
       yearsAgo: " years ago",
+    },
+    // Exit Dialog
+    exitDialog: {
+      title: "Exit App",
+      description: "Do you really want to exit the app?",
+      cancel: "Cancel",
+      confirm: "Exit",
     },
   },
   zh: {
@@ -612,6 +626,13 @@ export const translations = {
       monthsAgo: "个月前",
       yearsAgo: "年前",
     },
+    // Exit Dialog
+    exitDialog: {
+      title: "退出应用",
+      description: "确定要退出应用吗？",
+      cancel: "取消",
+      confirm: "退出",
+    },
   },
   ja: {
     // Navigation
@@ -816,6 +837,13 @@ export const translations = {
       monthsAgo: "ヶ月前",
       yearsAgo: "年前",
     },
+    // Exit Dialog
+    exitDialog: {
+      title: "アプリを終了",
+      description: "本当にアプリを終了しますか？",
+      cancel: "キャンセル",
+      confirm: "終了",
+    },
   },
 } as const;
 
@@ -1009,6 +1037,12 @@ type Translation = {
     daysAgo: string;
     monthsAgo: string;
     yearsAgo: string;
+  };
+  exitDialog: {
+    title: string;
+    description: string;
+    cancel: string;
+    confirm: string;
   };
 };
 

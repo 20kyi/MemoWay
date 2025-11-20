@@ -11,6 +11,16 @@ import { SettingsView } from "@/components/settings-view";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Plus, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -100,14 +110,35 @@ export default function Home() {
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedMarkerIcons, setSelectedMarkerIcons] = useState<string[]>(["all"]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(["all"]);
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const { toast } = useToast();
+
+  // Custom tab change handler that updates URL hash
+  const handleTabChange = useCallback((tab: "map" | "memos" | "groups" | "settings") => {
+    setActiveTab(tab);
+    // Push to history for back button support
+    window.history.pushState(null, "", `#${tab}`);
+  }, []);
 
   // Handle browser back/forward button for tab navigation
   useEffect(() => {
     const handlePopState = () => {
       const hash = window.location.hash.slice(1);
+      
+      // If we're on the map tab and trying to go back, show exit confirmation
+      if (activeTab === "map" && !hash) {
+        // Push the current state back to prevent actual navigation
+        window.history.pushState(null, "", "#map");
+        setShowExitDialog(true);
+        return;
+      }
+      
       if (hash === "map" || hash === "memos" || hash === "groups" || hash === "settings") {
         setActiveTab(hash);
+      } else if (!hash) {
+        // If no hash, we're trying to navigate away from the app
+        window.history.pushState(null, "", "#map");
+        setShowExitDialog(true);
       }
     };
 
@@ -121,14 +152,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, []);
-
-  // Custom tab change handler that updates URL hash
-  const handleTabChange = useCallback((tab: "map" | "memos" | "groups" | "settings") => {
-    setActiveTab(tab);
-    // Push to history for back button support
-    window.history.pushState(null, "", `#${tab}`);
-  }, []);
+  }, [activeTab]);
 
   // Function to move map to specific location
   const moveToLocation = useCallback((lat: number, lng: number, memo?: MemoWithDetails) => {
@@ -1103,6 +1127,31 @@ export default function Home() {
           setMemoFormOpen(true);
         }}
       />
+
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent data-testid="dialog-exit-app">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.exitDialog?.title || "앱 종료"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t.exitDialog?.description || "정말로 앱을 종료하시겠습니까?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-exit">
+              {t.exitDialog?.cancel || "취소"}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              data-testid="button-confirm-exit"
+              onClick={() => {
+                // Actually navigate away from the app
+                window.history.go(-2); // Go back twice to exit
+              }}
+            >
+              {t.exitDialog?.confirm || "종료"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
