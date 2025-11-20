@@ -90,3 +90,31 @@ The architecture employs a Repository pattern for data access and utilizes share
 - **Replit Auth (OpenID Connect)**: Primary authentication provider, supporting email/password, Google, GitHub, and Apple logins.
 - **Kakao OAuth**: Integrated for specific Kakao account login.
 - **connect-pg-simple**: PostgreSQL store for `express-session` to manage user sessions.
+
+### Mobile App Deployment
+- **Capacitor**: Integrated for converting the web application into native Android (and iOS) applications. Allows packaging the existing React web app as a native mobile app with access to device features like camera and geolocation.
+- **Native Plugins**: Installed Capacitor plugins for Camera, Geolocation, and App functionality to enable native device capabilities.
+- **Build Configuration**: `capacitor.config.ts` defines app ID (`com.memomap.app`), app name, and web directory for APK builds.
+- **Environment Detection**: WebSocket connections automatically detect Capacitor environment and use appropriate URLs (Replit production URL for APK, relative paths for web).
+
+## Deployment Options
+
+### Web Deployment (Replit)
+The application is designed to run on Replit's infrastructure with automatic HTTPS, custom domains, and built-in database hosting. Use Replit's "Publish" feature to deploy the web version.
+
+### Mobile App (APK) Deployment
+To convert this web app into an Android APK:
+
+1. **Prerequisites**: Install Android Studio, JDK 17+, and ensure all environment variables are set
+2. **Build Web App**: Run `npm run build` to create production build in `dist/public`
+3. **Add Android Platform**: Execute `npx cap add android` (first time only)
+4. **Sync Assets**: Run `npx cap sync` to copy web assets to Android project
+5. **Configure Environment**: Set `VITE_REPLIT_URL` in `.env` to your published Replit app URL
+6. **Build APK**: Open Android Studio with `npx cap open android` and build APK via **Build → Build APK(s)**
+7. **Install**: Install APK on Android device using `adb install` or Android Studio
+
+**Detailed Instructions**: See `CAPACITOR_GUIDE.md` for complete step-by-step guide including:
+- Environment setup and troubleshooting
+- Google Maps / Kakao Maps Android API key configuration
+- Production release builds with signing
+- App icon and splash screen customization
