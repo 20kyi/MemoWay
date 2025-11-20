@@ -61,10 +61,11 @@ export function GoogleMapView({
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<MarkerData[]>([]);
   const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [currentUserLocation, setCurrentUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocationLocked, setIsLocationLocked] = useState(true);
+  const [isMapLocked, setIsMapLocked] = useState(false);
   const [isMarkerFilterOpen, setIsMarkerFilterOpen] = useState(false);
   const [isGroupFilterOpen, setIsGroupFilterOpen] = useState(false);
   const { toast } = useToast();
@@ -85,6 +86,7 @@ export function GoogleMapView({
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
+          gestureHandling: 'greedy',
         });
 
         setMap(mapInstance);
@@ -348,8 +350,9 @@ export function GoogleMapView({
 
   // Address search
   const handleSearch = async () => {
-    if (!map || !searchQuery.trim()) return;
+    if (!map || !searchQuery.trim() || isSearching) return;
 
+    setIsSearching(true);
     try {
       const google = await loadGoogleMaps();
       const geocoder = new google.maps.Geocoder();
@@ -359,11 +362,16 @@ export function GoogleMapView({
         const location = result.results[0].geometry.location;
         map.setCenter(location);
         map.setZoom(16);
-        setIsSearchOpen(false);
+        
+        toast({
+          title: "검색 완료",
+          description: `"${searchQuery}" 위치로 이동했습니다`,
+        });
+        
         setSearchQuery("");
       } else {
         toast({
-          title: t.common.addressSearchPlaceholder,
+          title: "검색 실패",
           description: "주소를 찾을 수 없습니다",
           variant: "destructive",
         });
@@ -371,11 +379,42 @@ export function GoogleMapView({
     } catch (error) {
       console.error("Geocoding error:", error);
       toast({
-        title: "Error",
-        description: "주소 검색 중 오류가 발생했습니다",
+        title: "검색 오류",
+        description: "주소 검색 중 오류가 발생했습니다. Geocoding API를 활성화해주세요.",
         variant: "destructive",
       });
+    } finally {
+      setIsSearching(false);
     }
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+  };
+
+  const toggleMapLock = () => {
+    const newLockState = !isMapLocked;
+    setIsMapLocked(newLockState);
+    
+    if (map) {
+      map.setOptions({
+        gestureHandling: newLockState ? 'none' : 'greedy',
+        zoomControl: false,
+      });
+    }
+    
+    toast({
+      title: newLockState ? "확대/축소 잠금" : "확대/축소 잠금 해제",
+      description: newLockState 
+        ? "지도 확대/축소가 비활성화되었습니다" 
+        : "지도를 자유롭게 확대/축소할 수 있습니다",
+    });
   };
 
   const handleMyLocation = () => {
@@ -435,26 +474,42 @@ export function GoogleMapView({
         </div>
       )}
 
-      {/* Search Dialog */}
-      <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-        <DialogContent className="rounded-3xl" data-testid="dialog-search">
-          <DialogHeader>
-            <DialogTitle>{t.common.addressSearchPlaceholder}</DialogTitle>
-          </DialogHeader>
-          <div className="flex gap-2">
+      {/* 주소 검색 바 */}
+      <div className="absolute top-4 left-4 right-4 z-10">
+        <div className="flex gap-2 bg-card/80 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-primary/30 p-2">
+          <div className="relative flex-1">
             <Input
-              placeholder={t.common.addressSearchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              data-testid="input-search-address"
+              onKeyPress={handleSearchKeyPress}
+              placeholder={t.common.addressSearchPlaceholder}
+              className="pr-10 border-0 focus-visible:ring-0"
+              disabled={isSearching}
+              data-testid="input-address-search"
             />
-            <Button onClick={handleSearch} data-testid="button-search">
-              <Search className="h-4 w-4" />
-            </Button>
+            {searchQuery && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                onClick={handleClearSearch}
+                data-testid="button-clear-search"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
+          <Button
+            size="icon"
+            onClick={handleSearch}
+            disabled={!searchQuery.trim() || isSearching}
+            className="h-10 w-10 flex-shrink-0"
+            data-testid="button-search-address"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
 
       {/* Marker Filter Dialog */}
       <Dialog open={isMarkerFilterOpen} onOpenChange={setIsMarkerFilterOpen}>
@@ -556,26 +611,34 @@ export function GoogleMapView({
         </DialogContent>
       </Dialog>
 
-      {/* Control Buttons */}
-      <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
-        {/* Search Button */}
+      {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
+      <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
+        {/* 지도 확대/축소 잠금 버튼 */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               size="icon"
-              onClick={() => setIsSearchOpen(true)}
-              className="h-10 w-10 rounded-lg shadow-lg bg-background hover:bg-background/90 border-2 border-primary hover:shadow-2xl transition-all"
-              data-testid="button-search-open"
+              onClick={toggleMapLock}
+              className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
+                isMapLocked 
+                  ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
+                  : 'bg-primary hover:bg-primary/90 border-2 border-primary'
+              }`}
+              data-testid="button-map-lock"
             >
-              <Search className="h-5 w-5" />
+              {isMapLocked ? (
+                <Lock className="h-5 w-5 text-primary-foreground" />
+              ) : (
+                <Unlock className="h-5 w-5 text-primary-foreground" />
+              )}
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p>주소 검색</p>
+            <p>{isMapLocked ? "확대/축소 잠금 해제" : "확대/축소 잠금"}</p>
           </TooltipContent>
         </Tooltip>
 
-        {/* Location Lock Button */}
+        {/* 위치 고정 버튼 */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -597,12 +660,12 @@ export function GoogleMapView({
               }}
               className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
                 isLocationLocked 
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary' 
-                  : 'bg-background hover:bg-background/90 border-2 border-border'
+                  ? 'bg-blue-500 hover:bg-blue-600 border-2 border-blue-500' 
+                  : 'bg-muted hover:bg-muted/80 border-2 border-border'
               }`}
               data-testid="button-location-lock"
             >
-              {isLocationLocked ? <Lock className="h-5 w-5" /> : <Unlock className="h-5 w-5" />}
+              <User className={`h-5 w-5 ${isLocationLocked ? 'text-white' : 'text-muted-foreground'}`} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
@@ -610,7 +673,7 @@ export function GoogleMapView({
           </TooltipContent>
         </Tooltip>
 
-        {/* My Location Button */}
+        {/* GPS 위치 이동 버튼 (위치 고정 모드가 아닐 때만 표시) */}
         {!isLocationLocked && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -628,23 +691,60 @@ export function GoogleMapView({
             </TooltipContent>
           </Tooltip>
         )}
-      </div>
 
-      {/* Filter Buttons (bottom-right) */}
-      <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
-        {/* Group Filter Button */}
+        {/* 그룹 필터 버튼 */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               size="icon"
+              className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
+                selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
+              }`}
               onClick={() => setIsGroupFilterOpen(true)}
-              className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 relative"
               data-testid="button-group-filter"
+              style={(() => {
+                if (selectedGroupIds.includes("all")) return {};
+                
+                const colors: string[] = [];
+                selectedGroupIds.forEach(id => {
+                  if (id === "personal") {
+                    colors.push(PERSONAL_MEMO_COLOR);
+                  } else {
+                    const group = groups.find(g => g.id === id);
+                    if (group) colors.push(group.color);
+                  }
+                });
+
+                if (colors.length === 0) return {};
+                if (colors.length === 1) {
+                  return { backgroundColor: colors[0], borderColor: colors[0] };
+                }
+
+                const step = 100 / colors.length;
+                const gradientStops = colors.map((color, index) => {
+                  const start = index * step;
+                  const end = (index + 1) * step;
+                  return `${color} ${start}%, ${color} ${end}%`;
+                }).join(', ');
+
+                return {
+                  background: `linear-gradient(135deg, ${gradientStops})`,
+                  borderColor: colors[0]
+                };
+              })()}
             >
-              <Users className="h-6 w-6 text-primary-foreground" />
+              <Users className={`h-5 w-5 ${
+                selectedGroupIds.includes("all") ? 'text-primary-foreground' : ''
+              }`} style={{
+                color: selectedGroupIds.includes("all") ? undefined : 'white',
+                filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
+              }} />
               {!selectedGroupIds.includes("all") && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full bg-red-500">
-                  !
+                <Badge 
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
+                  data-testid="badge-group-filter-count"
+                >
+                  {selectedGroupIds.filter(id => id !== "all").length}
                 </Badge>
               )}
             </Button>
@@ -654,25 +754,28 @@ export function GoogleMapView({
           </TooltipContent>
         </Tooltip>
 
-        {/* Marker Filter Button */}
+        {/* 마커 필터 버튼 */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               size="icon"
+              className="h-10 w-10 rounded-lg shadow-lg relative bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
               onClick={() => setIsMarkerFilterOpen(true)}
-              className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 relative"
               data-testid="button-marker-filter"
             >
-              <Filter className="h-6 w-6 text-primary-foreground" />
+              <Filter className="h-5 w-5 text-primary-foreground" />
               {!selectedMarkerIcons.includes("all") && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full bg-red-500">
-                  !
+                <Badge 
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
+                  data-testid="badge-marker-filter-count"
+                >
+                  {selectedMarkerIcons.filter(icon => icon !== "all").length}
                 </Badge>
               )}
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p>마커 필터</p>
+            <p>카테고리 필터</p>
           </TooltipContent>
         </Tooltip>
       </div>
