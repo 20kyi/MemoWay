@@ -59,7 +59,7 @@ export function GoogleMapView({
 }: GoogleMapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [markers, setMarkers] = useState<MarkerData[]>([]);
+  const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
   const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -253,11 +253,6 @@ export function GoogleMapView({
   useEffect(() => {
     if (!map) return;
 
-    // Clear existing markers
-    markers.forEach(({ marker }) => {
-      marker.setMap(null);
-    });
-
     // Filter memos
     const filteredMemos = memos.filter(memo => {
       const iconMatch = selectedMarkerIcons.includes("all") || selectedMarkerIcons.includes(memo.markerIcon);
@@ -277,9 +272,12 @@ export function GoogleMapView({
     });
 
     loadGoogleMaps().then((google) => {
-      const newMarkers: MarkerData[] = [];
+      const currentMarkers = markersRef.current;
+      const newMarkerKeys = new Set<string>();
 
       grouped.forEach((clusterMemos, key) => {
+        newMarkerKeys.add(key);
+        
         const firstMemo = clusterMemos[0];
         const count = clusterMemos.length;
 
@@ -290,12 +288,14 @@ export function GoogleMapView({
           markerColor = group?.color || PERSONAL_MEMO_COLOR;
         }
 
-        // Create marker with standard Google Maps icon
-        const marker = new google.maps.Marker({
-          map,
-          position: { lat: firstMemo.latitude, lng: firstMemo.longitude },
-          icon: count > 1 ? {
-            // Cluster marker - circle with count
+        const existingMarker = currentMarkers.get(key);
+        
+        if (existingMarker) {
+          // Update existing marker - remove old listeners first
+          google.maps.event.clearInstanceListeners(existingMarker);
+          
+          existingMarker.setPosition({ lat: firstMemo.latitude, lng: firstMemo.longitude });
+          existingMarker.setIcon(count > 1 ? {
             path: google.maps.SymbolPath.CIRCLE,
             scale: 20,
             fillColor: markerColor,
@@ -303,7 +303,6 @@ export function GoogleMapView({
             strokeColor: '#ffffff',
             strokeWeight: 3,
           } : {
-            // Single marker - standard pin shape colored by group
             url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
               <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
                 <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
@@ -315,36 +314,82 @@ export function GoogleMapView({
             `)}`,
             scaledSize: new google.maps.Size(30, 40),
             anchor: new google.maps.Point(15, 40),
-          },
-          label: count > 1 ? {
+          });
+          existingMarker.setLabel(count > 1 ? {
             text: count.toString(),
             color: '#ffffff',
             fontSize: '14px',
             fontWeight: 'bold',
-          } : undefined,
-        });
+          } : null);
+          
+          // Re-add click listener
+          existingMarker.addListener('click', () => {
+            if (count > 1 && onClusterClick) {
+              onClusterClick(clusterMemos.map(m => m.id));
+            } else {
+              onMarkerClick(firstMemo.id);
+            }
+          });
+        } else {
+          // Create new marker
+          const marker = new google.maps.Marker({
+            map,
+            position: { lat: firstMemo.latitude, lng: firstMemo.longitude },
+            icon: count > 1 ? {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 20,
+              fillColor: markerColor,
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 3,
+            } : {
+              url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+                <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+                        fill="${markerColor}" 
+                        stroke="#ffffff" 
+                        stroke-width="2"/>
+                  <circle cx="15" cy="15" r="8" fill="#ffffff"/>
+                </svg>
+              `)}`,
+              scaledSize: new google.maps.Size(30, 40),
+              anchor: new google.maps.Point(15, 40),
+            },
+            label: count > 1 ? {
+              text: count.toString(),
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: 'bold',
+            } : undefined,
+          });
 
-        marker.addListener('click', () => {
-          if (count > 1 && onClusterClick) {
-            onClusterClick(clusterMemos.map(m => m.id));
-          } else {
-            onMarkerClick(firstMemo.id);
-          }
-        });
+          marker.addListener('click', () => {
+            if (count > 1 && onClusterClick) {
+              onClusterClick(clusterMemos.map(m => m.id));
+            } else {
+              onMarkerClick(firstMemo.id);
+            }
+          });
 
-        newMarkers.push({
-          marker,
-          memoIds: clusterMemos.map(m => m.id),
-        });
+          currentMarkers.set(key, marker);
+        }
       });
 
-      setMarkers(newMarkers);
+      // Remove markers that are no longer needed
+      currentMarkers.forEach((marker, key) => {
+        if (!newMarkerKeys.has(key)) {
+          marker.setMap(null);
+          currentMarkers.delete(key);
+        }
+      });
     });
 
+    // Cleanup on unmount
     return () => {
-      markers.forEach(({ marker }) => {
+      markersRef.current.forEach((marker) => {
         marker.setMap(null);
       });
+      markersRef.current.clear();
     };
   }, [map, memos, groups, selectedMarkerIcons, selectedGroupIds, onMarkerClick, onClusterClick]);
 
