@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -216,55 +217,32 @@ export function GoogleMapView({
   useEffect(() => {
     if (!map || !currentUserLocation || isLocationLocked) {
       if (userMarker) {
-        userMarker.map = null;
+        userMarker.setMap(null);
         setUserMarker(null);
       }
       return;
     }
 
     loadGoogleMaps().then((google) => {
-      // Create user marker element
-      const markerEl = document.createElement('div');
-      markerEl.innerHTML = `
-        <div style="
-          position: relative;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #3b82f6;
-          border-radius: 50%;
-          border: 2px solid #ffffff;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        ">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="18" 
-            height="18" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="#ffffff" 
-            stroke-width="2.5" 
-            stroke-linecap="round" 
-            stroke-linejoin="round"
-          >
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        </div>
-      `;
-
-      const marker = new google.maps.marker.AdvancedMarkerElement({
+      // Create user location marker with custom blue dot icon
+      const marker = new google.maps.Marker({
         map,
         position: { lat: currentUserLocation.lat, lng: currentUserLocation.lng },
-        content: markerEl,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: '#3b82f6',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 3,
+        },
+        zIndex: 1000,
       });
 
       setUserMarker(marker);
 
       return () => {
-        marker.map = null;
+        marker.setMap(null);
       };
     });
   }, [map, currentUserLocation, isLocationLocked]);
@@ -275,7 +253,7 @@ export function GoogleMapView({
 
     // Clear existing markers
     markers.forEach(({ marker }) => {
-      marker.map = null;
+      marker.setMap(null);
     });
 
     // Filter memos
@@ -310,65 +288,41 @@ export function GoogleMapView({
           markerColor = group?.color || PERSONAL_MEMO_COLOR;
         }
 
-        // Create marker element
-        const markerEl = document.createElement('div');
-        markerEl.style.position = 'relative';
-        markerEl.style.cursor = 'pointer';
-        
-        if (count > 1) {
-          // Cluster marker
-          markerEl.innerHTML = `
-            <div style="
-              width: 40px;
-              height: 40px;
-              background-color: ${markerColor};
-              border: 3px solid white;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: white;
-              font-weight: bold;
-              font-size: 16px;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            ">
-              ${count}
-            </div>
-          `;
-        } else {
-          // Single marker with icon/photo
-          const photoUrl = firstMemo.photos?.[0]?.url;
-          markerEl.innerHTML = `
-            <div style="
-              width: 30px;
-              height: 40px;
-            ">
+        // Create marker with standard Google Maps icon
+        const marker = new google.maps.Marker({
+          map,
+          position: { lat: firstMemo.latitude, lng: firstMemo.longitude },
+          icon: count > 1 ? {
+            // Cluster marker - circle with count
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 20,
+            fillColor: markerColor,
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 3,
+          } : {
+            // Single marker - standard pin shape colored by group
+            url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
               <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
                 <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
                       fill="${markerColor}" 
                       stroke="#ffffff" 
                       stroke-width="2"/>
-                ${photoUrl ? `
-                  <circle cx="15" cy="15" r="8.5" fill="#ffffff"/>
-                  <clipPath id="photo-clip-${key}">
-                    <circle cx="15" cy="15" r="8"/>
-                  </clipPath>
-                  <image href="${photoUrl}" x="7" y="7" width="16" height="16" clip-path="url(#photo-clip-${key})" preserveAspectRatio="xMidYMid slice"/>
-                ` : `
-                  <circle cx="15" cy="15" r="8" fill="#ffffff"/>
-                `}
+                <circle cx="15" cy="15" r="8" fill="#ffffff"/>
               </svg>
-            </div>
-          `;
-        }
-
-        const marker = new google.maps.marker.AdvancedMarkerElement({
-          map,
-          position: { lat: firstMemo.latitude, lng: firstMemo.longitude },
-          content: markerEl,
+            `)}`,
+            scaledSize: new google.maps.Size(30, 40),
+            anchor: new google.maps.Point(15, 40),
+          },
+          label: count > 1 ? {
+            text: count.toString(),
+            color: '#ffffff',
+            fontSize: '14px',
+            fontWeight: 'bold',
+          } : undefined,
         });
 
-        markerEl.addEventListener('click', () => {
+        marker.addListener('click', () => {
           if (count > 1 && onClusterClick) {
             onClusterClick(clusterMemos.map(m => m.id));
           } else {
@@ -387,7 +341,7 @@ export function GoogleMapView({
 
     return () => {
       markers.forEach(({ marker }) => {
-        marker.map = null;
+        marker.setMap(null);
       });
     };
   }, [map, memos, groups, selectedMarkerIcons, selectedGroupIds, onMarkerClick, onClusterClick]);
