@@ -41,6 +41,8 @@ const PERSONAL_MEMO_COLOR = '#9333ea';
 interface MarkerData {
   marker: google.maps.Marker;
   memoIds: string[];
+  color: string;
+  count: number;
 }
 
 export function GoogleMapView({ 
@@ -59,7 +61,7 @@ export function GoogleMapView({
 }: GoogleMapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
+  const markersRef = useRef<Map<string, MarkerData>>(new Map());
   const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -301,41 +303,54 @@ export function GoogleMapView({
           markerColor = group?.color || PERSONAL_MEMO_COLOR;
         }
 
-        const existingMarker = currentMarkers.get(key);
+        const existingMarkerData = currentMarkers.get(key);
         
-        if (existingMarker) {
-          // Update existing marker - remove old listeners first
+        if (existingMarkerData) {
+          const existingMarker = existingMarkerData.marker;
+          const colorChanged = existingMarkerData.color !== markerColor;
+          const countChanged = existingMarkerData.count !== count;
+          
+          // Only update icon if color or count changed (to prevent flickering)
+          if (colorChanged || countChanged) {
+            existingMarker.setIcon(count > 1 ? {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 20,
+              fillColor: markerColor,
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 3,
+            } : {
+              url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+                <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+                        fill="${markerColor}" 
+                        stroke="#ffffff" 
+                        stroke-width="2"/>
+                  <circle cx="15" cy="15" r="8" fill="#ffffff"/>
+                </svg>
+              `)}`,
+              scaledSize: new google.maps.Size(30, 40),
+              anchor: new google.maps.Point(15, 40),
+            });
+          }
+          
+          // Only update label if count changed
+          if (countChanged) {
+            existingMarker.setLabel(count > 1 ? {
+              text: count.toString(),
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: 'bold',
+            } : null);
+          }
+          
+          // Update stored data
+          existingMarkerData.color = markerColor;
+          existingMarkerData.count = count;
+          existingMarkerData.memoIds = clusterMemos.map(m => m.id);
+          
+          // Re-add click listener (always update this to ensure correct callback)
           google.maps.event.clearInstanceListeners(existingMarker);
-          
-          existingMarker.setPosition({ lat: firstMemo.latitude, lng: firstMemo.longitude });
-          existingMarker.setIcon(count > 1 ? {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 20,
-            fillColor: markerColor,
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 3,
-          } : {
-            url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-              <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
-                      fill="${markerColor}" 
-                      stroke="#ffffff" 
-                      stroke-width="2"/>
-                <circle cx="15" cy="15" r="8" fill="#ffffff"/>
-              </svg>
-            `)}`,
-            scaledSize: new google.maps.Size(30, 40),
-            anchor: new google.maps.Point(15, 40),
-          });
-          existingMarker.setLabel(count > 1 ? {
-            text: count.toString(),
-            color: '#ffffff',
-            fontSize: '14px',
-            fontWeight: 'bold',
-          } : null);
-          
-          // Re-add click listener
           existingMarker.addListener('click', () => {
             if (count > 1 && onClusterClick) {
               onClusterClick(clusterMemos.map(m => m.id));
@@ -384,14 +399,19 @@ export function GoogleMapView({
             }
           });
 
-          currentMarkers.set(key, marker);
+          currentMarkers.set(key, {
+            marker,
+            memoIds: clusterMemos.map(m => m.id),
+            color: markerColor,
+            count,
+          });
         }
       });
 
       // Remove markers that are no longer needed
-      currentMarkers.forEach((marker, key) => {
+      currentMarkers.forEach((markerData, key) => {
         if (!newMarkerKeys.has(key)) {
-          marker.setMap(null);
+          markerData.marker.setMap(null);
           currentMarkers.delete(key);
         }
       });
@@ -399,8 +419,8 @@ export function GoogleMapView({
 
     // Cleanup on unmount
     return () => {
-      markersRef.current.forEach((marker) => {
-        marker.setMap(null);
+      markersRef.current.forEach((markerData) => {
+        markerData.marker.setMap(null);
       });
       markersRef.current.clear();
     };
