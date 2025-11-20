@@ -39,7 +39,17 @@ export default function Home() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { mapProvider } = useMapProvider();
-  const [activeTab, setActiveTab] = useState<"map" | "memos" | "groups" | "settings">("map");
+  
+  // Get initial tab from URL hash or default to "map"
+  const getInitialTab = (): "map" | "memos" | "groups" | "settings" => {
+    const hash = window.location.hash.slice(1); // Remove '#'
+    if (hash === "map" || hash === "memos" || hash === "groups" || hash === "settings") {
+      return hash;
+    }
+    return "map";
+  };
+  
+  const [activeTab, setActiveTab] = useState<"map" | "memos" | "groups" | "settings">(getInitialTab);
   const [memoFormOpen, setMemoFormOpen] = useState(false);
   const [memoDetailOpen, setMemoDetailOpen] = useState(false);
   const [memoClusterOpen, setMemoClusterOpen] = useState(false);
@@ -92,6 +102,34 @@ export default function Home() {
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(["all"]);
   const { toast } = useToast();
 
+  // Handle browser back/forward button for tab navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash === "map" || hash === "memos" || hash === "groups" || hash === "settings") {
+        setActiveTab(hash);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    
+    // Set initial hash if not present
+    if (!window.location.hash) {
+      window.history.replaceState(null, "", "#map");
+    }
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  // Custom tab change handler that updates URL hash
+  const handleTabChange = useCallback((tab: "map" | "memos" | "groups" | "settings") => {
+    setActiveTab(tab);
+    // Push to history for back button support
+    window.history.pushState(null, "", `#${tab}`);
+  }, []);
+
   // Function to move map to specific location
   const moveToLocation = useCallback((lat: number, lng: number, memo?: MemoWithDetails) => {
     if (mapInstance) {
@@ -105,8 +143,8 @@ export default function Home() {
         mapInstance.setZoom(15);
       }
       
-      // Switch to map tab
-      setActiveTab("map");
+      // Switch to map tab using the new handler
+      handleTabChange("map");
       
       // If memo is provided, open its detail after a short delay
       if (memo) {
@@ -116,7 +154,7 @@ export default function Home() {
         }, 300);
       }
     }
-  }, [mapInstance, mapProvider]);
+  }, [mapInstance, mapProvider, handleTabChange]);
 
   // WebSocket for real-time updates
   const handleWebSocketMessage = useCallback((data: any) => {
@@ -982,7 +1020,7 @@ export default function Home() {
         )}
       </div>
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
 
       <MemoFormSheet
         open={memoFormOpen}
