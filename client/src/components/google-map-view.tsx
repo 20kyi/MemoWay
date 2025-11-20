@@ -226,27 +226,40 @@ export function GoogleMapView({
     }
 
     loadGoogleMaps().then((google) => {
-      // Create user location marker with custom blue dot icon
+      // Remove old marker if exists
+      if (userMarker) {
+        userMarker.setMap(null);
+      }
+
+      // Create user location marker with User icon (same as Kakao Map)
       const marker = new google.maps.Marker({
         map,
         position: { lat: currentUserLocation.lat, lng: currentUserLocation.lng },
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: '#3b82f6',
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 3,
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+            <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="16" cy="16" r="16" fill="#3b82f6"/>
+              <circle cx="16" cy="16" r="14" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/>
+              <g transform="translate(7, 7)">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="7" r="4" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+              </g>
+            </svg>
+          `)}`,
+          scaledSize: new google.maps.Size(32, 32),
+          anchor: new google.maps.Point(16, 16),
         },
         zIndex: 1000,
       });
 
       setUserMarker(marker);
-
-      return () => {
-        marker.setMap(null);
-      };
     });
+
+    return () => {
+      if (userMarker) {
+        userMarker.setMap(null);
+      }
+    };
   }, [map, currentUserLocation, isLocationLocked]);
 
   // Update markers based on memos
