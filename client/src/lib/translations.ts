@@ -115,8 +115,9 @@ export const translations = {
       confirmTransferLeadership: "님에게 방장 권한을 이양하시겠습니까?",
       removeMember: "멤버 강퇴",
       searchGroups: "그룹 검색",
-      searchPlaceholder: "그룹 이름 또는 설명으로 검색...",
+      searchPlaceholder: "그룹 이름, 설명, 멤버 검색...",
       noSearchResults: "검색 결과가 없습니다",
+      noSearchResultsDesc: "다른 검색어를 시도해보세요",
       searchResultsCount: "개의 그룹을 찾았습니다",
       canEditGroupMemos: "그룹 메모 수정 권한",
     },
@@ -326,8 +327,9 @@ export const translations = {
       confirmTransferLeadership: " to transfer leadership?",
       removeMember: "Remove Member",
       searchGroups: "Search Groups",
-      searchPlaceholder: "Search by name or description...",
+      searchPlaceholder: "Search groups by name, description, members...",
       noSearchResults: "No search results",
+      noSearchResultsDesc: "Try a different search term",
       searchResultsCount: " groups found",
       canEditGroupMemos: "Can edit group memos",
     },
@@ -537,8 +539,9 @@ export const translations = {
       confirmTransferLeadership: " 转让群主权限？",
       removeMember: "移除成员",
       searchGroups: "搜索群组",
-      searchPlaceholder: "按名称或说明搜索...",
+      searchPlaceholder: "按群组名称、说明、成员搜索...",
       noSearchResults: "无搜索结果",
+      noSearchResultsDesc: "请尝试其他搜索词",
       searchResultsCount: "个群组",
       canEditGroupMemos: "可编辑群组备忘录",
     },
@@ -748,8 +751,9 @@ export const translations = {
       confirmTransferLeadership: " にリーダー権限を譲渡しますか？",
       removeMember: "メンバーを削除",
       searchGroups: "グループを検索",
-      searchPlaceholder: "名前または説明で検索...",
+      searchPlaceholder: "グループ名、説明、メンバーで検索...",
       noSearchResults: "検索結果がありません",
+      noSearchResultsDesc: "別の検索ワードをお試しください",
       searchResultsCount: "個のグループ",
       canEditGroupMemos: "グループメモの編集権限",
     },
@@ -955,6 +959,7 @@ type Translation = {
     searchGroups: string;
     searchPlaceholder: string;
     noSearchResults: string;
+    noSearchResultsDesc: string;
     searchResultsCount: string;
     canEditGroupMemos: string;
   };

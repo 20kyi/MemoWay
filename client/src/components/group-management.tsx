@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit, Search, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
@@ -88,6 +88,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [memberDialogOpen, setMemberDialogOpen] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const groupFormSchema = z.object({
@@ -177,8 +178,51 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
     });
   };
 
+  // 그룹 검색 필터링
+  const filteredGroups = groups.filter(group => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      group.name.toLowerCase().includes(query) ||
+      group.description?.toLowerCase().includes(query) ||
+      group.members.some(m => m.name.toLowerCase().includes(query))
+    );
+  });
+
   return (
     <div className="px-3 sm:px-4 py-4 sm:py-6 space-y-4 overflow-y-auto h-full relative">
+      {/* 그룹 검색 바 */}
+      <div className="flex gap-2 bg-card/80 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-primary/30 p-2">
+        <div className="relative flex-1">
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t.groups.searchPlaceholder || "그룹 이름, 설명, 멤버 검색..."}
+            className="pr-10 border-0 focus-visible:ring-0"
+            data-testid="input-group-search"
+          />
+          {searchQuery && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+              onClick={() => setSearchQuery("")}
+              data-testid="button-clear-search"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        <Button
+          size="icon"
+          disabled={!searchQuery.trim()}
+          className="h-10 w-10 flex-shrink-0"
+          data-testid="button-search-group"
+        >
+          <Search className="h-5 w-5" />
+        </Button>
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -381,17 +425,26 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </Dialog>
       </div>
 
-      {groups.length === 0 ? (
+      {filteredGroups.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
           <div className="bg-primary/10 rounded-full p-6 mb-4">
             <Users className="h-12 w-12 text-primary" />
           </div>
-          <p className="text-foreground font-semibold text-lg mb-2">{t.groups.noGroups}</p>
-          <p className="text-muted-foreground text-sm">{t.groups.noGroupsDesc}</p>
+          {searchQuery ? (
+            <>
+              <p className="text-foreground font-semibold text-lg mb-2">{t.groups.noSearchResults || "검색 결과가 없습니다"}</p>
+              <p className="text-muted-foreground text-sm">{t.groups.noSearchResultsDesc || "다른 검색어를 시도해보세요"}</p>
+            </>
+          ) : (
+            <>
+              <p className="text-foreground font-semibold text-lg mb-2">{t.groups.noGroups}</p>
+              <p className="text-muted-foreground text-sm">{t.groups.noGroupsDesc}</p>
+            </>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
-          {groups.map(group => (
+          {filteredGroups.map(group => (
             <Card key={group.id} className="hover-elevate transition-all shadow-lg border-2 border-primary/30 hover:border-primary/50 rounded-3xl bg-card/80 backdrop-blur-sm hover:shadow-2xl" data-testid={`card-group-${group.id}`}>
               <CardHeader className="pb-3 px-3 sm:px-6 pt-4 sm:pt-6">
                 <div className="flex items-start sm:items-center justify-between gap-2 flex-col sm:flex-row">
