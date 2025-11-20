@@ -751,25 +751,6 @@ export function GoogleMapView({
           </TooltipContent>
         </Tooltip>
 
-        {/* GPS 위치 이동 버튼 (위치 고정 모드가 아닐 때만 표시) */}
-        {!isLocationLocked && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                className="h-10 w-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
-                onClick={handleMyLocation}
-                data-testid="button-my-location"
-              >
-                <Navigation className="h-5 w-5 text-primary-foreground" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p>내 위치로 이동</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-
         {/* 그룹 필터 버튼 */}
         <Tooltip>
           <TooltipTrigger asChild>

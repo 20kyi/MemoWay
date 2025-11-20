@@ -1133,63 +1133,6 @@ export function MapView({
               </TooltipContent>
             </Tooltip>
 
-            {/* GPS 위치 이동 버튼 (위치 고정 모드가 아닐 때만 표시) */}
-            {!isLocationLocked && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    className="h-10 w-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
-                    onClick={() => {
-                      if (map && currentUserLocation) {
-                        const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
-                        map.setCenter(latlng);
-                        map.setLevel(3);
-                        
-                        if (onMyLocationClick) {
-                          onMyLocationClick({ lat: currentUserLocation.lat, lng: currentUserLocation.lng });
-                        }
-                      } else if (navigator.geolocation && map) {
-                        // 현재 위치가 없으면 다시 가져오기
-                        navigator.geolocation.getCurrentPosition(
-                          (position) => {
-                            const lat = position.coords.latitude;
-                            const lng = position.coords.longitude;
-                            const latlng = new window.kakao.maps.LatLng(lat, lng);
-                            map.setCenter(latlng);
-                            map.setLevel(3);
-                            
-                            if (onMyLocationClick) {
-                              onMyLocationClick({ lat, lng });
-                            }
-                          },
-                          (error) => {
-                            console.error("위치 정보를 가져올 수 없습니다:", error);
-                            toast({
-                              title: "위치 정보 오류",
-                              description: "현재 위치를 가져올 수 없습니다. GPS가 켜져 있는지 확인해주세요.",
-                              variant: "destructive"
-                            });
-                          },
-                          {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
-                            maximumAge: 0
-                          }
-                        );
-                      }
-                    }}
-                    data-testid="button-my-location"
-                  >
-                    <Navigation className="h-5 w-5 text-primary-foreground" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>내 위치로 이동</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-
             {/* 그룹 필터 버튼 */}
             <Tooltip>
               <TooltipTrigger asChild>
