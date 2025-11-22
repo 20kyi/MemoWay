@@ -1,3 +1,8 @@
+/**
+ * Vite 개발 서버 및 정적 파일 서빙 설정
+ * - 개발 모드: Vite HMR 서버 사용
+ * - 프로덕션 모드: 빌드된 정적 파일 서빙
+ */
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
