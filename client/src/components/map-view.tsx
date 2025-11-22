@@ -316,17 +316,16 @@ export function MapView({
   const { t } = useLanguage();
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
-  const [markers, setMarkers] = useState<any[]>([]);
   const [searchMarker, setSearchMarker] = useState<any>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [markerScale, setMarkerScale] = useState(1);
   const [isMapLocked, setIsMapLocked] = useState(false);
   const [currentUserLocation, setCurrentUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocationLocked, setIsLocationLocked] = useState(true); // 위치 고정 모드 (기본값: true)
-  const markerClickedRef = useRef(false);
+  const [markers, setMarkers] = useState<Array<{ overlay: any; handler?: () => void; memoId?: string; memoIds?: string[] }>>([]);
   const isMapInteractingRef = useRef(false); // 지도 조작 중 플래그 (드래그/줌)
+  const markerClickedRef = useRef(false); // 마커 클릭 플래그
   const [markerFilterOpen, setMarkerFilterOpen] = useState(false);
   const [groupFilterOpen, setGroupFilterOpen] = useState(false);
   const watchIdRef = useRef<number | null>(null);
@@ -474,28 +473,6 @@ export function MapView({
   }, [map, userLocation, onMyLocationClick]);
 
   // Update marker scale based on zoom level
-  useEffect(() => {
-    if (!map || !window.kakao?.maps) return;
-
-    const updateScale = () => {
-      const level = map.getLevel();
-      // Scale formula: larger at zoom in (smaller level), smaller at zoom out (larger level)
-      // level 3 is baseline (scale = 1.0)
-      // Minimum scale of 1.0 ensures markers are never smaller than 30px
-      const scale = Math.max(1.0, Math.pow(1.3, (3 - level)));
-      setMarkerScale(scale);
-    };
-
-    // Set initial scale
-    updateScale();
-
-    // Listen to zoom changes
-    window.kakao.maps.event.addListener(map, 'zoom_changed', updateScale);
-
-    return () => {
-      window.kakao.maps.event.removeListener(map, 'zoom_changed', updateScale);
-    };
-  }, [map]);
 
   // Detect user dragging the map and disable location lock
   useEffect(() => {
@@ -552,44 +529,190 @@ export function MapView({
 
     const handleMapClick = (mouseEvent: any) => {
       const latlng = mouseEvent.latLng;
+      const clickLat = latlng.getLat();
+      const clickLng = latlng.getLng();
       
-      // Delay to allow marker click handler to execute first and set the flag
-      // Increased delay for mobile touch events which can be delayed significantly
+      // 마커 클릭인지 확인 (짧은 딜레이 후 체크)
       setTimeout(() => {
+        if (markerClickedRef.current) {
+          return; // 마커 클릭이면 지도 클릭 무시
+        }
+        
+        // 마커 위치와 클릭 위치 비교
+        const clickPosition = new window.kakao.maps.LatLng(clickLat, clickLng);
+        const clickedMarker = markers.find(marker => {
+          if (!marker.overlay) return false;
+          const markerPosition = marker.overlay.getPosition();
+          const distance = Math.sqrt(
+            Math.pow(clickPosition.getLat() - markerPosition.getLat(), 2) +
+            Math.pow(clickPosition.getLng() - markerPosition.getLng(), 2)
+          );
+          return distance < 0.0001; // 약 10m
+        });
+
+        if (clickedMarker) {
+          return; // 마커가 클릭된 것으로 간주
+        }
+        
+        console.log(' *** 지도 클릭됨 ***', { lat: clickLat, lng: clickLng });
+        
         // Ignore clicks if map is being dragged or zoomed
         if (isMapInteractingRef.current) {
           return;
         }
         
-        // Check flag again after delay
-        if (markerClickedRef.current) {
-          return;
-        }
-        
-        // Directly show memo form for any map click (markers have their own handlers)
+          // 먼저 geocoding을 수행하여 도로명 주소를 가져온 후 비교
         const geocoder = new window.kakao.maps.services.Geocoder();
         
-        geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result: any, status: any) {
-          if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
-            const address = result[0]?.address?.address_name || '주소 없음';
-            const buildingName = result[0]?.road_address?.building_name || '건물명 없음';
+        geocoder.coord2Address(clickLng, clickLat, function(result: any, status: any) {
+        if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
+          // 도로명 주소 우선, 없으면 지번 주소 사용
+          const roadAddress = result[0]?.road_address?.address_name;
+          const jibunAddress = result[0]?.address?.address_name;
+          const address = roadAddress || jibunAddress || '주소 없음';
+          const buildingName = result[0]?.road_address?.building_name || '건물명 없음';
+          
+          console.log('=== 지도 클릭 주소 비교 ===');
+          console.log('클릭한 위치의 주소 (도로명):', roadAddress);
+          console.log('클릭한 위치의 주소 (지번):', jibunAddress);
+          console.log('사용할 주소:', address);
+          console.log('전체 geocoding 결과:', JSON.stringify(result[0], null, 2));
+          
+          // 주소 정규화 함수 (시/도 표기 통일 + 공백 정리)
+          const normalizeAddress = (addr: string): string => {
+            if (!addr) return '';
+            // 연속된 공백을 하나로 통일하고 앞뒤 공백 제거
+            let normalized = addr.trim().replace(/\s+/g, ' ');
             
-            onLocationSelect({
-              lat: latlng.getLat(),
-              lng: latlng.getLng(),
-              address,
-              buildingName,
+            // 시/도 표기 통일 (저장된 데이터가 일관성이 없어서 통일 필요)
+            normalized = normalized
+              .replace(/경기도/g, '경기')
+              .replace(/서울특별시/g, '서울')
+              .replace(/부산광역시/g, '부산')
+              .replace(/대구광역시/g, '대구')
+              .replace(/인천광역시/g, '인천')
+              .replace(/광주광역시/g, '광주')
+              .replace(/대전광역시/g, '대전')
+              .replace(/울산광역시/g, '울산')
+              .replace(/세종특별자치시/g, '세종')
+              .replace(/제주특별자치도/g, '제주')
+              .replace(/제주도/g, '제주')
+              .replace(/전라북도/g, '전북')
+              .replace(/전라남도/g, '전남')
+              .replace(/경상북도/g, '경북')
+              .replace(/경상남도/g, '경남')
+              .replace(/충청북도/g, '충북')
+              .replace(/충청남도/g, '충남')
+              .replace(/강원특별자치도/g, '강원')
+              .replace(/강원도/g, '강원');
+            
+            return normalized;
+          };
+          
+          // 건물명 정규화 함수
+          const normalizeBuildingName = (name: string): string => {
+            if (!name) return '';
+            // 연속된 공백을 하나로 통일하고 앞뒤 공백 제거
+            return name.trim().replace(/\s+/g, ' ');
+          };
+          
+          const normalizedAddress = normalizeAddress(address);
+          const normalizedBuildingName = normalizeBuildingName(buildingName);
+          console.log('클릭한 위치의 정규화된 주소:', `"${normalizedAddress}"`);
+          console.log('클릭한 위치의 정규화된 주소 (길이):', normalizedAddress.length);
+          console.log('클릭한 위치의 정규화된 주소 (문자 코드):', Array.from(normalizedAddress).map(c => c.charCodeAt(0)));
+          console.log('클릭한 위치의 정규화된 건물명:', `"${normalizedBuildingName}"`);
+          
+          // 모든 메모의 주소와 건물명 확인
+          console.log('저장된 모든 메모 (총', memos.length, '개):');
+          memos.forEach((memo, index) => {
+            const normalizedMemoAddress = normalizeAddress(memo.address);
+            const normalizedMemoBuildingName = normalizeBuildingName(memo.buildingName);
+            const addressMatch = normalizedAddress === normalizedMemoAddress;
+            const buildingMatch = normalizedBuildingName === normalizedMemoBuildingName;
+            const isMatch = addressMatch && buildingMatch;
+            
+            console.log(`[${index}] 메모 ID: ${memo.id}`);
+            console.log(`  - 원본 주소: "${memo.address}"`);
+            console.log(`  - 정규화 주소: "${normalizedMemoAddress}"`);
+            console.log(`  - 정규화 주소 (길이): ${normalizedMemoAddress.length}`);
+            console.log(`  - 정규화 주소 (문자 코드):`, Array.from(normalizedMemoAddress).map(c => c.charCodeAt(0)));
+            console.log(`  - 비교 대상 주소: "${normalizedAddress}"`);
+            console.log(`  - 주소 일치: ${addressMatch ? '✓' : '✗'}`);
+            if (!addressMatch) {
+              console.log(`  - 주소 불일치 원인 분석:`);
+              console.log(`    - 길이 비교: ${normalizedAddress.length} vs ${normalizedMemoAddress.length}`);
+              console.log(`    - 첫 10자 비교: "${normalizedAddress.substring(0, 10)}" vs "${normalizedMemoAddress.substring(0, 10)}"`);
+              console.log(`    - 마지막 10자 비교: "${normalizedAddress.slice(-10)}" vs "${normalizedMemoAddress.slice(-10)}"`);
+            }
+            console.log(`  - 원본 건물명: "${memo.buildingName}"`);
+            console.log(`  - 정규화 건물명: "${normalizedMemoBuildingName}"`);
+            console.log(`  - 건물명 일치: ${buildingMatch ? '✓' : '✗'}`);
+            console.log(`  - 전체 일치: ${isMatch ? '✓ 매칭!' : '✗ 불일치'}`);
+          });
+          
+          // 같은 주소와 건물명을 가진 메모 찾기 (정확히 일치하는 경우만)
+          console.log('\n주소 + 건물명 비교 시작 (둘 다 정확히 일치하는 경우만):');
+          const memosAtLocation = memos.filter(memo => {
+            const normalizedMemoAddress = normalizeAddress(memo.address);
+            const normalizedMemoBuildingName = normalizeBuildingName(memo.buildingName);
+            const isMatch = normalizedAddress === normalizedMemoAddress && 
+                          normalizedBuildingName === normalizedMemoBuildingName;
+            if (isMatch) {
+              console.log(`✓ 매칭된 메모 발견: "${memo.address}", "${memo.buildingName}"`);
+            }
+            return isMatch;
+          });
+          
+          console.log('\n=== 비교 결과 ===');
+          console.log('같은 주소 + 건물명의 메모:', memosAtLocation.length, '개');
+          if (memosAtLocation.length > 0) {
+            console.log('매칭된 메모들:');
+            memosAtLocation.forEach(m => {
+              console.log(`  - ${m.id}: "${m.address}", "${m.buildingName}"`);
             });
           } else {
-            onLocationSelect({
-              lat: latlng.getLat(),
-              lng: latlng.getLng(),
-              address: `위도: ${latlng.getLat().toFixed(6)}, 경도: ${latlng.getLng().toFixed(6)}`,
-              buildingName: '위치 선택됨',
-            });
+            console.log('매칭된 메모가 없습니다.');
+            console.log('클릭한 주소/건물명과 저장된 메모들의 주소/건물명을 비교해보세요.');
           }
-        });
-      }, 400); // Increased to 400ms for mobile touch event compatibility
+          
+          // 같은 주소에 메모가 있으면 저장된 메모 보여주기
+          if (memosAtLocation.length > 0) {
+            console.log('저장된 메모 발견 - 메모 열기');
+            if (memosAtLocation.length === 1) {
+              if (onMarkerClick) {
+                onMarkerClick(memosAtLocation[0].id);
+              }
+            } else if (onClusterClick) {
+              onClusterClick(memosAtLocation.map(m => m.id));
+            } else {
+              if (onMarkerClick) {
+                onMarkerClick(memosAtLocation[0].id);
+              }
+            }
+            return;
+          }
+          
+          // 같은 주소에 메모가 없으면 새 메모 창 열기
+          console.log('새 메모 입력 창 열기 (매칭되는 메모 없음)');
+          onLocationSelect({
+            lat: clickLat,
+            lng: clickLng,
+            address,
+            buildingName,
+          });
+        } else {
+          // Geocoding 실패 시 새 메모 창 열기
+          console.log('Geocoding 실패 - 새 메모 입력 창 열기');
+          onLocationSelect({
+            lat: clickLat,
+            lng: clickLng,
+            address: `위도: ${clickLat.toFixed(6)}, 경도: ${clickLng.toFixed(6)}`,
+            buildingName: '위치 선택됨',
+          });
+        }
+      });
+      }, 50); // 마커 클릭 확인을 위한 딜레이
     };
 
     window.kakao.maps.event.addListener(map, 'click', handleMapClick);
@@ -597,20 +720,20 @@ export function MapView({
     return () => {
       window.kakao.maps.event.removeListener(map, 'click', handleMapClick);
     };
-  }, [map, memos, onLocationSelect, onMarkerClick, onClusterClick]);
+  }, [map, memos, markers, onLocationSelect, onMarkerClick, onClusterClick]);
 
+  // Render markers for memos
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
 
+    // Remove existing markers
     markers.forEach(marker => {
-      if (marker.handler && marker.element) {
-        marker.element.removeEventListener('click', marker.handler);
-      }
       if (marker.overlay) {
         marker.overlay.setMap(null);
       }
     });
 
+    // Create clusters for memos at same location
     const clusters = groupMemosByLocation(filteredMemos);
     
     const newMarkers = clusters.map(cluster => {
@@ -625,7 +748,6 @@ export function MapView({
       
       if (isSingleMemo) {
         markerColor = memo.group?.color || PERSONAL_MEMO_COLOR;
-        // 메모의 markerIcon을 우선 사용, 없으면 그룹의 markerIcon 사용
         markerIcon = (memo as any)?.markerIcon || (memo.group as any)?.markerIcon || 'default';
         
         // Get main photo URL if available
@@ -639,7 +761,6 @@ export function MapView({
         const uniqueColors = new Set(colors);
         markerColor = uniqueColors.size === 1 ? colors[0] : '#6b7280';
         
-        // 메모의 markerIcon을 우선 사용, 없으면 그룹의 markerIcon 사용
         const icons = cluster.memos.map(m => (m as any)?.markerIcon || (m.group as any)?.markerIcon || 'default');
         const uniqueIcons = new Set(icons);
         markerIcon = uniqueIcons.size === 1 ? icons[0] : 'default';
@@ -657,129 +778,75 @@ export function MapView({
       
       const contentDiv = document.createElement('div');
       contentDiv.innerHTML = isSingleMemo 
-        ? createMarkerContent(markerColor, markerIcon, mainPhotoUrl, markerScale)
-        : createClusterMarkerContent(markerColor, cluster.memos.length, markerIcon, mainPhotoUrl, markerScale);
+        ? createMarkerContent(markerColor, markerIcon, mainPhotoUrl, 1)
+        : createClusterMarkerContent(markerColor, cluster.memos.length, markerIcon, mainPhotoUrl, 1);
+      
+      // 마커 스타일 설정
       contentDiv.style.cursor = 'pointer';
+      contentDiv.style.pointerEvents = 'auto';
+      contentDiv.style.userSelect = 'none';
+      contentDiv.style.zIndex = '1000';
       
       const customOverlay = new window.kakao.maps.CustomOverlay({
         position,
         content: contentDiv,
         yAnchor: 1,
-        zIndex: 100, // Ensure marker is above map
+        zIndex: 1000,
+        clickable: true,
       });
       
       customOverlay.setMap(map);
       
-      const handleMarkerInteraction = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+      // 마커 클릭 핸들러
+      const handleMarkerClick = () => {
+        console.log('📍 마커 클릭됨:', isSingleMemo ? memo.id : cluster.memos.map(m => m.id));
         
-        // Ignore clicks if map is being dragged or zoomed
-        if (isMapInteractingRef.current) {
-          return;
-        }
-        
-        // Set flag to prevent map click handler from firing
         markerClickedRef.current = true;
-        
-        // Execute immediately
-        if (isSingleMemo) {
-          onMarkerClick(memo.id);
-        } else if (onClusterClick) {
-          onClusterClick(cluster.memos.map(m => m.id));
-        }
-        
-        // Reset flag after a delay (increased for mobile compatibility)
         setTimeout(() => {
           markerClickedRef.current = false;
-        }, 500);
-      };
-      
-      // Track touch movement to distinguish tap from drag
-      let touchStartPos: { x: number; y: number } | null = null;
-      let touchMoved = false;
-      
-      const handleTouchStart = (e: TouchEvent) => {
-        // Ignore if map is being dragged or zoomed
+        }, 200);
+        
         if (isMapInteractingRef.current) {
+          console.log('📍 지도 조작 중이므로 마커 클릭 무시');
           return;
         }
         
-        // Record touch start position
-        if (e.touches.length > 0) {
-          touchStartPos = {
-            x: e.touches[0].clientX,
-            y: e.touches[0].clientY
-          };
-          touchMoved = false;
-        }
-      };
-      
-      const handleTouchMove = (e: TouchEvent) => {
-        // If user moves finger, it's a drag, not a tap
-        if (touchStartPos && e.touches.length > 0) {
-          const deltaX = Math.abs(e.touches[0].clientX - touchStartPos.x);
-          const deltaY = Math.abs(e.touches[0].clientY - touchStartPos.y);
-          
-          // If moved more than 10px, consider it a drag
-          if (deltaX > 10 || deltaY > 10) {
-            touchMoved = true;
-            // Clear touch data
-            touchStartPos = null;
+        if (isSingleMemo) {
+          if (onMarkerClick) {
+            onMarkerClick(memo.id);
           }
-        }
-      };
-      
-      const handleTouchEnd = (e: TouchEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        
-        // Ignore if map is being dragged or zoomed
-        if (isMapInteractingRef.current) {
-          touchStartPos = null;
-          touchMoved = false;
-          return;
-        }
-        
-        // Ignore if touch was a drag movement
-        if (touchMoved) {
-          touchStartPos = null;
-          touchMoved = false;
-          return;
-        }
-        
-        // Set flag to prevent map click handler from firing
-        markerClickedRef.current = true;
-        
-        // Execute marker action
-        if (isSingleMemo) {
-          onMarkerClick(memo.id);
         } else if (onClusterClick) {
           onClusterClick(cluster.memos.map(m => m.id));
+        } else if (onMarkerClick) {
+          onMarkerClick(cluster.memos[0].id);
         }
-        
-        // Reset flags
-        touchStartPos = null;
-        touchMoved = false;
-        
-        // Reset marker clicked flag after delay
-        setTimeout(() => {
-          markerClickedRef.current = false;
-        }, 500);
       };
       
-      // Handle both click and touch events for better mobile support
-      contentDiv.addEventListener('click', handleMarkerInteraction, true); // Use capture phase for desktop
-      contentDiv.addEventListener('touchstart', handleTouchStart, true);
-      contentDiv.addEventListener('touchmove', handleTouchMove, true);
-      contentDiv.addEventListener('touchend', handleTouchEnd, true);
-
+      // Kakao Maps API의 click 이벤트 사용 (사용자 제안 방법)
+      window.kakao.maps.event.addListener(customOverlay, 'click', handleMarkerClick);
+      
+      // DOM 요소에도 직접 클릭 이벤트 추가 (이중 보험)
+      const clickArea = contentDiv.querySelector('[data-click-area="true"]') as HTMLElement;
+      if (clickArea) {
+        clickArea.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          handleMarkerClick();
+        });
+      } else {
+        // clickArea가 없으면 contentDiv 자체에 이벤트 추가
+        contentDiv.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          handleMarkerClick();
+        });
+      }
+      
       return { 
-        overlay: customOverlay, 
-        element: contentDiv,
-        handler: handleMarkerInteraction
+        overlay: customOverlay,
+        handler: handleMarkerClick, // 핸들러 저장
+        memoId: isSingleMemo ? memo.id : undefined,
+        memoIds: !isSingleMemo ? cluster.memos.map(m => m.id) : undefined,
       };
     });
 
@@ -787,29 +854,51 @@ export function MapView({
 
     return () => {
       newMarkers.forEach(marker => {
-        if (marker.element) {
-          // Remove all event listeners
-          if (marker.handler) {
-            marker.element.removeEventListener('click', marker.handler, true);
-          }
-          // Note: touchstart, touchmove, touchend listeners are anonymous functions
-          // They will be automatically cleaned up when the element is removed
-        }
-        if (marker.overlay) {
+        if (marker.overlay && marker.handler) {
+          // 저장된 핸들러로 이벤트 리스너 제거
+          window.kakao.maps.event.removeListener(marker.overlay, 'click', marker.handler);
           marker.overlay.setMap(null);
         }
       });
     };
-  }, [map, filteredMemos, onMarkerClick, onClusterClick, markerScale]);
+  }, [map, filteredMemos, onMarkerClick, onClusterClick]);
 
   // Start watching user's real-time location
   useEffect(() => {
     if (!map || !navigator.geolocation) return;
 
+    let lastUpdateTime = 0;
+    let lastLat: number | null = null;
+    let lastLng: number | null = null;
+    const MIN_UPDATE_INTERVAL = 1000; // 최소 업데이트 간격: 1초
+    const MIN_DISTANCE_CHANGE = 0.0001; // 최소 거리 변화: 약 10m (도 단위)
+
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
+        const now = Date.now();
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
+        
+        // 시간 기반 필터링: 최소 업데이트 간격 체크
+        if (now - lastUpdateTime < MIN_UPDATE_INTERVAL) {
+          return;
+        }
+
+        // 거리 기반 필터링: 위치가 충분히 변했는지 체크
+        if (lastLat !== null && lastLng !== null) {
+          const distance = Math.sqrt(
+            Math.pow(lat - lastLat, 2) + Math.pow(lng - lastLng, 2)
+          );
+          if (distance < MIN_DISTANCE_CHANGE) {
+            return; // 위치 변화가 미미하면 업데이트 건너뛰기
+          }
+        }
+
+        // 위치 업데이트
+        lastUpdateTime = now;
+        lastLat = lat;
+        lastLng = lng;
+        
         setCurrentUserLocation({ lat, lng });
         
         // If location is locked, center map on user location
@@ -818,7 +907,7 @@ export function MapView({
           map.panTo(latlng); // Smooth pan to location
         }
         
-        // Notify parent component
+        // Notify parent component (위치가 실제로 변경되었을 때만)
         if (onMyLocationClick) {
           onMyLocationClick({ lat, lng });
         }
@@ -827,9 +916,12 @@ export function MapView({
         console.log("실시간 위치 추적 오류:", error);
       },
       {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        // 위치 고정 모드일 때만 고정밀도 사용 (배터리 절약)
+        enableHighAccuracy: isLocationLocked,
+        // 타임아웃 증가로 재시도 빈도 감소
+        timeout: isLocationLocked ? 15000 : 10000,
+        // 캐시된 위치 정보 활용 (5초 이내 캐시 허용)
+        maximumAge: 5000,
       }
     );
 
@@ -898,12 +990,24 @@ export function MapView({
 
   const handleMyLocation = () => {
     if (navigator.geolocation && map) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const latlng = new window.kakao.maps.LatLng(lat, lng);
-        map.setCenter(latlng);
-      });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const latlng = new window.kakao.maps.LatLng(lat, lng);
+          map.setCenter(latlng);
+          // 내 위치 버튼 클릭 시 위치 고정 모드 활성화
+          setIsLocationLocked(true);
+        },
+        (error) => {
+          console.log("현재 위치 가져오기 오류:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 30000, // 30초 이내 캐시 허용
+        }
+      );
     }
   };
 
@@ -939,6 +1043,9 @@ export function MapView({
         
         map.setCenter(coords);
         map.setLevel(3);
+
+        // 주소 검색 후 위치 고정 모드 해제하여 검색 위치 유지
+        setIsLocationLocked(false);
 
         toast({
           title: "위치 찾기 완료",

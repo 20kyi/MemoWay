@@ -1106,6 +1106,11 @@ export default function Home() {
             setMemoDetailOpen(true);
           }
         }}
+        onAddNewMemo={(location) => {
+          setMemoClusterOpen(false);
+          setSelectedLocation(location);
+          setMemoFormOpen(true);
+        }}
       />
 
       <MemoDetailSheet

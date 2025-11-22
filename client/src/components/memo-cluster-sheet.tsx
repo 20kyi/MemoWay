@@ -1,7 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, Calendar, User, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { MemoWithDetails } from "@shared/schema";
@@ -11,9 +12,10 @@ interface MemoClusterSheetProps {
   onOpenChange: (open: boolean) => void;
   memos: MemoWithDetails[];
   onMemoSelect: (memoId: string) => void;
+  onAddNewMemo?: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
 }
 
-export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect }: MemoClusterSheetProps) {
+export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect, onAddNewMemo }: MemoClusterSheetProps) {
   if (memos.length === 0) return null;
 
   const location = memos[0];
@@ -22,6 +24,18 @@ export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect }: Me
     if (!a.createdAt || !b.createdAt) return 0;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
+  
+  const handleAddNewMemo = () => {
+    if (onAddNewMemo) {
+      onAddNewMemo({
+        lat: location.latitude,
+        lng: location.longitude,
+        address: location.address,
+        buildingName: location.buildingName,
+      });
+      onOpenChange(false);
+    }
+  };
   
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -42,6 +56,20 @@ export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect }: Me
             </Badge>
           </SheetTitle>
         </SheetHeader>
+
+        {onAddNewMemo && (
+          <div className="flex-shrink-0 mt-4 pb-2">
+            <Button
+              onClick={handleAddNewMemo}
+              className="w-full"
+              variant="default"
+              data-testid="button-add-new-memo-cluster"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              새 메모 추가
+            </Button>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto mt-4 space-y-3 pb-6">
           {sortedMemos.map((memo) => (

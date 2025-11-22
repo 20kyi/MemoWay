@@ -8,6 +8,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertGroupSchema, insertMemberSchema, insertMemoSchema, type InsertMemo } from "@shared/schema";
 import { randomBytes } from "crypto";
 import { z } from "zod";
+import { normalizeAddress } from "./utils/address-normalizer";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -469,9 +470,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('개인 메모 생성 - 멤버 검증 성공');
       }
       
+      // 주소 정규화
+      const normalizedAddress = normalizeAddress(address);
+      
       const memo = await storage.createMemo({
         buildingName,
-        address,
+        address: normalizedAddress,
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         content,
@@ -566,10 +570,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parsed = bodySchema.parse(req.body);
       const { deletedPhotoIds, mainPhotoId, mainPhotoIndex, photoOrders, ...updateData } = parsed;
       
+      // 주소 정규화
+      const normalizedAddress = normalizeAddress(updateData.address);
+      
       // Build update object - latitude/longitude/memberId are not editable
       const memoUpdate: Partial<InsertMemo> = {
         buildingName: updateData.buildingName,
-        address: updateData.address,
+        address: normalizedAddress,
         content: updateData.content,
         groupId: updateData.groupId ?? null,
       };
@@ -727,6 +734,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error.message === "MEMO_NOT_FOUND") {
         return res.status(404).json({ error: "메모를 찾을 수 없습니다" });
       }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // 마이그레이션: 기존 메모들의 주소 정규화
+  app.post("/api/memos/normalize-addresses", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const allMemos = await storage.getMemos(userId);
+      
+      let updatedCount = 0;
+      for (const memo of allMemos) {
+        const normalizedAddress = normalizeAddress(memo.address);
+        if (normalizedAddress !== memo.address) {
+          await storage.updateMemo(memo.id, { address: normalizedAddress });
+          updatedCount++;
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `${updatedCount}개의 메모 주소가 정규화되었습니다.`,
+        updatedCount,
+        totalCount: allMemos.length
+      });
+    } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });
