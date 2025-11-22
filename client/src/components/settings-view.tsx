@@ -1,3 +1,20 @@
+/**
+ * 설정 뷰 컴포넌트
+ * 
+ * 앱의 모든 설정을 관리하는 컴포넌트입니다.
+ * 
+ * 주요 설정 항목:
+ * - 계정 정보 및 로그아웃
+ * - 언어 설정 (한국어, 영어, 중국어, 일본어)
+ * - 폰트 설정 (기본, Noto Sans, 나눔고딕, 감자꽃, 독도, 나눔펜)
+ * - 폰트 크기 조절
+ * - 테마 설정 (라이트/다크)
+ * - 지도 제공자 선택 (Kakao Maps / Google Maps)
+ * - 알림 설정
+ * - 위치 서비스 설정
+ * - 근접 알림 반경 설정
+ */
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -21,6 +38,7 @@ interface SettingsViewProps {
   onProximityRadiusChange: (radius: number) => void;
 }
 
+// 언어 선택 옵션 (국가 플래그 포함)
 const languageOptions: { value: Language; label: string; flag: string }[] = [
   { value: "ko", label: "한국어", flag: "🇰🇷" },
   { value: "en", label: "English", flag: "🇺🇸" },
@@ -42,10 +60,12 @@ export function SettingsView({
   const { mapProvider, setMapProvider } = useMapProvider();
   const { user } = useAuth();
 
+  // 로그아웃 처리
   const handleLogout = () => {
     window.location.href = "/api/logout";
   };
   
+  // 인증 제공자 이름 변환 (한국어 표시)
   const getProviderName = (provider: string) => {
     if (provider === 'kakao') return '카카오';
     if (provider === 'replit') return 'Replit';

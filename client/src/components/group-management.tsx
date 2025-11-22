@@ -1,3 +1,14 @@
+/**
+ * 그룹 관리 컴포넌트
+ * 
+ * 주요 기능:
+ * - 그룹 생성 및 수정
+ * - 초대 코드로 그룹 참여
+ * - 그룹 검색 및 필터링
+ * - 멤버 관리 (리더 권한: 제거, 권한 이양, 편집 권한 설정)
+ * - 그룹 정보 표시 (색상, 마커 아이콘, 멤버 수)
+ */
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
 
+// 그룹 생성 폼 타입
 type GroupFormValues = {
   name: string;
   description: string;
@@ -23,6 +35,7 @@ type GroupFormValues = {
   markerIcon: MarkerIconType;
 };
 
+// 그룹 수정 폼 타입
 type EditGroupFormValues = {
   name: string;
   description: string;
@@ -30,6 +43,7 @@ type EditGroupFormValues = {
   markerIcon: MarkerIconType;
 };
 
+// 그룹 색상 프리셋 (8가지 색상)
 const PRESET_COLORS = [
   { key: 'rose', value: '#ffb3d9' },
   { key: 'pink', value: '#ffc0e8' },
@@ -41,6 +55,7 @@ const PRESET_COLORS = [
   { key: 'coral', value: '#ffccb3' },
 ] as const;
 
+// 마커 아이콘 타입별 Lucide 아이콘 컴포넌트 매핑
 const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
   default: MapPin,
   travel: Plane,
@@ -178,7 +193,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
     });
   };
 
-  // 그룹 검색 필터링
+  // 그룹 검색 필터링: 이름, 설명, 멤버 이름으로 검색
   const filteredGroups = groups.filter(group => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
@@ -425,6 +440,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </Dialog>
       </div>
 
+      {/* 그룹 목록 또는 빈 상태 표시 */}
       {filteredGroups.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
           <div className="bg-primary/10 rounded-full p-6 mb-4">
@@ -444,6 +460,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </div>
       ) : (
         <div className="space-y-4">
+          {/* 그룹 카드 목록 렌더링 */}
           {filteredGroups.map(group => (
             <Card key={group.id} className="hover-elevate transition-all shadow-lg border-2 border-primary/30 hover:border-primary/50 rounded-3xl bg-card/80 backdrop-blur-sm hover:shadow-2xl" data-testid={`card-group-${group.id}`}>
               <CardHeader className="pb-3 px-3 sm:px-6 pt-4 sm:pt-6">
@@ -555,7 +572,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </div>
       )}
 
-      {/* 그룹 수정 다이얼로그 */}
+      {/* ==================== 그룹 수정 다이얼로그 ==================== */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-md max-h-[85vh] mx-3 sm:mx-0 flex flex-col">
           <DialogHeader className="flex-shrink-0">
@@ -708,7 +725,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </DialogContent>
       </Dialog>
 
-      {/* 참여인원 다이얼로그 */}
+      {/* ==================== 멤버 관리 다이얼로그 ==================== */}
+      {/* 리더 권한: 멤버 제거, 리더십 이양, 편집 권한 설정 */}
       {memberDialogOpen && (() => {
         const group = groups.find(g => g.id === memberDialogOpen);
         if (!group) return null;

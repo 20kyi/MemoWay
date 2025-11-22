@@ -1,3 +1,18 @@
+/**
+ * Kakao Maps 기반 지도 뷰 컴포넌트
+ * 
+ * 주요 기능:
+ * - Kakao Maps API를 사용한 지도 렌더링 (한국 최적화)
+ * - 메모 마커 표시 (그룹별 색상, 카테고리별 아이콘)
+ * - 마커 클러스터링 (같은 위치의 여러 메모)
+ * - 주소 검색 및 역지오코딩
+ * - GPS 위치 추적 및 잠금
+ * - 그룹/카테고리 필터링
+ * - 사용자 위치 표시
+ * 
+ * 한국 사용자를 위한 기본 지도 제공자입니다.
+ */
+
 import { useEffect, useRef, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,8 +50,10 @@ interface MapViewProps {
   onGroupIdsChange?: (groupIds: string[]) => void;
 }
 
+// 개인 메모 마커 색상 (보라색)
 const PERSONAL_MEMO_COLOR = '#9333ea';
 
+// 메모 클러스터 데이터 구조 (같은 위치의 메모들을 그룹화)
 interface MemoCluster {
   key: string;
   memos: MemoWithDetails[];
@@ -44,6 +61,10 @@ interface MemoCluster {
   lng: number;
 }
 
+/**
+ * 메모들을 위치별로 그룹화하여 클러스터 생성
+ * 같은 위도/경도(소수점 6자리까지)의 메모들을 하나의 클러스터로 묶습니다.
+ */
 function groupMemosByLocation(memos: MemoWithDetails[]): MemoCluster[] {
   const grouped = new Map<string, MemoWithDetails[]>();
   
@@ -87,6 +108,13 @@ function getMarkerIconPath(iconType: string): string {
   }
 }
 
+/**
+ * 커스텀 마커 HTML 콘텐츠 생성
+ * - 그룹 색상 적용
+ * - 카테고리 아이콘 표시
+ * - 사진이 있으면 사진을 마커로 표시
+ * - 크기 조절 가능 (scale 파라미터)
+ */
 function createMarkerContent(color: string, iconType: string = 'default', photoUrl?: string, scale: number = 1): string {
   const iconPath = getMarkerIconPath(iconType);
   const width = 30 * scale;

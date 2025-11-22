@@ -1,3 +1,16 @@
+/**
+ * 하단 네비게이션 바 컴포넌트
+ * 
+ * 모바일 퍼스트 디자인의 메인 네비게이션 컴포넌트입니다.
+ * 4개의 주요 탭을 제공합니다:
+ * - 지도: 메모가 표시된 지도 뷰
+ * - 메모: 메모 리스트 뷰
+ * - 그룹: 그룹 관리 뷰
+ * - 설정: 앱 설정 뷰
+ * 
+ * 활성 탭은 시각적 피드백(색상, 애니메이션)으로 표시됩니다.
+ */
+
 import { Map, List, Users, Settings, Heart } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 
@@ -9,6 +22,7 @@ interface BottomNavProps {
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   const { t } = useLanguage();
   
+  // 네비게이션 탭 설정 (아이콘, 라벨, ID)
   const tabs = [
     { id: "map" as const, label: t.nav.map, icon: Map },
     { id: "memos" as const, label: t.nav.memos, icon: List },
@@ -33,6 +47,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
             }`}
             data-testid={`nav-${tab.id}`}
           >
+            {/* 활성 탭 표시: 상단에 애니메이션되는 그라데이션 바 */}
             {isActive && (
               <div className="absolute -top-1 w-12 h-1 bg-gradient-to-r from-primary via-secondary to-primary rounded-full animate-pulse" />
             )}

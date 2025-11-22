@@ -1,3 +1,18 @@
+/**
+ * 메모 생성/수정 폼 시트 컴포넌트
+ * 
+ * 주요 기능:
+ * - 새 메모 생성 또는 기존 메모 수정
+ * - 위치 정보 입력 (건물명, 주소)
+ * - 메모 내용 작성
+ * - 사진 업로드 (드래그 앤 드롭으로 순서 변경 가능)
+ * - 대표 사진 설정
+ * - 그룹 선택 (여러 그룹에 동시에 공유 가능)
+ * - 카테고리 선택 (마커 아이콘)
+ * 
+ * 하단에서 슬라이드 업되는 시트 형태의 모달입니다.
+ */
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +44,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+// 마커 아이콘 타입별 Lucide 아이콘 컴포넌트 매핑
 const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
   default: MapPin,
   travel: Plane,
@@ -40,6 +56,7 @@ const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
+// 메모 폼 데이터 타입
 type MemoFormValues = {
   buildingName: string;
   address: string;
@@ -48,6 +65,7 @@ type MemoFormValues = {
   markerIcon: MarkerIconType;
 };
 
+// 사진 아이템 타입 (새로 업로드한 파일 또는 기존 사진)
 type PhotoItem = {
   id: string;
   url: string;
@@ -78,6 +96,10 @@ interface MemoFormSheetProps {
   editMode?: boolean;
 }
 
+/**
+ * 드래그 가능한 사진 아이템 컴포넌트
+ * dnd-kit을 사용하여 사진 순서를 변경할 수 있습니다.
+ */
 function SortablePhotoItem({ photo, onRemove }: { photo: PhotoItem; onRemove: () => void }) {
   const {
     attributes,

@@ -1,4 +1,17 @@
-// Reference: javascript_database blueprint - updated with app-specific storage
+/**
+ * 데이터베이스 저장소 레이어 (Repository 패턴)
+ * 
+ * 모든 데이터베이스 작업을 추상화하여 비즈니스 로직과 데이터 레이어를 분리합니다.
+ * Drizzle ORM을 사용하여 타입 안전한 쿼리를 제공합니다.
+ * 
+ * 주요 기능:
+ * - 사용자 관리 (CRUD)
+ * - 그룹 관리 (생성, 조회, 수정, 삭제)
+ * - 멤버 관리 (역할, 권한)
+ * - 메모 관리 (위치 기반 메모 CRUD)
+ * - 사진 관리 (메모별 사진 CRUD)
+ */
+
 import { 
   users,
   groups, 
@@ -21,14 +34,19 @@ import {
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 
+/**
+ * 저장소 인터페이스
+ * 모든 데이터베이스 작업을 정의합니다.
+ */
 export interface IStorage {
-  // Users (required for Replit Auth)
+  // ==================== 사용자 관리 ====================
+  // (Replit Auth, Kakao, Google 인증에 필요)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByKakaoId(kakaoId: string): Promise<User | undefined>;
   
-  // Groups
+  // ==================== 그룹 관리 ====================
   createGroup(group: InsertGroup): Promise<Group>;
   getGroupByInviteCode(inviteCode: string): Promise<Group | undefined>;
   getGroups(userId: string): Promise<GroupWithMembers[]>;
@@ -39,14 +57,14 @@ export interface IStorage {
   deleteGroup(groupId: string): Promise<void>;
   copyGroupMemosToPersonal(groupId: string, userId: string): Promise<{ group: Group; member: Member; copiedCount: number }>;
   
-  // Members
+  // ==================== 멤버 관리 ====================
   createMember(member: InsertMember): Promise<Member>;
   getMembersByGroupId(groupId: string): Promise<Member[]>;
   deleteMember(memberId: string): Promise<void>;
   transferLeadership(groupId: string, currentLeaderId: string, newLeaderId: string): Promise<void>;
   updateMemberPermissions(memberId: string, canEditGroupMemos: boolean): Promise<Member>;
   
-  // Memos
+  // ==================== 메모 관리 ====================
   createMemo(memo: InsertMemo): Promise<Memo>;
   getMemos(userId: string): Promise<MemoWithDetails[]>;
   getMemoById(id: string): Promise<MemoWithDetails | undefined>;
@@ -55,14 +73,18 @@ export interface IStorage {
   clearGroupFromMemos(groupId: string): Promise<void>;
   setMainMemo(memoId: string): Promise<Memo>;
   
-  // Photos
+  // ==================== 사진 관리 ====================
   createPhoto(photo: InsertPhoto): Promise<Photo>;
   getPhotosByMemoId(memoId: string): Promise<Photo[]>;
   deletePhoto(photoId: string): Promise<void>;
 }
 
+/**
+ * 데이터베이스 저장소 구현 클래스
+ * IStorage 인터페이스를 구현하여 실제 데이터베이스 작업을 수행합니다.
+ */
 export class DatabaseStorage implements IStorage {
-  // Users (required for Replit Auth)
+  // ==================== 사용자 관리 메서드 ====================
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -164,7 +186,7 @@ export class DatabaseStorage implements IStorage {
     return membersList.length;
   }
 
-  // Members
+  // ==================== 멤버 관리 메서드 ====================
   async createMember(insertMember: InsertMember): Promise<Member> {
     const [member] = await db
       .insert(members)
@@ -251,7 +273,7 @@ export class DatabaseStorage implements IStorage {
     return member;
   }
 
-  // Memos
+  // ==================== 메모 관리 메서드 ====================
   async createMemo(insertMemo: InsertMemo): Promise<Memo> {
     const [memo] = await db
       .insert(memos)
@@ -376,6 +398,8 @@ export class DatabaseStorage implements IStorage {
     return updatedMemo;
   }
 
+  // ==================== 그룹 업데이트 및 삭제 메서드 ====================
+  
   async updateGroup(groupId: string, updateData: Partial<InsertGroup>): Promise<Group> {
     const cleanedData = Object.fromEntries(
       Object.entries(updateData).filter(([_, v]) => v !== undefined)
@@ -484,7 +508,7 @@ export class DatabaseStorage implements IStorage {
     return { group: newGroup, member: newMember, copiedCount };
   }
 
-  // Photos
+  // ==================== 사진 관리 메서드 ====================
   async createPhoto(insertPhoto: InsertPhoto): Promise<Photo> {
     const [photo] = await db
       .insert(photos)
@@ -513,4 +537,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
+// 싱글톤 인스턴스 내보내기 (애플리케이션 전체에서 공유)
 export const storage = new DatabaseStorage();

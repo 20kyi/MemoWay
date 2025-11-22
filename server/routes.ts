@@ -1,4 +1,8 @@
-// Reference: javascript_websocket blueprint
+/**
+ * API 라우트 및 WebSocket 서버 설정
+ * 모든 REST API 엔드포인트와 실시간 통신을 처리합니다.
+ */
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
@@ -9,11 +13,13 @@ import { insertGroupSchema, insertMemberSchema, insertMemoSchema, type InsertMem
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+// 파일 업로드 설정
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 최대 파일 크기: 5MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']; // 허용된 이미지 타입
 
+// Multer 설정: 메모리에 파일을 저장하고 크기/타입 검증
 const upload = multer({ 
-  storage: multer.memoryStorage(),
+  storage: multer.memoryStorage(), // 파일을 메모리에 저장 (서버리스 환경에 적합)
   limits: { fileSize: MAX_FILE_SIZE },
   fileFilter: (req, file, cb) => {
     if (ALLOWED_FILE_TYPES.includes(file.mimetype)) {
@@ -24,15 +30,20 @@ const upload = multer({
   }
 });
 
+/**
+ * 모든 API 라우트를 등록하고 WebSocket 서버를 설정합니다
+ * @param app Express 애플리케이션 인스턴스
+ * @returns HTTP 서버 인스턴스 (WebSocket 서버 연결용)
+ */
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication
+  // 인증 시스템 설정 (Replit, Kakao, Google)
   await setupAuth(app);
   const { setupKakaoAuth } = await import("./kakaoAuth");
   const { setupGoogleAuth } = await import("./googleAuth");
   setupKakaoAuth(app);
   setupGoogleAuth(app);
 
-  // Auth routes
+  // ==================== 인증 관련 라우트 ====================
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -47,7 +58,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Groups
+  // ==================== 그룹 관리 라우트 ====================
+  
+  /**
+   * 새 그룹 생성
+   * POST /api/groups
+   * - 그룹 생성자에게 자동으로 'leader' 역할 부여
+   * - 고유한 6자리 초대 코드 자동 생성
+   */
   app.post("/api/groups", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -62,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { name, description, memberName, color, markerIcon } = bodySchema.parse(req.body);
       
-      // 6자리 대문자 영숫자 초대 코드 생성
+      // 6자리 대문자 영숫자 초대 코드 생성 (보안을 위해 암호학적으로 안전한 랜덤 바이트 사용)
       const generateInviteCode = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let code = '';
@@ -91,6 +109,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * 초대 코드로 그룹 참여
+   * POST /api/groups/join
+   * - 초대 코드로 그룹 검색
+   * - 최대 인원 수 확인 (기본 20명)
+   * - 새 멤버로 추가 (기본 역할: 'member')
+   */
   app.post("/api/groups/join", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -107,9 +132,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "그룹을 찾을 수 없습니다" });
       }
       
-      // Check if group has reached max members
+      // 그룹 최대 인원 수 확인 (기본값: 20명)
       const currentMemberCount = await storage.getGroupMemberCount(group.id);
-      const maxMembers = group.maxMembers || 20; // Default to 20 if not set
+      const maxMembers = group.maxMembers || 20;
       
       if (currentMemberCount >= maxMembers) {
         return res.status(400).json({ error: `그룹 인원이 가득 찼습니다 (${maxMembers}명 최대)` });
@@ -366,7 +391,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Memos
+  // ==================== 메모 관리 라우트 ====================
+  
+  /**
+   * 새 메모 생성 (사진 업로드 포함)
+   * POST /api/memos
+   * - 최대 10개의 사진 업로드 가능
+   * - 위치 정보 (위도/경도) 필수
+   * - 그룹 메모 또는 개인 메모 생성 가능
+   */
   app.post("/api/memos", isAuthenticated, upload.array("photos", 10), async (req, res) => {
     try {
       const bodySchema = z.object({

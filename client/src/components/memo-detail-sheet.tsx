@@ -1,3 +1,18 @@
+/**
+ * 메모 상세 정보 시트 컴포넌트
+ * 
+ * 주요 기능:
+ * - 메모의 상세 정보 표시 (건물명, 주소, 내용, 사진)
+ * - 작성자 및 작성일 표시
+ * - 그룹 정보 표시
+ * - 사진 갤러리 (클릭 시 확대)
+ * - 메모 편집/삭제 기능
+ * - 위치로 이동 기능
+ * - 같은 위치에 새 메모 추가 기능
+ * 
+ * 하단에서 슬라이드 업되는 시트 형태의 모달입니다.
+ */
+
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -33,6 +48,7 @@ export function MemoDetailSheet({
   const { t, language } = useLanguage();
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
+  // 언어별 날짜 포맷 로케일 설정
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
 
   if (!memo) return null;

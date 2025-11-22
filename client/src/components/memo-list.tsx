@@ -1,3 +1,18 @@
+/**
+ * 메모 리스트 컴포넌트
+ * 
+ * 주요 기능:
+ * - 메모 목록을 카드 형태로 표시
+ * - 카테고리별 필터링 (travel, love, food, cafe, shopping, sport, work)
+ * - 그룹별 필터링 (전체, 개인, 특정 그룹)
+ * - 다중 선택 모드 (500ms 길게 누르기)
+ * - 일괄 삭제 기능
+ * - 대표 메모 설정 (같은 위치의 메모 중 하나를 대표로 설정)
+ * - 메모 클릭 시 상세 정보 표시
+ * 
+ * 모바일 터치 인터랙션을 최적화했습니다.
+ */
+
 import { useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,10 +58,13 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMemoIds, setSelectedMemoIds] = useState<Set<string>>(new Set());
+  
+  // 길게 누르기 감지를 위한 타이머 및 시간 추적
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pressStartTimeRef = useRef<number>(0);
   const justEnteredSelectionModeRef = useRef<boolean>(false);
 
+  // 언어별 날짜 포맷 로케일 설정
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
 
   const filteredMemos = useMemo(() => {
@@ -67,7 +85,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
     return filtered;
   }, [memos, selectedCategory, selectedGroup]);
 
-  // Group memos by location to determine if main memo button should be shown
+  // 위치별로 메모를 그룹화 (대표 메모 설정 버튼 표시 여부 결정)
   const memosByLocation = useMemo(() => {
     const grouped = new Map<string, MemoWithDetails[]>();
     memos.forEach(memo => {
@@ -85,6 +103,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
     return memosByLocation.get(key) || [];
   };
 
+  // 길게 누르기 시작 (500ms 후 선택 모드 진입)
   const handleLongPressStart = (memoId: string) => {
     pressStartTimeRef.current = Date.now();
     longPressTimerRef.current = setTimeout(() => {
