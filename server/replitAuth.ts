@@ -19,19 +19,41 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000;
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
-  
   const isProduction = process.env.NODE_ENV === "production";
   
-  return session({
+  // For development, use memory store (Neon serverless connection may not work with connect-pg-simple)
+  // For production, try to use PostgreSQL session store
+  let sessionStore: any = undefined;
+  
+  if (isProduction && process.env.DATABASE_URL) {
+    try {
+      const pgStore = connectPg(session);
+      sessionStore = new pgStore({
+        conString: process.env.DATABASE_URL,
+        createTableIfMissing: true,
+        ttl: sessionTtl,
+        tableName: "sessions",
+      });
+      
+      // Add error handler to session store
+      if (sessionStore && typeof sessionStore.on === 'function') {
+        sessionStore.on('error', (error: Error) => {
+          console.error('Session store error:', error);
+        });
+      }
+      
+      console.log("Using PostgreSQL session store");
+    } catch (error) {
+      console.warn("Failed to initialize PostgreSQL session store, using memory store:", error);
+      sessionStore = undefined;
+    }
+  } else {
+    console.log("Using memory session store (development mode)");
+    console.log("Note: Sessions will be lost on server restart");
+  }
+  
+  const sessionConfig: session.SessionOptions = {
     secret: process.env.SESSION_SECRET!,
-    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -40,7 +62,14 @@ export function getSession() {
       maxAge: sessionTtl,
       sameSite: isProduction ? "strict" : "lax",
     },
-  });
+  };
+  
+  // Only add store if it was successfully initialized
+  if (sessionStore) {
+    sessionConfig.store = sessionStore;
+  }
+  
+  return session(sessionConfig);
 }
 
 function updateUserSession(
@@ -70,46 +99,7 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  const config = await getOidcConfig();
-
-  const verify: VerifyFunction = async (
-    tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
-    verified: passport.AuthenticateCallback
-  ) => {
-    const claims = tokens.claims();
-    if (!claims) {
-      return verified(new Error('No claims found in token'));
-    }
-    const user = {
-      id: claims.sub,
-      claims,
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      expires_at: claims.exp,
-    };
-    await upsertUser(claims);
-    verified(null, user);
-  };
-
-  const registeredStrategies = new Set<string>();
-
-  const ensureStrategy = (domain: string) => {
-    const strategyName = `replitauth:${domain}`;
-    if (!registeredStrategies.has(strategyName)) {
-      const strategy = new Strategy(
-        {
-          name: strategyName,
-          config,
-          scope: "openid email profile offline_access",
-          callbackURL: `https://${domain}/api/callback`,
-        },
-        verify,
-      );
-      passport.use(strategy);
-      registeredStrategies.add(strategyName);
-    }
-  };
-
+  // Passport serialization must be set up for all authentication methods (Kakao, Google, Replit)
   passport.serializeUser((user: Express.User, cb) => {
     const userObj = user as any;
     // For Replit Auth users (with tokens), store full session data
@@ -167,6 +157,52 @@ export async function setupAuth(app: Express) {
       cb(null, false);
     }
   });
+
+  // Replit 환경이 아닌 경우 Replit 인증을 건너뜀
+  if (!process.env.REPL_ID) {
+    console.log("REPL_ID not found, skipping Replit authentication setup");
+    return;
+  }
+
+  const config = await getOidcConfig();
+
+  const verify: VerifyFunction = async (
+    tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
+    verified: passport.AuthenticateCallback
+  ) => {
+    const claims = tokens.claims();
+    if (!claims) {
+      return verified(new Error('No claims found in token'));
+    }
+    const user = {
+      id: claims.sub,
+      claims,
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expires_at: claims.exp,
+    };
+    await upsertUser(claims);
+    verified(null, user);
+  };
+
+  const registeredStrategies = new Set<string>();
+
+  const ensureStrategy = (domain: string) => {
+    const strategyName = `replitauth:${domain}`;
+    if (!registeredStrategies.has(strategyName)) {
+      const strategy = new Strategy(
+        {
+          name: strategyName,
+          config,
+          scope: "openid email profile offline_access",
+          callbackURL: `https://${domain}/api/callback`,
+        },
+        verify,
+      );
+      passport.use(strategy);
+      registeredStrategies.add(strategyName);
+    }
+  };
 
   app.get("/api/login", (req, res, next) => {
     ensureStrategy(req.hostname);

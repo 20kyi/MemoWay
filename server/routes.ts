@@ -44,6 +44,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupGoogleAuth(app);
 
   // ==================== 인증 관련 라우트 ====================
+  
+  // 로그아웃 라우트 (모든 인증 방식 공통)
+  app.get("/api/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ error: "Logout failed" });
+      }
+      // 로그아웃 후 홈으로 리다이렉트
+      res.redirect("/");
+    });
+  });
+
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

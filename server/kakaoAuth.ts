@@ -46,6 +46,17 @@ export function setupKakaoAuth(app: Express) {
     return;
   }
 
+  // Determine redirect URI based on environment
+  const getRedirectUri = () => {
+    if (replitDevDomain) {
+      return `https://${replitDevDomain}/api/kakao/callback`;
+    }
+    // Local development
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    const host = process.env.HOST || 'localhost:5000';
+    return `${protocol}://${host}/api/kakao/callback`;
+  };
+
   // Kakao login initiation
   app.get("/api/kakao/login", (req, res) => {
     // Get language from query parameter
@@ -61,8 +72,8 @@ export function setupKakaoAuth(app: Express) {
     // Store state in session for verification
     (req.session as any).kakaoState = state;
     
-    // Use Replit dev domain for redirect URI
-    const redirectUri = `https://${replitDevDomain}/api/kakao/callback`;
+    // Use appropriate redirect URI
+    const redirectUri = getRedirectUri();
     
     console.log('Kakao OAuth Redirect URI:', redirectUri);
     
@@ -150,7 +161,7 @@ export function setupKakaoAuth(app: Express) {
 
     try {
       // Exchange code for access token (must match the redirect_uri used in authorization request)
-      const redirectUri = `https://${replitDevDomain}/api/kakao/callback`;
+      const redirectUri = getRedirectUri();
       
       console.log('Token exchange with Redirect URI:', redirectUri);
       
