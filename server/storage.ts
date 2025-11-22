@@ -1,17 +1,4 @@
-/**
- * 데이터베이스 저장소 레이어 (Repository 패턴)
- * 
- * 모든 데이터베이스 작업을 추상화하여 비즈니스 로직과 데이터 레이어를 분리합니다.
- * Drizzle ORM을 사용하여 타입 안전한 쿼리를 제공합니다.
- * 
- * 주요 기능:
- * - 사용자 관리 (CRUD)
- * - 그룹 관리 (생성, 조회, 수정, 삭제)
- * - 멤버 관리 (역할, 권한)
- * - 메모 관리 (위치 기반 메모 CRUD)
- * - 사진 관리 (메모별 사진 CRUD)
- */
-
+// Reference: javascript_database blueprint - updated with app-specific storage
 import { 
   users,
   groups, 
@@ -32,21 +19,17 @@ import {
   type GroupWithMembers,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 
-/**
- * 저장소 인터페이스
- * 모든 데이터베이스 작업을 정의합니다.
- */
 export interface IStorage {
-  // ==================== 사용자 관리 ====================
-  // (Replit Auth, Kakao, Google 인증에 필요)
+  // Users (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByKakaoId(kakaoId: string): Promise<User | undefined>;
+  addPoints(userId: string, amount: number): Promise<User>;
   
-  // ==================== 그룹 관리 ====================
+  // Groups
   createGroup(group: InsertGroup): Promise<Group>;
   getGroupByInviteCode(inviteCode: string): Promise<Group | undefined>;
   getGroups(userId: string): Promise<GroupWithMembers[]>;
@@ -57,14 +40,14 @@ export interface IStorage {
   deleteGroup(groupId: string): Promise<void>;
   copyGroupMemosToPersonal(groupId: string, userId: string): Promise<{ group: Group; member: Member; copiedCount: number }>;
   
-  // ==================== 멤버 관리 ====================
+  // Members
   createMember(member: InsertMember): Promise<Member>;
   getMembersByGroupId(groupId: string): Promise<Member[]>;
   deleteMember(memberId: string): Promise<void>;
   transferLeadership(groupId: string, currentLeaderId: string, newLeaderId: string): Promise<void>;
   updateMemberPermissions(memberId: string, canEditGroupMemos: boolean): Promise<Member>;
   
-  // ==================== 메모 관리 ====================
+  // Memos
   createMemo(memo: InsertMemo): Promise<Memo>;
   getMemos(userId: string): Promise<MemoWithDetails[]>;
   getMemoById(id: string): Promise<MemoWithDetails | undefined>;
@@ -73,18 +56,14 @@ export interface IStorage {
   clearGroupFromMemos(groupId: string): Promise<void>;
   setMainMemo(memoId: string): Promise<Memo>;
   
-  // ==================== 사진 관리 ====================
+  // Photos
   createPhoto(photo: InsertPhoto): Promise<Photo>;
   getPhotosByMemoId(memoId: string): Promise<Photo[]>;
   deletePhoto(photoId: string): Promise<void>;
 }
 
-/**
- * 데이터베이스 저장소 구현 클래스
- * IStorage 인터페이스를 구현하여 실제 데이터베이스 작업을 수행합니다.
- */
 export class DatabaseStorage implements IStorage {
-  // ==================== 사용자 관리 메서드 ====================
+  // Users (required for Replit Auth)
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -113,6 +92,21 @@ export class DatabaseStorage implements IStorage {
   async getUserByKakaoId(kakaoId: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.kakaoId, kakaoId));
     return user;
+  }
+
+  async addPoints(userId: string, amount: number): Promise<User> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) {
+      throw new Error("USER_NOT_FOUND");
+    }
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set({ points: user.points + amount })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser;
   }
 
   // Groups
@@ -149,7 +143,24 @@ export class DatabaseStorage implements IStorage {
       },
     });
     
-    return userGroups;
+    // Get memo counts for each group
+    const memoCounts = await Promise.all(
+      userGroups.map(async (group) => {
+        const result = await db
+          .select({ count: count() })
+          .from(memos)
+          .where(eq(memos.groupId, group.id));
+        return { groupId: group.id, count: result[0]?.count || 0 };
+      })
+    );
+    
+    // Add memoCount to each group
+    const groupsWithMemoCounts = userGroups.map((group) => ({
+      ...group,
+      memoCount: memoCounts.find(mc => mc.groupId === group.id)?.count || 0,
+    }));
+    
+    return groupsWithMemoCounts;
   }
 
   async getGroupById(groupId: string): Promise<GroupWithMembers | undefined> {
@@ -186,7 +197,7 @@ export class DatabaseStorage implements IStorage {
     return membersList.length;
   }
 
-  // ==================== 멤버 관리 메서드 ====================
+  // Members
   async createMember(insertMember: InsertMember): Promise<Member> {
     const [member] = await db
       .insert(members)
@@ -273,7 +284,7 @@ export class DatabaseStorage implements IStorage {
     return member;
   }
 
-  // ==================== 메모 관리 메서드 ====================
+  // Memos
   async createMemo(insertMemo: InsertMemo): Promise<Memo> {
     const [memo] = await db
       .insert(memos)
@@ -398,8 +409,6 @@ export class DatabaseStorage implements IStorage {
     return updatedMemo;
   }
 
-  // ==================== 그룹 업데이트 및 삭제 메서드 ====================
-  
   async updateGroup(groupId: string, updateData: Partial<InsertGroup>): Promise<Group> {
     const cleanedData = Object.fromEntries(
       Object.entries(updateData).filter(([_, v]) => v !== undefined)
@@ -430,85 +439,106 @@ export class DatabaseStorage implements IStorage {
     groupId: string, 
     userId: string
   ): Promise<{ group: Group; member: Member; copiedCount: number }> {
-    // Get the source group with members
-    const sourceGroupData = await db.query.groups.findFirst({
-      where: eq(groups.id, groupId),
-      with: {
-        members: true,
-      },
-    });
-    
-    if (!sourceGroupData) {
-      throw new Error("GROUP_NOT_FOUND");
-    }
+    // Use transaction to ensure atomicity
+    return await db.transaction(async (tx) => {
+      // Get the source group with members
+      const sourceGroupData = await tx.query.groups.findFirst({
+        where: eq(groups.id, groupId),
+        with: {
+          members: true,
+        },
+      });
+      
+      if (!sourceGroupData) {
+        throw new Error("GROUP_NOT_FOUND");
+      }
 
-    // Verify user is a member of the source group
-    const userMembership = sourceGroupData.members.find(m => m.userId === userId);
-    if (!userMembership) {
-      throw new Error("MEMBERSHIP_REQUIRED");
-    }
+      // Verify user is a member of the source group
+      const userMembership = sourceGroupData.members.find(m => m.userId === userId);
+      if (!userMembership) {
+        throw new Error("MEMBERSHIP_REQUIRED");
+      }
 
-    const sourceGroup = sourceGroupData;
+      const sourceGroup = sourceGroupData;
 
-    // Get all memos from the source group with photos
-    const groupMemos = await db.query.memos.findMany({
-      where: eq(memos.groupId, groupId),
-      with: {
-        photos: true,
-      },
-    });
+      // Get all memos from the source group with photos
+      const groupMemos = await tx.query.memos.findMany({
+        where: eq(memos.groupId, groupId),
+        with: {
+          photos: true,
+        },
+      });
 
-    // Generate unique invite code
-    const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      // Check points: 10 points per memo
+      const requiredPoints = groupMemos.length * 10;
+      const [user] = await tx.select().from(users).where(eq(users.id, userId));
+      
+      if (!user) {
+        throw new Error("USER_NOT_FOUND");
+      }
 
-    // Create new group with "{원그룹명} 복사본" format
-    const newGroupName = `${sourceGroup.name} 복사본`;
-    const [newGroup] = await db
-      .insert(groups)
-      .values({
-        name: newGroupName,
-        inviteCode,
-        color: sourceGroup.color,
-        markerIcon: sourceGroup.markerIcon,
-      })
-      .returning();
+      if (user.points < requiredPoints) {
+        throw new Error("INSUFFICIENT_POINTS");
+      }
 
-    // Create member for the user in the new group
-    const [newMember] = await db
-      .insert(members)
-      .values({
-        name: "나",
-        groupId: newGroup.id,
-        userId: userId,
-        role: "leader",
-      })
-      .returning();
+      // Deduct points (will rollback if any subsequent step fails)
+      await tx
+        .update(users)
+        .set({ points: user.points - requiredPoints })
+        .where(eq(users.id, userId));
 
-    // Copy all memos to the new group (without photos)
-    let copiedCount = 0;
-    for (const memo of groupMemos) {
-      await db
-        .insert(memos)
+      // Generate unique invite code
+      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      // Create new group with "{원그룹명} 복사본" format
+      const newGroupName = `${sourceGroup.name} 복사본`;
+      const [newGroup] = await tx
+        .insert(groups)
         .values({
-          buildingName: memo.buildingName,
-          address: memo.address,
-          latitude: memo.latitude,
-          longitude: memo.longitude,
-          content: memo.content,
-          markerIcon: memo.markerIcon,
-          memberId: newMember.id,
-          groupId: newGroup.id,
-          mainPhotoId: null, // No photos are copied
+          name: newGroupName,
+          inviteCode,
+          color: sourceGroup.color,
+          markerIcon: sourceGroup.markerIcon,
         })
         .returning();
 
-      copiedCount++;
-    }
+      // Create member for the user in the new group
+      const [newMember] = await tx
+        .insert(members)
+        .values({
+          name: "나",
+          groupId: newGroup.id,
+          userId: userId,
+          role: "leader",
+        })
+        .returning();
 
-    return { group: newGroup, member: newMember, copiedCount };
+      // Copy all memos to the new group (without photos)
+      let copiedCount = 0;
+      for (const memo of groupMemos) {
+        await tx
+          .insert(memos)
+          .values({
+            buildingName: memo.buildingName,
+            address: memo.address,
+            latitude: memo.latitude,
+            longitude: memo.longitude,
+            content: memo.content,
+            markerIcon: memo.markerIcon,
+            memberId: newMember.id,
+            groupId: newGroup.id,
+            mainPhotoId: null, // No photos are copied
+          })
+          .returning();
+
+        copiedCount++;
+      }
+
+      return { group: newGroup, member: newMember, copiedCount };
+    });
   }
 
-  // ==================== 사진 관리 메서드 ====================
+  // Photos
   async createPhoto(insertPhoto: InsertPhoto): Promise<Photo> {
     const [photo] = await db
       .insert(photos)
@@ -537,5 +567,4 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// 싱글톤 인스턴스 내보내기 (애플리케이션 전체에서 공유)
 export const storage = new DatabaseStorage();

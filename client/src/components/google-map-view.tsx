@@ -1,18 +1,3 @@
-/**
- * Google Maps 기반 지도 뷰 컴포넌트
- * 
- * 주요 기능:
- * - Google Maps API를 사용한 지도 렌더링
- * - 메모 마커 표시 (그룹별 색상, 카테고리별 아이콘)
- * - 마커 클러스터링 (같은 위치의 여러 메모)
- * - 위치 검색 (Places API)
- * - GPS 위치 추적 및 잠금
- * - 그룹/카테고리 필터링
- * - 사용자 위치 표시
- * 
- * Kakao Maps 대신 Google Maps를 사용하는 경우 이 컴포넌트가 사용됩니다.
- */
-
 /// <reference types="@types/google.maps" />
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -51,10 +36,8 @@ interface GoogleMapViewProps {
   onGroupIdsChange?: (groupIds: string[]) => void;
 }
 
-// 개인 메모 마커 색상 (보라색)
 const PERSONAL_MEMO_COLOR = '#9333ea';
 
-// 마커 데이터 구조 (클러스터링을 위한 정보 포함)
 interface MarkerData {
   marker: google.maps.Marker;
   memoIds: string[];
@@ -91,7 +74,7 @@ export function GoogleMapView({
   const { t } = useLanguage();
   const watchIdRef = useRef<number | null>(null);
 
-  // ==================== Google Maps 초기화 ====================
+  // Initialize Google Map
   useEffect(() => {
     if (!mapRef.current) return;
 

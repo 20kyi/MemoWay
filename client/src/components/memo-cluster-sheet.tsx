@@ -1,16 +1,3 @@
-/**
- * 메모 클러스터 시트 컴포넌트
- * 
- * 같은 위치에 여러 개의 메모가 있을 때 표시되는 컴포넌트입니다.
- * 마커 클러스터를 클릭하면 이 시트가 열려 해당 위치의 모든 메모를 표시합니다.
- * 
- * 주요 기능:
- * - 같은 위치의 모든 메모 목록 표시
- * - 최신순 정렬
- * - 메모 클릭 시 상세 정보 표시
- * - 그룹 정보 표시
- */
-
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +18,6 @@ export function MemoClusterSheet({ open, onOpenChange, memos, onMemoSelect }: Me
 
   const location = memos[0];
   
-  // 최신순으로 메모 정렬
   const sortedMemos = [...memos].sort((a, b) => {
     if (!a.createdAt || !b.createdAt) return 0;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();

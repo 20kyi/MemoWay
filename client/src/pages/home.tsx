@@ -608,19 +608,24 @@ export default function Home() {
         });
       }
       
-      // 그룹 목록 새로고침
+      // 그룹 목록 및 사용자 정보 새로고침 (포인트 업데이트)
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       
+      const pointsUsed = data.copiedCount * 10;
       toast({
         title: "✅ 그룹 복사 완료",
-        description: `새로운 그룹 "${data.group.name}"이(가) 생성되었고, ${data.copiedCount}개의 메모가 복사되었습니다`,
+        description: `새로운 그룹 "${data.group.name}"이(가) 생성되었고, ${data.copiedCount}개의 메모가 복사되었습니다 (${pointsUsed} 포인트 사용)`,
       });
     },
     onError: (error: any) => {
+      // Handle both error.error (from server) and error.message
+      const errorMsg = error.error || error.message || "그룹 메모 복사 중 오류가 발생했습니다";
+      const isInsufficientPoints = errorMsg.includes("포인트가 부족합니다");
       toast({
-        title: "그룹 복사 실패",
-        description: error.message || "그룹 메모 복사 중 오류가 발생했습니다",
+        title: isInsufficientPoints ? "포인트 부족" : "그룹 복사 실패",
+        description: errorMsg,
         variant: "destructive",
       });
     },
@@ -1002,6 +1007,7 @@ export default function Home() {
             myMemberIds={myMemberIds}
             personalMemberId={personalMemberId}
             userId={(user as any)?.id}
+            userPoints={(user as any)?.points || 0}
             onCreateGroup={(data) => createGroupMutation.mutate(data)}
             onUpdateGroup={(groupId, data) => updateGroupMutation.mutate({ groupId, ...data })}
             onJoinGroup={(inviteCode, memberName) => {
@@ -1013,9 +1019,7 @@ export default function Home() {
               }
             }}
             onCopyGroup={(groupId) => {
-              if (confirm("이 그룹의 모든 메모를 새 그룹으로 복사하시겠습니까?\n새로운 그룹이 생성됩니다.")) {
-                copyGroupMutation.mutate(groupId);
-              }
+              copyGroupMutation.mutate(groupId);
             }}
             onDeleteGroup={(groupId) => deleteGroupMutation.mutate(groupId)}
             onRemoveMember={(groupId, memberId) => {

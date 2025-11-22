@@ -83,7 +83,7 @@ export default function Landing() {
                 <Heart className="h-6 w-6 text-destructive fill-destructive absolute -top-1 -right-1 animate-pulse" />
               </div>
               <h1 className="text-6xl font-bold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Location Memo
+                Memo Way
               </h1>
             </div>
             <p className="text-2xl text-foreground/80 max-w-2xl font-medium">

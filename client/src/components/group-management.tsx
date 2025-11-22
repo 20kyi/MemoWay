@@ -1,14 +1,3 @@
-/**
- * 그룹 관리 컴포넌트
- * 
- * 주요 기능:
- * - 그룹 생성 및 수정
- * - 초대 코드로 그룹 참여
- * - 그룹 검색 및 필터링
- * - 멤버 관리 (리더 권한: 제거, 권한 이양, 편집 권한 설정)
- * - 그룹 정보 표시 (색상, 마커 아이콘, 멤버 수)
- */
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,12 +10,21 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit, Search, X } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit, Search, X, DoorOpen, Coins, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-// 그룹 생성 폼 타입
 type GroupFormValues = {
   name: string;
   description: string;
@@ -35,7 +33,6 @@ type GroupFormValues = {
   markerIcon: MarkerIconType;
 };
 
-// 그룹 수정 폼 타입
 type EditGroupFormValues = {
   name: string;
   description: string;
@@ -43,7 +40,6 @@ type EditGroupFormValues = {
   markerIcon: MarkerIconType;
 };
 
-// 그룹 색상 프리셋 (8가지 색상)
 const PRESET_COLORS = [
   { key: 'rose', value: '#ffb3d9' },
   { key: 'pink', value: '#ffc0e8' },
@@ -55,7 +51,6 @@ const PRESET_COLORS = [
   { key: 'coral', value: '#ffccb3' },
 ] as const;
 
-// 마커 아이콘 타입별 Lucide 아이콘 컴포넌트 매핑
 const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
   default: MapPin,
   travel: Plane,
@@ -93,10 +88,11 @@ interface GroupManagementProps {
   myMemberIds: string[];
   personalMemberId?: string | null;
   userId?: string;
+  userPoints?: number;
   isLoading?: boolean;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, onUpdateMemberPermissions, myMemberIds, personalMemberId, userId, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, onUpdateMemberPermissions, myMemberIds, personalMemberId, userId, userPoints = 0, isLoading = false }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -104,6 +100,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [memberDialogOpen, setMemberDialogOpen] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [copyConfirmGroup, setCopyConfirmGroup] = useState<Group | null>(null);
   const { toast } = useToast();
 
   const groupFormSchema = z.object({
@@ -193,7 +190,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
     });
   };
 
-  // 그룹 검색 필터링: 이름, 설명, 멤버 이름으로 검색
+  // 그룹 검색 필터링
   const filteredGroups = groups.filter(group => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
@@ -238,20 +235,14 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex-1 w-full sm:w-auto" data-testid="button-create-group">
-              <Plus className="h-4 w-4 mr-2" />
-              {t.groups.createGroup}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md mx-3 sm:mx-0">
-            <DialogHeader>
-              <DialogTitle>{t.groups.newGroup}</DialogTitle>
-            </DialogHeader>
-            <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit(handleCreateGroup)} className="space-y-4">
+      {/* 그룹 만들기 Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto">
+          <DialogHeader>
+            <DialogTitle>{t.groups.newGroup}</DialogTitle>
+          </DialogHeader>
+          <Form {...createForm}>
+            <form onSubmit={createForm.handleSubmit(handleCreateGroup)} className="space-y-4">
                 <FormField
                   control={createForm.control}
                   name="name"
@@ -319,7 +310,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                             ))}
                           </div>
                           <div className="flex items-center gap-2">
-                            <label className="text-sm text-muted-foreground">사용자 정의:</label>
+                            <label className="text-sm text-muted-foreground">{t.groups.customColor}:</label>
                             <Input
                               type="color"
                               value={field.value}
@@ -388,23 +379,19 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-create-group">
                   {isLoading ? `${t.common.create}...` : t.common.create}
                 </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
-        <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="flex-1 w-full sm:w-auto" data-testid="button-join-group">
-              {t.groups.joinGroup}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md mx-3 sm:mx-0">
-            <DialogHeader>
-              <DialogTitle>{t.groups.joinGroup}</DialogTitle>
-            </DialogHeader>
-            <Form {...joinForm}>
-              <form onSubmit={joinForm.handleSubmit(handleJoinGroup)} className="space-y-4">
+      {/* 그룹 참여하기 Dialog */}
+      <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
+        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto">
+          <DialogHeader>
+            <DialogTitle>{t.groups.joinGroup}</DialogTitle>
+          </DialogHeader>
+          <Form {...joinForm}>
+            <form onSubmit={joinForm.handleSubmit(handleJoinGroup)} className="space-y-4">
                 <FormField
                   control={joinForm.control}
                   name="inviteCode"
@@ -431,16 +418,14 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-join-group">
-                  {isLoading ? "참여 중..." : "참여하기"}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-join-group">
+                {isLoading ? "참여 중..." : "참여하기"}
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
-      {/* 그룹 목록 또는 빈 상태 표시 */}
       {filteredGroups.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
           <div className="bg-primary/10 rounded-full p-6 mb-4">
@@ -460,7 +445,6 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </div>
       ) : (
         <div className="space-y-4">
-          {/* 그룹 카드 목록 렌더링 */}
           {filteredGroups.map(group => (
             <Card key={group.id} className="hover-elevate transition-all shadow-lg border-2 border-primary/30 hover:border-primary/50 rounded-3xl bg-card/80 backdrop-blur-sm hover:shadow-2xl" data-testid={`card-group-${group.id}`}>
               <CardHeader className="pb-3 px-3 sm:px-6 pt-4 sm:pt-6">
@@ -485,7 +469,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 flex-shrink-0"
-                        onClick={() => onCopyGroup(group.id)}
+                        onClick={() => setCopyConfirmGroup(group)}
                         data-testid={`button-copy-${group.id}`}
                         title="새 그룹으로 복사 (그룹 생성)"
                       >
@@ -572,9 +556,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </div>
       )}
 
-      {/* ==================== 그룹 수정 다이얼로그 ==================== */}
+      {/* 그룹 수정 다이얼로그 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md max-h-[85vh] mx-3 sm:mx-0 flex flex-col">
+        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto max-h-[85vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>{t.groups.editGroup}</DialogTitle>
           </DialogHeader>
@@ -725,8 +709,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </DialogContent>
       </Dialog>
 
-      {/* ==================== 멤버 관리 다이얼로그 ==================== */}
-      {/* 리더 권한: 멤버 제거, 리더십 이양, 편집 권한 설정 */}
+      {/* 참여인원 다이얼로그 */}
       {memberDialogOpen && (() => {
         const group = groups.find(g => g.id === memberDialogOpen);
         if (!group) return null;
@@ -736,7 +719,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
         return (
           <Dialog open={true} onOpenChange={() => setMemberDialogOpen(null)}>
-            <DialogContent className="max-w-md max-h-[85vh] mx-3 sm:mx-0 flex flex-col">
+            <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto max-h-[85vh] flex flex-col">
               <DialogHeader className="flex-shrink-0">
                 <DialogTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
@@ -828,6 +811,93 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
           </Dialog>
         );
       })()}
+
+      {/* 그룹 복사 확인 다이얼로그 */}
+      <AlertDialog open={!!copyConfirmGroup} onOpenChange={(open) => !open && setCopyConfirmGroup(null)}>
+        <AlertDialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Copy className="h-5 w-5 text-primary" />
+              {t.groups.copyGroup}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <p>
+                <span className="font-semibold">{copyConfirmGroup?.name}</span> {t.groups.copyGroupDesc}
+              </p>
+              
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{t.groups.memoCount}</span>
+                  <span className="font-semibold">{copyConfirmGroup?.memoCount || 0}개</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{t.groups.requiredPoints}</span>
+                  <span className="font-semibold text-amber-600 dark:text-amber-400">
+                    {((copyConfirmGroup?.memoCount || 0) * 10).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm border-t pt-2">
+                  <span className="text-muted-foreground">{t.groups.currentPoints}</span>
+                  <span className="font-semibold text-primary">
+                    {userPoints.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {(copyConfirmGroup?.memoCount || 0) * 10 > userPoints && (
+                <div className="flex items-start gap-2 bg-destructive/10 text-destructive rounded-lg p-3">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm">
+                    {t.groups.insufficientPoints} {((copyConfirmGroup?.memoCount || 0) * 10).toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-copy">{t.common.cancel}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (onCopyGroup && copyConfirmGroup) {
+                  onCopyGroup(copyConfirmGroup.id);
+                }
+                setCopyConfirmGroup(null);
+              }}
+              disabled={(copyConfirmGroup?.memoCount || 0) * 10 > userPoints}
+              data-testid="button-confirm-copy"
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Coins className="h-4 w-4 mr-2" />
+              {t.groups.confirmCopy}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 플로팅 액션 버튼 */}
+      <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
+        {/* 그룹 참여하기 버튼 */}
+        <Button
+          size="icon"
+          onClick={() => setJoinDialogOpen(true)}
+          className="h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl bg-primary hover:bg-primary/90 border-2 border-primary"
+          data-testid="button-join-group-fab"
+          title={t.groups.joinGroup}
+        >
+          <DoorOpen className="h-5 w-5 text-primary-foreground" />
+        </Button>
+
+        {/* 그룹 만들기 버튼 */}
+        <Button
+          size="icon"
+          onClick={() => setCreateDialogOpen(true)}
+          className="h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl bg-primary hover:bg-primary/90 border-2 border-primary"
+          data-testid="button-create-group-fab"
+          title={t.groups.createGroup}
+        >
+          <Plus className="h-5 w-5 text-primary-foreground" />
+        </Button>
+      </div>
     </div>
   );
 }

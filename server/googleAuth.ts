@@ -13,18 +13,11 @@ export function setupGoogleAuth(app: Express) {
     return;
   }
 
-  // Determine callback URL based on environment
-  const getCallbackURL = () => {
-    if (replitDevDomain) {
-      return `https://${replitDevDomain}/api/google/callback`;
-    }
-    // Local development
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-    const host = process.env.HOST || 'localhost:5000';
-    return `${protocol}://${host}/api/google/callback`;
-  };
-
-  const callbackURL = getCallbackURL();
+  // Use Replit dev domain if available, otherwise use HOST env var or default
+  // Note: For Google OAuth, callbackURL must match the one registered in Google Cloud Console
+  const callbackURL = replitDevDomain 
+    ? `https://${replitDevDomain}/api/google/callback`
+    : `${process.env.HOST ? `http://${process.env.HOST}` : 'http://localhost:5000'}/api/google/callback`;
 
   passport.use(
     new GoogleStrategy(

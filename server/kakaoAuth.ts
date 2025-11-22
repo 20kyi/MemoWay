@@ -46,17 +46,6 @@ export function setupKakaoAuth(app: Express) {
     return;
   }
 
-  // Determine redirect URI based on environment
-  const getRedirectUri = () => {
-    if (replitDevDomain) {
-      return `https://${replitDevDomain}/api/kakao/callback`;
-    }
-    // Local development
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-    const host = process.env.HOST || 'localhost:5000';
-    return `${protocol}://${host}/api/kakao/callback`;
-  };
-
   // Kakao login initiation
   app.get("/api/kakao/login", (req, res) => {
     // Get language from query parameter
@@ -72,8 +61,10 @@ export function setupKakaoAuth(app: Express) {
     // Store state in session for verification
     (req.session as any).kakaoState = state;
     
-    // Use appropriate redirect URI
-    const redirectUri = getRedirectUri();
+    // Use Replit dev domain if available, otherwise use request host
+    const host = replitDevDomain || req.get('host') || process.env.HOST || 'localhost:5000';
+    const protocol = replitDevDomain ? 'https' : (req.protocol || 'http');
+    const redirectUri = `${protocol}://${host}/api/kakao/callback`;
     
     console.log('Kakao OAuth Redirect URI:', redirectUri);
     
@@ -161,7 +152,9 @@ export function setupKakaoAuth(app: Express) {
 
     try {
       // Exchange code for access token (must match the redirect_uri used in authorization request)
-      const redirectUri = getRedirectUri();
+      const host = replitDevDomain || req.get('host') || process.env.HOST || 'localhost:5000';
+      const protocol = replitDevDomain ? 'https' : (req.protocol || 'http');
+      const redirectUri = `${protocol}://${host}/api/kakao/callback`;
       
       console.log('Token exchange with Redirect URI:', redirectUri);
       
@@ -234,9 +227,17 @@ export function setupKakaoAuth(app: Express) {
             console.error("Session creation failed:", err);
             return res.status(500).json({ error: "Failed to create session" });
           }
-          console.log(`Kakao login successful for user ID: ${user.id}`);
-          // Redirect with language parameter
-          res.redirect(`/?lang=${lang}`);
+          
+          // Explicitly save session before redirecting
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error("Session save failed:", saveErr);
+              return res.status(500).json({ error: "Failed to save session" });
+            }
+            console.log(`Kakao login successful for user ID: ${user.id}`);
+            // Redirect with language parameter
+            res.redirect(`/?lang=${lang}`);
+          });
         }
       );
     } catch (error) {

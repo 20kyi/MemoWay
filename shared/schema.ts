@@ -26,6 +26,8 @@ export const users = pgTable("users", {
   googleId: varchar("google_id").unique(),
   // Authentication provider: 'replit', 'kakao', or 'google'
   provider: varchar("provider").notNull().default('replit'),
+  // Points system for copy memos feature (10 points per memo)
+  points: integer("points").notNull().default(1000),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -186,4 +188,4 @@ export type MemoWithDetails = Memo & {
   editorMember: Member | null;
   group: Group | null;
 };
-export type GroupWithMembers = Group & { members: Member[] };
+export type GroupWithMembers = Group & { members: Member[]; memoCount?: number };

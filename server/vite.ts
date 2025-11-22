@@ -1,18 +1,16 @@
-/**
- * Vite 개발 서버 및 정적 파일 서빙 설정
- * - 개발 모드: Vite HMR 서버 사용
- * - 프로덕션 모드: 빌드된 정적 파일 서빙
- */
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { dirname } from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const viteLogger = createLogger();
 
 export function log(message: string, source = "express") {
@@ -75,7 +73,7 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "..", "dist", "public");
+  const distPath = path.resolve(__dirname, "public");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(

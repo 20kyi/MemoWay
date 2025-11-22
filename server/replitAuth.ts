@@ -9,9 +9,12 @@ import { storage } from "./storage";
 
 const getOidcConfig = memoize(
   async () => {
+    if (!process.env.REPL_ID) {
+      throw new Error("REPL_ID is not set. Replit Auth is only available in Replit environment.");
+    }
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
+      process.env.REPL_ID
     );
   },
   { maxAge: 3600 * 1000 }
@@ -19,41 +22,19 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000;
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: true,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
+  
   const isProduction = process.env.NODE_ENV === "production";
   
-  // For development, use memory store (Neon serverless connection may not work with connect-pg-simple)
-  // For production, try to use PostgreSQL session store
-  let sessionStore: any = undefined;
-  
-  if (isProduction && process.env.DATABASE_URL) {
-    try {
-      const pgStore = connectPg(session);
-      sessionStore = new pgStore({
-        conString: process.env.DATABASE_URL,
-        createTableIfMissing: true,
-        ttl: sessionTtl,
-        tableName: "sessions",
-      });
-      
-      // Add error handler to session store
-      if (sessionStore && typeof sessionStore.on === 'function') {
-        sessionStore.on('error', (error: Error) => {
-          console.error('Session store error:', error);
-        });
-      }
-      
-      console.log("Using PostgreSQL session store");
-    } catch (error) {
-      console.warn("Failed to initialize PostgreSQL session store, using memory store:", error);
-      sessionStore = undefined;
-    }
-  } else {
-    console.log("Using memory session store (development mode)");
-    console.log("Note: Sessions will be lost on server restart");
-  }
-  
-  const sessionConfig: session.SessionOptions = {
+  return session({
     secret: process.env.SESSION_SECRET!,
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -62,14 +43,7 @@ export function getSession() {
       maxAge: sessionTtl,
       sameSite: isProduction ? "strict" : "lax",
     },
-  };
-  
-  // Only add store if it was successfully initialized
-  if (sessionStore) {
-    sessionConfig.store = sessionStore;
-  }
-  
-  return session(sessionConfig);
+  });
 }
 
 function updateUserSession(
@@ -99,7 +73,7 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Passport serialization must be set up for all authentication methods (Kakao, Google, Replit)
+  // Setup passport serialization/deserialization for all auth methods
   passport.serializeUser((user: Express.User, cb) => {
     const userObj = user as any;
     // For Replit Auth users (with tokens), store full session data
@@ -158,9 +132,9 @@ export async function setupAuth(app: Express) {
     }
   });
 
-  // Replit 환경이 아닌 경우 Replit 인증을 건너뜀
+  // Skip Replit Auth if REPL_ID is not set (local development)
   if (!process.env.REPL_ID) {
-    console.log("REPL_ID not found, skipping Replit authentication setup");
+    console.log("REPL_ID not set, skipping Replit Auth setup");
     return;
   }
 
