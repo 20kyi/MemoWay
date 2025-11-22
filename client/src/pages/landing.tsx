@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { MapPin, Globe, Users, Lock, Languages, Heart, Sparkles } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
+import { Capacitor } from "@capacitor/core";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,11 +19,59 @@ const languageOptions: { value: Language; label: string; flag: string }[] = [
 export default function Landing() {
   const { t, language, setLanguage } = useLanguage();
 
-  const handleKakaoLogin = () => {
-    // Pass current language as query parameter
-    const loginUrl = `/api/kakao/login?lang=${language}`;
-    // Open in new tab to avoid Replit iframe restrictions
-    window.open(loginUrl, "_blank");
+  const handleKakaoLogin = async () => {
+    if (Capacitor.isNativePlatform()) {
+      // 안드로이드 네이티브 카카오 로그인
+      try {
+        // @ts-ignore - Capacitor 플러그인은 런타임에 로드됨
+        const { registerPlugin } = await import("@capacitor/core");
+        // @ts-ignore
+        const KakaoLogin = registerPlugin('KakaoLogin', {
+          login: () => Promise.resolve({}),
+        });
+        
+        console.log("카카오 로그인 시작...");
+        const result = await KakaoLogin.login();
+        console.log("카카오 로그인 결과:", result);
+        
+        if (!result || !result.accessToken) {
+          throw new Error("카카오 로그인 결과가 올바르지 않습니다.");
+        }
+        
+        // 서버에 토큰 전송하여 세션 생성
+        const response = await fetch("/api/kakao/android-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            accessToken: result.accessToken,
+            kakaoId: result.id,
+            email: result.email || null,
+            nickname: result.nickname || null,
+            profileImage: result.profileImage || null,
+          }),
+        });
+
+        if (response.ok) {
+          // 로그인 성공 - 페이지 새로고침
+          window.location.href = "/";
+        } else {
+          const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+          console.error("서버 응답 오류:", response.status, errorData);
+          alert(`로그인에 실패했습니다: ${errorData.error || response.statusText}`);
+        }
+      } catch (error: any) {
+        console.error("카카오 로그인 오류:", error);
+        // 네이티브 플러그인이 없거나 실패하면 웹 방식으로 폴백
+        // 하지만 안드로이드에서는 웹뷰에서 열어야 함
+        const loginUrl = `/api/kakao/login?lang=${language}`;
+        window.location.href = loginUrl;
+      }
+    } else {
+      // 웹에서는 기존 방식 사용
+      const loginUrl = `/api/kakao/login?lang=${language}`;
+      window.open(loginUrl, "_blank");
+    }
   };
 
   const handleGoogleLogin = () => {

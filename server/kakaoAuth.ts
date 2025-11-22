@@ -245,4 +245,71 @@ export function setupKakaoAuth(app: Express) {
       res.status(500).json({ error: "Kakao OAuth failed" });
     }
   });
+
+  // Android 네이티브 로그인 엔드포인트
+  app.post("/api/kakao/android-login", async (req, res) => {
+    const { accessToken, kakaoId, email, nickname, profileImage } = req.body;
+
+    if (!accessToken || !kakaoId) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    try {
+      // 카카오 토큰 검증 (선택사항 - 보안 강화)
+      const userInfoResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!userInfoResponse.ok) {
+        return res.status(401).json({ error: "Invalid access token" });
+      }
+
+      const userInfo: KakaoUserInfo = await userInfoResponse.json();
+
+      // 사용자 정보 저장
+      const user = await storage.upsertUser({
+        id: `kakao_${kakaoId}`,
+        email: email || userInfo.kakao_account?.email || `kakao_${kakaoId}@placeholder.com`,
+        firstName: nickname || userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User",
+        lastName: "",
+        profileImageUrl: profileImage || userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image || null,
+        provider: "kakao",
+        kakaoId: kakaoId.toString(),
+      });
+
+      // 세션 생성
+      (req as any).login(
+        {
+          id: user.id,
+          claims: {
+            sub: user.id,
+            email: user.email,
+            first_name: user.firstName,
+            last_name: user.lastName,
+            profile_image_url: user.profileImageUrl,
+          },
+        },
+        (err: any) => {
+          if (err) {
+            console.error("Session creation failed:", err);
+            return res.status(500).json({ error: "Failed to create session" });
+          }
+          
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error("Session save failed:", saveErr);
+              return res.status(500).json({ error: "Failed to save session" });
+            }
+            console.log(`Android Kakao login successful for user ID: ${user.id}`);
+            res.json({ success: true, user });
+          });
+        }
+      );
+    } catch (error) {
+      console.error("Android Kakao login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
 }
