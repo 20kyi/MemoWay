@@ -28,6 +28,7 @@ interface MapViewProps {
   userLocation: { lat: number; lng: number } | null;
   onMapReady?: (map: any) => void;
   onMyLocationClick?: (location: { lat: number; lng: number }) => void;
+  pendingLocation?: { lat: number; lng: number } | null;
   groups?: GroupWithMembers[];
   selectedMarkerIcons?: string[];
   selectedGroupIds?: string[];
@@ -307,6 +308,7 @@ export function MapView({
   userLocation, 
   onMapReady,
   onMyLocationClick,
+  pendingLocation,
   groups = [],
   selectedMarkerIcons = ["all"],
   selectedGroupIds = ["all"],
@@ -323,9 +325,7 @@ export function MapView({
   const [isMapLocked, setIsMapLocked] = useState(false);
   const [currentUserLocation, setCurrentUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocationLocked, setIsLocationLocked] = useState(true); // 위치 고정 모드 (기본값: true)
-  const [markers, setMarkers] = useState<Array<{ overlay: any; handler?: () => void; memoId?: string; memoIds?: string[] }>>([]);
-  const isMapInteractingRef = useRef(false); // 지도 조작 중 플래그 (드래그/줌)
-  const markerClickedRef = useRef(false); // 마커 클릭 플래그
+  const [markers, setMarkers] = useState<Array<{ overlay: any; handler?: (e: MouseEvent) => void; contentDiv?: HTMLElement; topDiv?: HTMLElement | null; memoId?: string; memoIds?: string[] }>>([]);
   const [markerFilterOpen, setMarkerFilterOpen] = useState(false);
   const [groupFilterOpen, setGroupFilterOpen] = useState(false);
   const watchIdRef = useRef<number | null>(null);
@@ -400,7 +400,8 @@ export function MapView({
   const DESIRED_ACCURACY = 30; // meters
 
   useEffect(() => {
-    if (!map || hasMovedToUserLocationRef.current) return;
+    // pendingLocation이 있으면 자동 위치 이동을 건너뜀
+    if (!map || hasMovedToUserLocationRef.current || pendingLocation) return;
 
     const tryGetAccuratePosition = () => {
       if (navigator.geolocation && gpsAttemptCountRef.current < MAX_GPS_ATTEMPTS) {
@@ -470,7 +471,18 @@ export function MapView({
     };
 
     tryGetAccuratePosition();
-  }, [map, userLocation, onMyLocationClick]);
+  }, [map, userLocation, onMyLocationClick, pendingLocation]);
+
+  // pendingLocation이 처리되면 자동 위치 이동을 막고 위치 고정 모드 해제
+  useEffect(() => {
+    if (pendingLocation && map) {
+      hasMovedToUserLocationRef.current = true;
+      // pendingLocation이 있으면 위치 고정 모드를 해제하여 메모 위치로 이동할 수 있도록 함
+      if (isLocationLocked) {
+        setIsLocationLocked(false);
+      }
+    }
+  }, [pendingLocation, map, isLocationLocked]);
 
   // Update marker scale based on zoom level
 
@@ -479,35 +491,23 @@ export function MapView({
     if (!map || !window.kakao?.maps) return;
 
     const handleDragStart = () => {
-      // User is manually dragging the map, disable location lock
       if (isLocationLocked) {
         setIsLocationLocked(false);
       }
-      // Set interaction flag to prevent click events during drag
-      isMapInteractingRef.current = true;
     };
 
     const handleDragEnd = () => {
-      // Clear interaction flag after a short delay to prevent click events right after drag
-      setTimeout(() => {
-        isMapInteractingRef.current = false;
-      }, 300);
+      // 드래그 종료 처리 (필요시 추가)
     };
 
     const handleZoomStart = () => {
-      // User is manually zooming the map, disable location lock
       if (isLocationLocked) {
         setIsLocationLocked(false);
       }
-      // Set interaction flag to prevent click events during zoom
-      isMapInteractingRef.current = true;
     };
 
     const handleZoomChanged = () => {
-      // Clear interaction flag after zoom completes with a short delay
-      setTimeout(() => {
-        isMapInteractingRef.current = false;
-      }, 300);
+      // 줌 변경 처리 (필요시 추가)
     };
 
     window.kakao.maps.event.addListener(map, 'dragstart', handleDragStart);
@@ -532,13 +532,10 @@ export function MapView({
       const clickLat = latlng.getLat();
       const clickLng = latlng.getLng();
       
-      // 마커 클릭인지 확인 (짧은 딜레이 후 체크)
+      // 지도 클릭 처리
+      // 마커 클릭 이벤트가 먼저 처리되도록 약간의 지연
       setTimeout(() => {
-        if (markerClickedRef.current) {
-          return; // 마커 클릭이면 지도 클릭 무시
-        }
-        
-        // 마커 위치와 클릭 위치 비교
+        // 마커 위치와 클릭 위치 비교 (더 정확한 거리 계산)
         const clickPosition = new window.kakao.maps.LatLng(clickLat, clickLng);
         const clickedMarker = markers.find(marker => {
           if (!marker.overlay) return false;
@@ -547,21 +544,18 @@ export function MapView({
             Math.pow(clickPosition.getLat() - markerPosition.getLat(), 2) +
             Math.pow(clickPosition.getLng() - markerPosition.getLng(), 2)
           );
-          return distance < 0.0001; // 약 10m
+          // 마커 크기를 고려하여 더 넓은 범위로 감지 (약 50m)
+          return distance < 0.0005;
         });
 
         if (clickedMarker) {
-          return; // 마커가 클릭된 것으로 간주
+          // 마커가 클릭된 것으로 간주 - 지도 클릭 처리 중단
+          return;
         }
         
         console.log(' *** 지도 클릭됨 ***', { lat: clickLat, lng: clickLng });
         
-        // Ignore clicks if map is being dragged or zoomed
-        if (isMapInteractingRef.current) {
-          return;
-        }
-        
-          // 먼저 geocoding을 수행하여 도로명 주소를 가져온 후 비교
+        // 먼저 geocoding을 수행하여 도로명 주소를 가져온 후 비교
         const geocoder = new window.kakao.maps.services.Geocoder();
         
         geocoder.coord2Address(clickLng, clickLat, function(result: any, status: any) {
@@ -726,9 +720,13 @@ export function MapView({
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
 
-    // Remove existing markers
+    // Remove existing markers and their event listeners
     markers.forEach(marker => {
       if (marker.overlay) {
+        // DOM 이벤트 리스너 제거
+        if (marker.handler && marker.contentDiv) {
+          marker.contentDiv.removeEventListener('click', marker.handler);
+        }
         marker.overlay.setMap(null);
       }
     });
@@ -776,6 +774,7 @@ export function MapView({
         }
       }
       
+      // content DOM 요소 생성
       const contentDiv = document.createElement('div');
       contentDiv.innerHTML = isSingleMemo 
         ? createMarkerContent(markerColor, markerIcon, mainPhotoUrl, 1)
@@ -785,78 +784,137 @@ export function MapView({
       contentDiv.style.cursor = 'pointer';
       contentDiv.style.pointerEvents = 'auto';
       contentDiv.style.userSelect = 'none';
-      contentDiv.style.zIndex = '1000';
+      contentDiv.style.zIndex = '10000';
+      contentDiv.style.position = 'relative';
+      
+      // 마커 클릭 핸들러
+      const handleMarkerClick = (e: MouseEvent) => {
+        console.log('🎯 마커 클릭 핸들러 호출됨', { 
+          isSingleMemo, 
+          memoId: isSingleMemo ? memo.id : cluster.memos.map(m => m.id),
+          hasOnMarkerClick: !!onMarkerClick,
+          hasOnClusterClick: !!onClusterClick
+        });
+        
+        e.stopPropagation();
+        e.preventDefault();
+        e.cancelBubble = true; // IE 호환성
+        
+        if (isSingleMemo) {
+          if (onMarkerClick) {
+            console.log('✅ onMarkerClick 호출:', memo.id);
+            onMarkerClick(memo.id);
+          } else {
+            console.warn('⚠️ onMarkerClick이 없습니다');
+          }
+        } else {
+          if (onClusterClick) {
+            console.log('✅ onClusterClick 호출:', cluster.memos.map(m => m.id));
+            onClusterClick(cluster.memos.map(m => m.id));
+          } else if (onMarkerClick) {
+            console.log('✅ onMarkerClick 호출 (클러스터):', cluster.memos[0].id);
+            onMarkerClick(cluster.memos[0].id);
+          } else {
+            console.warn('⚠️ onClusterClick과 onMarkerClick이 모두 없습니다');
+          }
+        }
+      };
+      
+      // 클릭 핸들러 (이벤트 전파 방지)
+      const clickHandler = (event: MouseEvent) => {
+        console.log('🖱️ 마커 클릭 이벤트 발생', event);
+        event.stopPropagation();
+        event.preventDefault();
+        event.cancelBubble = true;
+        handleMarkerClick(event);
+      };
+      
+      // innerHTML 설정 후 즉시 최상위 div를 찾아서 이벤트 등록
+      const topDiv = contentDiv.firstElementChild as HTMLElement;
+      if (topDiv) {
+        topDiv.addEventListener('click', clickHandler, true);
+        topDiv.addEventListener('click', clickHandler, false);
+        // 최상위 div에도 스타일 설정
+        topDiv.style.cursor = 'pointer';
+        topDiv.style.pointerEvents = 'auto';
+      }
+      
+      // contentDiv에도 이벤트 등록
+      contentDiv.addEventListener('click', clickHandler, true);
+      contentDiv.addEventListener('click', clickHandler, false);
+      
+      // data-click-area div에도 이벤트 등록
+      const clickArea = contentDiv.querySelector('[data-click-area="true"]') as HTMLElement;
+      if (clickArea) {
+        clickArea.addEventListener('click', clickHandler, true);
+        clickArea.addEventListener('click', clickHandler, false);
+        clickArea.style.pointerEvents = 'auto';
+        clickArea.style.cursor = 'pointer';
+      }
       
       const customOverlay = new window.kakao.maps.CustomOverlay({
         position,
         content: contentDiv,
         yAnchor: 1,
-        zIndex: 1000,
+        zIndex: 10000,
         clickable: true,
       });
       
-      customOverlay.setMap(map);
-      
-      // 마커 클릭 핸들러
-      const handleMarkerClick = () => {
-        console.log('📍 마커 클릭됨:', isSingleMemo ? memo.id : cluster.memos.map(m => m.id));
-        
-        markerClickedRef.current = true;
-        setTimeout(() => {
-          markerClickedRef.current = false;
-        }, 200);
-        
-        if (isMapInteractingRef.current) {
-          console.log('📍 지도 조작 중이므로 마커 클릭 무시');
-          return;
-        }
-        
-        if (isSingleMemo) {
-          if (onMarkerClick) {
-            onMarkerClick(memo.id);
-          }
-        } else if (onClusterClick) {
-          onClusterClick(cluster.memos.map(m => m.id));
-        } else if (onMarkerClick) {
-          onMarkerClick(cluster.memos[0].id);
-        }
-      };
-      
-      // Kakao Maps API의 click 이벤트 사용 (사용자 제안 방법)
-      window.kakao.maps.event.addListener(customOverlay, 'click', handleMarkerClick);
-      
-      // DOM 요소에도 직접 클릭 이벤트 추가 (이중 보험)
-      const clickArea = contentDiv.querySelector('[data-click-area="true"]') as HTMLElement;
-      if (clickArea) {
-        clickArea.addEventListener('click', (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          handleMarkerClick();
-        });
-      } else {
-        // clickArea가 없으면 contentDiv 자체에 이벤트 추가
-        contentDiv.addEventListener('click', (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          handleMarkerClick();
-        });
-      }
-      
-      return { 
+      // 마커 객체 생성
+      const markerObj = { 
         overlay: customOverlay,
-        handler: handleMarkerClick, // 핸들러 저장
+        handler: clickHandler,
+        contentDiv: contentDiv,
+        topDiv: topDiv,
         memoId: isSingleMemo ? memo.id : undefined,
         memoIds: !isSingleMemo ? cluster.memos.map(m => m.id) : undefined,
       };
+      
+      customOverlay.setMap(map);
+      
+      // setMap 후에도 한 번 더 확인하여 이벤트 등록 (이중 보험)
+      requestAnimationFrame(() => {
+        const topDivAfter = contentDiv.firstElementChild as HTMLElement;
+        if (topDivAfter && !topDivAfter.onclick) {
+          topDivAfter.addEventListener('click', clickHandler, true);
+          topDivAfter.addEventListener('click', clickHandler, false);
+        }
+        
+        const clickAreaAfter = contentDiv.querySelector('[data-click-area="true"]') as HTMLElement;
+        if (clickAreaAfter) {
+          clickAreaAfter.addEventListener('click', clickHandler, true);
+          clickAreaAfter.addEventListener('click', clickHandler, false);
+        }
+      });
+      
+      return markerObj;
     });
 
     setMarkers(newMarkers);
 
     return () => {
       newMarkers.forEach(marker => {
-        if (marker.overlay && marker.handler) {
-          // 저장된 핸들러로 이벤트 리스너 제거
-          window.kakao.maps.event.removeListener(marker.overlay, 'click', marker.handler);
+        if (marker.overlay) {
+          if (marker.handler) {
+            // 최상위 div에서 이벤트 제거
+            if (marker.topDiv && marker.handler) {
+              marker.topDiv.removeEventListener('click', marker.handler, true);
+              marker.topDiv.removeEventListener('click', marker.handler, false);
+            }
+            
+            // contentDiv에서 이벤트 제거
+            if (marker.contentDiv && marker.handler) {
+              marker.contentDiv.removeEventListener('click', marker.handler, true);
+              marker.contentDiv.removeEventListener('click', marker.handler, false);
+              
+              // 내부의 data-click-area div에서도 제거
+              const clickArea = marker.contentDiv.querySelector('[data-click-area="true"]') as HTMLElement;
+              if (clickArea && marker.handler) {
+                clickArea.removeEventListener('click', marker.handler, true);
+                clickArea.removeEventListener('click', marker.handler, false);
+              }
+            }
+          }
           marker.overlay.setMap(null);
         }
       });
@@ -902,7 +960,8 @@ export function MapView({
         setCurrentUserLocation({ lat, lng });
         
         // If location is locked, center map on user location
-        if (isLocationLocked) {
+        // pendingLocation이 있으면 자동 위치 이동을 막음
+        if (isLocationLocked && !pendingLocation) {
           const latlng = new window.kakao.maps.LatLng(lat, lng);
           map.panTo(latlng); // Smooth pan to location
         }
@@ -933,7 +992,7 @@ export function MapView({
         watchIdRef.current = null;
       }
     };
-  }, [map, onMyLocationClick, isLocationLocked]);
+  }, [map, onMyLocationClick, isLocationLocked, pendingLocation]);
 
   // When location is NOT locked, display user location marker on map
   useEffect(() => {
@@ -1114,6 +1173,16 @@ export function MapView({
         <>
           <div ref={mapRef} className="w-full h-full" data-testid="map-container" />
           
+          {/* 위치 고정 모드 상태 배너 */}
+          {isLocationLocked && (
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+              <div className="bg-blue-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg border-2 border-blue-400 flex items-center gap-2 animate-pulse">
+                <Lock className="h-4 w-4" />
+                <span className="text-sm font-medium">위치 고정 모드 활성화</span>
+              </div>
+            </div>
+          )}
+          
           {/* 화면 중앙에 고정된 사용자 위치 마커 (위치 고정 모드일 때만 표시) */}
           {isLocationLocked && currentUserLocation && (
             <div 
@@ -1225,18 +1294,31 @@ export function MapView({
                         : "지도를 자유롭게 이동할 수 있습니다",
                     });
                   }}
-                  className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
+                  className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl relative ${
                     isLocationLocked 
                       ? 'bg-blue-500 hover:bg-blue-600 border-2 border-blue-500' 
                       : 'bg-muted hover:bg-muted/80 border-2 border-border'
                   }`}
                   data-testid="button-location-lock"
                 >
-                  <User className={`h-5 w-5 ${isLocationLocked ? 'text-white' : 'text-muted-foreground'}`} />
+                  {isLocationLocked ? (
+                    <Lock className="h-5 w-5 text-white" />
+                  ) : (
+                    <Unlock className="h-5 w-5 text-muted-foreground" />
+                  )}
+                  {/* 상태 표시 점 */}
+                  {isLocationLocked && (
+                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 border-2 border-white rounded-full animate-pulse" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left">
-                <p>{isLocationLocked ? "위치 고정 해제" : "위치 고정"}</p>
+                <p className="font-medium">{isLocationLocked ? "위치 고정 해제" : "위치 고정"}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {isLocationLocked 
+                    ? "내 위치가 화면 중앙에 고정됩니다" 
+                    : "내 위치를 화면 중앙에 고정합니다"}
+                </p>
               </TooltipContent>
             </Tooltip>
 

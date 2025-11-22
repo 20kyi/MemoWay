@@ -886,6 +886,8 @@ export default function Home() {
         mapInstance.panTo({ lat: pendingLocation.lat, lng: pendingLocation.lng });
         mapInstance.setZoom(16);
       }
+      // pendingLocation 처리 후 위치 고정 모드 해제 (메모 위치로 이동했으므로)
+      // 위치 고정 모드는 MapView/GoogleMapView 내부에서 관리되므로 여기서는 pendingLocation만 초기화
       setPendingLocation(null);
     }
   }, [mapInstance, pendingLocation, mapProvider]);
@@ -915,6 +917,7 @@ export default function Home() {
                 onMyLocationClick={(location) => {
                   setUserLocation(location);
                 }}
+                pendingLocation={pendingLocation}
                 groups={groups.filter(g => 
                   g.members.some(m => m.userId === (user as any)?.id)
                 )}
@@ -943,6 +946,7 @@ export default function Home() {
                 onMyLocationClick={(location) => {
                   setUserLocation(location);
                 }}
+                pendingLocation={pendingLocation}
                 groups={groups.filter(g => 
                   g.members.some(m => m.userId === (user as any)?.id)
                 )}

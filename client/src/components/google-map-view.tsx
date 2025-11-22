@@ -29,6 +29,7 @@ interface GoogleMapViewProps {
   userLocation: { lat: number; lng: number } | null;
   onMapReady?: (map: any) => void;
   onMyLocationClick?: (location: { lat: number; lng: number }) => void;
+  pendingLocation?: { lat: number; lng: number } | null;
   groups?: GroupWithMembers[];
   selectedMarkerIcons?: string[];
   selectedGroupIds?: string[];
@@ -53,6 +54,7 @@ export function GoogleMapView({
   userLocation, 
   onMapReady,
   onMyLocationClick,
+  pendingLocation,
   groups = [],
   selectedMarkerIcons = ["all"],
   selectedGroupIds = ["all"],
@@ -145,8 +147,8 @@ export function GoogleMapView({
         }
       });
 
-      // Try to get high-precision GPS location
-      if (navigator.geolocation) {
+      // Try to get high-precision GPS location (only if no pendingLocation)
+      if (navigator.geolocation && !pendingLocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const lat = position.coords.latitude;
@@ -189,7 +191,8 @@ export function GoogleMapView({
         const lng = position.coords.longitude;
         setCurrentUserLocation({ lat, lng });
         
-        if (isLocationLocked) {
+        // pendingLocation이 있으면 자동 위치 이동을 막음
+        if (isLocationLocked && !pendingLocation) {
           map.panTo({ lat, lng });
         }
         
@@ -215,7 +218,14 @@ export function GoogleMapView({
         watchIdRef.current = null;
       }
     };
-  }, [map, isLocationLocked, onMyLocationClick]);
+  }, [map, isLocationLocked, onMyLocationClick, pendingLocation]);
+
+  // pendingLocation이 처리되면 위치 고정 모드 해제
+  useEffect(() => {
+    if (pendingLocation && isLocationLocked) {
+      setIsLocationLocked(false);
+    }
+  }, [pendingLocation, isLocationLocked]);
 
   // Update user marker (only when location is NOT locked)
   useEffect(() => {
@@ -529,6 +539,16 @@ export function GoogleMapView({
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full" data-testid="map-container" />
       
+      {/* 위치 고정 모드 상태 배너 */}
+      {isLocationLocked && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+          <div className="bg-blue-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg border-2 border-blue-400 flex items-center gap-2 animate-pulse">
+            <Lock className="h-4 w-4" />
+            <span className="text-sm font-medium">위치 고정 모드 활성화</span>
+          </div>
+        </div>
+      )}
+      
       {/* Fixed center marker (location lock mode) */}
       {isLocationLocked && currentUserLocation && (
         <div 
@@ -736,18 +756,31 @@ export function GoogleMapView({
                     : "지도를 자유롭게 이동할 수 있습니다",
                 });
               }}
-              className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
+              className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl relative ${
                 isLocationLocked 
                   ? 'bg-blue-500 hover:bg-blue-600 border-2 border-blue-500' 
                   : 'bg-muted hover:bg-muted/80 border-2 border-border'
               }`}
               data-testid="button-location-lock"
             >
-              <User className={`h-5 w-5 ${isLocationLocked ? 'text-white' : 'text-muted-foreground'}`} />
+              {isLocationLocked ? (
+                <Lock className="h-5 w-5 text-white" />
+              ) : (
+                <Unlock className="h-5 w-5 text-muted-foreground" />
+              )}
+              {/* 상태 표시 점 */}
+              {isLocationLocked && (
+                <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 border-2 border-white rounded-full animate-pulse" />
+              )}
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p>{isLocationLocked ? "위치 고정 해제" : "위치 고정"}</p>
+            <p className="font-medium">{isLocationLocked ? "위치 고정 해제" : "위치 고정"}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {isLocationLocked 
+                ? "내 위치가 화면 중앙에 고정됩니다" 
+                : "내 위치를 화면 중앙에 고정합니다"}
+            </p>
           </TooltipContent>
         </Tooltip>
 
