@@ -39,7 +39,13 @@ interface KakaoUserInfo {
 export function setupKakaoAuth(app: Express) {
   const clientId = process.env.KAKAO_CLIENT_ID;
   const clientSecret = process.env.KAKAO_CLIENT_SECRET;
-  const replitDevDomain = process.env.REPLIT_DEV_DOMAIN;
+  // Support multiple hosting options:
+  // - REPLIT_DEV_DOMAIN: Replit dev domain
+  // - APP_DOMAIN: Custom domain (e.g., yourdomain.com, app.vercel.app)
+  // - HOST: Fallback host
+  // - req.get('host'): Auto-detect from request
+  const appDomain = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN;
+  const useHttps = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : (!!process.env.REPLIT_DEV_DOMAIN);
   
   if (!clientId || !clientSecret) {
     console.warn("Kakao OAuth credentials not configured. Kakao login will be unavailable.");
@@ -48,22 +54,25 @@ export function setupKakaoAuth(app: Express) {
 
   // Kakao login initiation
   app.get("/api/kakao/login", (req, res) => {
-    // Get language from query parameter
+    // Get language and platform from query parameter
     const lang = req.query.lang || 'ko';
+    const platform = req.query.platform || 'web';
     
-    // Generate CSRF state token with language info
+    // Generate CSRF state token with language and platform info
     const stateData = {
       token: randomBytes(32).toString("hex"),
-      lang: lang
+      lang: lang,
+      platform: platform
     };
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
     
     // Store state in session for verification
     (req.session as any).kakaoState = state;
     
-    // Use Replit dev domain if available, otherwise use request host
-    const host = replitDevDomain || req.get('host') || process.env.HOST || 'localhost:5000';
-    const protocol = replitDevDomain ? 'https' : (req.protocol || 'http');
+    // Determine host and protocol
+    // Priority: APP_DOMAIN > REPLIT_DEV_DOMAIN > request host > HOST env > localhost
+    const host = appDomain || req.get('host') || process.env.HOST || 'localhost:5000';
+    const protocol = useHttps ? 'https' : (req.protocol || 'http');
     const redirectUri = `${protocol}://${host}/api/kakao/callback`;
     
     console.log('Kakao OAuth Redirect URI:', redirectUri);
@@ -134,11 +143,13 @@ export function setupKakaoAuth(app: Express) {
       return res.status(403).json({ error: "Invalid state parameter - possible CSRF attack" });
     }
     
-    // Extract language from state
+    // Extract language and platform from state
     let lang = 'ko';
+    let platform = 'web';
     try {
       const stateData = JSON.parse(Buffer.from(state as string, 'base64').toString());
       lang = stateData.lang || 'ko';
+      platform = stateData.platform || 'web';
     } catch (e) {
       console.error('Failed to parse state:', e);
     }
@@ -152,8 +163,11 @@ export function setupKakaoAuth(app: Express) {
 
     try {
       // Exchange code for access token (must match the redirect_uri used in authorization request)
-      const host = replitDevDomain || req.get('host') || process.env.HOST || 'localhost:5000';
-      const protocol = replitDevDomain ? 'https' : (req.protocol || 'http');
+      // Use same logic as login initiation
+      const appDomain = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN;
+      const useHttps = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : (!!process.env.REPLIT_DEV_DOMAIN);
+      const host = appDomain || req.get('host') || process.env.HOST || 'localhost:5000';
+      const protocol = useHttps ? 'https' : (req.protocol || 'http');
       const redirectUri = `${protocol}://${host}/api/kakao/callback`;
       
       console.log('Token exchange with Redirect URI:', redirectUri);
@@ -235,8 +249,21 @@ export function setupKakaoAuth(app: Express) {
               return res.status(500).json({ error: "Failed to save session" });
             }
             console.log(`Kakao login successful for user ID: ${user.id}`);
-            // Redirect with language parameter
-            res.redirect(`/?lang=${lang}`);
+            
+            // Check if request is from Android app
+            const userAgent = req.get('user-agent') || '';
+            const isAndroidApp = platform === 'android' || 
+                                 userAgent.includes('wv') || // WebView
+                                 (userAgent.includes('Android') && !userAgent.includes('Chrome'));
+            
+            if (isAndroidApp) {
+              // Redirect to intermediate page that will redirect to app via Deep Link
+              // This provides better UX with a loading message
+              res.redirect(`/api/kakao/redirect?lang=${lang}`);
+            } else {
+              // Redirect to web with language parameter
+              res.redirect(`/?lang=${lang}`);
+            }
           });
         }
       );
@@ -244,6 +271,106 @@ export function setupKakaoAuth(app: Express) {
       console.error("Kakao OAuth error:", error);
       res.status(500).json({ error: "Kakao OAuth failed" });
     }
+  });
+
+  // Intermediate redirect page for Android app (shows loading message then redirects to app)
+  app.get("/api/kakao/redirect", (req, res) => {
+    const lang = req.query.lang || 'ko';
+    const appDeepLink = `com.memoway.app://login?lang=${lang}`;
+    
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>로그인 완료</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+            }
+            .container {
+              text-align: center;
+              padding: 40px;
+              background: rgba(255, 255, 255, 0.1);
+              border-radius: 20px;
+              backdrop-filter: blur(10px);
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+            .spinner {
+              border: 4px solid rgba(255, 255, 255, 0.3);
+              border-top: 4px solid white;
+              border-radius: 50%;
+              width: 50px;
+              height: 50px;
+              animation: spin 1s linear infinite;
+              margin: 20px auto;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            h1 {
+              margin: 20px 0;
+              font-size: 24px;
+            }
+            p {
+              margin: 10px 0;
+              opacity: 0.9;
+              font-size: 16px;
+            }
+            .fallback-link {
+              margin-top: 30px;
+              padding: 12px 24px;
+              background: rgba(255, 255, 255, 0.2);
+              border-radius: 8px;
+              color: white;
+              text-decoration: none;
+              display: inline-block;
+              border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+            .fallback-link:hover {
+              background: rgba(255, 255, 255, 0.3);
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="spinner"></div>
+            <h1>로그인 완료!</h1>
+            <p>앱으로 돌아가는 중...</p>
+            <p style="font-size: 14px; opacity: 0.7; margin-top: 20px;">
+              자동으로 이동되지 않으면 아래 버튼을 클릭하세요
+            </p>
+            <a href="${appDeepLink}" class="fallback-link">앱으로 돌아가기</a>
+          </div>
+          <script>
+            // Try to redirect to app immediately
+            try {
+              window.location.href = ${JSON.stringify(appDeepLink)};
+            } catch (e) {
+              console.error('Failed to redirect:', e);
+            }
+            
+            // Fallback: if not redirected after 2 seconds, show manual link
+            setTimeout(() => {
+              const link = document.querySelector('.fallback-link');
+              if (link) {
+                link.style.display = 'block';
+              }
+            }, 2000);
+          </script>
+        </body>
+      </html>
+    `);
   });
 
   // Android 네이티브 로그인 엔드포인트

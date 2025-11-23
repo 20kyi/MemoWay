@@ -6,18 +6,23 @@ import { storage } from "./storage";
 export function setupGoogleAuth(app: Express) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const replitDevDomain = process.env.REPLIT_DEV_DOMAIN;
+  // Support multiple hosting options:
+  // - APP_DOMAIN: Custom domain (e.g., yourdomain.com, app.vercel.app)
+  // - REPLIT_DEV_DOMAIN: Replit dev domain
+  // - HOST: Fallback host
+  const appDomain = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN;
+  const useHttps = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : (!!process.env.REPLIT_DEV_DOMAIN);
   
   if (!clientId || !clientSecret) {
     console.warn("Google OAuth credentials not configured. Google login will be unavailable.");
     return;
   }
 
-  // Use Replit dev domain if available, otherwise use HOST env var or default
+  // Determine callback URL
   // Note: For Google OAuth, callbackURL must match the one registered in Google Cloud Console
-  const callbackURL = replitDevDomain 
-    ? `https://${replitDevDomain}/api/google/callback`
-    : `${process.env.HOST ? `http://${process.env.HOST}` : 'http://localhost:5000'}/api/google/callback`;
+  const host = appDomain || process.env.HOST || 'localhost:5000';
+  const protocol = useHttps ? 'https' : 'http';
+  const callbackURL = `${protocol}://${host}/api/google/callback`;
 
   passport.use(
     new GoogleStrategy(

@@ -22,69 +22,12 @@ export default function Landing() {
 
   const handleKakaoLogin = async () => {
     if (Capacitor.isNativePlatform()) {
-      // 안드로이드 네이티브 카카오 로그인
-      try {
-        // Capacitor 플러그인 동적 로드
-        const { registerPlugin } = await import("@capacitor/core");
-        
-        // 플러그인 등록 (웹 환경에서는 빈 구현체 사용)
-        const KakaoLogin = registerPlugin<KakaoLoginPlugin>('KakaoLogin', {
-          web: {
-            login: async () => {
-              throw new Error('Kakao login is not available on web platform');
-            },
-          },
-        });
-        
-        console.log("카카오 로그인 시작...");
-        const result = await KakaoLogin.login();
-        console.log("카카오 로그인 결과:", result);
-        
-        if (!result || !result.accessToken || !result.id) {
-          throw new Error("카카오 로그인 결과가 올바르지 않습니다.");
-        }
-        
-        // 서버에 토큰 전송하여 세션 생성
-        const response = await fetch("/api/kakao/android-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            accessToken: result.accessToken,
-            kakaoId: result.id,
-            email: result.email || null,
-            nickname: result.nickname || null,
-            profileImage: result.profileImage || null,
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-          console.error("서버 응답 오류:", response.status, errorData);
-          throw new Error(errorData.error || response.statusText || "로그인에 실패했습니다");
-        }
-
-        // 로그인 성공 - 페이지 새로고침하여 인증 상태 업데이트
-        window.location.href = "/";
-      } catch (error: any) {
-        console.error("카카오 로그인 오류:", error);
-        
-        // 사용자에게 에러 메시지 표시
-        const errorMessage = error?.message || "카카오 로그인 중 오류가 발생했습니다";
-        alert(errorMessage);
-        
-        // 네이티브 플러그인이 없거나 실패하면 웹 방식으로 폴백
-        // 안드로이드에서는 웹뷰에서 열어야 함
-        try {
-          const loginUrl = `/api/kakao/login?lang=${language}`;
-          window.location.href = loginUrl;
-        } catch (fallbackError) {
-          console.error("폴백 로그인도 실패:", fallbackError);
-        }
-      }
+      // 안드로이드 앱: 웹 OAuth 플로우 사용 (웹뷰에서 열고, 완료 후 Deep Link로 앱 복귀)
+      const loginUrl = `/api/kakao/login?lang=${language}&platform=android`;
+      window.location.href = loginUrl;
     } else {
       // 웹에서는 같은 창에서 로그인
-      const loginUrl = `/api/kakao/login?lang=${language}`;
+      const loginUrl = `/api/kakao/login?lang=${language}&platform=web`;
       window.location.href = loginUrl;
     }
   };

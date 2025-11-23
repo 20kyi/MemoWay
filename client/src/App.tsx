@@ -10,6 +10,8 @@ import { MapProviderProvider } from "./lib/map-provider-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, lazy, Suspense } from "react";
 import { getQueryFn } from "./lib/queryClient";
+import { Capacitor } from "@capacitor/core";
+import { App as CapacitorApp } from "@capacitor/app";
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import("@/pages/home"));
@@ -20,7 +22,53 @@ function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const { setLanguage } = useLanguage();
 
-  // Check for language parameter in URL and set language
+  // Handle Deep Link from OAuth callback (Android app)
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      // Listen for app URL open events (Deep Links)
+      CapacitorApp.addListener('appUrlOpen', (data: { url: string }) => {
+        console.log('App opened with URL:', data.url);
+        
+        // Parse Deep Link: com.memoway.app://login?lang=ko
+        try {
+          const url = new URL(data.url);
+          if (url.pathname === '/login') {
+            const langParam = url.searchParams.get('lang');
+            if (langParam && ['ko', 'en', 'zh', 'ja'].includes(langParam)) {
+              setLanguage(langParam as Language);
+            }
+            // Navigate to home page (user is already logged in via session)
+            window.location.href = '/';
+          }
+        } catch (error) {
+          console.error('Failed to parse Deep Link:', error);
+        }
+      });
+
+      // Check initial URL if app was opened via Deep Link
+      CapacitorApp.getLaunchUrl().then((ret: { url: string } | undefined) => {
+        if (ret?.url) {
+          console.log('App launched with URL:', ret.url);
+          try {
+            const url = new URL(ret.url);
+            if (url.pathname === '/login') {
+              const langParam = url.searchParams.get('lang');
+              if (langParam && ['ko', 'en', 'zh', 'ja'].includes(langParam)) {
+                setLanguage(langParam as Language);
+              }
+              window.location.href = '/';
+            }
+          } catch (error) {
+            console.error('Failed to parse launch URL:', error);
+          }
+        }
+      }).catch(() => {
+        // No launch URL, app opened normally
+      });
+    }
+  }, [setLanguage]);
+
+  // Check for language parameter in URL and set language (web)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const langParam = params.get('lang');
