@@ -76,7 +76,20 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, async () => {
     log(`serving on port ${port}`);
+    
+    // Auto-open browser in development mode
+    if (app.get("env") === "development") {
+      try {
+        const { default: open } = await import("open");
+        const url = `http://localhost:${port}`;
+        log(`Opening browser at ${url}`);
+        await open(url);
+      } catch (error) {
+        // Silently fail if browser can't be opened
+        log(`Failed to open browser automatically: ${error}`);
+      }
+    }
   });
 })();

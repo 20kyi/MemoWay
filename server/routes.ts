@@ -33,6 +33,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupKakaoAuth(app);
   setupGoogleAuth(app);
 
+  // Logout route (common for all auth methods - register after Passport is initialized)
+  app.get('/api/logout', (req, res) => {
+    console.log('[LOGOUT] === Logout request received ===');
+    
+    // Helper function to safely redirect
+    const safeRedirect = () => {
+      try {
+        console.log('[LOGOUT] Redirecting to /');
+        res.redirect('/');
+      } catch (redirectErr: any) {
+        console.error('[LOGOUT] Redirect error:', redirectErr);
+        res.status(200).json({ message: 'Logout successful' });
+      }
+    };
+
+    // Step 1: Logout user from Passport
+    const handlePassportLogout = (callback: () => void) => {
+      if (typeof (req as any).logout === 'function') {
+        console.log('[LOGOUT] Calling req.logout()');
+        try {
+          (req as any).logout((err: any) => {
+            if (err) {
+              console.error('[LOGOUT] req.logout() error:', err);
+              console.error('[LOGOUT] Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+            } else {
+              console.log('[LOGOUT] req.logout() completed successfully');
+            }
+            callback();
+          });
+        } catch (logoutErr: any) {
+          console.error('[LOGOUT] Exception in req.logout():', logoutErr);
+          console.error('[LOGOUT] Exception stack:', logoutErr?.stack);
+          callback();
+        }
+      } else {
+        console.log('[LOGOUT] req.logout() is not available (not a function)');
+        callback();
+      }
+    };
+
+    // Step 2: Destroy session
+    const handleSessionDestroy = (callback: () => void) => {
+      if (req.session) {
+        console.log('[LOGOUT] Destroying session, session ID:', req.sessionID);
+        try {
+          req.session.destroy((destroyErr: any) => {
+            if (destroyErr) {
+              console.error('[LOGOUT] Session destroy error:', destroyErr);
+              console.error('[LOGOUT] Destroy error details:', JSON.stringify(destroyErr, Object.getOwnPropertyNames(destroyErr)));
+            } else {
+              console.log('[LOGOUT] Session destroyed successfully');
+            }
+            callback();
+          });
+        } catch (destroyException: any) {
+          console.error('[LOGOUT] Exception in session.destroy():', destroyException);
+          console.error('[LOGOUT] Exception stack:', destroyException?.stack);
+          callback();
+        }
+      } else {
+        console.log('[LOGOUT] No session to destroy');
+        callback();
+      }
+    };
+
+    // Step 3: Clear cookie
+    const handleClearCookie = () => {
+      try {
+        res.clearCookie('connect.sid');
+        console.log('[LOGOUT] Session cookie cleared');
+      } catch (cookieErr: any) {
+        console.error('[LOGOUT] Cookie clear error:', cookieErr);
+      }
+      safeRedirect();
+    };
+
+    // Execute logout flow
+    try {
+      handlePassportLogout(() => {
+        handleSessionDestroy(() => {
+          handleClearCookie();
+        });
+      });
+    } catch (error: any) {
+      console.error('[LOGOUT] === Top-level exception ===');
+      console.error('[LOGOUT] Error:', error);
+      console.error('[LOGOUT] Error message:', error?.message);
+      console.error('[LOGOUT] Error stack:', error?.stack);
+      console.error('[LOGOUT] Error name:', error?.name);
+      
+      // Fallback: try to clean up anyway
+      try {
+        if (req.session) {
+          req.session.destroy(() => {
+            res.clearCookie('connect.sid');
+            safeRedirect();
+          });
+        } else {
+          res.clearCookie('connect.sid');
+          safeRedirect();
+        }
+      } catch (fallbackErr: any) {
+        console.error('[LOGOUT] === Fallback cleanup failed ===');
+        console.error('[LOGOUT] Fallback error:', fallbackErr);
+        res.status(500).json({ 
+          message: 'Logout failed', 
+          error: error?.message || 'Unknown error',
+          details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+        });
+      }
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

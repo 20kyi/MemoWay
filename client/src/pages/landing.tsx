@@ -68,17 +68,17 @@ export default function Landing() {
         window.location.href = loginUrl;
       }
     } else {
-      // 웹에서는 기존 방식 사용
+      // 웹에서는 같은 창에서 로그인
       const loginUrl = `/api/kakao/login?lang=${language}`;
-      window.open(loginUrl, "_blank");
+      window.location.href = loginUrl;
     }
   };
 
   const handleGoogleLogin = () => {
     // Pass current language as query parameter
     const loginUrl = `/api/google/login?lang=${language}`;
-    // Open in new tab to avoid Replit iframe restrictions (like Kakao)
-    window.open(loginUrl, "_blank");
+    // Same window redirect
+    window.location.href = loginUrl;
   };
 
   return (
