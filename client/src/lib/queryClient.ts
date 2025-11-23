@@ -1,5 +1,41 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// API 베이스 URL 가져오기
+function getApiBaseUrl(): string {
+  // Capacitor 네이티브 환경 감지
+  const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
+  
+  console.log('getApiBaseUrl - isNativePlatform:', isNativePlatform);
+  
+  if (isNativePlatform) {
+    // Capacitor 네이티브 환경: Replit 배포 URL 사용
+    const replitUrl = import.meta.env.VITE_REPLIT_URL;
+    
+    console.log('getApiBaseUrl - VITE_REPLIT_URL:', replitUrl);
+    
+    if (!replitUrl) {
+      console.error('VITE_REPLIT_URL is not configured. API requests will fail in native app.');
+      // 폴백으로 빈 문자열 반환 (요청이 실패하면 에러 처리)
+      return '';
+    }
+    
+    // URL 정규화 (trailing slash 제거)
+    try {
+      const url = new URL(replitUrl);
+      const baseUrl = url.origin + url.pathname.replace(/\/$/, '');
+      console.log('getApiBaseUrl - resolved base URL:', baseUrl);
+      return baseUrl;
+    } catch (error) {
+      console.error('Invalid VITE_REPLIT_URL:', replitUrl, error);
+      return '';
+    }
+  }
+  
+  // 웹 브라우저 환경: 상대 경로 사용
+  console.log('getApiBaseUrl - using relative paths (web browser)');
+  return '';
+}
+
 class ApiError extends Error {
   status: number;
   error: string;
@@ -40,7 +76,10 @@ export async function apiRequest(
 ): Promise<any> {
   const isFormData = data instanceof FormData;
   
-  const res = await fetch(url, {
+  // 절대 URL이 아니면 베이스 URL 추가
+  const fullUrl = url.startsWith('http') ? url : getApiBaseUrl() + url;
+  
+  const res = await fetch(fullUrl, {
     method,
     headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
     body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
@@ -63,22 +102,55 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-    });
+    try {
+      const path = queryKey.join("/") as string;
+      // 절대 URL이 아니면 베이스 URL 추가
+      const baseUrl = getApiBaseUrl();
+      const fullUrl = path.startsWith('http') ? path : baseUrl + path;
+      
+      // URL이 유효하지 않으면 null 반환 (네트워크 에러 방지)
+      if (!fullUrl || fullUrl === path) {
+        console.warn('API base URL not configured, returning null for:', path);
+        if (unauthorizedBehavior === "returnNull") {
+          return null;
+        }
+        throw new ApiError(500, 'API base URL not configured');
+      }
+      
+      const res = await fetch(fullUrl, {
+        credentials: "include",
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      return await res.json();
+    } catch (error: any) {
+      // 네트워크 에러나 기타 에러 처리
+      console.error('API request failed:', error);
+      
+      // 401 에러이고 returnNull이면 null 반환
+      if (error.status === 401 && unauthorizedBehavior === "returnNull") {
+        return null;
+      }
+      
+      // 네트워크 에러도 returnNull이면 null 반환 (로그인 화면 표시)
+      if (unauthorizedBehavior === "returnNull") {
+        console.warn('Returning null due to error (will show login screen)');
+        return null;
+      }
+      
+      // 그 외에는 에러 던지기
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: getQueryFn({ on401: "returnNull" }), // 401 에러 시 null 반환하여 정상 처리
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5분간 캐시 유지 (불필요한 재요청 방지)

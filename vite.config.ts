@@ -7,6 +7,7 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  base: './', // Capacitor에서 상대 경로 사용
   plugins: [
     react(),
     runtimeErrorOverlay(),
@@ -38,70 +39,8 @@ export default defineConfig({
     sourcemap: false, // Disable sourcemaps in production for smaller bundle
     cssCodeSplit: true, // Enable CSS code splitting
     reportCompressedSize: false, // Disable compressed size reporting for faster builds
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          // React and React DOM
-          if (id.includes('react') || id.includes('react-dom')) {
-            return 'react-vendor';
-          }
-          
-          // Radix UI components
-          if (id.includes('@radix-ui')) {
-            return 'radix-ui';
-          }
-          
-          // TanStack Query
-          if (id.includes('@tanstack/react-query')) {
-            return 'react-query';
-          }
-          
-          // Framer Motion
-          if (id.includes('framer-motion')) {
-            return 'framer-motion';
-          }
-          
-          // Google Maps
-          if (id.includes('@googlemaps') || id.includes('google.maps')) {
-            return 'google-maps';
-          }
-          
-          // Capacitor (for mobile)
-          if (id.includes('@capacitor')) {
-            return 'capacitor';
-          }
-          
-          // DnD Kit
-          if (id.includes('@dnd-kit')) {
-            return 'dnd-kit';
-          }
-          
-          // Lucide icons
-          if (id.includes('lucide-react')) {
-            return 'lucide-icons';
-          }
-          
-          // Other large dependencies
-          if (id.includes('node_modules')) {
-            // Check for other large libraries
-            if (id.includes('recharts')) {
-              return 'recharts';
-            }
-            if (id.includes('date-fns')) {
-              return 'date-fns';
-            }
-            if (id.includes('react-hook-form')) {
-              return 'react-hook-form';
-            }
-            if (id.includes('zod')) {
-              return 'zod';
-            }
-            // All other node_modules
-            return 'vendor';
-          }
-        },
-      },
-    },
+    // manualChunks 제거: Capacitor WebView는 청크 로딩 순서를 보장하지 않음
+    // 기본 Vite 청크 분리 로직이 자동으로 의존성 순서를 보장함
   },
   server: {
     fs: {

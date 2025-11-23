@@ -219,7 +219,7 @@ APK에서 백엔드 서버로 연결하려면 Replit 배포 URL을 설정해야 
 1. `.env` 파일 생성 (프로젝트 루트):
 
 ```bash
-VITE_REPLIT_URL=https://your-actual-repl-url.replit.dev
+VITE_REPLIT_URL=https://memoway.replit.app
 ```
 
 2. 웹 앱 재빌드:

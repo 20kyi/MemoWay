@@ -12,7 +12,9 @@
     "db:push": "drizzle-kit push",
     "android:open": "npx cap open android",
     "android:sync": "npx cap sync",
-    "android:build": "cd android && gradlew.bat assembleDebug"
+    "android:build": "cd android && gradlew.bat assembleDebug",
+    "android:install": "C:/Users/82106/AppData/Local/Android/Sdk/platform-tools/adb.exe install -r android/app/build/outputs/apk/debug/app-debug.apk",
+    "android:devices": "C:/Users/82106/AppData/Local/Android/Sdk/platform-tools/adb.exe devices"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",

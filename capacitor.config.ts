@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.memomap.app',
-  appName: 'MemoMap',
+  appId: 'com.memoway.app',
+  appName: 'MemoWay',
   webDir: 'dist/public',
   server: {
     // HTTPS 스킴 사용 (프로덕션 빌드용)
