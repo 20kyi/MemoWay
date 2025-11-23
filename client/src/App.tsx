@@ -8,10 +8,12 @@ import { FontProvider } from "./lib/font-context";
 import { ThemeProvider } from "./lib/theme-context";
 import { MapProviderProvider } from "./lib/map-provider-context";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
-import Home from "@/pages/home";
-import Landing from "@/pages/landing";
-import NotFound from "@/pages/not-found";
+import { useEffect, lazy, Suspense } from "react";
+
+// Lazy load pages for code splitting
+const Home = lazy(() => import("@/pages/home"));
+const Landing = lazy(() => import("@/pages/landing"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -29,17 +31,26 @@ function Router() {
   }, [setLanguage]);
 
   return (
-    <Switch>
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/home" component={Home} />
-        </>
-      )}
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/10 to-accent/20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <Switch>
+        {isLoading || !isAuthenticated ? (
+          <Route path="/" component={Landing} />
+        ) : (
+          <>
+            <Route path="/" component={Home} />
+            <Route path="/home" component={Home} />
+          </>
+        )}
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
