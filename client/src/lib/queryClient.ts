@@ -108,14 +108,18 @@ export const getQueryFn: <T>(options: {
       const baseUrl = getApiBaseUrl();
       const fullUrl = path.startsWith('http') ? path : baseUrl + path;
       
-      // URL이 유효하지 않으면 null 반환 (네트워크 에러 방지)
-      if (!fullUrl || fullUrl === path) {
-        console.warn('API base URL not configured, returning null for:', path);
+      // 웹 브라우저 환경에서는 상대 경로 사용 (baseUrl이 빈 문자열)
+      // 네이티브 환경에서만 절대 URL 필요
+      const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
+      if (isNativePlatform && (!fullUrl || fullUrl === path)) {
+        console.warn('API base URL not configured for native app, returning null for:', path);
         if (unauthorizedBehavior === "returnNull") {
           return null;
         }
         throw new ApiError(500, 'API base URL not configured');
       }
+      
+      // 웹 환경에서는 상대 경로 사용 (fullUrl === path는 정상)
       
       const res = await fetch(fullUrl, {
         credentials: "include",

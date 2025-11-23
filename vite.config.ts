@@ -47,5 +47,11 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5000,
+      clientPort: 5000,
+    },
   },
 });
