@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BottomNav } from "@/components/bottom-nav";
 import { ExitDialog } from "@/components/exit-dialog";
@@ -20,31 +20,15 @@ import { useWebSocketMessages } from "@/hooks/useWebSocketMessages";
 import { useMemos } from "@/hooks/useMemos";
 import { useGroups } from "@/hooks/useGroups";
 
-// Lazy load heavy components for code splitting
-const MapView = lazy(() =>
-  import("@/components/map-view").then((m) => ({ default: m.MapView }))
-);
-const GoogleMapView = lazy(() =>
-  import("@/components/google-map-view").then((m) => ({ default: m.GoogleMapView }))
-);
-const MemoFormSheet = lazy(() =>
-  import("@/components/memo-form-sheet").then((m) => ({ default: m.MemoFormSheet }))
-);
-const MemoDetailSheet = lazy(() =>
-  import("@/components/memo-detail-sheet").then((m) => ({ default: m.MemoDetailSheet }))
-);
-const MemoClusterSheet = lazy(() =>
-  import("@/components/memo-cluster-sheet").then((m) => ({ default: m.MemoClusterSheet }))
-);
-const MemoList = lazy(() =>
-  import("@/components/memo-list").then((m) => ({ default: m.MemoList }))
-);
-const GroupManagement = lazy(() =>
-  import("@/components/group-management").then((m) => ({ default: m.GroupManagement }))
-);
-const SettingsView = lazy(() =>
-  import("@/components/settings-view").then((m) => ({ default: m.SettingsView }))
-);
+// Import components directly for instant tab switching (no lazy loading delay)
+import { MapView } from "@/components/map-view";
+import { GoogleMapView } from "@/components/google-map-view";
+import { MemoFormSheet } from "@/components/memo-form-sheet";
+import { MemoDetailSheet } from "@/components/memo-detail-sheet";
+import { MemoClusterSheet } from "@/components/memo-cluster-sheet";
+import { MemoList } from "@/components/memo-list";
+import { GroupManagement } from "@/components/group-management";
+import { SettingsView } from "@/components/settings-view";
 
 export default function Home() {
   const { t } = useLanguage();
@@ -99,13 +83,15 @@ export default function Home() {
   const [selectedMarkerIcons, setSelectedMarkerIcons] = useState<string[]>(["all"]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(["all"]);
 
-  // Data queries
+  // Data queries - 병렬 로딩 보장
   const { data: memos = [] } = useQuery<MemoWithDetails[]>({
     queryKey: ["/api/memos"],
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   const { data: groups = [], isFetched: groupsIsFetched } = useQuery<GroupWithMembers[]>({
     queryKey: ["/api/groups"],
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   // Location tracking
@@ -275,18 +261,8 @@ export default function Home() {
       <div className="flex-1 overflow-hidden pb-16 relative z-10">
         {activeTab === "map" && (
           <div className="relative h-full">
-            <Suspense
-              fallback={
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className="text-sm text-muted-foreground">지도 로딩 중...</p>
-                  </div>
-                </div>
-              }
-            >
-              {mapProvider === "kakao" ? (
-                <MapView
+            {mapProvider === "kakao" ? (
+              <MapView
                   onLocationSelect={handleLocationSelect}
                   memos={memos}
                   onMarkerClick={(memoId) => {
@@ -340,21 +316,10 @@ export default function Home() {
                   onGroupIdsChange={setSelectedGroupIds}
                 />
               )}
-            </Suspense>
           </div>
         )}
         {activeTab === "memos" && (
-          <Suspense
-            fallback={
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                  <p className="text-sm text-muted-foreground">로딩 중...</p>
-                </div>
-              </div>
-            }
-          >
-            <MemoList
+          <MemoList
               memos={memos}
               groups={filteredGroupsWithoutPersonal}
               onEdit={handleEditMemo}
@@ -395,20 +360,9 @@ export default function Home() {
                 setMainMemoMutation.mutate(memoId);
               }}
             />
-          </Suspense>
         )}
         {activeTab === "groups" && (
-          <Suspense
-            fallback={
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                  <p className="text-sm text-muted-foreground">로딩 중...</p>
-                </div>
-              </div>
-            }
-          >
-            <GroupManagement
+          <GroupManagement
               groups={filteredGroupsWithoutPersonal}
               myMemberIds={myMemberIds}
               personalMemberId={personalMemberId}
@@ -447,20 +401,9 @@ export default function Home() {
               }
               isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}
             />
-          </Suspense>
         )}
         {activeTab === "settings" && (
-          <Suspense
-            fallback={
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                  <p className="text-sm text-muted-foreground">로딩 중...</p>
-                </div>
-              </div>
-            }
-          >
-            <SettingsView
+          <SettingsView
               notificationsEnabled={notificationsEnabled}
               onNotificationsChange={handleNotificationsChange}
               locationEnabled={locationEnabled}
@@ -468,14 +411,12 @@ export default function Home() {
               proximityRadius={proximityRadius}
               onProximityRadiusChange={setProximityRadius}
             />
-          </Suspense>
         )}
       </div>
 
       <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
 
-      <Suspense fallback={null}>
-        <MemoFormSheet
+      <MemoFormSheet
           open={memoFormOpen}
           onOpenChange={(open) => {
             setMemoFormOpen(open);
@@ -519,13 +460,11 @@ export default function Home() {
           groups={filteredGroupsWithoutPersonal}
           isLoading={createMemoMutation.isPending || updateMemoMutation.isPending}
           isPersonalMemberReady={!!personalMemberId}
-          currentMemberId={currentMemberId}
-          editMode={!!editingMemo}
-        />
-      </Suspense>
+        currentMemberId={currentMemberId}
+        editMode={!!editingMemo}
+      />
 
-      <Suspense fallback={null}>
-        <MemoClusterSheet
+      <MemoClusterSheet
           open={memoClusterOpen}
           onOpenChange={setMemoClusterOpen}
           memos={memos.filter((m) => clusterMemoIds.includes(m.id))}
@@ -539,13 +478,11 @@ export default function Home() {
           onAddNewMemo={(location) => {
             setMemoClusterOpen(false);
             setSelectedLocation(location);
-            setMemoFormOpen(true);
-          }}
-        />
-      </Suspense>
+          setMemoFormOpen(true);
+        }}
+      />
 
-      <Suspense fallback={null}>
-        <MemoDetailSheet
+      <MemoDetailSheet
           memo={selectedMemo}
           open={memoDetailOpen}
           onOpenChange={(open) => {
@@ -565,10 +502,9 @@ export default function Home() {
             setMemoDetailOpen(false);
             setSelectedMemo(null);
             setSelectedLocation(location);
-            setMemoFormOpen(true);
-          }}
-        />
-      </Suspense>
+          setMemoFormOpen(true);
+        }}
+      />
 
       <ExitDialog open={showExitDialog} onOpenChange={setShowExitDialog} />
     </div>

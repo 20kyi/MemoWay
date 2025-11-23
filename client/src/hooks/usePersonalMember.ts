@@ -22,7 +22,7 @@ export function usePersonalMember({
   const { toast } = useToast();
   const { t } = useLanguage();
 
-  // 개인 메모용 멤버 자동 생성
+  // 개인 메모용 멤버 자동 생성 (비동기 처리로 UI 블로킹 방지)
   useEffect(() => {
     // groups 쿼리가 완료될 때까지 대기
     if (!groupsIsFetched || !user) {
@@ -49,7 +49,7 @@ export function usePersonalMember({
       }
     }
 
-    // 개인 메모 그룹이 없거나 내 멤버가 없으면 생성
+    // 개인 메모 그룹이 없거나 내 멤버가 없으면 생성 (비동기로 처리하여 UI 블로킹 방지)
     const createPersonalMember = async () => {
       try {
         const response = await apiRequest("POST", "/api/groups", {
@@ -60,8 +60,16 @@ export function usePersonalMember({
           console.log("개인 메모 멤버 생성 완료:", response.member.id);
           setPersonalMemberId(response.member.id);
           localStorage.setItem("personalMemberId", response.member.id);
-          // groups 쿼리 무효화하여 최신 상태 유지
-          queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+          // groups 쿼리를 무효화하지 않고 setQueryData로 직접 업데이트하여 재요청 방지
+          queryClient.setQueryData<typeof groups>(["/api/groups"], (oldData) => {
+            if (!oldData) return oldData;
+            // 새로 생성된 그룹을 기존 데이터에 추가
+            const newGroup = response.group;
+            if (newGroup && !oldData.some((g) => g.id === newGroup.id)) {
+              return [...oldData, newGroup];
+            }
+            return oldData;
+          });
         }
       } catch (error) {
         console.error("개인 메모 멤버 생성 실패:", error);
@@ -72,6 +80,8 @@ export function usePersonalMember({
         });
       }
     };
+    
+    // 비동기로 실행하여 UI 블로킹 방지
     createPersonalMember();
   }, [
     personalMemberId,

@@ -9,6 +9,7 @@ import { ThemeProvider } from "./lib/theme-context";
 import { MapProviderProvider } from "./lib/map-provider-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, lazy, Suspense } from "react";
+import { getQueryFn } from "./lib/queryClient";
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import("@/pages/home"));
@@ -16,7 +17,7 @@ const Landing = lazy(() => import("@/pages/landing"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const { setLanguage } = useLanguage();
 
   // Check for language parameter in URL and set language
@@ -29,6 +30,29 @@ function Router() {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [setLanguage]);
+
+  // 로그인 후 데이터 미리 가져오기 (prefetch)로 로딩 시간 단축
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // memos와 groups를 병렬로 미리 가져오기
+      const queryFn = getQueryFn({ on401: "throw" });
+      Promise.all([
+        queryClient.prefetchQuery({
+          queryKey: ["/api/memos"],
+          queryFn: queryFn as any,
+          staleTime: 5 * 60 * 1000,
+        }),
+        queryClient.prefetchQuery({
+          queryKey: ["/api/groups"],
+          queryFn: queryFn as any,
+          staleTime: 5 * 60 * 1000,
+        }),
+      ]).catch((error) => {
+        // Prefetch 실패는 무시 (나중에 실제 쿼리에서 재시도)
+        console.log("Prefetch failed (will retry on component mount):", error);
+      });
+    }
+  }, [isAuthenticated, user]);
 
   return (
     <Suspense fallback={
