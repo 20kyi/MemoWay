@@ -1562,13 +1562,31 @@ export function MapView({
   };
 
   const handlePlaceClick = (place: any) => {
-    const coords = new window.kakao.maps.LatLng(place.lat, place.lng);
+    if (!map || !window.kakao?.maps) return;
+    
+    // 좌표 유효성 검사
+    const lat = place.lat ?? parseFloat(place.y);
+    const lng = place.lng ?? parseFloat(place.x);
+    
+    if (lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng)) {
+      toast({
+        title: "오류",
+        description: "위치 정보를 불러올 수 없습니다",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const coords = new window.kakao.maps.LatLng(lat, lng);
     map.setCenter(coords);
     map.setLevel(3);
     
+    // 사이드바 닫기
+    setIsSearchSidebarOpen(false);
+    
     toast({
       title: place.place_name || place.address_name,
-      description: `${place.road_address_name || place.address_name || ''}${place.distance ? ` (${Math.round(place.distance)}m)` : ''}`,
+      description: `${place.road_address_name || place.address_name || ''}${place.distance !== undefined ? ` (${Math.round(place.distance)}m)` : ''}`,
     });
   };
 
