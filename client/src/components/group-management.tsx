@@ -237,20 +237,20 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
       {/* 그룹 만들기 Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto">
-          <DialogHeader>
-            <DialogTitle>{t.groups.newGroup}</DialogTitle>
+        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto rounded-xl sm:rounded-2xl">
+          <DialogHeader className="pb-2 sm:pb-3">
+            <DialogTitle className="text-lg sm:text-xl">{t.groups.newGroup}</DialogTitle>
           </DialogHeader>
           <Form {...createForm}>
-            <form onSubmit={createForm.handleSubmit(handleCreateGroup)} className="space-y-4">
+            <form onSubmit={createForm.handleSubmit(handleCreateGroup)} className="space-y-3 sm:space-y-4">
                 <FormField
                   control={createForm.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.groups.groupName}</FormLabel>
+                      <FormLabel className="text-sm">{t.groups.groupName}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="예: 친구들" data-testid="input-group-name" />
+                        <Input {...field} placeholder="예: 친구들" className="text-sm" data-testid="input-group-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -261,9 +261,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.groups.description}</FormLabel>
+                      <FormLabel className="text-sm">{t.groups.description}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t.groups.descriptionPlaceholder} data-testid="input-group-description" />
+                        <Input {...field} placeholder={t.groups.descriptionPlaceholder} className="text-sm" data-testid="input-group-description" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -274,9 +274,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   name="memberName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.groups.myName}</FormLabel>
+                      <FormLabel className="text-sm">{t.groups.myName}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t.groups.myNamePlaceholder} data-testid="input-member-name" />
+                        <Input {...field} placeholder={t.groups.myNamePlaceholder} className="text-sm" data-testid="input-member-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -287,15 +287,15 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   name="color"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.groups.groupColor}</FormLabel>
+                      <FormLabel className="text-sm">{t.groups.groupColor}</FormLabel>
                       <FormControl>
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2" data-testid="color-picker">
+                        <div className="space-y-2 sm:space-y-3">
+                          <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 sm:gap-2" data-testid="color-picker">
                             {PRESET_COLORS.map((color) => (
                               <button
                                 key={color.value}
                                 type="button"
-                                className={`h-8 w-8 rounded-md border transition-all ${
+                                className={`h-7 w-7 sm:h-8 sm:w-8 rounded-md border transition-all ${
                                   field.value.toLowerCase() === color.value.toLowerCase()
                                     ? 'border-foreground ring-2 ring-primary ring-offset-1' 
                                     : 'border-border hover:border-foreground/50'
@@ -309,8 +309,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                               />
                             ))}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <label className="text-sm text-muted-foreground">{t.groups.customColor}:</label>
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <label className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">{t.groups.customColor}:</label>
                             <Input
                               type="color"
                               value={field.value}
@@ -318,7 +318,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                                 const newColor = e.target.value.toUpperCase();
                                 field.onChange(newColor);
                               }}
-                              className="w-16 h-9 p-1 cursor-pointer"
+                              className="w-12 h-8 sm:w-16 sm:h-9 p-0.5 sm:p-1 cursor-pointer"
                               data-testid="color-custom-picker"
                             />
                             <Input
@@ -332,7 +332,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                               }}
                               placeholder="#3B82F6"
                               maxLength={7}
-                              className="flex-1 font-mono"
+                              className="flex-1 font-mono text-xs sm:text-sm h-8 sm:h-9"
                               data-testid="color-custom-input"
                             />
                           </div>
@@ -347,16 +347,16 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   name="markerIcon"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t.groups.markerShape}</FormLabel>
+                      <FormLabel className="text-sm">{t.groups.markerShape}</FormLabel>
                       <FormControl>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-testid="marker-icon-picker">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2" data-testid="marker-icon-picker">
                           {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
                             const Icon = MARKER_ICON_COMPONENTS[type];
                             return (
                               <button
                                 key={type}
                                 type="button"
-                                className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${
+                                className={`flex flex-col items-center gap-0.5 sm:gap-1 p-2 sm:p-2.5 rounded-md sm:rounded-lg border transition-all ${
                                   field.value === type 
                                     ? 'border-primary bg-accent' 
                                     : 'border-border hover:border-foreground/50 hover:bg-accent/50'
@@ -365,8 +365,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                                 data-testid={`marker-icon-${type}`}
                                 aria-label={t.categories[type]}
                               >
-                                <Icon className="h-5 w-5" />
-                                <span className="text-xs font-medium">{t.categories[type]}</span>
+                                <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                                <span className="text-[10px] sm:text-xs font-medium">{t.categories[type]}</span>
                               </button>
                             );
                           })}
@@ -376,7 +376,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-create-group">
+                <Button type="submit" size="sm" className="w-full text-sm" disabled={isLoading} data-testid="button-submit-create-group">
                   {isLoading ? `${t.common.create}...` : t.common.create}
                 </Button>
             </form>
