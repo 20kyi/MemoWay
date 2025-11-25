@@ -10,6 +10,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -289,6 +296,61 @@ function createSearchMarkerContent(): string {
   `;
 }
 
+function createPlaceMarkerContent(placeName: string, distance?: number, label?: string): string {
+  const distanceText = distance !== undefined ? `${Math.round(distance)}m` : '';
+  return `
+    <div style="
+      position: relative;
+      width: 30px;
+      height: 40px;
+      cursor: pointer;
+    ">
+      <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" 
+              fill="#3b82f6" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        <circle cx="15" cy="15" r="6" fill="#ffffff"/>
+        ${label ? `
+          <text x="15" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#3b82f6">${label}</text>
+        ` : `
+          <circle cx="15" cy="15" r="3" fill="#3b82f6"/>
+        `}
+      </svg>
+      ${distanceText ? `
+        <div style="
+          position: absolute;
+          top: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: #3b82f6;
+          color: white;
+          padding: 2px 6px;
+          border-radius: 10px;
+          font-size: 10px;
+          font-weight: bold;
+          white-space: nowrap;
+          border: 1px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        ">${distanceText}</div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// 하버사인 공식을 사용한 거리 계산 (미터 단위)
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000; // 지구 반경 (미터)
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 const MARKER_ICON_COMPONENTS = {
   default: MapPin,
   travel: Plane,
@@ -319,6 +381,10 @@ export function MapView({
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [searchMarker, setSearchMarker] = useState<any>(null);
+  const [searchPlaceMarkers, setSearchPlaceMarkers] = useState<Array<{ overlay: any; placeInfo: any }>>([]);
+  const [searchResults, setSearchResults] = useState<Array<any>>([]);
+  const [isSearchSidebarOpen, setIsSearchSidebarOpen] = useState(false);
+  const [currentSearchQuery, setCurrentSearchQuery] = useState(""); // 사이드바에 표시할 검색어
   const [mapError, setMapError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -356,14 +422,19 @@ export function MapView({
     return filtered;
   }, [memos, selectedMarkerIcons, selectedGroupIds]);
 
-  // Cleanup search marker when component unmounts
+  // Cleanup search markers when component unmounts
   useEffect(() => {
     return () => {
       if (searchMarker) {
         searchMarker.setMap(null);
       }
+      searchPlaceMarkers.forEach(marker => {
+        if (marker.overlay) {
+          marker.overlay.setMap(null);
+        }
+      });
     };
-  }, [searchMarker]);
+  }, [searchMarker, searchPlaceMarkers]);
 
   // Initialize map only once
   useEffect(() => {
@@ -1251,60 +1322,219 @@ export function MapView({
     if (!searchQuery.trim() || !map || !window.kakao?.maps) return;
 
     setIsSearching(true);
-    const geocoder = new window.kakao.maps.services.Geocoder();
+    
+    // 기존 검색 마커들 제거
+    if (searchMarker) {
+      searchMarker.setMap(null);
+      setSearchMarker(null);
+    }
+    searchPlaceMarkers.forEach(marker => {
+      if (marker.overlay) {
+        marker.overlay.setMap(null);
+      }
+    });
+    setSearchPlaceMarkers([]);
+    
+    // 사용자 위치 가져오기 (검색 기준점 및 거리 계산용)
+    const userLat = currentUserLocation?.lat || userLocation?.lat;
+    const userLng = currentUserLocation?.lng || userLocation?.lng;
+    const hasUserLocation = userLat !== null && userLat !== undefined && 
+                           userLng !== null && userLng !== undefined;
+    const MAX_RADIUS = 5000; // 5km 반경
 
-    geocoder.addressSearch(searchQuery, (result: any, status: any) => {
-      setIsSearching(false);
+    // 지도 중심점 가져오기 (사용자 위치가 없을 때 대체)
+    const mapCenter = map.getCenter();
+    const searchCenterLat = hasUserLocation ? userLat! : mapCenter.getLat();
+    const searchCenterLng = hasUserLocation ? userLng! : mapCenter.getLng();
 
-      if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
-        if (!result || result.length === 0 || !result[0] || result[0].x === undefined || result[0].y === undefined) {
+    // 1. 먼저 Places.keywordSearch로 장소 키워드 검색 시도
+    const places = new window.kakao.maps.services.Places();
+    
+    // 검색 옵션 설정: 현재 위치 기준으로 반경 5km 내에서 검색 (카카오맵 웹사이트와 동일)
+    const searchOptions = {
+      location: new window.kakao.maps.LatLng(searchCenterLat, searchCenterLng),
+      radius: MAX_RADIUS, // 5km 반경
+      sort: 'distance' as const, // 거리순 정렬
+    };
+    
+    places.keywordSearch(searchQuery, (data: any, status: any, pagination: any) => {
+      if (status === window.kakao.maps.services.Status.OK && data && data.length > 0) {
+        // 검색어 정규화 (공백 제거, 소문자 변환)
+        const normalizedQuery = searchQuery.trim().replace(/\s+/g, '').toLowerCase();
+        
+        // 키워드 검색 성공 - 장소 여러 개 표시
+        let placesWithDistance = data.map((place: any) => {
+          const placeLat = parseFloat(place.y);
+          const placeLng = parseFloat(place.x);
+          const distance = hasUserLocation 
+            ? calculateDistance(userLat!, userLng!, placeLat, placeLng)
+            : undefined;
+          
+          // 장소명 정규화
+          const placeName = (place.place_name || place.address_name || '').replace(/\s+/g, '').toLowerCase();
+          const categoryName = (place.category_name || '').replace(/\s+/g, '').toLowerCase();
+          
+          // 검색어가 장소명에 포함되는지 확인
+          const matchesPlaceName = placeName.includes(normalizedQuery);
+          const matchesCategory = categoryName.includes(normalizedQuery);
+          
+          return {
+            ...place,
+            distance,
+            lat: placeLat,
+            lng: placeLng,
+            matchesPlaceName, // 검색어가 장소명에 정확히 포함되는지
+            matchesCategory,  // 검색어가 카테고리에 포함되는지
+          };
+        });
+
+        // 검색어가 장소명에 포함된 결과를 우선적으로 필터링
+        // 1순위: 장소명에 검색어 포함
+        // 2순위: 카테고리에 검색어 포함
+        const exactMatches = placesWithDistance.filter((place: any) => place.matchesPlaceName);
+        const categoryMatches = placesWithDistance.filter((place: any) => !place.matchesPlaceName && place.matchesCategory);
+        
+        // 정확히 일치하는 결과가 있으면 그것만 사용, 없으면 카테고리 일치 결과 사용
+        placesWithDistance = exactMatches.length > 0 ? exactMatches : categoryMatches;
+
+        // 사용자 위치가 있으면 반경 5km 내 필터링 및 거리순 정렬
+        if (hasUserLocation) {
+          // 반경 5km 내 필터링
+          placesWithDistance = placesWithDistance.filter((place: any) => {
+            return place.distance !== undefined && place.distance <= MAX_RADIUS;
+          });
+          
+          // 거리순으로 정렬
+          placesWithDistance.sort((a: any, b: any) => {
+            const distA = a.distance || Infinity;
+            const distB = b.distance || Infinity;
+            return distA - distB;
+          });
+        }
+
+        // 상위 10개만 선택
+        const top10Places = placesWithDistance.slice(0, 10);
+
+        if (top10Places.length === 0) {
+          setIsSearching(false);
           toast({
-            title: "오류",
-            description: "주소를 찾을 수 없습니다",
+            title: "검색 결과 없음",
+            description: "현재 위치에서 5km 반경 내에 검색 결과가 없습니다.",
             variant: "destructive",
           });
           return;
         }
-        const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
-        
-        // Remove previous search marker if exists
-        if (searchMarker) {
-          searchMarker.setMap(null);
+
+        // 각 장소에 마커 표시 (A, B, C... 라벨 포함)
+        const newPlaceMarkers = top10Places.map((place: any, index: number) => {
+          const coords = new window.kakao.maps.LatLng(place.lat, place.lng);
+          const markerLabel = String.fromCharCode(65 + index); // A, B, C...
+          
+          // 마커에 라벨 포함
+          const markerContent = document.createElement('div');
+          markerContent.innerHTML = createPlaceMarkerContent(
+            place.place_name || place.address_name,
+            place.distance,
+            markerLabel
+          );
+          markerContent.style.cursor = 'pointer';
+
+          const customOverlay = new window.kakao.maps.CustomOverlay({
+            position: coords,
+            content: markerContent,
+            yAnchor: 1,
+            zIndex: 10001, // 메모 마커보다 위에 표시
+          });
+
+          // 마커 클릭 이벤트 - 사이드바에서 해당 항목으로 스크롤
+          const clickHandler = () => {
+            map.setCenter(coords);
+            map.setLevel(3);
+            // 사이드바가 열려있으면 해당 항목으로 스크롤 (선택적)
+          };
+
+          markerContent.addEventListener('click', clickHandler);
+          customOverlay.setMap(map);
+
+          return {
+            overlay: customOverlay,
+            placeInfo: { ...place, markerLabel },
+          };
+        });
+
+        setSearchPlaceMarkers(newPlaceMarkers);
+        setSearchResults(top10Places); // 사이드바에 표시할 결과 저장
+        setCurrentSearchQuery(searchQuery); // 검색어 저장 (사이드바 헤더용)
+        setIsSearchSidebarOpen(true); // 사이드바 열기
+
+        // 첫 번째 장소로 지도 중심 이동
+        if (top10Places.length > 0) {
+          const firstPlace = top10Places[0];
+          const centerCoords = new window.kakao.maps.LatLng(firstPlace.lat, firstPlace.lng);
+          map.setCenter(centerCoords);
+          map.setLevel(5); // 약간 줌 아웃하여 여러 마커 보이도록
         }
 
-        // Create search marker
-        const markerContent = document.createElement('div');
-        markerContent.innerHTML = createSearchMarkerContent();
-        
-        const customOverlay = new window.kakao.maps.CustomOverlay({
-          position: coords,
-          content: markerContent,
-          yAnchor: 1,
-        });
-        
-        customOverlay.setMap(map);
-        setSearchMarker(customOverlay);
-        
-        map.setCenter(coords);
-        map.setLevel(3);
-
-        // 주소 검색 후 위치 고정 모드 해제하여 검색 위치 유지
         setIsLocationLocked(false);
+        setIsSearching(false);
 
         toast({
-          title: "위치 찾기 완료",
-          description: result[0].address_name || searchQuery,
+          title: "검색 완료",
+          description: `${top10Places.length}개의 장소를 찾았습니다${hasUserLocation ? ` (5km 반경 내, 거리순)` : ''}`,
         });
         
         setSearchQuery("");
-      } else {
-        toast({
-          title: "주소를 찾을 수 없습니다",
-          description: "다른 주소로 다시 시도해주세요",
-          variant: "destructive",
-        });
+        return;
       }
-    });
+      
+      // 키워드 검색 실패 시 주소 검색으로 폴백
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      geocoder.addressSearch(searchQuery, (result: any, status: any) => {
+        setIsSearching(false);
+
+        if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
+          if (!result || result.length === 0 || !result[0] || result[0].x === undefined || result[0].y === undefined) {
+            toast({
+              title: "오류",
+              description: "주소를 찾을 수 없습니다",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          // 주소 검색 결과는 단일 마커로 표시
+          const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
+          const markerContent = document.createElement('div');
+          markerContent.innerHTML = createSearchMarkerContent();
+          
+          const customOverlay = new window.kakao.maps.CustomOverlay({
+            position: coords,
+            content: markerContent,
+            yAnchor: 1,
+          });
+          
+          customOverlay.setMap(map);
+          setSearchMarker(customOverlay);
+          
+          map.setCenter(coords);
+          map.setLevel(3);
+          setIsLocationLocked(false);
+
+          toast({
+            title: "위치 찾기 완료",
+            description: result[0].address_name || searchQuery,
+          });
+          
+          setSearchQuery("");
+        } else {
+          toast({
+            title: "검색 실패",
+            description: "장소나 주소를 찾을 수 없습니다. 다른 키워드로 다시 시도해주세요",
+            variant: "destructive",
+          });
+        }
+      });
+    }, searchOptions); // 검색 옵션 전달: 현재 위치 기준, 5km 반경, 거리순 정렬
   };
 
   const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -1315,6 +1545,31 @@ export function MapView({
 
   const handleClearSearch = () => {
     setSearchQuery("");
+    // 검색 마커들 제거
+    if (searchMarker) {
+      searchMarker.setMap(null);
+      setSearchMarker(null);
+    }
+    searchPlaceMarkers.forEach(marker => {
+      if (marker.overlay) {
+        marker.overlay.setMap(null);
+      }
+    });
+    setSearchPlaceMarkers([]);
+    setSearchResults([]);
+    setCurrentSearchQuery("");
+    setIsSearchSidebarOpen(false);
+  };
+
+  const handlePlaceClick = (place: any) => {
+    const coords = new window.kakao.maps.LatLng(place.lat, place.lng);
+    map.setCenter(coords);
+    map.setLevel(3);
+    
+    toast({
+      title: place.place_name || place.address_name,
+      description: `${place.road_address_name || place.address_name || ''}${place.distance ? ` (${Math.round(place.distance)}m)` : ''}`,
+    });
   };
 
   const toggleMapLock = () => {
@@ -1356,6 +1611,69 @@ export function MapView({
         </div>
       ) : (
         <>
+          {/* 검색 결과 사이드바 (카카오맵 스타일) */}
+          <Sheet open={isSearchSidebarOpen} onOpenChange={setIsSearchSidebarOpen}>
+            <SheetContent side="left" className="w-full sm:w-96 p-0 overflow-hidden">
+              <SheetHeader className="px-6 pt-6 pb-4 border-b">
+                <SheetTitle className="text-lg font-semibold">
+                  {currentSearchQuery ? `"${currentSearchQuery}" 검색 결과` : '검색 결과'}
+                </SheetTitle>
+                <div className="text-sm text-muted-foreground mt-1">
+                  장소 {searchResults.length}개
+                </div>
+              </SheetHeader>
+              <ScrollArea className="h-[calc(100vh-120px)]">
+                <div className="px-4 py-4 space-y-2">
+                  {searchResults.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>검색 결과가 없습니다</p>
+                    </div>
+                  ) : (
+                    searchResults.map((place: any, index: number) => (
+                      <div
+                        key={place.id || index}
+                        onClick={() => handlePlaceClick(place)}
+                        className="p-4 rounded-lg border bg-card hover:bg-accent cursor-pointer transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                                {String.fromCharCode(65 + index)}
+                              </span>
+                              <h3 className="font-semibold text-base truncate">
+                                {place.place_name || place.address_name}
+                              </h3>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
+                              {place.road_address_name || place.address_name || ''}
+                            </p>
+                            {place.category_name && (
+                              <p className="text-xs text-muted-foreground mb-2">
+                                {place.category_name.split('>').pop()?.trim()}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              {place.distance !== undefined && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-3 w-3" />
+                                  {Math.round(place.distance)}m
+                                </span>
+                              )}
+                              {place.phone && (
+                                <span>{place.phone}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+
           <div ref={mapRef} className="w-full h-full" data-testid="map-container" />
           
           {/* 위치 고정 모드 상태 배너 */}
