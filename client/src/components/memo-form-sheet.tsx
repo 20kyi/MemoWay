@@ -98,39 +98,39 @@ function SortablePhotoItem({ photo, onRemove }: { photo: PhotoItem; onRemove: ()
     <div
       ref={setNodeRef}
       style={style}
-      className="relative aspect-square bg-card rounded-lg overflow-hidden border-2 border-border"
+      className="relative aspect-square bg-card rounded-md sm:rounded-lg overflow-hidden border border-border"
       data-testid={`photo-item-${photo.id}`}
     >
       <img src={photo.url} alt="Photo" className="w-full h-full object-cover" />
       
       {photo.order === 0 && (
-        <div className="absolute top-1 left-1 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-          <Star className="h-3 w-3 fill-current" />
-          대표
+        <div className="absolute top-0.5 left-0.5 sm:top-1 sm:left-1 bg-primary text-primary-foreground px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold flex items-center gap-0.5 sm:gap-1">
+          <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-current" />
+          <span className="hidden sm:inline">대표</span>
         </div>
       )}
       
-      <div className="absolute top-1 right-1 flex gap-1">
+      <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 flex gap-0.5 sm:gap-1">
         <Button
           type="button"
           size="icon"
           variant="secondary"
-          className="h-6 w-6 rounded-full cursor-grab active:cursor-grabbing"
+          className="h-5 w-5 sm:h-6 sm:w-6 rounded-full cursor-grab active:cursor-grabbing"
           {...attributes}
           {...listeners}
           data-testid={`button-drag-photo-${photo.id}`}
         >
-          <GripVertical className="h-3 w-3" />
+          <GripVertical className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
         </Button>
         <Button
           type="button"
           size="icon"
           variant="destructive"
-          className="h-6 w-6 rounded-full"
+          className="h-5 w-5 sm:h-6 sm:w-6 rounded-full"
           onClick={onRemove}
           data-testid={`button-remove-photo-${photo.id}`}
         >
-          <X className="h-3 w-3" />
+          <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
         </Button>
       </div>
     </div>
@@ -293,26 +293,26 @@ export function MemoFormSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0 flex flex-col">
-        <div className="w-12 h-1 bg-muted rounded-full mx-auto mt-4 mb-6" />
+      <SheetContent side="bottom" className="h-[90vh] rounded-t-xl sm:rounded-t-2xl p-0 flex flex-col">
+        <div className="w-10 h-0.5 sm:h-1 bg-muted rounded-full mx-auto mt-2.5 sm:mt-3 mb-3 sm:mb-4" />
         
-        <div className="px-6 flex-shrink-0">
-          <SheetHeader className="mb-6">
-            <SheetTitle className="text-2xl">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
+        <div className="px-3 sm:px-4 flex-shrink-0">
+          <SheetHeader className="mb-3 sm:mb-4">
+            <SheetTitle className="text-lg sm:text-xl">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
           </SheetHeader>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col flex-1 min-h-0">
-            <div className="flex-1 overflow-y-auto px-6 space-y-6 pb-4">
+            <div className="flex-1 overflow-y-auto px-3 sm:px-4 space-y-3 sm:space-y-4 pb-3 sm:pb-4">
               <FormField
                 control={form.control}
                 name="buildingName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.memoForm.buildingName}</FormLabel>
+                    <FormLabel className="text-sm">{t.memoForm.buildingName}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} data-testid="input-building-name" />
+                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} className="text-sm" data-testid="input-building-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -324,9 +324,9 @@ export function MemoFormSheet({
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.memoForm.address}</FormLabel>
+                    <FormLabel className="text-sm">{t.memoForm.address}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.memoForm.addressPlaceholder} data-testid="input-address" />
+                      <Input {...field} placeholder={t.memoForm.addressPlaceholder} className="text-sm" data-testid="input-address" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -334,8 +334,8 @@ export function MemoFormSheet({
               />
 
               <div>
-                <FormLabel>{t.memoForm.photos}</FormLabel>
-                <p className="text-xs text-muted-foreground mt-1 mb-3">
+                <FormLabel className="text-sm">{t.memoForm.photos}</FormLabel>
+                <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 mb-2 sm:mb-2.5">
                   첫 번째 사진이 대표 사진으로 표시됩니다. 드래그하여 순서를 변경할 수 있습니다.
                 </p>
                 
@@ -348,7 +348,7 @@ export function MemoFormSheet({
                     items={photoItems.map(p => p.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                       {photoItems.map((photo) => (
                         <SortablePhotoItem
                           key={photo.id}
@@ -357,7 +357,7 @@ export function MemoFormSheet({
                         />
                       ))}
                       {photoItems.length < 10 && (
-                        <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover-elevate">
+                        <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-md sm:rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
                           <input
                             type="file"
                             accept="image/*"
@@ -366,7 +366,7 @@ export function MemoFormSheet({
                             className="hidden"
                             data-testid="input-photo-upload"
                           />
-                          <Camera className="h-8 w-8 text-muted-foreground" />
+                          <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                         </label>
                       )}
                     </div>
@@ -379,12 +379,12 @@ export function MemoFormSheet({
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.memoForm.content}</FormLabel>
+                    <FormLabel className="text-sm">{t.memoForm.content}</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
                         placeholder={t.memoForm.contentPlaceholder} 
-                        className="min-h-32 resize-none"
+                        className="min-h-24 sm:min-h-28 resize-none text-sm"
                         data-testid="input-memo-content"
                       />
                     </FormControl>
@@ -398,9 +398,9 @@ export function MemoFormSheet({
                 name="markerIcon"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.memoForm.markerIcon}</FormLabel>
+                    <FormLabel className="text-sm">{t.memoForm.markerIcon}</FormLabel>
                     <FormControl>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                         {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
                           const Icon = MARKER_ICON_COMPONENTS[type];
                           const isSelected = field.value === type;
@@ -409,12 +409,12 @@ export function MemoFormSheet({
                               key={type}
                               type="button"
                               variant={isSelected ? "default" : "outline"}
-                              className="h-auto py-3 flex flex-col items-center gap-1"
+                              className="h-auto py-2 sm:py-2.5 flex flex-col items-center gap-0.5 sm:gap-1"
                               onClick={() => field.onChange(type)}
                               data-testid={`button-marker-${type}`}
                             >
-                              <Icon className="h-5 w-5" />
-                              <span className="text-xs">{t.categories[type]}</span>
+                              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                              <span className="text-[10px] sm:text-xs">{t.categories[type]}</span>
                             </Button>
                           );
                         })}
@@ -431,8 +431,8 @@ export function MemoFormSheet({
                   name="groupIds"
                   render={() => (
                     <FormItem>
-                      <FormLabel>{t.memoForm.groupShare}</FormLabel>
-                      <div className="space-y-2">
+                      <FormLabel className="text-sm">{t.memoForm.groupShare}</FormLabel>
+                      <div className="space-y-1.5 sm:space-y-2">
                         {groups.filter(g => g.name !== "개인 메모").map(group => (
                           <FormField
                             key={group.id}
@@ -454,7 +454,7 @@ export function MemoFormSheet({
                                     data-testid={`checkbox-group-${group.id}`}
                                   />
                                 </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
+                                <FormLabel className="font-normal cursor-pointer text-sm">
                                   {group.name}
                                 </FormLabel>
                               </FormItem>
@@ -468,17 +468,18 @@ export function MemoFormSheet({
               )}
 
               {!isPersonalMemberReady && !currentMemberId && (
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">개인 메모 준비 중...</p>
+                <div className="p-2 sm:p-2.5 bg-muted rounded-lg">
+                  <p className="text-xs sm:text-sm text-muted-foreground">개인 메모 준비 중...</p>
                 </div>
               )}
             </div>
 
-            <div className="flex gap-3 px-6 py-4 border-t bg-background flex-shrink-0">
+            <div className="flex gap-2 sm:gap-3 px-3 sm:px-4 py-3 sm:py-4 border-t bg-background flex-shrink-0">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
+                size="sm"
+                className="flex-1 text-sm"
                 onClick={() => onOpenChange(false)}
                 data-testid="button-cancel"
               >
@@ -486,7 +487,8 @@ export function MemoFormSheet({
               </Button>
               <Button 
                 type="submit" 
-                className="flex-1"
+                size="sm"
+                className="flex-1 text-sm"
                 disabled={isLoading || (!isPersonalMemberReady && !currentMemberId)}
                 data-testid="button-save-memo"
               >
