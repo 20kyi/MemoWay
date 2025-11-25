@@ -15,7 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Search, X, Filter, Users, User, Lock, Unlock } from "lucide-react";
+import { Search, X, Filter, Users, User, Lock, Unlock, Edit, Trash2, Plus } from "lucide-react";
 import { loadGoogleMaps } from "@/lib/google-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -35,6 +35,11 @@ interface GoogleMapViewProps {
   selectedGroupIds?: string[];
   onMarkerIconsChange?: (icons: string[]) => void;
   onGroupIdsChange?: (groupIds: string[]) => void;
+  selectedMemo?: MemoWithDetails | null;
+  memoDetailOpen?: boolean;
+  onEditMemo?: (memoId: string) => void;
+  onDeleteMemo?: (memoId: string) => void;
+  onAddNewMemo?: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
 }
 
 const PERSONAL_MEMO_COLOR = '#9333ea';
@@ -60,6 +65,11 @@ export function GoogleMapView({
   selectedGroupIds = ["all"],
   onMarkerIconsChange,
   onGroupIdsChange,
+  selectedMemo = null,
+  memoDetailOpen = false,
+  onEditMemo,
+  onDeleteMemo,
+  onAddNewMemo,
 }: GoogleMapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -743,8 +753,8 @@ export function GoogleMapView({
         </DialogContent>
       </Dialog>
 
-      {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
-      <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
+        {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
+        <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
         {/* 지도 확대/축소 잠금 버튼 */}
         <Tooltip>
           <TooltipTrigger asChild>

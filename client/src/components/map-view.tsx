@@ -21,7 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Search, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, Lock, Unlock } from "lucide-react";
+import { Search, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, Lock, Unlock, Edit, Trash2, Plus } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -41,6 +41,11 @@ interface MapViewProps {
   selectedGroupIds?: string[];
   onMarkerIconsChange?: (icons: string[]) => void;
   onGroupIdsChange?: (groupIds: string[]) => void;
+  selectedMemo?: MemoWithDetails | null;
+  memoDetailOpen?: boolean;
+  onEditMemo?: (memoId: string) => void;
+  onDeleteMemo?: (memoId: string) => void;
+  onAddNewMemo?: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
 }
 
 const PERSONAL_MEMO_COLOR = '#9333ea';
@@ -375,7 +380,12 @@ export function MapView({
   selectedMarkerIcons = ["all"],
   selectedGroupIds = ["all"],
   onMarkerIconsChange,
-  onGroupIdsChange
+  onGroupIdsChange,
+  selectedMemo = null,
+  memoDetailOpen = false,
+  onEditMemo,
+  onDeleteMemo,
+  onAddNewMemo,
 }: MapViewProps) {
   const { t } = useLanguage();
   const mapRef = useRef<HTMLDivElement>(null);
