@@ -5,17 +5,34 @@ declare global {
 }
 
 let googleMapsPromise: Promise<any> | null = null;
+let errorShown = false; // 에러 메시지 중복 표시 방지
 
 export async function loadGoogleMaps(): Promise<any> {
+  // 이미 로드된 경우 재사용
   if (googleMapsPromise) {
     return googleMapsPromise;
   }
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   
+  // 디버깅: 환경 변수 로드 확인
+  if (import.meta.env.DEV) {
+    console.log("🔍 Google Maps 환경 변수 확인:", {
+      hasApiKey: !!apiKey,
+      apiKeyLength: apiKey?.length || 0,
+      apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + "..." : "없음",
+      allEnvKeys: Object.keys(import.meta.env).filter(key => key.startsWith("VITE_"))
+    });
+  }
+  
   if (!apiKey) {
+    // 에러를 한 번만 표시
+    if (!errorShown) {
+      errorShown = true;
+      console.error("Google Maps Error: VITE_GOOGLE_MAPS_API_KEY is not configured. Google Maps features will be unavailable.");
+      console.error("사용 가능한 VITE_ 환경 변수:", Object.keys(import.meta.env).filter(key => key.startsWith("VITE_")));
+    }
     const error = new Error("Google Maps API key is not configured. Please add VITE_GOOGLE_MAPS_API_KEY to your environment variables.");
-    console.error("Google Maps Error:", error.message);
     throw error;
   }
 

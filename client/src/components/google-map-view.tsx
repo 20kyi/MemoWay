@@ -15,7 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Navigation, Search, X, Send, Filter, Users, User, Lock, Unlock } from "lucide-react";
+import { Search, X, Filter, Users, User, Lock, Unlock } from "lucide-react";
 import { loadGoogleMaps } from "@/lib/google-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -72,6 +72,8 @@ export function GoogleMapView({
   const [isMapLocked, setIsMapLocked] = useState(false);
   const [isMarkerFilterOpen, setIsMarkerFilterOpen] = useState(false);
   const [isGroupFilterOpen, setIsGroupFilterOpen] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const errorToastShownRef = useRef(false); // 토스트 중복 표시 방지
   const { toast } = useToast();
   const { t } = useLanguage();
   const watchIdRef = useRef<number | null>(null);
@@ -79,9 +81,16 @@ export function GoogleMapView({
   // Initialize Google Map
   useEffect(() => {
     if (!mapRef.current) return;
+    
+    // 에러 상태 초기화
+    setMapError(null);
 
     loadGoogleMaps()
       .then((google) => {
+        // 성공 시 에러 상태 제거
+        setMapError(null);
+        errorToastShownRef.current = false;
+        
         const mapInstance = new google.maps.Map(mapRef.current!, {
           center: { lat: 37.5665, lng: 126.9780 }, // Seoul
           zoom: 15,
@@ -167,19 +176,26 @@ export function GoogleMapView({
         );
       }
     }).catch((error) => {
-      console.error("Failed to load Google Maps:", error);
-      console.error("Error type:", typeof error);
-      console.error("Error message:", error?.message);
-      console.error("Error stack:", error?.stack);
-      console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      const errorMessage = error?.message || "Failed to load Google Maps. Please check your API key and billing settings.";
       
-      toast({
-        title: "Google Maps Error",
-        description: error?.message || "Failed to load Google Maps. Please check your API key and billing settings.",
-        variant: "destructive",
-      });
+      // 에러 상태 저장
+      setMapError(errorMessage);
+      
+      // 콘솔 에러는 한 번만 출력 (중복 방지)
+      if (!errorToastShownRef.current) {
+        console.error("Failed to load Google Maps:", errorMessage);
+        
+        // 사용자에게 토스트는 한 번만 표시
+        errorToastShownRef.current = true;
+        toast({
+          title: "Google Maps를 불러올 수 없습니다",
+          description: "Google Maps API 키가 설정되지 않았습니다. 카카오맵을 사용하거나 환경 변수에 VITE_GOOGLE_MAPS_API_KEY를 추가해주세요.",
+          variant: "destructive",
+          duration: 5000, // 5초간 표시
+        });
+      }
     });
-  }, []);
+  }, [toast]);
 
   // Watch user location
   useEffect(() => {
@@ -537,7 +553,25 @@ export function GoogleMapView({
 
   return (
     <div className="relative w-full h-full">
-      <div ref={mapRef} className="w-full h-full" data-testid="map-container" />
+      {mapError ? (
+        <div className="w-full h-full flex items-center justify-center bg-muted p-8 text-center">
+          <div className="max-w-md">
+            <h3 className="text-lg font-semibold mb-2 text-destructive">Google Maps를 불러올 수 없습니다</h3>
+            <p className="text-muted-foreground mb-4">{mapError}</p>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p><strong>해결 방법:</strong></p>
+              <ol className="list-decimal list-inside space-y-1 text-left">
+                <li>프로젝트 루트에 <code className="bg-muted px-1 rounded">.env</code> 파일 생성</li>
+                <li><code className="bg-muted px-1 rounded">VITE_GOOGLE_MAPS_API_KEY=your_api_key</code> 추가</li>
+                <li>서버 재시작</li>
+                <li>또는 카카오맵 사용 (설정에서 변경 가능)</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div ref={mapRef} className="w-full h-full" data-testid="map-container" />
+      )}
       
       {/* 위치 고정 모드 상태 배너 */}
       {isLocationLocked && (

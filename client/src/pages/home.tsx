@@ -4,7 +4,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { ExitDialog } from "@/components/exit-dialog";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useAuth } from "@/hooks/useAuth";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient, apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/language-context";
 import { useMapProvider } from "@/lib/map-provider-context";
 import { useToast } from "@/hooks/use-toast";
@@ -83,16 +83,44 @@ export default function Home() {
   const [selectedMarkerIcons, setSelectedMarkerIcons] = useState<string[]>(["all"]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(["all"]);
 
-  // Data queries - 병렬 로딩 보장
-  const { data: memos = [] } = useQuery<MemoWithDetails[]>({
+  // Data queries - 병렬 로딩 보장 (user가 있을 때만 실행)
+  const { data: memos = [], error: memosError } = useQuery<MemoWithDetails[]>({
     queryKey: ["/api/memos"],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!user, // user가 있을 때만 실행
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    retry: 1, // 실패 시 1번만 재시도 (로딩 시간 단축)
+    retryDelay: 500, // 0.5초 후 재시도
   });
 
-  const { data: groups = [], isFetched: groupsIsFetched } = useQuery<GroupWithMembers[]>({
+  const { data: groups = [], isFetched: groupsIsFetched, error: groupsError, isLoading: groupsLoading } = useQuery<GroupWithMembers[]>({
     queryKey: ["/api/groups"],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!user, // user가 있을 때만 실행
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    retry: 1, // 실패 시 1번만 재시도 (로딩 시간 단축)
+    retryDelay: 500, // 0.5초 후 재시도
   });
+
+  // 데이터 로딩 에러 처리
+  useEffect(() => {
+    if (memosError) {
+      console.error("메모 로딩 실패:", memosError);
+      toast({
+        title: "메모를 불러올 수 없습니다",
+        description: "잠시 후 다시 시도해주세요.",
+        variant: "destructive",
+      });
+    }
+    if (groupsError) {
+      console.error("그룹 로딩 실패:", groupsError);
+      toast({
+        title: "그룹을 불러올 수 없습니다",
+        description: "잠시 후 다시 시도해주세요.",
+        variant: "destructive",
+      });
+    }
+  }, [memosError, groupsError, toast]);
 
   // Location tracking
   const { userLocation, setUserLocation } = useLocationTracking({
@@ -114,14 +142,20 @@ export default function Home() {
   const { handleWebSocketMessage } = useWebSocketMessages({ moveToLocation });
   useWebSocket(handleWebSocketMessage);
 
-  // Personal member management
+  // Personal member management (groups가 로드된 후에만 실행)
   usePersonalMember({
     personalMemberId,
     setPersonalMemberId,
     groups,
-    groupsIsFetched,
+    groupsIsFetched: groupsIsFetched && !groupsLoading,
     user,
   });
+
+  // Filter groups for current user
+  const filteredGroups = groups.filter((g) =>
+    g.members.some((m) => m.userId === (user as any)?.id)
+  );
+  const filteredGroupsWithoutPersonal = filteredGroups.filter((g) => g.name !== "개인 메모");
 
   // Memo mutations
   const { createMemoMutation, updateMemoMutation, deleteMemoMutation, setMainMemoMutation } =
@@ -129,6 +163,7 @@ export default function Home() {
       selectedLocation,
       personalMemberId,
       currentMemberId,
+      groups: filteredGroups,
       onSuccess: () => {
         setMemoFormOpen(false);
         setSelectedLocation(null);
@@ -251,10 +286,6 @@ export default function Home() {
     setLocationEnabled(enabled);
   };
 
-  const filteredGroups = groups.filter((g) =>
-    g.members.some((m) => m.userId === (user as any)?.id)
-  );
-  const filteredGroupsWithoutPersonal = filteredGroups.filter((g) => g.name !== "개인 메모");
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden">
@@ -367,7 +398,7 @@ export default function Home() {
               myMemberIds={myMemberIds}
               personalMemberId={personalMemberId}
               userId={(user as any)?.id}
-              userPoints={(user as any)?.points || 0}
+              userPoints={(user as any)?.points ?? 0}
               onCreateGroup={(data) => createGroupMutation.mutate(data)}
               onUpdateGroup={(groupId, data) =>
                 updateGroupMutation.mutate({ groupId, ...data })

@@ -5,7 +5,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertGroupSchema, insertMemberSchema, insertMemoSchema, type InsertMemo } from "@shared/schema";
+import { type InsertMemo } from "@shared/schema";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 import { normalizeAddress } from "./utils/address-normalizer";
@@ -16,7 +16,7 @@ const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_SIZE },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req, file, cb) => {
     if (ALLOWED_FILE_TYPES.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -30,8 +30,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
   const { setupKakaoAuth } = await import("./kakaoAuth");
   const { setupGoogleAuth } = await import("./googleAuth");
+  const { setupEmailAuth } = await import("./emailAuth");
   setupKakaoAuth(app);
   setupGoogleAuth(app);
+  setupEmailAuth(app);
 
   // Logout route (common for all auth methods - register after Passport is initialized)
   app.get('/api/logout', (req, res) => {
@@ -41,7 +43,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const safeRedirect = () => {
       try {
         console.log('[LOGOUT] Redirecting to /');
-        res.redirect('/');
+        // 로그아웃 후 랜딩 페이지로 리다이렉트 (쿼리 파라미터로 로그아웃 상태 명시)
+        res.redirect('/?logout=true');
       } catch (redirectErr: any) {
         console.error('[LOGOUT] Redirect error:', redirectErr);
         res.status(200).json({ message: 'Logout successful' });
@@ -149,12 +152,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      if (!user) {
+      // 포인트 정보는 DB에만 있으므로 항상 DB에서 최신 정보 가져오기
+      const user = req.user as any;
+      const userId = user.claims?.sub || user.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
+      
+      // DB에서 최신 사용자 정보 가져오기 (포인트 포함)
+      const dbUser = await storage.getUser(userId);
+      if (!dbUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.json(user);
+      
+      // 세션의 claims 정보와 DB의 최신 정보를 병합하여 반환
+      res.json({
+        id: dbUser.id,
+        email: dbUser.email || user.claims?.email,
+        firstName: dbUser.firstName || user.claims?.first_name,
+        lastName: dbUser.lastName || user.claims?.last_name,
+        profileImageUrl: dbUser.profileImageUrl || user.claims?.profile_image_url,
+        points: dbUser.points, // DB에서 가져온 최신 포인트 정보
+        provider: dbUser.provider,
+      });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -181,9 +202,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add points to user
       const updatedUser = await storage.addPoints(userId, amount);
       
+      console.log(`[Points Purchase] User ${userId} purchased ${amount} points. New total: ${updatedUser.points}`);
+      
+      // 클라이언트에서 즉시 사용할 수 있도록 전체 사용자 정보 반환
       res.json({ 
         success: true, 
-        points: updatedUser.points,
+        id: updatedUser.id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        profileImageUrl: updatedUser.profileImageUrl,
+        points: updatedUser.points, // 최신 포인트 정보
+        provider: updatedUser.provider,
         added: amount 
       });
     } catch (error: any) {
@@ -537,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mainPhotoIndex: z.string().optional(),
       });
       
-      let { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon, mainPhotoIndex } = bodySchema.parse(req.body);
+      let { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon } = bodySchema.parse(req.body);
       
       // Verify member and get correct member ID
       const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;

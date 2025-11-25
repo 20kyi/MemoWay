@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MapPin, Globe, Users, Lock, Languages, Heart, Sparkles } from "lucide-react";
+import { MapPin, Globe, Users, Languages, Heart, Sparkles, Mail } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { Capacitor } from "@capacitor/core";
 import {
@@ -8,7 +8,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { KakaoLoginPlugin } from "@/types/capacitor-plugins";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { getApiBaseUrl } from "@/lib/api-config";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const languageOptions: { value: Language; label: string; flag: string }[] = [
   { value: "ko", label: "한국어", flag: "🇰🇷" },
@@ -17,26 +34,171 @@ const languageOptions: { value: Language; label: string; flag: string }[] = [
   { value: "ja", label: "日本語", flag: "🇯🇵" },
 ];
 
+// 이메일 로그인 스키마
+const loginSchema = z.object({
+  email: z.string().email("유효한 이메일 주소를 입력하세요"),
+  password: z.string().min(1, "비밀번호를 입력하세요"),
+});
+
+// 이메일 회원가입 스키마
+const registerSchema = z.object({
+  email: z.string().email("유효한 이메일 주소를 입력하세요"),
+  password: z.string().min(6, "비밀번호는 최소 6자 이상이어야 합니다"),
+  firstName: z.string().min(1, "이름을 입력하세요"),
+});
+
 export default function Landing() {
-  const { t, language, setLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
+
+  // 이메일 로그인 폼
+  const loginForm = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  // 이메일 회원가입 폼
+  const registerForm = useForm<z.infer<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      firstName: "",
+    },
+  });
+
+  // 이메일 로그인 mutation
+  const loginMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof loginSchema>) => {
+      return await apiRequest("POST", "/api/email/login", data);
+    },
+    onSuccess: async () => {
+      toast({
+        title: language === 'ko' ? "로그인 성공" : "Login successful",
+        description: language === 'ko' ? "환영합니다!" : "Welcome!",
+      });
+      setLoginDialogOpen(false);
+      loginForm.reset();
+      
+      // 인증 상태 쿼리 무효화 및 재요청
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // 네이티브 앱에서도 직접 페이지 리로드 (세션 쿠키가 설정될 시간 확보)
+      // Deep Link는 OAuth 콜백에서만 사용하고, 이메일 로그인은 직접 리다이렉트
+      if (Capacitor.isNativePlatform()) {
+        // 네이티브 앱: 세션 쿠키가 설정될 시간을 확보한 후 페이지 리로드
+        // 네이티브 앱에서는 쿠키 전파가 더 느릴 수 있으므로 더 긴 대기 시간
+        setTimeout(() => {
+          // 페이지를 완전히 리로드하여 세션 쿠키를 포함한 새 요청 보내기
+          window.location.href = "/";
+        }, 1000);
+      } else {
+        // 웹: 일반 리다이렉트
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 100);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'ko' ? "로그인 실패" : "Login failed",
+        description: error.error || error.message || (language === 'ko' ? "로그인에 실패했습니다" : "Failed to login"),
+        variant: "destructive",
+      });
+    },
+  });
+
+  // 이메일 회원가입 mutation
+  const registerMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof registerSchema>) => {
+      return await apiRequest("POST", "/api/email/register", data);
+    },
+    onSuccess: async () => {
+      toast({
+        title: language === 'ko' ? "회원가입 성공" : "Registration successful",
+        description: language === 'ko' ? "환영합니다!" : "Welcome!",
+      });
+      setRegisterDialogOpen(false);
+      registerForm.reset();
+      
+      // 인증 상태 쿼리 무효화 및 재요청
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // 네이티브 앱에서도 직접 페이지 리로드 (세션 쿠키가 설정될 시간 확보)
+      // Deep Link는 OAuth 콜백에서만 사용하고, 이메일 회원가입은 직접 리다이렉트
+      if (Capacitor.isNativePlatform()) {
+        // 네이티브 앱: 세션 쿠키가 설정될 시간을 확보한 후 페이지 리로드
+        // 네이티브 앱에서는 쿠키 전파가 더 느릴 수 있으므로 더 긴 대기 시간
+        setTimeout(() => {
+          // 페이지를 완전히 리로드하여 세션 쿠키를 포함한 새 요청 보내기
+          window.location.href = "/";
+        }, 1000);
+      } else {
+        // 웹: 일반 리다이렉트
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 100);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'ko' ? "회원가입 실패" : "Registration failed",
+        description: error.error || error.message || (language === 'ko' ? "회원가입에 실패했습니다" : "Failed to register"),
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleKakaoLogin = async () => {
     if (Capacitor.isNativePlatform()) {
-      // 안드로이드 앱: 웹 OAuth 플로우 사용 (웹뷰에서 열고, 완료 후 Deep Link로 앱 복귀)
-      const loginUrl = `/api/kakao/login?lang=${language}&platform=android`;
+      // 네이티브 앱: 절대 URL 사용
+      const baseUrl = getApiBaseUrl();
+      if (!baseUrl) {
+        toast({
+          title: language === 'ko' ? "오류" : "Error",
+          description: language === 'ko' 
+            ? "서버 연결 설정이 없습니다. 앱을 다시 설치해주세요."
+            : "Server configuration missing. Please reinstall the app.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const loginUrl = `${baseUrl}/api/kakao/login?lang=${language}&platform=android`;
       window.location.href = loginUrl;
     } else {
-      // 웹에서는 같은 창에서 로그인
+      // 웹: 상대 경로 사용
       const loginUrl = `/api/kakao/login?lang=${language}&platform=web`;
       window.location.href = loginUrl;
     }
   };
 
   const handleGoogleLogin = () => {
-    // Pass current language as query parameter
-    const loginUrl = `/api/google/login?lang=${language}`;
-    // Same window redirect
-    window.location.href = loginUrl;
+    if (Capacitor.isNativePlatform()) {
+      // 네이티브 앱: 절대 URL 사용
+      const baseUrl = getApiBaseUrl();
+      if (!baseUrl) {
+        toast({
+          title: language === 'ko' ? "오류" : "Error",
+          description: language === 'ko' 
+            ? "서버 연결 설정이 없습니다. 앱을 다시 설치해주세요."
+            : "Server configuration missing. Please reinstall the app.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const loginUrl = `${baseUrl}/api/google/login?lang=${language}`;
+      window.location.href = loginUrl;
+    } else {
+      // 웹: 상대 경로 사용
+      const loginUrl = `/api/google/login?lang=${language}`;
+      window.location.href = loginUrl;
+    }
   };
 
   return (
@@ -177,6 +339,237 @@ export default function Landing() {
               </div>
               
               <div className="space-y-3">
+                {/* 이메일 로그인 버튼 */}
+                <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      size="lg" 
+                      variant="outline"
+                      className="w-full text-lg h-16 border-2 border-primary/50 text-foreground font-bold rounded-full shadow-lg hover:shadow-2xl transition-all active-elevate-2"
+                    >
+                      <Mail className="h-5 w-5 mr-2" />
+                      {language === 'ko' && '이메일로 로그인'}
+                      {language === 'en' && 'Sign in with Email'}
+                      {language === 'zh' && '使用邮箱登录'}
+                      {language === 'ja' && 'メールでログイン'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {language === 'ko' && '이메일 로그인'}
+                        {language === 'en' && 'Email Login'}
+                        {language === 'zh' && '邮箱登录'}
+                        {language === 'ja' && 'メールログイン'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {language === 'ko' && '이메일과 비밀번호로 로그인하세요'}
+                        {language === 'en' && 'Sign in with your email and password'}
+                        {language === 'zh' && '使用您的邮箱和密码登录'}
+                        {language === 'ja' && 'メールアドレスとパスワードでログイン'}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form
+                      onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))}
+                      className="space-y-4"
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor="login-email">
+                          {language === 'ko' && '이메일'}
+                          {language === 'en' && 'Email'}
+                          {language === 'zh' && '邮箱'}
+                          {language === 'ja' && 'メールアドレス'}
+                        </Label>
+                        <Input
+                          id="login-email"
+                          type="email"
+                          placeholder="example@email.com"
+                          {...loginForm.register("email")}
+                        />
+                        {loginForm.formState.errors.email && (
+                          <p className="text-sm text-destructive">
+                            {loginForm.formState.errors.email.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="login-password">
+                          {language === 'ko' && '비밀번호'}
+                          {language === 'en' && 'Password'}
+                          {language === 'zh' && '密码'}
+                          {language === 'ja' && 'パスワード'}
+                        </Label>
+                        <Input
+                          id="login-password"
+                          type="password"
+                          {...loginForm.register("password")}
+                        />
+                        {loginForm.formState.errors.password && (
+                          <p className="text-sm text-destructive">
+                            {loginForm.formState.errors.password.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="submit"
+                          className="flex-1"
+                          disabled={loginMutation.isPending}
+                        >
+                          {loginMutation.isPending
+                            ? (language === 'ko' ? '로그인 중...' : 'Logging in...')
+                            : (language === 'ko' ? '로그인' : 'Login')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setLoginDialogOpen(false);
+                            setRegisterDialogOpen(true);
+                          }}
+                        >
+                          {language === 'ko' && '회원가입'}
+                          {language === 'en' && 'Sign up'}
+                          {language === 'zh' && '注册'}
+                          {language === 'ja' && '新規登録'}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* 이메일 회원가입 버튼 */}
+                <Dialog open={registerDialogOpen} onOpenChange={setRegisterDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      size="lg" 
+                      variant="outline"
+                      className="w-full text-lg h-16 border-2 border-secondary/50 text-foreground font-bold rounded-full shadow-lg hover:shadow-2xl transition-all active-elevate-2"
+                    >
+                      <Mail className="h-5 w-5 mr-2" />
+                      {language === 'ko' && '이메일로 회원가입'}
+                      {language === 'en' && 'Sign up with Email'}
+                      {language === 'zh' && '使用邮箱注册'}
+                      {language === 'ja' && 'メールで新規登録'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {language === 'ko' && '회원가입'}
+                        {language === 'en' && 'Sign up'}
+                        {language === 'zh' && '注册'}
+                        {language === 'ja' && '新規登録'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {language === 'ko' && '새 계정을 만들어보세요'}
+                        {language === 'en' && 'Create a new account'}
+                        {language === 'zh' && '创建新账户'}
+                        {language === 'ja' && '新しいアカウントを作成'}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form
+                      onSubmit={registerForm.handleSubmit((data) => registerMutation.mutate(data))}
+                      className="space-y-4"
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor="register-email">
+                          {language === 'ko' && '이메일'}
+                          {language === 'en' && 'Email'}
+                          {language === 'zh' && '邮箱'}
+                          {language === 'ja' && 'メールアドレス'}
+                        </Label>
+                        <Input
+                          id="register-email"
+                          type="email"
+                          placeholder="example@email.com"
+                          {...registerForm.register("email")}
+                        />
+                        {registerForm.formState.errors.email && (
+                          <p className="text-sm text-destructive">
+                            {registerForm.formState.errors.email.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="register-password">
+                          {language === 'ko' && '비밀번호'}
+                          {language === 'en' && 'Password'}
+                          {language === 'zh' && '密码'}
+                          {language === 'ja' && 'パスワード'}
+                        </Label>
+                        <Input
+                          id="register-password"
+                          type="password"
+                          placeholder={language === 'ko' ? '최소 6자 이상' : 'At least 6 characters'}
+                          {...registerForm.register("password")}
+                        />
+                        {registerForm.formState.errors.password && (
+                          <p className="text-sm text-destructive">
+                            {registerForm.formState.errors.password.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="register-firstName">
+                          {language === 'ko' && '이름'}
+                          {language === 'en' && 'Name'}
+                          {language === 'zh' && '姓名'}
+                          {language === 'ja' && '名前'}
+                        </Label>
+                        <Input
+                          id="register-firstName"
+                          type="text"
+                          {...registerForm.register("firstName")}
+                        />
+                        {registerForm.formState.errors.firstName && (
+                          <p className="text-sm text-destructive">
+                            {registerForm.formState.errors.firstName.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="submit"
+                          className="flex-1"
+                          disabled={registerMutation.isPending}
+                        >
+                          {registerMutation.isPending
+                            ? (language === 'ko' ? '가입 중...' : 'Signing up...')
+                            : (language === 'ko' ? '회원가입' : 'Sign up')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setRegisterDialogOpen(false);
+                            setLoginDialogOpen(true);
+                          }}
+                        >
+                          {language === 'ko' && '로그인'}
+                          {language === 'en' && 'Login'}
+                          {language === 'zh' && '登录'}
+                          {language === 'ja' && 'ログイン'}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">
+                      {language === 'ko' && '또는'}
+                      {language === 'en' && 'OR'}
+                      {language === 'zh' && '或'}
+                      {language === 'ja' && 'または'}
+                    </span>
+                  </div>
+                </div>
+
                 <Button 
                   size="lg" 
                   className="w-full text-lg h-16 bg-white dark:bg-gray-100 border-2 border-gray-300 text-black font-bold rounded-full shadow-lg hover:shadow-2xl transition-all active-elevate-2"

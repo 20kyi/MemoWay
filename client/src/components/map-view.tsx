@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Navigation, Search, X, Send, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, User, Lock, Unlock } from "lucide-react";
+import { Search, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, Lock, Unlock } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -368,30 +368,66 @@ export function MapView({
   // Initialize map only once
   useEffect(() => {
     if (!mapRef.current) return;
+    
+    // 이미 지도가 초기화되었으면 무시
+    if (map) return;
+
+    let isMounted = true; // 컴포넌트가 마운트되어 있는지 확인
 
     loadKakaoMaps()
       .then(() => {
-        if (!mapRef.current || !window.kakao?.maps) return;
+        // 컴포넌트가 언마운트되었거나 이미 지도가 있으면 무시
+        if (!isMounted || !mapRef.current || !window.kakao?.maps || map) {
+          return;
+        }
 
         const container = mapRef.current;
+        if (!container) return;
+
         const options = {
           center: new window.kakao.maps.LatLng(37.5665, 126.9780),
           level: 3,
+          draggable: true, // 지도 드래그 활성화
+          scrollwheel: true, // 마우스 휠 줌 활성화
+          disableDoubleClick: false, // 더블클릭 줌 활성화
+          disableDoubleClickZoom: false, // 더블클릭 줌 활성화
         };
 
-        const kakaoMap = new window.kakao.maps.Map(container, options);
-        setMap(kakaoMap);
-        
-        // Notify parent that map is ready
-        if (onMapReady) {
-          onMapReady(kakaoMap);
+        try {
+          const kakaoMap = new window.kakao.maps.Map(container, options);
+          
+          // 다시 한 번 마운트 상태 확인
+          if (!isMounted) {
+            return;
+          }
+          
+          setMap(kakaoMap);
+          
+          // 모바일 터치 이벤트 지원을 위한 추가 설정
+          container.style.touchAction = 'pan-x pan-y pinch-zoom';
+          
+          // Notify parent that map is ready
+          if (onMapReady) {
+            onMapReady(kakaoMap);
+          }
+        } catch (error) {
+          console.error("지도 초기화 실패:", error);
+          if (isMounted) {
+            setMapError("지도를 초기화할 수 없습니다. 페이지를 새로고침해주세요.");
+          }
         }
       })
       .catch((error) => {
         console.error("Failed to load Kakao Maps:", error);
-        setMapError("지도를 불러올 수 없습니다. API 키를 확인해주세요.");
+        if (isMounted) {
+          setMapError("지도를 불러올 수 없습니다. API 키를 확인해주세요.");
+        }
       });
-  }, []);
+
+    return () => {
+      isMounted = false; // 컴포넌트 언마운트 시 플래그 설정
+    };
+  }, [map, onMapReady]);
 
   // Auto-move to user location when map first loads
   const hasMovedToUserLocationRef = useRef(false);
@@ -487,17 +523,23 @@ export function MapView({
   // Update marker scale based on zoom level
 
   // Detect user dragging the map and disable location lock
+  const isDraggingRef = useRef(false);
+  
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
 
     const handleDragStart = () => {
+      isDraggingRef.current = true; // 드래그 시작 플래그 설정
       if (isLocationLocked) {
         setIsLocationLocked(false);
       }
     };
 
     const handleDragEnd = () => {
-      // 드래그 종료 처리 (필요시 추가)
+      // 드래그 종료 후 약간의 지연을 두고 플래그 해제 (클릭 이벤트와 충돌 방지)
+      setTimeout(() => {
+        isDraggingRef.current = false;
+      }, 100);
     };
 
     const handleZoomStart = () => {
@@ -528,24 +570,48 @@ export function MapView({
     if (!map || !window.kakao?.maps) return;
 
     const handleMapClick = (mouseEvent: any) => {
+      // 드래그 중이면 클릭 이벤트 무시 (성능 최적화)
+      if (isDraggingRef.current) {
+        return;
+      }
+      
       const latlng = mouseEvent.latLng;
+      if (!latlng) {
+        console.warn('Map click event has no latLng');
+        return;
+      }
       const clickLat = latlng.getLat();
       const clickLng = latlng.getLng();
       
       // 지도 클릭 처리
       // 마커 클릭 이벤트가 먼저 처리되도록 약간의 지연
       setTimeout(() => {
+        // 드래그 중이면 클릭 처리 중단
+        if (isDraggingRef.current) {
+          return;
+        }
         // 마커 위치와 클릭 위치 비교 (더 정확한 거리 계산)
         const clickPosition = new window.kakao.maps.LatLng(clickLat, clickLng);
         const clickedMarker = markers.find(marker => {
           if (!marker.overlay) return false;
-          const markerPosition = marker.overlay.getPosition();
-          const distance = Math.sqrt(
-            Math.pow(clickPosition.getLat() - markerPosition.getLat(), 2) +
-            Math.pow(clickPosition.getLng() - markerPosition.getLng(), 2)
-          );
-          // 마커 크기를 고려하여 더 넓은 범위로 감지 (약 50m)
-          return distance < 0.0005;
+          try {
+            const markerPosition = marker.overlay.getPosition();
+            if (!markerPosition) return false;
+            // getLat, getLng 메서드가 존재하는지 확인
+            if (typeof markerPosition.getLat !== 'function' || typeof markerPosition.getLng !== 'function') {
+              return false;
+            }
+            const distance = Math.sqrt(
+              Math.pow(clickPosition.getLat() - markerPosition.getLat(), 2) +
+              Math.pow(clickPosition.getLng() - markerPosition.getLng(), 2)
+            );
+            // 마커 크기를 고려하여 더 넓은 범위로 감지 (약 50m)
+            return distance < 0.0005;
+          } catch (error) {
+            // 마커 위치를 가져오는 중 오류 발생 시 무시
+            console.warn('Error getting marker position:', error);
+            return false;
+          }
         });
 
         if (clickedMarker) {
@@ -735,6 +801,13 @@ export function MapView({
     const clusters = groupMemosByLocation(filteredMemos);
     
     const newMarkers = clusters.map(cluster => {
+      // 좌표 유효성 검사
+      if (typeof cluster.lat !== 'number' || typeof cluster.lng !== 'number' || 
+          isNaN(cluster.lat) || isNaN(cluster.lng) ||
+          !isFinite(cluster.lat) || !isFinite(cluster.lng)) {
+        console.warn('Invalid cluster coordinates:', cluster);
+        return null;
+      }
       const position = new window.kakao.maps.LatLng(cluster.lat, cluster.lng);
       
       const isSingleMemo = cluster.memos.length === 1;
@@ -786,9 +859,20 @@ export function MapView({
       contentDiv.style.userSelect = 'none';
       contentDiv.style.zIndex = '10000';
       contentDiv.style.position = 'relative';
+      // 모바일 터치 이벤트: 마커 클릭만 처리하고 드래그는 지도로 전파
+      contentDiv.style.touchAction = 'manipulation'; // 터치 드래그는 지도로 전파
+      
+      // 드래그와 클릭 구분을 위한 변수
+      let isDragging = false;
+      const DRAG_THRESHOLD = 5; // 5px 이상 움직이면 드래그로 간주
       
       // 마커 클릭 핸들러
       const handleMarkerClick = (e: MouseEvent) => {
+        // 드래그인 경우 클릭 처리하지 않음
+        if (isDragging) {
+          return;
+        }
+        
         console.log('🎯 마커 클릭 핸들러 호출됨', { 
           isSingleMemo, 
           memoId: isSingleMemo ? memo.id : cluster.memos.map(m => m.id),
@@ -820,36 +904,138 @@ export function MapView({
         }
       };
       
-      // 클릭 핸들러 (이벤트 전파 방지)
+      // 드래그와 클릭 구분을 위한 핸들러 (마우스 + 터치 지원)
+      // 성능 최적화: throttle 적용
+      let mouseDownX = 0;
+      let mouseDownY = 0;
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let lastMoveTime = 0;
+      const MOVE_THROTTLE = 16; // ~60fps (16ms)
+      
+      const mouseDownHandler = (event: MouseEvent) => {
+        mouseDownX = event.clientX;
+        mouseDownY = event.clientY;
+        isDragging = false;
+      };
+      
+      const mouseMoveHandler = (event: MouseEvent) => {
+        // 성능 최적화: throttle 적용
+        const now = Date.now();
+        if (now - lastMoveTime < MOVE_THROTTLE) {
+          return;
+        }
+        lastMoveTime = now;
+        
+        const deltaX = Math.abs(event.clientX - mouseDownX);
+        const deltaY = Math.abs(event.clientY - mouseDownY);
+        if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+          isDragging = true;
+        }
+      };
+      
+      // 터치 이벤트 핸들러 (모바일 지원)
+      const touchStartHandler = (event: TouchEvent) => {
+        if (event.touches.length === 1) {
+          touchStartX = event.touches[0].clientX;
+          touchStartY = event.touches[0].clientY;
+          isDragging = false;
+          lastMoveTime = Date.now();
+        } else {
+          // 멀티터치(핀치 줌 등)는 지도로 전파
+          isDragging = true;
+        }
+      };
+      
+      const touchMoveHandler = (event: TouchEvent) => {
+        // 성능 최적화: throttle 적용
+        const now = Date.now();
+        if (now - lastMoveTime < MOVE_THROTTLE) {
+          return;
+        }
+        lastMoveTime = now;
+        
+        if (event.touches.length === 1) {
+          const deltaX = Math.abs(event.touches[0].clientX - touchStartX);
+          const deltaY = Math.abs(event.touches[0].clientY - touchStartY);
+          if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+            isDragging = true;
+            // 드래그 중이면 이벤트 전파하여 지도가 드래그되도록 함
+            event.stopPropagation();
+          }
+        } else {
+          // 멀티터치는 지도로 전파
+          isDragging = true;
+        }
+      };
+      
+      const touchEndHandler = (event: TouchEvent) => {
+        // 드래그가 아닌 경우에만 클릭 처리
+        if (!isDragging && event.changedTouches.length === 1) {
+          console.log('👆 마커 터치 클릭 이벤트 발생', event);
+          event.stopPropagation();
+          event.preventDefault();
+          handleMarkerClick(event as any);
+        }
+        // 리셋
+        isDragging = false;
+      };
+      
       const clickHandler = (event: MouseEvent) => {
-        console.log('🖱️ 마커 클릭 이벤트 발생', event);
-        event.stopPropagation();
-        event.preventDefault();
-        event.cancelBubble = true;
-        handleMarkerClick(event);
+        // 드래그가 아닌 경우에만 클릭 처리
+        if (!isDragging) {
+          console.log('🖱️ 마커 클릭 이벤트 발생', event);
+          event.stopPropagation();
+          event.preventDefault();
+          event.cancelBubble = true;
+          handleMarkerClick(event);
+        }
+        // 리셋
+        isDragging = false;
       };
       
       // innerHTML 설정 후 즉시 최상위 div를 찾아서 이벤트 등록
       const topDiv = contentDiv.firstElementChild as HTMLElement;
       if (topDiv) {
+        // 마우스 이벤트
+        topDiv.addEventListener('mousedown', mouseDownHandler);
+        topDiv.addEventListener('mousemove', mouseMoveHandler);
         topDiv.addEventListener('click', clickHandler, true);
         topDiv.addEventListener('click', clickHandler, false);
+        // 터치 이벤트 (모바일 지원)
+        topDiv.addEventListener('touchstart', touchStartHandler, { passive: true });
+        topDiv.addEventListener('touchmove', touchMoveHandler, { passive: true });
+        topDiv.addEventListener('touchend', touchEndHandler, { passive: false });
         // 최상위 div에도 스타일 설정
         topDiv.style.cursor = 'pointer';
         topDiv.style.pointerEvents = 'auto';
+        topDiv.style.touchAction = 'manipulation';
       }
       
       // contentDiv에도 이벤트 등록
+      contentDiv.addEventListener('mousedown', mouseDownHandler);
+      contentDiv.addEventListener('mousemove', mouseMoveHandler);
       contentDiv.addEventListener('click', clickHandler, true);
       contentDiv.addEventListener('click', clickHandler, false);
+      // 터치 이벤트
+      contentDiv.addEventListener('touchstart', touchStartHandler, { passive: true });
+      contentDiv.addEventListener('touchmove', touchMoveHandler, { passive: true });
+      contentDiv.addEventListener('touchend', touchEndHandler, { passive: false });
       
       // data-click-area div에도 이벤트 등록
       const clickArea = contentDiv.querySelector('[data-click-area="true"]') as HTMLElement;
       if (clickArea) {
+        clickArea.addEventListener('mousedown', mouseDownHandler);
+        clickArea.addEventListener('mousemove', mouseMoveHandler);
         clickArea.addEventListener('click', clickHandler, true);
         clickArea.addEventListener('click', clickHandler, false);
+        // 터치 이벤트
+        clickArea.addEventListener('touchstart', touchStartHandler, { passive: true });
+        clickArea.addEventListener('touchmove', touchMoveHandler, { passive: true });
+        clickArea.addEventListener('touchend', touchEndHandler, { passive: false });
         clickArea.style.pointerEvents = 'auto';
         clickArea.style.cursor = 'pointer';
+        clickArea.style.touchAction = 'manipulation';
       }
       
       const customOverlay = new window.kakao.maps.CustomOverlay({
@@ -875,46 +1061,37 @@ export function MapView({
       // setMap 후에도 한 번 더 확인하여 이벤트 등록 (이중 보험)
       requestAnimationFrame(() => {
         const topDivAfter = contentDiv.firstElementChild as HTMLElement;
-        if (topDivAfter && !topDivAfter.onclick) {
+        if (topDivAfter) {
+          topDivAfter.addEventListener('mousedown', mouseDownHandler);
+          topDivAfter.addEventListener('mousemove', mouseMoveHandler);
           topDivAfter.addEventListener('click', clickHandler, true);
           topDivAfter.addEventListener('click', clickHandler, false);
+          topDivAfter.addEventListener('touchstart', touchStartHandler, { passive: true });
+          topDivAfter.addEventListener('touchmove', touchMoveHandler, { passive: true });
+          topDivAfter.addEventListener('touchend', touchEndHandler, { passive: false });
         }
         
         const clickAreaAfter = contentDiv.querySelector('[data-click-area="true"]') as HTMLElement;
         if (clickAreaAfter) {
+          clickAreaAfter.addEventListener('mousedown', mouseDownHandler);
+          clickAreaAfter.addEventListener('mousemove', mouseMoveHandler);
           clickAreaAfter.addEventListener('click', clickHandler, true);
           clickAreaAfter.addEventListener('click', clickHandler, false);
+          clickAreaAfter.addEventListener('touchstart', touchStartHandler, { passive: true });
+          clickAreaAfter.addEventListener('touchmove', touchMoveHandler, { passive: true });
+          clickAreaAfter.addEventListener('touchend', touchEndHandler, { passive: false });
         }
       });
       
       return markerObj;
-    });
+    }).filter((marker): marker is NonNullable<typeof marker> => marker !== null);
 
     setMarkers(newMarkers);
 
     return () => {
       newMarkers.forEach(marker => {
-        if (marker.overlay) {
-          if (marker.handler) {
-            // 최상위 div에서 이벤트 제거
-            if (marker.topDiv && marker.handler) {
-              marker.topDiv.removeEventListener('click', marker.handler, true);
-              marker.topDiv.removeEventListener('click', marker.handler, false);
-            }
-            
-            // contentDiv에서 이벤트 제거
-            if (marker.contentDiv && marker.handler) {
-              marker.contentDiv.removeEventListener('click', marker.handler, true);
-              marker.contentDiv.removeEventListener('click', marker.handler, false);
-              
-              // 내부의 data-click-area div에서도 제거
-              const clickArea = marker.contentDiv.querySelector('[data-click-area="true"]') as HTMLElement;
-              if (clickArea && marker.handler) {
-                clickArea.removeEventListener('click', marker.handler, true);
-                clickArea.removeEventListener('click', marker.handler, false);
-              }
-            }
-          }
+        if (marker && marker.overlay) {
+          // overlay를 제거하면 자동으로 모든 이벤트 리스너가 정리됨
           marker.overlay.setMap(null);
         }
       });
@@ -1080,6 +1257,14 @@ export function MapView({
       setIsSearching(false);
 
       if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
+        if (!result || result.length === 0 || !result[0] || result[0].x === undefined || result[0].y === undefined) {
+          toast({
+            title: "오류",
+            description: "주소를 찾을 수 없습니다",
+            variant: "destructive",
+          });
+          return;
+        }
         const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
         
         // Remove previous search marker if exists

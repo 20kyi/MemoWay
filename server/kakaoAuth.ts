@@ -1,4 +1,4 @@
-import type { Express, RequestHandler } from "express";
+import type { Express } from "express";
 import { storage } from "./storage";
 import { randomBytes } from "crypto";
 
@@ -40,17 +40,63 @@ export function setupKakaoAuth(app: Express) {
   const clientId = process.env.KAKAO_CLIENT_ID;
   const clientSecret = process.env.KAKAO_CLIENT_SECRET;
   // Support multiple hosting options:
+  // - APP_DOMAIN: Custom domain (e.g., https://memoway.replit.app, yourdomain.com)
   // - REPLIT_DEV_DOMAIN: Replit dev domain
-  // - APP_DOMAIN: Custom domain (e.g., yourdomain.com, app.vercel.app)
+  // - REPL_SLUG: Replit app name (auto-detect published domain: https://{REPL_SLUG}.replit.app)
   // - HOST: Fallback host
   // - req.get('host'): Auto-detect from request
-  const appDomain = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN;
-  const useHttps = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : (!!process.env.REPLIT_DEV_DOMAIN);
+  // For local development (NODE_ENV=development and no domain env vars), always use localhost:5000
+  
+  // Replit published domain auto-detection
+  let detectedReplitDomain: string | undefined;
+  if (process.env.REPL_SLUG && !process.env.APP_DOMAIN && !process.env.REPLIT_DEV_DOMAIN) {
+    detectedReplitDomain = `https://${process.env.REPL_SLUG}.replit.app`;
+  }
+  
+  const isLocalDev = process.env.NODE_ENV === 'development' && 
+                     !process.env.APP_DOMAIN && 
+                     !process.env.REPLIT_DEV_DOMAIN &&
+                     !detectedReplitDomain;
+  const appDomain = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN || detectedReplitDomain;
+  const useHttps = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : 
+                    (!!process.env.REPLIT_DEV_DOMAIN || !!detectedReplitDomain);
+  
+  // Log configuration status
+  console.log('=== Kakao OAuth Configuration ===');
+  console.log('KAKAO_CLIENT_ID:', clientId ? `${clientId.substring(0, 8)}...` : 'NOT SET');
+  console.log('KAKAO_CLIENT_SECRET:', clientSecret ? 'SET' : 'NOT SET');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('isLocalDev:', isLocalDev);
+  console.log('APP_DOMAIN:', appDomain || 'NOT SET');
+  console.log('REPLIT_DEV_DOMAIN:', process.env.REPLIT_DEV_DOMAIN || 'NOT SET');
+  console.log('REPL_SLUG:', process.env.REPL_SLUG || 'NOT SET');
+  console.log('Detected Replit Domain:', detectedReplitDomain || 'NOT SET');
+  console.log('useHttps:', useHttps);
+  console.log('===================================');
   
   if (!clientId || !clientSecret) {
-    console.warn("Kakao OAuth credentials not configured. Kakao login will be unavailable.");
+    console.error("❌ Kakao OAuth credentials not configured. Kakao login will be unavailable.");
+    console.error("   Please set KAKAO_CLIENT_ID and KAKAO_CLIENT_SECRET in .env file");
     return;
   }
+  
+  console.log("✅ Kakao OAuth configured successfully");
+  
+  // Add health check endpoint for debugging
+  app.get("/api/kakao/health", (_req, res) => {
+    const expectedRedirectUri = isLocalDev 
+      ? 'http://localhost:5000/api/kakao/callback'
+      : `${useHttps ? 'https' : 'http'}://${appDomain || 'unknown'}/api/kakao/callback`;
+    
+    res.json({
+      configured: !!(clientId && clientSecret),
+      hasClientId: !!clientId,
+      hasClientSecret: !!clientSecret,
+      isLocalDev,
+      expectedRedirectUri,
+      nodeEnv: process.env.NODE_ENV,
+    });
+  });
 
   // Kakao login initiation
   app.get("/api/kakao/login", (req, res) => {
@@ -70,12 +116,45 @@ export function setupKakaoAuth(app: Express) {
     (req.session as any).kakaoState = state;
     
     // Determine host and protocol
-    // Priority: APP_DOMAIN > REPLIT_DEV_DOMAIN > request host > HOST env > localhost
-    const host = appDomain || req.get('host') || process.env.HOST || 'localhost:5000';
-    const protocol = useHttps ? 'https' : (req.protocol || 'http');
+    // For local development, always use localhost:5000 to ensure consistency with Kakao Developer Console
+    let host: string;
+    let protocol: string;
+    
+    if (isLocalDev) {
+      // Local development: always use localhost:5000
+      host = 'localhost:5000';
+      protocol = 'http';
+    } else {
+      // Production/Replit: use configured domain or detect from request
+      // If appDomain is a full URL, extract hostname
+      let resolvedHost = appDomain;
+      if (resolvedHost && (resolvedHost.startsWith('http://') || resolvedHost.startsWith('https://'))) {
+        try {
+          const url = new URL(resolvedHost);
+          resolvedHost = url.hostname + (url.port ? `:${url.port}` : '');
+        } catch (e) {
+          // Invalid URL, use as-is
+        }
+      }
+      // Fallback to Replit production domain if no domain is configured
+      host = resolvedHost || process.env.REPLIT_DEV_DOMAIN || 
+             (req.get('host') || process.env.HOST || 'memoway.replit.app');
+      // Use HTTPS for Replit production domain
+      protocol = useHttps || host === 'memoway.replit.app' ? 'https' : (req.protocol || 'http');
+    }
+    
     const redirectUri = `${protocol}://${host}/api/kakao/callback`;
     
     console.log('Kakao OAuth Redirect URI:', redirectUri);
+    console.log('Kakao OAuth - Request details:', {
+      isLocalDev,
+      host: req.get('host'),
+      protocol: req.protocol,
+      appDomain,
+      resolvedHost: host,
+      resolvedProtocol: protocol,
+      NODE_ENV: process.env.NODE_ENV
+    });
     
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
     
@@ -135,11 +214,35 @@ export function setupKakaoAuth(app: Express) {
 
   // Kakao OAuth callback
   app.get("/api/kakao/callback", async (req, res) => {
+    console.log('=== Kakao OAuth Callback Received ===');
+    console.log('Request URL:', req.url);
+    console.log('Request Host:', req.get('host'));
+    console.log('Request Protocol:', req.protocol);
+    console.log('Query params:', { 
+      code: req.query.code ? 'present' : 'missing', 
+      state: req.query.state ? 'present' : 'missing',
+      error: req.query.error || 'none',
+      error_description: req.query.error_description || 'none'
+    });
+    
+    // Check for OAuth errors
+    if (req.query.error) {
+      console.error('Kakao OAuth error:', req.query.error);
+      console.error('Error description:', req.query.error_description || 'No description');
+      return res.redirect(`/?error=oauth_failed&provider=kakao&message=${encodeURIComponent(req.query.error_description as string || req.query.error as string)}`);
+    }
+    
     const { code, state } = req.query;
 
     // Verify CSRF state token
     const sessionState = (req.session as any).kakaoState;
+    console.log('Session state:', sessionState ? 'present' : 'missing');
+    console.log('Request state:', state ? 'present' : 'missing');
+    
     if (!state || state !== sessionState) {
+      console.error('❌ State mismatch - possible CSRF attack or session expired');
+      console.error('   Session state:', sessionState);
+      console.error('   Request state:', state);
       return res.status(403).json({ error: "Invalid state parameter - possible CSRF attack" });
     }
     
@@ -161,16 +264,56 @@ export function setupKakaoAuth(app: Express) {
       return res.status(400).json({ error: "Authorization code is missing" });
     }
 
+    // Determine redirect URI before try block so it's available in catch block
+    let host: string;
+    let protocol: string;
+    
+    if (isLocalDev) {
+      // Local development: always use localhost:5000
+      host = 'localhost:5000';
+      protocol = 'http';
+    } else {
+      // Production/Replit: use configured domain or detect from request
+      // Re-detect Replit domain in callback (same logic as above)
+      let detectedReplitDomain: string | undefined;
+      if (process.env.REPL_SLUG && !process.env.APP_DOMAIN && !process.env.REPLIT_DEV_DOMAIN) {
+        detectedReplitDomain = `https://${process.env.REPL_SLUG}.replit.app`;
+      }
+      const appDomainCallback = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN || detectedReplitDomain;
+      const useHttpsCallback = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : 
+                                (!!process.env.REPLIT_DEV_DOMAIN || !!detectedReplitDomain);
+      
+      // If appDomain is a full URL, extract hostname
+      let resolvedHost = appDomainCallback;
+      if (resolvedHost && (resolvedHost.startsWith('http://') || resolvedHost.startsWith('https://'))) {
+        try {
+          const url = new URL(resolvedHost);
+          resolvedHost = url.hostname + (url.port ? `:${url.port}` : '');
+        } catch (e) {
+          // Invalid URL, use as-is
+        }
+      }
+      // Fallback to Replit production domain if no domain is configured
+      host = resolvedHost || 
+             (req.get('host') || process.env.HOST || 'memoway.replit.app');
+      // Use HTTPS for Replit production domain
+      protocol = useHttpsCallback || host === 'memoway.replit.app' ? 'https' : (req.protocol || 'http');
+    }
+    
+    const redirectUri = `${protocol}://${host}/api/kakao/callback`;
+
     try {
       // Exchange code for access token (must match the redirect_uri used in authorization request)
-      // Use same logic as login initiation
-      const appDomain = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN;
-      const useHttps = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : (!!process.env.REPLIT_DEV_DOMAIN);
-      const host = appDomain || req.get('host') || process.env.HOST || 'localhost:5000';
-      const protocol = useHttps ? 'https' : (req.protocol || 'http');
-      const redirectUri = `${protocol}://${host}/api/kakao/callback`;
       
       console.log('Token exchange with Redirect URI:', redirectUri);
+      console.log('Token exchange - Request details:', {
+        isLocalDev,
+        host: req.get('host'),
+        protocol: req.protocol,
+        resolvedHost: host,
+        resolvedProtocol: protocol,
+        NODE_ENV: process.env.NODE_ENV
+      });
       
       const tokenResponse = await fetch("https://kauth.kakao.com/oauth/token", {
         method: "POST",
@@ -189,7 +332,20 @@ export function setupKakaoAuth(app: Express) {
       if (!tokenResponse.ok) {
         const error = await tokenResponse.text();
         console.error("Kakao token exchange failed:", error);
-        return res.status(500).json({ error: "Failed to exchange authorization code" });
+        console.error("Token exchange details:", {
+          status: tokenResponse.status,
+          statusText: tokenResponse.statusText,
+          redirectUri,
+          hasCode: !!code,
+          hasClientId: !!clientId,
+          hasClientSecret: !!clientSecret,
+        });
+        return res.status(500).json({ 
+          error: "Failed to exchange authorization code",
+          details: error,
+          redirectUri: redirectUri,
+          hint: "Check if the redirect URI matches the one registered in Kakao Developer Console"
+        });
       }
 
       const tokenData: KakaoTokenResponse = await tokenResponse.json();
@@ -269,7 +425,23 @@ export function setupKakaoAuth(app: Express) {
       );
     } catch (error) {
       console.error("Kakao OAuth error:", error);
-      res.status(500).json({ error: "Kakao OAuth failed" });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error("Kakao OAuth error details:", {
+        message: errorMessage,
+        stack: errorStack,
+        redirectUri,
+        host,
+        protocol,
+        hasClientId: !!clientId,
+        hasClientSecret: !!clientSecret,
+      });
+      res.status(500).json({ 
+        error: "Kakao OAuth failed",
+        details: errorMessage,
+        // 개발 환경에서만 상세 정보 제공
+        ...(process.env.NODE_ENV === 'development' && { stack: errorStack })
+      });
     }
   });
 

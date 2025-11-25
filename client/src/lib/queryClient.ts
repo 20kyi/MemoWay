@@ -1,40 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-
-// API 베이스 URL 가져오기
-function getApiBaseUrl(): string {
-  // Capacitor 네이티브 환경 감지
-  const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
-  
-  console.log('getApiBaseUrl - isNativePlatform:', isNativePlatform);
-  
-  if (isNativePlatform) {
-    // Capacitor 네이티브 환경: Replit 배포 URL 사용
-    const replitUrl = import.meta.env.VITE_REPLIT_URL;
-    
-    console.log('getApiBaseUrl - VITE_REPLIT_URL:', replitUrl);
-    
-    if (!replitUrl) {
-      console.error('VITE_REPLIT_URL is not configured. API requests will fail in native app.');
-      // 폴백으로 빈 문자열 반환 (요청이 실패하면 에러 처리)
-      return '';
-    }
-    
-    // URL 정규화 (trailing slash 제거)
-    try {
-      const url = new URL(replitUrl);
-      const baseUrl = url.origin + url.pathname.replace(/\/$/, '');
-      console.log('getApiBaseUrl - resolved base URL:', baseUrl);
-      return baseUrl;
-    } catch (error) {
-      console.error('Invalid VITE_REPLIT_URL:', replitUrl, error);
-      return '';
-    }
-  }
-  
-  // 웹 브라우저 환경: 상대 경로 사용
-  console.log('getApiBaseUrl - using relative paths (web browser)');
-  return '';
-}
+import { getApiBaseUrl } from "./api-config";
 
 class ApiError extends Error {
   status: number;
@@ -132,17 +97,21 @@ export const getQueryFn: <T>(options: {
       await throwIfResNotOk(res);
       return await res.json();
     } catch (error: any) {
-      // 네트워크 에러나 기타 에러 처리
-      console.error('API request failed:', error);
+      // 네트워크 에러와 인증 실패 구분
+      if (error instanceof TypeError && (error.message.includes('fetch') || error.message.includes('Failed to fetch'))) {
+        // 네트워크 에러 (연결 실패, DNS 오류 등)
+        console.error('Network error:', error);
+        // 네트워크 에러는 status 0으로 표시하여 구분
+        const networkError = new ApiError(0, 'Network error: Unable to connect to server');
+        if (unauthorizedBehavior === "returnNull") {
+          // 네트워크 에러는 null 반환하지 않고 에러 던지기 (사용자에게 알림 필요)
+          throw networkError;
+        }
+        throw networkError;
+      }
       
       // 401 에러이고 returnNull이면 null 반환
       if (error.status === 401 && unauthorizedBehavior === "returnNull") {
-        return null;
-      }
-      
-      // 네트워크 에러도 returnNull이면 null 반환 (로그인 화면 표시)
-      if (unauthorizedBehavior === "returnNull") {
-        console.warn('Returning null due to error (will show login screen)');
         return null;
       }
       
@@ -160,9 +129,12 @@ export const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5분간 캐시 유지 (불필요한 재요청 방지)
       gcTime: 10 * 60 * 1000, // 10분간 캐시 보관 (구 cacheTime)
       retry: false,
+      // 네트워크가 느릴 때도 빠른 응답을 위해 타임아웃 설정
+      networkMode: 'online',
     },
     mutations: {
       retry: false,
+      networkMode: 'online',
     },
   },
 });

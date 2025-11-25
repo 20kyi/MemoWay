@@ -19,7 +19,7 @@ import {
   type GroupWithMembers,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, count } from "drizzle-orm";
+import { eq, and, count, inArray, or, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // Users (required for Replit Auth)
@@ -70,13 +70,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    // Remove undefined values and passwordHash for OAuth users
+    const cleanedData = Object.fromEntries(
+      Object.entries(userData).filter(([_, v]) => v !== undefined)
+    );
+    
+    // For OAuth users (kakao, google), don't include passwordHash
+    if (cleanedData.provider && cleanedData.provider !== 'email') {
+      delete cleanedData.passwordHash;
+    }
+    
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values(cleanedData)
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          ...userData,
+          ...cleanedData,
           updatedAt: new Date(),
         },
       })
@@ -102,9 +112,14 @@ export class DatabaseStorage implements IStorage {
     
     const [updatedUser] = await db
       .update(users)
-      .set({ points: user.points + amount })
+      .set({ 
+        points: user.points + amount,
+        updatedAt: new Date(), // updatedAt도 함께 업데이트
+      })
       .where(eq(users.id, userId))
       .returning();
+    
+    console.log(`[Points] Added ${amount} points to user ${userId}. New total: ${updatedUser.points}`);
     
     return updatedUser;
   }
@@ -143,21 +158,24 @@ export class DatabaseStorage implements IStorage {
       },
     });
     
-    // Get memo counts for each group
-    const memoCounts = await Promise.all(
-      userGroups.map(async (group) => {
-        const result = await db
-          .select({ count: count() })
-          .from(memos)
-          .where(eq(memos.groupId, group.id));
-        return { groupId: group.id, count: result[0]?.count || 0 };
+    // Get memo counts for all groups in one query (성능 최적화)
+    const memoCountsResults = await db
+      .select({ 
+        groupId: memos.groupId, 
+        count: count() 
       })
+      .from(memos)
+      .where(inArray(memos.groupId, groupIds))
+      .groupBy(memos.groupId);
+    
+    const memoCountsMap = new Map(
+      memoCountsResults.map(r => [r.groupId, Number(r.count)])
     );
     
     // Add memoCount to each group
     const groupsWithMemoCounts = userGroups.map((group) => ({
       ...group,
-      memoCount: memoCounts.find(mc => mc.groupId === group.id)?.count || 0,
+      memoCount: memoCountsMap.get(group.id) || 0,
     }));
     
     return groupsWithMemoCounts;
@@ -307,30 +325,29 @@ export class DatabaseStorage implements IStorage {
     const memberIds = userMembers.map(m => m.id);
     const groupIds = userMembers.map(m => m.groupId);
     
-    // 2. 모든 메모 조회
-    const allMemos = await db.query.memos.findMany({
+    // 2. SQL WHERE 절로 필요한 메모만 직접 조회 (성능 최적화)
+    // - 사용자가 속한 그룹의 모든 메모 (groupId IN groupIds)
+    // - 또는 사용자가 직접 작성한 개인 메모 (groupId IS NULL AND memberId IN memberIds)
+    const whereConditions = [];
+    if (groupIds.length > 0) {
+      whereConditions.push(inArray(memos.groupId, groupIds));
+    }
+    if (memberIds.length > 0) {
+      whereConditions.push(and(
+        isNull(memos.groupId),
+        inArray(memos.memberId, memberIds)
+      ));
+    }
+    
+    const userMemos = whereConditions.length > 0 ? await db.query.memos.findMany({
+      where: or(...whereConditions),
       with: {
         photos: true,
         member: true,
         editorMember: true,
         group: true,
       },
-    });
-    
-    // 3. 사용자가 볼 수 있는 메모만 필터링
-    // - 사용자가 속한 그룹의 모든 메모 (다른 멤버가 작성한 것 포함)
-    // - 또는 사용자가 직접 작성한 개인 메모 (groupId가 null인 경우)
-    const userMemos = allMemos.filter(memo => {
-      // 그룹 메모: 사용자가 속한 그룹의 메모
-      if (memo.groupId && groupIds.includes(memo.groupId)) {
-        return true;
-      }
-      // 개인 메모: groupId가 null이고 사용자가 작성한 메모
-      if (!memo.groupId && memberIds.includes(memo.memberId)) {
-        return true;
-      }
-      return false;
-    });
+    }) : [];
     
     return userMemos;
   }

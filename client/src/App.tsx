@@ -19,54 +19,52 @@ const Landing = lazy(() => import("@/pages/landing"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, networkError } = useAuth();
   const { setLanguage } = useLanguage();
 
   // Handle Deep Link from OAuth callback (Android app)
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      // Listen for app URL open events (Deep Links)
-      CapacitorApp.addListener('appUrlOpen', (data: { url: string }) => {
-        console.log('App opened with URL:', data.url);
+      const handleDeepLink = async (urlString: string) => {
+        console.log('App opened with URL:', urlString);
         
         // Parse Deep Link: com.memoway.app://login?lang=ko
         try {
-          const url = new URL(data.url);
+          const url = new URL(urlString);
           if (url.pathname === '/login') {
             const langParam = url.searchParams.get('lang');
             if (langParam && ['ko', 'en', 'zh', 'ja'].includes(langParam)) {
               setLanguage(langParam as Language);
             }
-            // Navigate to home page (user is already logged in via session)
-            window.location.href = '/';
+            
+            // 인증 상태 확인 및 재요청
+            queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+            
+            // 잠시 대기 후 홈으로 이동 (세션 쿠키가 설정될 시간 확보)
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 300);
           }
         } catch (error) {
           console.error('Failed to parse Deep Link:', error);
         }
+      };
+
+      // Listen for app URL open events (Deep Links)
+      CapacitorApp.addListener('appUrlOpen', (data: { url: string }) => {
+        handleDeepLink(data.url);
       });
 
       // Check initial URL if app was opened via Deep Link
       CapacitorApp.getLaunchUrl().then((ret: { url: string } | undefined) => {
         if (ret?.url) {
-          console.log('App launched with URL:', ret.url);
-          try {
-            const url = new URL(ret.url);
-            if (url.pathname === '/login') {
-              const langParam = url.searchParams.get('lang');
-              if (langParam && ['ko', 'en', 'zh', 'ja'].includes(langParam)) {
-                setLanguage(langParam as Language);
-              }
-              window.location.href = '/';
-            }
-          } catch (error) {
-            console.error('Failed to parse launch URL:', error);
-          }
+          handleDeepLink(ret.url);
         }
       }).catch(() => {
         // No launch URL, app opened normally
       });
     }
-  }, [setLanguage]);
+  }, [setLanguage, queryClient]);
 
   // Check for language parameter in URL and set language (web)
   useEffect(() => {
@@ -102,17 +100,92 @@ function Router() {
     }
   }, [isAuthenticated, user]);
 
+  // 네이티브 앱에서 인증 상태 확인 개선 (세션 쿠키가 설정될 시간 확보)
+  useEffect(() => {
+    if (Capacitor.isNativePlatform() && !isLoading && !isAuthenticated && !user) {
+      // 로그인/회원가입 직후 세션 쿠키가 아직 전달되지 않았을 수 있음
+      // 추가 확인을 위해 짧은 지연 후 재확인 (최대 5번, 더 긴 대기 시간)
+      let retryCount = 0;
+      const maxRetries = 5;
+      
+      const checkAuthAgain = async () => {
+        if (retryCount >= maxRetries) {
+          console.warn('인증 상태 재확인 최대 시도 횟수 초과');
+          return;
+        }
+        
+        try {
+          await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+          const authUser = await queryClient.fetchQuery({
+            queryKey: ["/api/auth/user"],
+            queryFn: getQueryFn({ on401: "returnNull" }),
+            staleTime: 0, // 캐시 무시
+          });
+          
+          if (authUser) {
+            // 인증 성공 - 강제로 홈으로 이동
+            console.log('인증 상태 확인 성공, 홈으로 이동');
+            window.location.href = "/";
+            return;
+          }
+        } catch (error: any) {
+          // 네트워크 에러는 재시도 계속
+          if (error.status === 0) {
+            console.warn(`네트워크 에러로 인증 상태 재확인 실패 (시도 ${retryCount + 1}/${maxRetries}):`, error);
+          } else {
+            console.warn(`인증 상태 재확인 실패 (시도 ${retryCount + 1}/${maxRetries}):`, error);
+          }
+        }
+        
+        retryCount++;
+        if (retryCount < maxRetries) {
+          // 점진적으로 대기 시간 증가 (1초, 2초, 3초, 4초, 5초)
+          setTimeout(checkAuthAgain, retryCount * 1000);
+        }
+      };
+      
+      // 첫 번째 재확인은 2초 후 (쿠키 전파 시간 확보)
+      const timeoutId = setTimeout(checkAuthAgain, 2000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isLoading, isAuthenticated, user, queryClient]);
+
+  // 로그아웃 후 리다이렉트 처리
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('logout') === 'true') {
+      // 로그아웃 상태 명시를 위해 쿼리 파라미터 제거
+      window.history.replaceState({}, '', window.location.pathname);
+      // 인증 상태 쿼리 무효화하여 즉시 랜딩 페이지 표시
+      queryClient.setQueryData(['/api/auth/user'], null);
+    }
+  }, [queryClient]);
+
+  // 네트워크 에러가 있으면 로딩 화면 표시 (인증 실패로 처리하지 않음)
+  // 로그아웃 직후에는 로딩 상태를 false로 설정하여 즉시 랜딩 페이지 표시
+  const params = new URLSearchParams(window.location.search);
+  const isLogoutRedirect = params.get('logout') === 'true';
+  const showLoading = (isLoading || (networkError && !isAuthenticated)) && !isLogoutRedirect;
+  
   return (
     <Suspense fallback={
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/10 to-accent/20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">로딩 중...</p>
+          <p className="text-muted-foreground">
+            {networkError ? "서버에 연결하는 중..." : "로딩 중..."}
+          </p>
+          {networkError && (
+            <p className="text-sm text-destructive mt-2">
+              네트워크 연결을 확인해주세요
+            </p>
+          )}
         </div>
       </div>
     }>
       <Switch>
-        {isLoading || !isAuthenticated ? (
+        {showLoading || !isAuthenticated ? (
           <Route path="/" component={Landing} />
         ) : (
           <>

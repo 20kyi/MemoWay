@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -10,6 +11,42 @@ declare module 'http' {
     rawBody: unknown
   }
 }
+// CORS 설정: 네이티브 앱 및 웹 브라우저 지원
+app.use(cors({
+  origin: (origin, callback) => {
+    // origin이 없으면 (같은 도메인 요청 또는 네이티브 앱) 허용
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // 네이티브 앱 (capacitor://, android-app:// 등) 허용
+    if (origin.startsWith('capacitor://') || 
+        origin.startsWith('android-app://') ||
+        origin.startsWith('ionic://') ||
+        origin.startsWith('file://')) {
+      return callback(null, true);
+    }
+    
+    // 웹 브라우저: Replit 도메인 및 localhost 허용
+    const allowedOrigins = [
+      'https://memoway.replit.app',
+      'http://localhost:5000',
+      'http://127.0.0.1:5000',
+    ];
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // 개발 중에는 모두 허용 (프로덕션에서는 제한 필요)
+    // Replit 환경에서는 모든 origin 허용 (네이티브 앱 호환성)
+    callback(null, true);
+  },
+  credentials: true, // 쿠키 전송 허용
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Set-Cookie'],
+}));
+
 app.use(express.json({
   verify: (req, _res, buf) => {
     req.rawBody = buf;

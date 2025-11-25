@@ -32,6 +32,13 @@ export function getSession() {
   
   const isProduction = process.env.NODE_ENV === "production";
   
+  // Replit 환경 감지: Replit은 항상 HTTPS를 사용하므로 secure 쿠키 필요
+  const isReplit = !!process.env.REPL_ID || !!process.env.REPL_SLUG;
+  const isHttps = isProduction || isReplit || process.env.ENABLE_SECURE_COOKIES === 'true';
+  
+  // 네이티브 앱에서도 쿠키가 작동하도록 설정
+  // sameSite: 'none'은 secure: true와 함께 사용해야 함
+  // 네이티브 앱의 웹뷰에서는 cross-site 쿠키가 필요함
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -39,21 +46,15 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProduction,
+      // 네이티브 앱 지원: HTTPS 스킴 사용 시 secure 필요
+      // Replit 환경에서는 항상 HTTPS이므로 secure 필요
+      secure: isHttps,
       maxAge: sessionTtl,
-      sameSite: isProduction ? "strict" : "lax",
+      // 네이티브 앱에서 웹뷰를 사용할 때 cross-site 쿠키가 필요함
+      // sameSite: 'none'은 secure: true와 함께 사용해야 함
+      sameSite: isHttps ? "none" : "lax",
     },
   });
-}
-
-function updateUserSession(
-  user: any,
-  tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
-) {
-  user.claims = tokens.claims();
-  user.access_token = tokens.access_token;
-  user.refresh_token = tokens.refresh_token;
-  user.expires_at = user.claims?.exp;
 }
 
 async function upsertUser(claims: any) {
@@ -96,7 +97,7 @@ export async function setupAuth(app: Express) {
     try {
       // Handle both object format { id, access_token, ... } and legacy string format
       const userId = typeof sessionData === 'string' ? sessionData : sessionData.id;
-      console.log(`Deserializing user session for ID: ${userId}`);
+      console.log(`Deserializing user session for ID: ${userId}, sessionData:`, JSON.stringify(sessionData));
       
       // Retrieve full user data from database using ID
       const user = await storage.getUser(userId);
@@ -125,6 +126,7 @@ export async function setupAuth(app: Express) {
         userObj.expires_at = sessionData.expires_at;
       }
       
+      console.log(`Deserialized user object for ID: ${userId}, provider: ${user.provider}`);
       cb(null, userObj);
     } catch (error) {
       console.error('Session deserialization error:', error);
@@ -207,20 +209,30 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // 빠른 인증 확인 (세션만 확인)
   if (!req.isAuthenticated() || !req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   const user = req.user as any;
   
+  // Kakao/Google/Email 사용자는 세션만 확인 (DB 조회 생략하여 성능 향상)
+  // 세션에 이미 user 정보가 있으므로 추가 DB 조회 불필요
+  if (user.claims && (user.claims.sub?.startsWith('kakao_') || 
+                      user.claims.sub?.startsWith('google_') || 
+                      user.claims.sub?.startsWith('email_'))) {
+    return next();
+  }
+  
+  // Replit Auth 사용자만 DB 조회 및 토큰 갱신 확인
   // Check if user exists in database to verify session is still valid
   const dbUser = await storage.getUser(user.id);
   if (!dbUser) {
     return res.status(401).json({ message: "Unauthorized" });
   }
   
-  // For Kakao/Google users, no token refresh is needed - just verify user exists
-  if (dbUser.provider === 'kakao' || dbUser.provider === 'google') {
+  // For Kakao/Google/Email users, no token refresh is needed - just verify user exists
+  if (dbUser.provider === 'kakao' || dbUser.provider === 'google' || dbUser.provider === 'email') {
     return next();
   }
   

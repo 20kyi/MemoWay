@@ -72,8 +72,58 @@ export function SettingsView({
     mutationFn: async (amount: number) => {
       return await apiRequest("POST", "/api/points/purchase", { amount });
     },
-    onSuccess: (data, amount) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    onSuccess: async (data, amount) => {
+      console.log('[Points Purchase] Success response:', data);
+      
+      // 응답 데이터로 즉시 캐시 업데이트 (낙관적 업데이트)
+      // 서버에서 전체 사용자 정보를 반환하므로 이를 활용
+      if (data && data.points !== undefined) {
+        // 현재 캐시 데이터 가져오기
+        const currentCache = queryClient.getQueryData(["/api/auth/user"]) as any;
+        
+        // 서버 응답 데이터로 완전한 사용자 객체 구성
+        const updatedUserData = {
+          id: data.id || currentCache?.id,
+          email: data.email || currentCache?.email,
+          firstName: data.firstName || currentCache?.firstName,
+          lastName: data.lastName || currentCache?.lastName,
+          profileImageUrl: data.profileImageUrl || currentCache?.profileImageUrl,
+          points: data.points, // 서버에서 반환한 최신 포인트 (가장 중요!)
+          provider: data.provider || currentCache?.provider,
+        };
+        
+        // 캐시에 즉시 반영 (UI가 즉시 업데이트됨)
+        queryClient.setQueryData(["/api/auth/user"], updatedUserData);
+        
+        console.log('[Points Purchase] ✅ Cache updated immediately:', { 
+          oldPoints: currentCache?.points, 
+          newPoints: data.points,
+          userId: updatedUserData.id
+        });
+        
+        // 백그라운드에서 최신 정보 재요청 (데이터 동기화 보장)
+        // invalidateQueries를 절대 사용하지 않음 (캐시 무효화 방지)
+        // refetchQueries는 기존 캐시를 유지한 채로 업데이트만 수행하므로 안전
+        // 지연 시간을 두어 낙관적 업데이트가 완전히 반영된 후 실행
+        setTimeout(async () => {
+          try {
+            const result = await queryClient.refetchQueries({ 
+              queryKey: ["/api/auth/user"],
+              type: 'active',
+            });
+            console.log('[Points Purchase] ✅ Background refetch completed');
+          } catch (refetchError) {
+            console.error('[Points Purchase] ⚠️ Background refetch error (non-critical):', refetchError);
+            // Refetch 실패해도 낙관적 업데이트로 이미 UI가 업데이트되었으므로 문제없음
+          }
+        }, 1000); // 1초 지연으로 낙관적 업데이트가 완전히 반영된 후 재요청
+      } else {
+        console.error('[Points Purchase] ❌ Response data missing points:', data);
+        // 포인트 정보가 없으면 에러지만, invalidateQueries는 사용하지 않음
+        // 대신 refetchQueries만 사용하여 캐시 무효화 방지
+        queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+      }
+      
       setIsPurchaseDialogOpen(false);
       toast({
         title: t.settings.pointsCharged,
@@ -184,7 +234,7 @@ export function SettingsView({
                 <div>
                   <p className="text-sm text-muted-foreground">{t.settings.currentPointsLabel}</p>
                   <p className="text-2xl font-bold text-amber-600 dark:text-amber-400" data-testid="text-user-points">
-                    {(user as any).points?.toLocaleString() || '0'}
+                    {((user as any)?.points ?? 0).toLocaleString()}
                   </p>
                 </div>
               </div>
