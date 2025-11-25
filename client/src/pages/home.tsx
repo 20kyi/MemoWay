@@ -318,6 +318,20 @@ export default function Home() {
                   selectedGroupIds={selectedGroupIds}
                   onMarkerIconsChange={setSelectedMarkerIcons}
                   onGroupIdsChange={setSelectedGroupIds}
+                  selectedMemo={selectedMemo}
+                  memoDetailOpen={memoDetailOpen}
+                  onEditMemo={handleEditMemo}
+                  onDeleteMemo={(memoId) => {
+                    if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
+                      deleteMemoMutation.mutate(memoId);
+                    }
+                  }}
+                  onAddNewMemo={(location) => {
+                    setMemoDetailOpen(false);
+                    setSelectedMemo(null);
+                    setSelectedLocation(location);
+                    setMemoFormOpen(true);
+                  }}
                 />
               ) : (
                 <GoogleMapView
@@ -345,6 +359,20 @@ export default function Home() {
                   selectedGroupIds={selectedGroupIds}
                   onMarkerIconsChange={setSelectedMarkerIcons}
                   onGroupIdsChange={setSelectedGroupIds}
+                  selectedMemo={selectedMemo}
+                  memoDetailOpen={memoDetailOpen}
+                  onEditMemo={handleEditMemo}
+                  onDeleteMemo={(memoId) => {
+                    if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
+                      deleteMemoMutation.mutate(memoId);
+                    }
+                  }}
+                  onAddNewMemo={(location) => {
+                    setMemoDetailOpen(false);
+                    setSelectedMemo(null);
+                    setSelectedLocation(location);
+                    setMemoFormOpen(true);
+                  }}
                 />
               )}
           </div>
