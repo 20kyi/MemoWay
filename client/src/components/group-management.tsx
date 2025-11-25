@@ -202,9 +202,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
   });
 
   return (
-    <div className="px-3 sm:px-4 py-4 sm:py-6 space-y-4 overflow-y-auto h-full relative">
+    <div className="px-2 sm:px-4 py-3 sm:py-4 space-y-3 overflow-y-auto h-full relative">
       {/* 그룹 검색 바 */}
-      <div className="flex gap-2 bg-card/80 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-primary/30 p-2">
+      <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1.5 sm:p-2">
         <div className="relative flex-1">
           <Input
             value={searchQuery}
@@ -217,21 +217,21 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
             <Button
               size="icon"
               variant="ghost"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
               onClick={() => setSearchQuery("")}
               data-testid="button-clear-search"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </Button>
           )}
         </div>
         <Button
           size="icon"
           disabled={!searchQuery.trim()}
-          className="h-10 w-10 flex-shrink-0"
+          className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
           data-testid="button-search-group"
         >
-          <Search className="h-5 w-5" />
+          <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
         </Button>
       </div>
 
@@ -427,86 +427,80 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
       </Dialog>
 
       {filteredGroups.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-center">
-          <div className="bg-primary/10 rounded-full p-6 mb-4">
-            <Users className="h-12 w-12 text-primary" />
+        <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-center px-4">
+          <div className="bg-primary/10 rounded-full p-4 sm:p-6 mb-3 sm:mb-4">
+            <Users className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
           </div>
           {searchQuery ? (
             <>
-              <p className="text-foreground font-semibold text-lg mb-2">{t.groups.noSearchResults || "검색 결과가 없습니다"}</p>
-              <p className="text-muted-foreground text-sm">{t.groups.noSearchResultsDesc || "다른 검색어를 시도해보세요"}</p>
+              <p className="text-foreground font-semibold text-base sm:text-lg mb-1.5 sm:mb-2">{t.groups.noSearchResults || "검색 결과가 없습니다"}</p>
+              <p className="text-muted-foreground text-xs sm:text-sm">{t.groups.noSearchResultsDesc || "다른 검색어를 시도해보세요"}</p>
             </>
           ) : (
             <>
-              <p className="text-foreground font-semibold text-lg mb-2">{t.groups.noGroups}</p>
-              <p className="text-muted-foreground text-sm">{t.groups.noGroupsDesc}</p>
+              <p className="text-foreground font-semibold text-base sm:text-lg mb-1.5 sm:mb-2">{t.groups.noGroups}</p>
+              <p className="text-muted-foreground text-xs sm:text-sm">{t.groups.noGroupsDesc}</p>
             </>
           )}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-2.5 sm:space-y-3">
           {filteredGroups.map(group => (
-            <Card key={group.id} className="hover-elevate transition-all shadow-lg border-2 border-primary/30 hover:border-primary/50 rounded-3xl bg-card/80 backdrop-blur-sm hover:shadow-2xl" data-testid={`card-group-${group.id}`}>
-              <CardHeader className="pb-3 px-3 sm:px-6 pt-4 sm:pt-6">
-                <div className="flex items-start sm:items-center justify-between gap-2 flex-col sm:flex-row">
-                  <div className="flex items-center gap-2 flex-1 min-w-0 w-full sm:w-auto">
+            <Card key={group.id} className="hover-elevate transition-all shadow-md border border-primary/20 hover:border-primary/40 rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg" data-testid={`card-group-${group.id}`}>
+              <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div 
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 flex items-center justify-center shadow-lg border-2" 
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-sm border" 
                       style={{ 
-                        backgroundColor: `${group.color}40`,
-                        borderColor: `${group.color}80`
+                        backgroundColor: `${group.color}30`,
+                        borderColor: `${group.color}60`
                       }}
                       data-testid={`color-dot-${group.id}`}
                     >
                       {(() => {
                         const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
-                        return <IconComponent className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: group.color }} />;
+                        return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: group.color }} />;
                       })()}
                     </div>
-                    <h3 className="text-lg sm:text-xl font-semibold truncate">{group.name}</h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-lg font-semibold truncate leading-tight">{group.name}</h3>
+                      {group.description && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{group.description}</p>
+                      )}
+                    </div>
                     {onCopyGroup && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 flex-shrink-0"
+                        className="h-7 w-7 flex-shrink-0"
                         onClick={() => setCopyConfirmGroup(group)}
                         data-testid={`button-copy-${group.id}`}
                         title="새 그룹으로 복사 (그룹 생성)"
                       >
-                        <Copy className="h-4 w-4 text-primary" />
+                        <Copy className="h-3.5 w-3.5 text-primary" />
                       </Button>
                     )}
                   </div>
                   <Badge 
                     variant="secondary" 
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 text-xs px-2 py-0.5"
                   >
                     <Users className="h-3 w-3 mr-1" />
-                    {group.members.length}/{group.maxMembers || 20}{t.groups.members}
+                    {group.members.length}/{group.maxMembers || 20}
                   </Badge>
                 </div>
               </CardHeader>
 
-              <CardContent className="pb-3 px-3 sm:px-6">
-                {group.description ? (
-                  <div className="p-2 sm:p-3 rounded-lg bg-muted/30">
-                    <p className="text-xs sm:text-sm text-muted-foreground">{group.description}</p>
-                  </div>
-                ) : (
-                  <div className="p-2 sm:p-3 rounded-lg bg-muted/30">
-                    <p className="text-xs sm:text-sm text-muted-foreground italic">{t.groups.noDescription}</p>
-                  </div>
-                )}
-              </CardContent>
-
-              <CardFooter className="pt-0 flex flex-col sm:flex-row gap-2 px-3 sm:px-6 pb-4 sm:pb-6">
+              <CardFooter className="pt-2 pb-3 sm:pb-4 px-3 sm:px-4 flex flex-wrap gap-1.5 sm:gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1 w-full sm:w-auto"
+                  size="sm"
+                  className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
                   onClick={() => handleCopyInviteCode(group.inviteCode)}
                   data-testid={`button-copy-code-${group.id}`}
                 >
-                  <Copy className="h-4 w-4 mr-2" />
+                  <Copy className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5" />
                   {t.groups.copyInviteCode}
                 </Button>
                 {(() => {
@@ -518,29 +512,32 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                       {myMember && isLeader && onUpdateGroup && (
                         <Button
                           variant="outline"
-                          className="flex-1 w-full sm:w-auto"
+                          size="sm"
+                          className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
                           onClick={() => handleOpenEditDialog(group)}
                           data-testid={`button-edit-${group.id}`}
                         >
-                          <Edit className="h-4 w-4 mr-2" />
+                          <Edit className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5" />
                           {t.common.edit}
                         </Button>
                       )}
                       {myMember && (
                         <Button
                           variant="outline"
-                          className="flex-1 w-full sm:w-auto"
+                          size="sm"
+                          className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
                           onClick={() => setMemberDialogOpen(group.id)}
                           data-testid={`button-members-${group.id}`}
                         >
-                          <Users className="h-4 w-4 mr-2" />
+                          <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5" />
                           {t.groups.memberCount}
                         </Button>
                       )}
                       {myMember && (
                         <Button
                           variant="destructive"
-                          className="flex-1 w-full sm:w-auto rounded-full border-2 hover:shadow-lg"
+                          size="sm"
+                          className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
                           onClick={() => onLeaveGroup(group.id, myMember.id)}
                           data-testid={`button-leave-${group.id}`}
                         >
@@ -558,21 +555,21 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
       {/* 그룹 수정 다이얼로그 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto max-h-[85vh] flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle>{t.groups.editGroup}</DialogTitle>
+        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto max-h-[85vh] flex flex-col rounded-xl sm:rounded-2xl">
+          <DialogHeader className="flex-shrink-0 pb-2 sm:pb-3">
+            <DialogTitle className="text-lg sm:text-xl">{t.groups.editGroup}</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(handleUpdateGroup)} className="flex flex-col flex-1 overflow-hidden">
-              <div className="space-y-4 overflow-y-auto flex-1 pr-2">
+              <div className="space-y-3 sm:space-y-4 overflow-y-auto flex-1 pr-1 sm:pr-2">
                 <FormField
                   control={editForm.control}
                   name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.groups.groupName}</FormLabel>
+                    <FormLabel className="text-sm">{t.groups.groupName}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="예: 친구들" data-testid="input-edit-group-name" />
+                      <Input {...field} placeholder="예: 친구들" className="text-sm" data-testid="input-edit-group-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -583,9 +580,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.groups.description}</FormLabel>
+                    <FormLabel className="text-sm">{t.groups.description}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.groups.descriptionPlaceholder} data-testid="input-edit-group-description" />
+                      <Input {...field} placeholder={t.groups.descriptionPlaceholder} className="text-sm" data-testid="input-edit-group-description" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -596,15 +593,15 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   name="color"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.groups.groupColor}</FormLabel>
+                    <FormLabel className="text-sm">{t.groups.groupColor}</FormLabel>
                     <FormControl>
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2" data-testid="edit-color-picker">
+                      <div className="space-y-2 sm:space-y-3">
+                        <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 sm:gap-2" data-testid="edit-color-picker">
                           {PRESET_COLORS.map((color) => (
                             <button
                               key={color.value}
                               type="button"
-                              className={`h-8 w-8 rounded-md border transition-all ${
+                              className={`h-7 w-7 sm:h-8 sm:w-8 rounded-md border transition-all ${
                                 field.value.toLowerCase() === color.value.toLowerCase()
                                   ? 'border-foreground ring-2 ring-primary ring-offset-1' 
                                   : 'border-border hover:border-foreground/50'
@@ -618,8 +615,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                             />
                           ))}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <label className="text-sm text-muted-foreground">사용자 정의:</label>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <label className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">사용자 정의:</label>
                           <Input
                             type="color"
                             value={field.value}
@@ -627,7 +624,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                               const newColor = e.target.value.toUpperCase();
                               field.onChange(newColor);
                             }}
-                            className="w-16 h-9 p-1 cursor-pointer"
+                            className="w-12 h-8 sm:w-16 sm:h-9 p-0.5 sm:p-1 cursor-pointer"
                             data-testid="edit-color-custom-picker"
                           />
                           <Input
@@ -641,7 +638,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                             }}
                             placeholder="#3B82F6"
                             maxLength={7}
-                            className="flex-1 font-mono"
+                            className="flex-1 font-mono text-xs sm:text-sm h-8 sm:h-9"
                             data-testid="edit-color-custom-input"
                           />
                         </div>
@@ -656,16 +653,16 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   name="markerIcon"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.groups.markerShape}</FormLabel>
+                    <FormLabel className="text-sm">{t.groups.markerShape}</FormLabel>
                     <FormControl>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-testid="edit-marker-icon-picker">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2" data-testid="edit-marker-icon-picker">
                         {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
                           const Icon = MARKER_ICON_COMPONENTS[type];
                           return (
                             <button
                               key={type}
                               type="button"
-                              className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${
+                              className={`flex flex-col items-center gap-0.5 sm:gap-1 p-2 sm:p-2.5 rounded-md sm:rounded-lg border transition-all ${
                                 field.value === type 
                                   ? 'border-primary bg-accent' 
                                   : 'border-border hover:border-foreground/50 hover:bg-accent/50'
@@ -674,8 +671,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                               data-testid={`edit-marker-icon-${type}`}
                               aria-label={t.categories[type]}
                             >
-                              <Icon className="h-5 w-5" />
-                              <span className="text-xs font-medium">{t.categories[type]}</span>
+                              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                              <span className="text-[10px] sm:text-xs font-medium">{t.categories[type]}</span>
                             </button>
                           );
                         })}
@@ -686,11 +683,12 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 )}
                 />
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0 pt-4">
+              <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0 pt-3 sm:pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
-                  className="flex-1 w-full sm:w-auto"
+                  size="sm"
+                  className="flex-1 w-full sm:w-auto text-sm"
                   onClick={() => {
                     editForm.reset();
                     setEditDialogOpen(false);
@@ -700,7 +698,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 >
                   {t.common.cancel}
                 </Button>
-                <Button type="submit" className="flex-1 w-full sm:w-auto" data-testid="button-submit-edit-group">
+                <Button type="submit" size="sm" className="flex-1 w-full sm:w-auto text-sm" data-testid="button-submit-edit-group">
                   {t.common.edit}
                 </Button>
               </div>
@@ -875,27 +873,27 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
       </AlertDialog>
 
       {/* 플로팅 액션 버튼 */}
-      <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
+      <div className="fixed bottom-16 sm:bottom-20 right-3 sm:right-4 flex flex-col gap-2 z-50">
         {/* 그룹 참여하기 버튼 */}
         <Button
           size="icon"
           onClick={() => setJoinDialogOpen(true)}
-          className="h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl bg-primary hover:bg-primary/90 border-2 border-primary"
+          className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg shadow-md transition-all hover:shadow-lg bg-primary hover:bg-primary/90 border border-primary"
           data-testid="button-join-group-fab"
           title={t.groups.joinGroup}
         >
-          <DoorOpen className="h-5 w-5 text-primary-foreground" />
+          <DoorOpen className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
         </Button>
 
         {/* 그룹 만들기 버튼 */}
         <Button
           size="icon"
           onClick={() => setCreateDialogOpen(true)}
-          className="h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl bg-primary hover:bg-primary/90 border-2 border-primary"
+          className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg shadow-md transition-all hover:shadow-lg bg-primary hover:bg-primary/90 border border-primary"
           data-testid="button-create-group-fab"
           title={t.groups.createGroup}
         >
-          <Plus className="h-5 w-5 text-primary-foreground" />
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
         </Button>
       </div>
     </div>

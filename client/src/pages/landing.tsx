@@ -204,27 +204,27 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden">
       {/* Decorative hearts */}
-      <div className="absolute top-20 left-10 opacity-20">
-        <Heart className="h-16 w-16 text-primary fill-primary animate-pulse" />
+      <div className="absolute top-10 sm:top-20 left-4 sm:left-10 opacity-20">
+        <Heart className="h-10 w-10 sm:h-16 sm:w-16 text-primary fill-primary animate-pulse" />
       </div>
-      <div className="absolute bottom-20 right-10 opacity-15">
-        <Heart className="h-20 w-20 text-secondary fill-secondary animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute bottom-10 sm:bottom-20 right-4 sm:right-10 opacity-15">
+        <Heart className="h-12 w-12 sm:h-20 sm:w-20 text-secondary fill-secondary animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
-      <div className="absolute top-1/2 right-1/4 opacity-10">
-        <Sparkles className="h-12 w-12 text-accent animate-pulse" style={{ animationDelay: '0.5s' }} />
+      <div className="absolute top-1/2 right-1/4 opacity-10 hidden sm:block">
+        <Sparkles className="h-8 w-8 sm:h-12 sm:w-12 text-accent animate-pulse" style={{ animationDelay: '0.5s' }} />
       </div>
       
       {/* Language Selector - Top Right */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="absolute top-3 sm:top-6 right-3 sm:right-6 z-50">
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
               size="icon" 
-              className="rounded-full shadow-lg bg-card/80 backdrop-blur-sm hover-elevate" 
+              className="h-8 w-8 sm:h-10 sm:w-10 rounded-full shadow-md bg-card/80 backdrop-blur-sm hover:shadow-lg" 
               data-testid="button-language-selector"
             >
-              <Languages className="h-5 w-5" />
+              <Languages className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="backdrop-blur-sm bg-card/95 z-50">
@@ -243,25 +243,25 @@ export default function Landing() {
         </DropdownMenu>
       </div>
 
-      <div className="container mx-auto px-4 py-16 max-w-6xl relative z-10">
-        <div className="flex flex-col items-center text-center space-y-12">
-          <div className="space-y-6 animate-in fade-in slide-in-from-top duration-700">
-            <div className="flex items-center justify-center gap-3 mb-4">
+      <div className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-6xl relative z-10">
+        <div className="flex flex-col items-center text-center space-y-6 sm:space-y-8">
+          <div className="space-y-3 sm:space-y-4 animate-in fade-in slide-in-from-top duration-700">
+            <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
               <div className="relative">
-                <MapPin className="h-14 w-14 text-primary drop-shadow-lg" />
-                <Heart className="h-6 w-6 text-destructive fill-destructive absolute -top-1 -right-1 animate-pulse" />
+                <MapPin className="h-10 w-10 sm:h-14 sm:w-14 text-primary drop-shadow-lg" />
+                <Heart className="h-4 w-4 sm:h-6 sm:w-6 text-destructive fill-destructive absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 animate-pulse" />
               </div>
-              <h1 className="text-6xl font-bold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                 Memo Way
               </h1>
             </div>
-            <p className="text-2xl text-foreground/80 max-w-2xl font-medium">
+            <p className="text-lg sm:text-xl md:text-2xl text-foreground/80 max-w-2xl font-medium px-2">
               {language === 'ko' && '우리의 특별한 순간을 기억하세요'}
               {language === 'en' && 'Remember our special moments together'}
               {language === 'zh' && '记住我们的特别时刻'}
               {language === 'ja' && '特別な瞬間を記憶しましょう'}
             </p>
-            <p className="text-lg text-muted-foreground max-w-xl">
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl px-2">
               {language === 'ko' && '소중한 사람들과 함께한 장소의 추억을 사진과 메모로 남겨보세요'}
               {language === 'en' && 'Save memories of places with your loved ones through photos and notes'}
               {language === 'zh' && '用照片和备忘录保存与亲人在一起的地方的回忆'}
@@ -269,18 +269,18 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 w-full max-w-5xl animate-in fade-in slide-in-from-bottom duration-700 delay-200">
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-primary/30 shadow-lg hover-elevate transition-all hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-primary/30 to-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-md">
-                <Globe className="h-10 w-10 text-primary" />
+          <div className="grid md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full max-w-5xl animate-in fade-in slide-in-from-bottom duration-700 delay-200">
+            <div className="bg-card/80 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl md:rounded-3xl border border-primary/20 hover:border-primary/40 shadow-md hover:shadow-lg transition-all">
+              <div className="bg-gradient-to-br from-primary/30 to-primary/10 rounded-full w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-sm">
+                <Globe className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 text-primary" />
               </div>
-              <h3 className="font-bold text-2xl mb-3 text-primary">
+              <h3 className="font-bold text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 text-primary">
                 {language === 'ko' && '지도에 메모 남기기'}
                 {language === 'en' && 'Pin Memos on Map'}
                 {language === 'zh' && '在地图上添加备忘录'}
                 {language === 'ja' && '地図にメモを追加'}
               </h3>
-              <p className="text-sm text-foreground/80 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed font-medium">
                 {language === 'ko' && '데이트했던 카페, 처음 만난 장소... 특별한 위치에 사진과 함께 메모를 남겨보세요'}
                 {language === 'en' && 'The cafe from your date, where you first met... Save memories with photos at special locations'}
                 {language === 'zh' && '约会的咖啡馆，第一次见面的地方...在特殊的地方用照片保存回忆'}
@@ -288,17 +288,17 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-purple-500/40 shadow-lg hover-elevate transition-all hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-purple-500/30 to-purple-500/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-md">
-                <Users className="h-10 w-10 text-purple-500" />
+            <div className="bg-card/80 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl md:rounded-3xl border border-purple-500/30 hover:border-purple-500/50 shadow-md hover:shadow-lg transition-all">
+              <div className="bg-gradient-to-br from-purple-500/30 to-purple-500/10 rounded-full w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-sm">
+                <Users className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 text-purple-500" />
               </div>
-              <h3 className="font-bold text-2xl mb-3 text-purple-600 dark:text-purple-400">
+              <h3 className="font-bold text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 text-purple-600 dark:text-purple-400">
                 {language === 'ko' && '함께 공유하기'}
                 {language === 'en' && 'Share Together'}
                 {language === 'zh' && '一起分享'}
                 {language === 'ja' && '一緒に共有'}
               </h3>
-              <p className="text-sm text-foreground/80 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed font-medium">
                 {language === 'ko' && '연인, 친구, 가족과 그룹을 만들어 소중한 추억을 함께 만들어가세요'}
                 {language === 'en' && 'Create groups with your partner, friends, and family to build precious memories together'}
                 {language === 'zh' && '与恋人、朋友、家人创建群组，一起创造珍贵的回忆'}
@@ -306,17 +306,17 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-card/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-accent/50 shadow-lg hover-elevate transition-all hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-accent/30 to-accent/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-md">
-                <Heart className="h-10 w-10 text-accent fill-accent" />
+            <div className="bg-card/80 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl md:rounded-3xl border border-accent/40 hover:border-accent/60 shadow-md hover:shadow-lg transition-all">
+              <div className="bg-gradient-to-br from-accent/30 to-accent/10 rounded-full w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-sm">
+                <Heart className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 text-accent fill-accent" />
               </div>
-              <h3 className="font-bold text-2xl mb-3 text-accent">
+              <h3 className="font-bold text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 text-accent">
                 {language === 'ko' && '추억을 간직하기'}
                 {language === 'en' && 'Cherish Memories'}
                 {language === 'zh' && '珍藏回忆'}
                 {language === 'ja' && '思い出を大切に'}
               </h3>
-              <p className="text-sm text-foreground/80 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed font-medium">
                 {language === 'ko' && '언제 어디서나 함께했던 순간들을 다시 떠올리며 행복을 느껴보세요'}
                 {language === 'en' && 'Feel the happiness by recalling the moments you shared together, anytime, anywhere'}
                 {language === 'zh' && '随时随地回忆一起度过的时光，感受幸福'}
@@ -325,44 +325,44 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="space-y-6 w-full max-w-md animate-in fade-in slide-in-from-bottom duration-700 delay-500">
-            <div className="bg-card/60 backdrop-blur-sm p-8 rounded-3xl border-2 border-primary/30 shadow-xl">
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <Heart className="h-5 w-5 text-destructive fill-destructive animate-pulse" />
-                <p className="text-sm font-medium text-muted-foreground">
+          <div className="space-y-4 sm:space-y-6 w-full max-w-md animate-in fade-in slide-in-from-bottom duration-700 delay-500 px-2">
+            <div className="bg-card/60 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl md:rounded-3xl border border-primary/20 hover:border-primary/40 shadow-lg">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-5 md:mb-6">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-destructive fill-destructive animate-pulse" />
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   {language === 'ko' && '지금 바로 시작하세요'}
                   {language === 'en' && 'Start now'}
                   {language === 'zh' && '立即开始'}
                   {language === 'ja' && '今すぐ始めましょう'}
                 </p>
-                <Heart className="h-5 w-5 text-destructive fill-destructive animate-pulse" style={{ animationDelay: '0.5s' }} />
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-destructive fill-destructive animate-pulse" style={{ animationDelay: '0.5s' }} />
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {/* 이메일 로그인 버튼 */}
                 <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
                   <DialogTrigger asChild>
                     <Button 
                       size="lg" 
                       variant="outline"
-                      className="w-full text-lg h-16 border-2 border-primary/50 text-foreground font-bold rounded-full shadow-lg hover:shadow-2xl transition-all active-elevate-2"
+                      className="w-full text-sm sm:text-base md:text-lg h-12 sm:h-14 md:h-16 border border-primary/40 hover:border-primary/60 text-foreground font-semibold sm:font-bold rounded-full shadow-md hover:shadow-lg transition-all"
                     >
-                      <Mail className="h-5 w-5 mr-2" />
+                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                       {language === 'ko' && '이메일로 로그인'}
                       {language === 'en' && 'Sign in with Email'}
                       {language === 'zh' && '使用邮箱登录'}
                       {language === 'ja' && 'メールでログイン'}
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto rounded-xl sm:rounded-2xl">
                     <DialogHeader>
-                      <DialogTitle>
+                      <DialogTitle className="text-lg sm:text-xl">
                         {language === 'ko' && '이메일 로그인'}
                         {language === 'en' && 'Email Login'}
                         {language === 'zh' && '邮箱登录'}
                         {language === 'ja' && 'メールログイン'}
                       </DialogTitle>
-                      <DialogDescription>
+                      <DialogDescription className="text-xs sm:text-sm">
                         {language === 'ko' && '이메일과 비밀번호로 로그인하세요'}
                         {language === 'en' && 'Sign in with your email and password'}
                         {language === 'zh' && '使用您的邮箱和密码登录'}
@@ -371,10 +371,10 @@ export default function Landing() {
                     </DialogHeader>
                     <form
                       onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))}
-                      className="space-y-4"
+                      className="space-y-3 sm:space-y-4"
                     >
-                      <div className="space-y-2">
-                        <Label htmlFor="login-email">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="login-email" className="text-sm">
                           {language === 'ko' && '이메일'}
                           {language === 'en' && 'Email'}
                           {language === 'zh' && '邮箱'}
@@ -384,16 +384,17 @@ export default function Landing() {
                           id="login-email"
                           type="email"
                           placeholder="example@email.com"
+                          className="text-sm"
                           {...loginForm.register("email")}
                         />
                         {loginForm.formState.errors.email && (
-                          <p className="text-sm text-destructive">
+                          <p className="text-xs sm:text-sm text-destructive">
                             {loginForm.formState.errors.email.message}
                           </p>
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="login-password">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="login-password" className="text-sm">
                           {language === 'ko' && '비밀번호'}
                           {language === 'en' && 'Password'}
                           {language === 'zh' && '密码'}
@@ -402,10 +403,11 @@ export default function Landing() {
                         <Input
                           id="login-password"
                           type="password"
+                          className="text-sm"
                           {...loginForm.register("password")}
                         />
                         {loginForm.formState.errors.password && (
-                          <p className="text-sm text-destructive">
+                          <p className="text-xs sm:text-sm text-destructive">
                             {loginForm.formState.errors.password.message}
                           </p>
                         )}
@@ -413,7 +415,8 @@ export default function Landing() {
                       <div className="flex gap-2">
                         <Button
                           type="submit"
-                          className="flex-1"
+                          size="sm"
+                          className="flex-1 text-sm"
                           disabled={loginMutation.isPending}
                         >
                           {loginMutation.isPending
@@ -423,6 +426,8 @@ export default function Landing() {
                         <Button
                           type="button"
                           variant="outline"
+                          size="sm"
+                          className="text-sm"
                           onClick={() => {
                             setLoginDialogOpen(false);
                             setRegisterDialogOpen(true);
@@ -444,24 +449,24 @@ export default function Landing() {
                     <Button 
                       size="lg" 
                       variant="outline"
-                      className="w-full text-lg h-16 border-2 border-secondary/50 text-foreground font-bold rounded-full shadow-lg hover:shadow-2xl transition-all active-elevate-2"
+                      className="w-full text-sm sm:text-base md:text-lg h-12 sm:h-14 md:h-16 border border-secondary/40 hover:border-secondary/60 text-foreground font-semibold sm:font-bold rounded-full shadow-md hover:shadow-lg transition-all"
                     >
-                      <Mail className="h-5 w-5 mr-2" />
+                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                       {language === 'ko' && '이메일로 회원가입'}
                       {language === 'en' && 'Sign up with Email'}
                       {language === 'zh' && '使用邮箱注册'}
                       {language === 'ja' && 'メールで新規登録'}
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto rounded-xl sm:rounded-2xl">
                     <DialogHeader>
-                      <DialogTitle>
+                      <DialogTitle className="text-lg sm:text-xl">
                         {language === 'ko' && '회원가입'}
                         {language === 'en' && 'Sign up'}
                         {language === 'zh' && '注册'}
                         {language === 'ja' && '新規登録'}
                       </DialogTitle>
-                      <DialogDescription>
+                      <DialogDescription className="text-xs sm:text-sm">
                         {language === 'ko' && '새 계정을 만들어보세요'}
                         {language === 'en' && 'Create a new account'}
                         {language === 'zh' && '创建新账户'}
@@ -470,10 +475,10 @@ export default function Landing() {
                     </DialogHeader>
                     <form
                       onSubmit={registerForm.handleSubmit((data) => registerMutation.mutate(data))}
-                      className="space-y-4"
+                      className="space-y-3 sm:space-y-4"
                     >
-                      <div className="space-y-2">
-                        <Label htmlFor="register-email">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="register-email" className="text-sm">
                           {language === 'ko' && '이메일'}
                           {language === 'en' && 'Email'}
                           {language === 'zh' && '邮箱'}
@@ -483,16 +488,17 @@ export default function Landing() {
                           id="register-email"
                           type="email"
                           placeholder="example@email.com"
+                          className="text-sm"
                           {...registerForm.register("email")}
                         />
                         {registerForm.formState.errors.email && (
-                          <p className="text-sm text-destructive">
+                          <p className="text-xs sm:text-sm text-destructive">
                             {registerForm.formState.errors.email.message}
                           </p>
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="register-password">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="register-password" className="text-sm">
                           {language === 'ko' && '비밀번호'}
                           {language === 'en' && 'Password'}
                           {language === 'zh' && '密码'}
@@ -502,16 +508,17 @@ export default function Landing() {
                           id="register-password"
                           type="password"
                           placeholder={language === 'ko' ? '최소 6자 이상' : 'At least 6 characters'}
+                          className="text-sm"
                           {...registerForm.register("password")}
                         />
                         {registerForm.formState.errors.password && (
-                          <p className="text-sm text-destructive">
+                          <p className="text-xs sm:text-sm text-destructive">
                             {registerForm.formState.errors.password.message}
                           </p>
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="register-firstName">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <Label htmlFor="register-firstName" className="text-sm">
                           {language === 'ko' && '이름'}
                           {language === 'en' && 'Name'}
                           {language === 'zh' && '姓名'}
@@ -520,10 +527,11 @@ export default function Landing() {
                         <Input
                           id="register-firstName"
                           type="text"
+                          className="text-sm"
                           {...registerForm.register("firstName")}
                         />
                         {registerForm.formState.errors.firstName && (
-                          <p className="text-sm text-destructive">
+                          <p className="text-xs sm:text-sm text-destructive">
                             {registerForm.formState.errors.firstName.message}
                           </p>
                         )}
@@ -531,7 +539,8 @@ export default function Landing() {
                       <div className="flex gap-2">
                         <Button
                           type="submit"
-                          className="flex-1"
+                          size="sm"
+                          className="flex-1 text-sm"
                           disabled={registerMutation.isPending}
                         >
                           {registerMutation.isPending
@@ -541,6 +550,8 @@ export default function Landing() {
                         <Button
                           type="button"
                           variant="outline"
+                          size="sm"
+                          className="text-sm"
                           onClick={() => {
                             setRegisterDialogOpen(false);
                             setLoginDialogOpen(true);
@@ -572,11 +583,11 @@ export default function Landing() {
 
                 <Button 
                   size="lg" 
-                  className="w-full text-lg h-16 bg-white dark:bg-gray-100 border-2 border-gray-300 text-black font-bold rounded-full shadow-lg hover:shadow-2xl transition-all active-elevate-2"
+                  className="w-full text-sm sm:text-base md:text-lg h-12 sm:h-14 md:h-16 bg-white dark:bg-gray-100 border border-gray-300 hover:border-gray-400 text-black font-semibold sm:font-bold rounded-full shadow-md hover:shadow-lg transition-all"
                   onClick={handleGoogleLogin}
                   data-testid="button-google-login"
                 >
-                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -590,11 +601,11 @@ export default function Landing() {
 
                 <Button 
                   size="lg" 
-                  className="w-full text-lg h-16 bg-yellow-400 border-2 border-yellow-500 text-black font-bold rounded-full shadow-lg hover:shadow-2xl transition-all active-elevate-2"
+                  className="w-full text-sm sm:text-base md:text-lg h-12 sm:h-14 md:h-16 bg-yellow-400 border border-yellow-500 hover:border-yellow-600 text-black font-semibold sm:font-bold rounded-full shadow-md hover:shadow-lg transition-all"
                   onClick={handleKakaoLogin}
                   data-testid="button-kakao-login"
                 >
-                  <Heart className="h-5 w-5 mr-2 fill-current" />
+                  <Heart className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 fill-current" />
                   {language === 'ko' && '카카오로 시작하기'}
                   {language === 'en' && 'Continue with Kakao'}
                   {language === 'zh' && '使用 Kakao 继续'}
@@ -602,7 +613,7 @@ export default function Landing() {
                 </Button>
               </div>
 
-              <p className="text-xs text-muted-foreground mt-4 leading-relaxed text-center">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-3 sm:mt-4 leading-relaxed text-center px-2">
                 {language === 'ko' && '구글 또는 카카오 계정으로 간편하게 로그인하고\n소중한 추억을 기록해보세요'}
                 {language === 'en' && 'Sign in easily with your Google or Kakao account\nand start recording precious memories'}
                 {language === 'zh' && '使用 Google 或 Kakao 账户轻松登록\n并开始记录珍贵的回忆'}
