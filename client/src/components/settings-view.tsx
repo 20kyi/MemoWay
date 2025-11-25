@@ -158,7 +158,6 @@ export function SettingsView({
   ];
 
   return (
-<<<<<<< HEAD
     <div className="px-3 py-3 sm:px-4 sm:py-4 space-y-2 sm:space-y-3 overflow-y-auto h-full">
       <h1 className="text-xl sm:text-2xl font-medium mb-3 sm:mb-4">{t.settings.title}</h1>
 
@@ -173,22 +172,6 @@ export function SettingsView({
                   <span className="truncate">{t.settings.account}</span>
                 </CardTitle>
                 {/* <CardDescription className="text-xs sm:text-sm mt-0.5">
-=======
-    <div className="px-2 sm:px-4 py-3 sm:py-4 space-y-2.5 sm:space-y-3 overflow-y-auto h-full">
-      <h1 className="text-lg sm:text-xl font-medium mb-3 sm:mb-4">{t.settings.title}</h1>
-
-      {/* 1. 계정 */}
-      {user ? (
-        <Card className="rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 shadow-md hover:shadow-lg transition-all">
-          <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-                  <User className="h-4 w-4 sm:h-5 sm:w-5" />
-                  {t.settings.account}
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm mt-0.5">
->>>>>>> main
                   {t.settings.accountInfo}
                 </CardDescription> */}
               </div>
