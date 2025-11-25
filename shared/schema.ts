@@ -21,10 +21,12 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  // Email/password authentication
+  passwordHash: varchar("password_hash"), // bcrypt hashed password (null for OAuth users)
   // OAuth provider fields
   kakaoId: varchar("kakao_id").unique(),
   googleId: varchar("google_id").unique(),
-  // Authentication provider: 'replit', 'kakao', or 'google'
+  // Authentication provider: 'replit', 'kakao', 'google', or 'email'
   provider: varchar("provider").notNull().default('replit'),
   // Points system for copy memos feature (10 points per memo)
   points: integer("points").notNull().default(1000),
