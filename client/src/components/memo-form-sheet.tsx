@@ -293,26 +293,26 @@ export function MemoFormSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] rounded-t-xl sm:rounded-t-2xl p-0 flex flex-col">
-        <div className="w-10 h-0.5 sm:h-1 bg-muted rounded-full mx-auto mt-2.5 sm:mt-3 mb-3 sm:mb-4" />
+      <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col [&>button]:cursor-default">
+        <div className="w-12 h-1 bg-pink-300/50 rounded-full mx-auto mt-3 mb-4" />
         
-        <div className="px-3 sm:px-4 flex-shrink-0">
-          <SheetHeader className="mb-3 sm:mb-4">
-            <SheetTitle className="text-lg sm:text-xl">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
+        <div className="px-4 sm:px-5 flex-shrink-0 pb-2">
+          <SheetHeader className="mb-4">
+            <SheetTitle className="text-xl sm:text-2xl font-bold text-[#9333ea]">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
           </SheetHeader>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col flex-1 min-h-0">
-            <div className="flex-1 overflow-y-auto px-3 sm:px-4 space-y-3 sm:space-y-4 pb-3 sm:pb-4">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 space-y-4 pb-4">
               <FormField
                 control={form.control}
                 name="buildingName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm">{t.memoForm.buildingName}</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.buildingName}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} className="text-sm" data-testid="input-building-name" />
+                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} className="text-sm h-11 border-pink-200 focus:border-[#9333ea] focus:ring-[#9333ea]" data-testid="input-building-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -324,9 +324,9 @@ export function MemoFormSheet({
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm">{t.memoForm.address}</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.address}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.memoForm.addressPlaceholder} className="text-sm" data-testid="input-address" />
+                      <Input {...field} placeholder={t.memoForm.addressPlaceholder} className="text-sm h-11 border-pink-200 focus:border-[#9333ea] focus:ring-[#9333ea]" data-testid="input-address" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -334,8 +334,8 @@ export function MemoFormSheet({
               />
 
               <div>
-                <FormLabel className="text-sm">{t.memoForm.photos}</FormLabel>
-                <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 mb-2 sm:mb-2.5">
+                <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.photos}</FormLabel>
+                <p className="text-xs text-gray-500 mt-1 mb-3">
                   첫 번째 사진이 대표 사진으로 표시됩니다. 드래그하여 순서를 변경할 수 있습니다.
                 </p>
                 
@@ -348,7 +348,7 @@ export function MemoFormSheet({
                     items={photoItems.map(p => p.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       {photoItems.map((photo) => (
                         <SortablePhotoItem
                           key={photo.id}
@@ -357,7 +357,7 @@ export function MemoFormSheet({
                         />
                       ))}
                       {photoItems.length < 10 && (
-                        <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-md sm:rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                        <label className="aspect-square border-2 border-dashed border-pink-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-pink-50/50 transition-colors">
                           <input
                             type="file"
                             accept="image/*"
@@ -366,7 +366,7 @@ export function MemoFormSheet({
                             className="hidden"
                             data-testid="input-photo-upload"
                           />
-                          <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+                          <Camera className="h-6 w-6 text-pink-400" />
                         </label>
                       )}
                     </div>
@@ -379,12 +379,12 @@ export function MemoFormSheet({
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm">{t.memoForm.content}</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.content}</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
                         placeholder={t.memoForm.contentPlaceholder} 
-                        className="min-h-24 sm:min-h-28 resize-none text-sm"
+                        className="min-h-24 sm:min-h-28 resize-none text-sm border-pink-200 focus:border-[#9333ea] focus:ring-[#9333ea]"
                         data-testid="input-memo-content"
                       />
                     </FormControl>
@@ -474,12 +474,12 @@ export function MemoFormSheet({
               )}
             </div>
 
-            <div className="flex gap-2 sm:gap-3 px-3 sm:px-4 py-3 sm:py-4 border-t bg-background flex-shrink-0">
+            <div className="flex gap-3 px-4 sm:px-5 py-4 border-t border-pink-200/50 bg-gradient-to-br from-pink-50/50 to-white flex-shrink-0">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                className="flex-1 text-sm"
+                size="lg"
+                className="flex-1 h-11 text-sm font-medium border-pink-200 hover:bg-pink-50"
                 onClick={() => onOpenChange(false)}
                 data-testid="button-cancel"
               >
@@ -487,8 +487,8 @@ export function MemoFormSheet({
               </Button>
               <Button 
                 type="submit" 
-                size="sm"
-                className="flex-1 text-sm"
+                size="lg"
+                className="flex-1 h-11 text-sm font-medium bg-[#9333ea] hover:bg-[#7e22ce] text-white"
                 disabled={isLoading || (!isPersonalMemberReady && !currentMemberId)}
                 data-testid="button-save-memo"
               >

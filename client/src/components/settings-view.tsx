@@ -158,12 +158,12 @@ export function SettingsView({
   ];
 
   return (
-    <div className="px-3 py-3 sm:px-4 sm:py-4 space-y-2 sm:space-y-3 overflow-y-auto h-full">
-      <h1 className="text-xl sm:text-2xl font-medium mb-3 sm:mb-4">{t.settings.title}</h1>
+    <div className="px-4 py-4 sm:px-5 sm:py-5 space-y-3 sm:space-y-4 overflow-y-auto h-full bg-gradient-to-br from-pink-50/30 to-white min-h-screen">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#9333ea] mb-4 sm:mb-5">{t.settings.title}</h1>
 
       {/* 1. 계정 */}
       {user ? (
-        <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+        <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
           <CardHeader className="pb-3 sm:pb-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
@@ -214,7 +214,7 @@ export function SettingsView({
       {/* 2. 포인트 */}
       {
         user ? (
-          <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm border border-amber-500/40 sm:border-2 shadow-md hover:shadow-lg transition-all">
+          <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm border border-amber-500/40 shadow-lg hover:shadow-xl transition-all">
             <CardHeader className="pb-3 sm:pb-4">
               <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
                 <Coins className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
@@ -253,7 +253,7 @@ export function SettingsView({
       }
 
       {/* 4. 지도 프로바이더 */}
-      <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+      <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
             <Map className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
@@ -341,7 +341,7 @@ export function SettingsView({
       </Dialog>
 
       {/* 3. 알림 및 위치 */}
-      <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+      <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="text-base sm:text-lg">
             서비스 설정
@@ -415,7 +415,7 @@ export function SettingsView({
       </Card>
 
       {/* 4. 표시 설정 */}
-      <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+      <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="text-base sm:text-lg">
             표시 설정
@@ -534,7 +534,7 @@ export function SettingsView({
       </Card>
 
       {/* 5. 앱정보 */}
-      <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+      <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="text-base sm:text-lg">{t.settings.appInfo}</CardTitle>
         </CardHeader>

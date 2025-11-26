@@ -46,15 +46,15 @@ export function MemoDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-xl sm:rounded-t-2xl p-0 flex flex-col [&>button]:cursor-default">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col [&>button]:cursor-default">
         <TooltipProvider delayDuration={300}>
           <div className="flex flex-col relative w-full min-h-0">
             {/* 드래그 핸들 */}
-            <div className="w-10 h-0.5 sm:h-1 bg-muted rounded-full mx-auto mt-2 sm:mt-2.5 mb-2 sm:mb-2.5 flex-shrink-0" />
+            <div className="w-12 h-1 bg-pink-300/50 rounded-full mx-auto mt-3 mb-4 flex-shrink-0" />
 
-            <SheetHeader className="px-3 sm:px-4 pb-2 sm:pb-3 pt-0 flex-shrink-0">
-              <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                <SheetTitle className="text-base sm:text-lg md:text-xl font-bold truncate flex-1" data-testid="text-memo-title">
+            <SheetHeader className="px-4 sm:px-5 pb-3 pt-0 flex-shrink-0">
+              <div className="flex items-center gap-2 mb-2">
+                <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#9333ea] truncate flex-1" data-testid="text-memo-title">
                   {memo.buildingName}
                 </SheetTitle>
                 {onNavigateToLocation && (
@@ -79,8 +79,8 @@ export function MemoDetailSheet({
             </SheetHeader>
 
             {/* 내용 영역 - 내용에 따라 높이 자동 조정 */}
-            <div className="px-3 sm:px-4 overflow-y-auto flex-1 min-h-0">
-              <div className="space-y-3 sm:space-y-4 pb-3 sm:pb-4">
+            <div className="px-4 sm:px-5 overflow-y-auto flex-1 min-h-0">
+              <div className="space-y-4 pb-4">
                 {memo.photos && memo.photos.length > 0 && (
                   <div className="space-y-1.5 sm:space-y-2">
                     <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground">{t.memoDetail.photos}</h3>
@@ -120,11 +120,11 @@ export function MemoDetailSheet({
 
             {/* 액션 버튼들 - 메타데이터 영역 위에 배치 */}
             {(onAddNewMemo || onEdit || onDelete) && (
-              <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-t flex-shrink-0">
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <div className="px-4 sm:px-5 py-3 border-t border-pink-200/50 flex-shrink-0">
+                <div className="flex flex-wrap gap-2">
                   {onAddNewMemo && (
                     <Button
-                      size="sm"
+                      size="lg"
                       onClick={() => {
                         onAddNewMemo({
                           lat: memo.latitude,
@@ -134,31 +134,31 @@ export function MemoDetailSheet({
                         });
                         onOpenChange(false);
                       }}
-                      className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
+                      className="h-11 text-sm font-medium bg-[#9333ea] hover:bg-[#7e22ce] text-white flex-1 sm:flex-initial"
                       data-testid="button-add-memo"
                     >
-                      <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                      <Plus className="w-4 h-4 mr-2" />
                       {t.memoDetail.addMemoHere}
                     </Button>
                   )}
                   {onEdit && (
                     <Button
-                      size="sm"
+                      size="lg"
                       variant="outline"
                       onClick={() => {
                         onEdit(memo.id);
                         onOpenChange(false);
                       }}
-                      className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
+                      className="h-11 text-sm font-medium border-pink-200 hover:bg-pink-50 flex-1 sm:flex-initial"
                       data-testid="button-edit-memo"
                     >
-                      <Edit className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                      <Edit className="w-4 h-4 mr-2" />
                       {t.common.edit}
                     </Button>
                   )}
                   {onDelete && (
                     <Button
-                      size="sm"
+                      size="lg"
                       variant="destructive"
                       onClick={() => {
                         if (confirm(t.memoDetail.confirmDelete)) {
@@ -166,10 +166,10 @@ export function MemoDetailSheet({
                           onOpenChange(false);
                         }
                       }}
-                      className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
+                      className="h-11 text-sm font-medium flex-1 sm:flex-initial"
                       data-testid="button-delete-memo"
                     >
-                      <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                      <Trash2 className="w-4 h-4 mr-2" />
                       {t.common.delete}
                     </Button>
                   )}
@@ -177,8 +177,8 @@ export function MemoDetailSheet({
               </div>
             )}
 
-            <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-t space-y-1 sm:space-y-1.5 flex-shrink-0">
-              <div className="space-y-1 sm:space-y-1.5 text-xs sm:text-sm text-muted-foreground">
+            <div className="px-4 sm:px-5 py-3 border-t border-pink-200/50 space-y-2 flex-shrink-0 bg-gradient-to-br from-pink-50/30 to-white">
+              <div className="space-y-2 text-xs sm:text-sm text-gray-600">
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                   <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.memoDetail.author}:</span>
