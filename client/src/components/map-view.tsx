@@ -867,6 +867,33 @@ export function MapView({
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
 
+    // 검색 결과가 있으면 메모 핀을 숨김 (마커를 생성하지 않음)
+    const hasSearchResults = searchMarker !== null || searchPlaceMarkers.length > 0;
+    if (hasSearchResults) {
+      // 기존 마커들 제거
+      markers.forEach(marker => {
+        if (marker.overlay) {
+          if (marker.handler && marker.contentDiv) {
+            marker.contentDiv.removeEventListener('click', marker.handler);
+          }
+          marker.overlay.setMap(null);
+        }
+      });
+      // 마커를 생성하지 않고 종료 (cleanup에서 state 정리)
+      return;
+    }
+
+    // Remove existing markers and their event listeners
+    markers.forEach(marker => {
+      if (marker.overlay) {
+        // DOM 이벤트 리스너 제거
+        if (marker.handler && marker.contentDiv) {
+          marker.contentDiv.removeEventListener('click', marker.handler);
+        }
+        marker.overlay.setMap(null);
+      }
+    });
+
     // Remove existing markers and their event listeners
     markers.forEach(marker => {
       if (marker.overlay) {
@@ -1177,7 +1204,7 @@ export function MapView({
         }
       });
     };
-  }, [map, filteredMemos, onMarkerClick, onClusterClick]);
+  }, [map, filteredMemos, onMarkerClick, onClusterClick, searchMarker, searchPlaceMarkers]);
 
   // Start watching user's real-time location
   useEffect(() => {
@@ -1569,6 +1596,7 @@ export function MapView({
     setSearchResults([]);
     setCurrentSearchQuery("");
     setIsSearchSidebarOpen(false);
+    // 검색 취소 시 메모 핀들이 자동으로 다시 표시됨 (useEffect에서 처리)
   };
 
   const handlePlaceClick = (place: any) => {
@@ -1643,11 +1671,24 @@ export function MapView({
           <Sheet open={isSearchSidebarOpen} onOpenChange={setIsSearchSidebarOpen}>
             <SheetContent side="left" className="w-full sm:w-96 p-0 overflow-hidden">
               <SheetHeader className="px-6 pt-6 pb-4 border-b">
-                <SheetTitle className="text-lg font-semibold">
-                  {currentSearchQuery ? `"${currentSearchQuery}" 검색 결과` : '검색 결과'}
-                </SheetTitle>
-                <div className="text-sm text-muted-foreground mt-1">
-                  장소 {searchResults.length}개
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <SheetTitle className="text-lg font-semibold">
+                      {currentSearchQuery ? `"${currentSearchQuery}" 검색 결과` : '검색 결과'}
+                    </SheetTitle>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      장소 {searchResults.length}개
+                    </div>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={handleClearSearch}
+                    title="검색 취소"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               </SheetHeader>
               <ScrollArea className="h-[calc(100vh-120px)]">
