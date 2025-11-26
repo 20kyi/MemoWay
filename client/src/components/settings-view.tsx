@@ -11,6 +11,7 @@ import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun, Map, Coins, Plu
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily } from "@/lib/font-context";
 import { useTheme } from "@/lib/theme-context";
+import { useLayoutTheme, type LayoutTheme } from "@/lib/layout-theme-context";
 import { useMapProvider, type MapProvider } from "@/lib/map-provider-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation } from "@tanstack/react-query";
@@ -44,6 +45,7 @@ export function SettingsView({
   const { language, setLanguage, t } = useLanguage();
   const { fontFamily, setFontFamily, fontSize, setFontSize } = useFont();
   const { theme, setTheme } = useTheme();
+  const { layoutTheme, setLayoutTheme } = useLayoutTheme();
   const { mapProvider, setMapProvider } = useMapProvider();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -422,29 +424,57 @@ export function SettingsView({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-5 pt-0 pb-4 sm:pb-6">
-          {/* 다크모드 섹션 */}
-          <div className="space-y-2">
+          {/* 레이아웃 테마 섹션 */}
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
-              {theme === "dark" ? <Moon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />}
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />
               <div className="flex-1">
-                <Label htmlFor="theme" className="cursor-pointer text-sm sm:text-base font-medium">
-                  {t.settings.darkMode}
+                <Label className="text-sm sm:text-base font-medium">
+                  {language === 'ko' && '레이아웃 테마'}
+                  {language === 'en' && 'Layout Theme'}
+                  {language === 'zh' && '布局主题'}
+                  {language === 'ja' && 'レイアウトテーマ'}
                 </Label>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  {t.settings.darkModeDesc}
+                  {language === 'ko' && '앱의 전체적인 디자인 스타일을 선택하세요'}
+                  {language === 'en' && 'Choose the overall design style of the app'}
+                  {language === 'zh' && '选择应用的整体设计风格'}
+                  {language === 'ja' && 'アプリの全体的なデザインスタイルを選択'}
                 </p>
               </div>
-              <Switch
-                id="theme"
-                checked={theme === "dark"}
-                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                data-testid="switch-theme"
-              />
             </div>
+            <Select value={layoutTheme} onValueChange={(value) => setLayoutTheme(value as LayoutTheme)}>
+              <SelectTrigger className="w-full h-10 text-sm" data-testid="select-layout-theme">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default" data-testid="layout-default">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200"></div>
+                    <span>{language === 'ko' ? '기본 (핑크)' : language === 'en' ? 'Default (Pink)' : language === 'zh' ? '默认 (粉色)' : 'デフォルト (ピンク)'}</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="lavender-night" data-testid="layout-lavender-night">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gradient-to-br from-purple-900 to-blue-900"></div>
+                    <span>{language === 'ko' ? '라벤더 나이트 (다크)' : language === 'en' ? 'Lavender Night (Dark)' : language === 'zh' ? '薰衣草之夜 (深色)' : 'ラベンダーナイト (ダーク)'}</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="warm-beige" data-testid="layout-warm-beige">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200"></div>
+                    <span>{language === 'ko' ? '웜 베이지 (다이어리)' : language === 'en' ? 'Warm Beige (Diary)' : language === 'zh' ? '温暖米色 (日记)' : 'ウォームベージュ (ダイアリー)'}</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="pastel-dream" data-testid="layout-pastel-dream">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-gradient-to-r from-pink-200 via-purple-200 to-pink-200 border border-pink-300/50"></div>
+                    <span>{language === 'ko' ? '파스텔 드림 (음악 플레이어)' : language === 'en' ? 'Pastel Dream (Music Player)' : language === 'zh' ? '粉彩梦境 (音乐播放器)' : 'パステルドリーム (ミュージックプレーヤー)'}</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-
-          {/* 구분선 */}
-          <div className="border-t border-border/50"></div>
 
           {/* 언어 섹션 */}
           <div className="space-y-2">

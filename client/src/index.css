@@ -167,6 +167,649 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
+/* ============================================
+   LAYOUT THEMES
+   ============================================ */
+
+/* 기본 테마 (핑크) - 레이아웃 테마가 없을 때는 기존 핑크 스타일 유지 */
+
+/* 1. Lavender Night - 어두운 감성 다크모드 (Pet App 스타일) */
+.layout-lavender-night {
+  --background: 0 0% 4%;
+  --foreground: 0 0% 95%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 95%;
+  --border: 0 0% 15%;
+  --primary: 320 70% 75%;
+  --primary-foreground: 0 0% 4%;
+  --secondary: 0 0% 12%;
+  --secondary-foreground: 0 0% 90%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 65%;
+  --accent: 270 60% 80%;
+  --accent-foreground: 0 0% 4%;
+  --destructive: 0 70% 60%;
+  --destructive-foreground: 0 0% 95%;
+  --ring: 320 70% 75%;
+  --input: 0 0% 12%;
+  --button-outline: rgba(255, 179, 217, 0.2);
+  --badge-outline: rgba(255, 179, 217, 0.15);
+  --elevate-1: rgba(255, 255, 255, 0.03);
+  --elevate-2: rgba(255, 255, 255, 0.05);
+  --radius: 0.75rem;
+}
+
+.layout-lavender-night body,
+.layout-lavender-night .min-h-screen,
+.layout-lavender-night [class*="bg-gradient-to-br"][class*="from-pink"] {
+  background: #0a0a0a !important;
+}
+
+.layout-lavender-night .bg-background {
+  background: #0a0a0a;
+}
+
+.layout-lavender-night .bg-card,
+.layout-lavender-night [class*="bg-gradient-to-br"],
+.layout-lavender-night [class*="from-pink"],
+.layout-lavender-night [class*="to-white"] {
+  background: rgba(20, 20, 20, 0.95) !important;
+  backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-width: 1px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.layout-lavender-night .border-pink-200,
+.layout-lavender-night .border-pink-200\/50,
+.layout-lavender-night .border {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.layout-lavender-night [class*="text-\[#9333ea\]"] {
+  color: #ffb3d9 !important;
+}
+
+.layout-lavender-night [class*="bg-\[#9333ea\]"] {
+  background: linear-gradient(135deg, #ffb3d9 0%, #c8a2f0 50%, #a8d5ff 100%) !important;
+  color: #0a0a0a !important;
+}
+
+.layout-lavender-night [class*="hover:bg-\[#7e22ce\]"] {
+  background: linear-gradient(135deg, #ff9fcc 0%, #b891e8 50%, #8fc4ff 100%) !important;
+}
+
+/* 버튼 스타일 */
+.layout-lavender-night button[class*="bg-primary"],
+.layout-lavender-night .bg-primary {
+  background: linear-gradient(135deg, #ffb3d9 0%, #c8a2f0 50%, #a8d5ff 100%) !important;
+  color: #0a0a0a !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(255, 179, 217, 0.3);
+}
+
+.layout-lavender-night button[class*="bg-primary"]:hover,
+.layout-lavender-night .bg-primary:hover {
+  background: linear-gradient(135deg, #ff9fcc 0%, #b891e8 50%, #8fc4ff 100%) !important;
+  box-shadow: 0 4px 12px rgba(255, 179, 217, 0.4);
+  transform: translateY(-1px);
+}
+
+/* 입력 필드 스타일 */
+.layout-lavender-night input,
+.layout-lavender-night textarea,
+.layout-lavender-night select,
+.layout-lavender-night [class*="border-pink-200"] {
+  background: rgba(15, 15, 15, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f5f5f5 !important;
+}
+
+.layout-lavender-night input:focus,
+.layout-lavender-night textarea:focus,
+.layout-lavender-night select:focus,
+.layout-lavender-night input:focus-visible,
+.layout-lavender-night textarea:focus-visible,
+.layout-lavender-night select:focus-visible {
+  border-color: #ffb3d9 !important;
+  box-shadow: 0 0 0 2px rgba(255, 179, 217, 0.2) !important;
+  outline: none !important;
+}
+
+.layout-lavender-night input::placeholder,
+.layout-lavender-night textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 카드 호버 효과 */
+.layout-lavender-night [class*="hover:shadow-xl"]:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+}
+
+/* 텍스트 색상 조정 */
+.layout-lavender-night .text-gray-500,
+.layout-lavender-night .text-gray-600 {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.layout-lavender-night .text-muted-foreground {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* 배지 스타일 */
+.layout-lavender-night [class*="bg-pink-100"],
+.layout-lavender-night [class*="bg-pink-500"] {
+  background: rgba(255, 179, 217, 0.2) !important;
+  color: #ffb3d9 !important;
+  border: 1px solid rgba(255, 179, 217, 0.3) !important;
+}
+
+/* 선택 박스 스타일 */
+.layout-lavender-night [role="combobox"],
+.layout-lavender-night [role="listbox"] {
+  background: rgba(15, 15, 15, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f5f5f5 !important;
+}
+
+.layout-lavender-night [role="option"]:hover {
+  background: rgba(255, 179, 217, 0.15) !important;
+}
+
+/* 스위치 스타일 */
+.layout-lavender-night [role="switch"][aria-checked="true"] {
+  background: linear-gradient(135deg, #ffb3d9 0%, #c8a2f0 50%, #a8d5ff 100%) !important;
+}
+
+/* 체크박스 스타일 */
+.layout-lavender-night [type="checkbox"]:checked {
+  background: linear-gradient(135deg, #ffb3d9 0%, #c8a2f0 50%, #a8d5ff 100%) !important;
+  border-color: transparent !important;
+}
+
+/* 아이콘 버튼 스타일 */
+.layout-lavender-night button[class*="rounded-full"][class*="bg-pink"] {
+  background: rgba(255, 179, 217, 0.15) !important;
+  color: #ffb3d9 !important;
+  border: 1px solid rgba(255, 179, 217, 0.3) !important;
+}
+
+.layout-lavender-night button[class*="rounded-full"][class*="bg-pink"]:hover {
+  background: rgba(255, 179, 217, 0.25) !important;
+  border-color: rgba(255, 179, 217, 0.5) !important;
+}
+
+/* Sheet/Dialog 오버레이 */
+.layout-lavender-night [data-radix-dialog-overlay] {
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* 탭 스타일 */
+.layout-lavender-night [role="tab"][aria-selected="true"] {
+  background: rgba(255, 179, 217, 0.2) !important;
+  color: #ffb3d9 !important;
+  border-color: rgba(255, 179, 217, 0.4) !important;
+}
+
+/* 그라디언트 하트 아이콘 배경 */
+.layout-lavender-night [class*="bg-gradient-to-br"][class*="from-pink-100"][class*="to-purple-100"] {
+  background: linear-gradient(135deg, rgba(255, 179, 217, 0.2) 0%, rgba(200, 162, 240, 0.2) 100%) !important;
+  border: 1px solid rgba(255, 179, 217, 0.3) !important;
+}
+
+/* 2. Warm Beige - 감성 다이어리 스타일 (Smart Home App 스타일) */
+.layout-warm-beige {
+  --background: 35 20% 92%;
+  --foreground: 25 35% 18%;
+  --card: 35 25% 88%;
+  --card-foreground: 25 35% 18%;
+  --border: 30 25% 80%;
+  --primary: 25 45% 50%;
+  --primary-foreground: 35 20% 95%;
+  --secondary: 35 20% 85%;
+  --secondary-foreground: 25 35% 18%;
+  --muted: 35 15% 82%;
+  --muted-foreground: 25 25% 45%;
+  --accent: 30 40% 60%;
+  --accent-foreground: 35 20% 95%;
+  --destructive: 0 65% 55%;
+  --destructive-foreground: 35 20% 95%;
+  --ring: 25 45% 50%;
+  --input: 35 20% 85%;
+  --button-outline: rgba(139, 115, 85, 0.25);
+  --badge-outline: rgba(139, 115, 85, 0.2);
+  --elevate-1: rgba(139, 115, 85, 0.05);
+  --elevate-2: rgba(139, 115, 85, 0.08);
+  --radius: 1rem;
+}
+
+.layout-warm-beige body,
+.layout-warm-beige .min-h-screen,
+.layout-warm-beige [class*="bg-gradient-to-br"][class*="from-pink"] {
+  background: linear-gradient(135deg, #f5f1e8 0%, #faf8f3 30%, #f0ebe0 60%, #ede8df 100%) !important;
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 115, 85, 0.02) 2px, rgba(139, 115, 85, 0.02) 4px),
+    linear-gradient(135deg, #f5f1e8 0%, #faf8f3 30%, #f0ebe0 60%, #ede8df 100%) !important;
+}
+
+.layout-warm-beige .bg-background {
+  background: linear-gradient(135deg, #f5f1e8 0%, #faf8f3 30%, #f0ebe0 60%, #ede8df 100%);
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 115, 85, 0.02) 2px, rgba(139, 115, 85, 0.02) 4px);
+}
+
+/* 반투명 프로스티드 글래스 효과 카드 */
+.layout-warm-beige .bg-card,
+.layout-warm-beige [class*="bg-gradient-to-br"],
+.layout-warm-beige [class*="from-pink"],
+.layout-warm-beige [class*="to-white"] {
+  background: rgba(255, 250, 240, 0.75) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 
+    0 4px 16px rgba(139, 115, 85, 0.15),
+    0 2px 4px rgba(139, 115, 85, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(139, 115, 85, 0.25) !important;
+  border-radius: 1rem !important;
+}
+
+.layout-warm-beige .border-pink-200,
+.layout-warm-beige .border-pink-200\/50,
+.layout-warm-beige .border {
+  border-color: rgba(139, 115, 85, 0.3) !important;
+}
+
+/* 텍스트 색상 */
+.layout-warm-beige [class*="text-\[#9333ea\]"] {
+  color: hsl(25 45% 50%) !important;
+}
+
+/* 버튼 스타일 - 부드러운 브라운 톤 */
+.layout-warm-beige button,
+.layout-warm-beige [class*="bg-\[#9333ea\]"],
+.layout-warm-beige .bg-primary {
+  background: hsl(25 45% 50%) !important;
+  color: #faf8f3 !important;
+  border: 1px solid rgba(139, 115, 85, 0.3) !important;
+  box-shadow: 
+    0 2px 8px rgba(139, 115, 85, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  border-radius: 0.75rem !important;
+}
+
+.layout-warm-beige button:hover,
+.layout-warm-beige [class*="hover:bg-\[#7e22ce\]"],
+.layout-warm-beige .bg-primary:hover {
+  background: hsl(25 45% 45%) !important;
+  box-shadow: 
+    0 4px 12px rgba(139, 115, 85, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  transform: translateY(-1px);
+}
+
+/* 입력 필드 스타일 */
+.layout-warm-beige input,
+.layout-warm-beige textarea,
+.layout-warm-beige select,
+.layout-warm-beige [class*="border-pink-200"] {
+  background: rgba(255, 250, 240, 0.8) !important;
+  backdrop-filter: blur(10px);
+  border-color: rgba(139, 115, 85, 0.3) !important;
+  color: hsl(25 35% 18%) !important;
+  border-radius: 0.75rem !important;
+}
+
+.layout-warm-beige input:focus,
+.layout-warm-beige textarea:focus,
+.layout-warm-beige select:focus,
+.layout-warm-beige input:focus-visible,
+.layout-warm-beige textarea:focus-visible,
+.layout-warm-beige select:focus-visible {
+  border-color: hsl(25 45% 50%) !important;
+  box-shadow: 
+    0 0 0 3px rgba(139, 115, 85, 0.15),
+    0 2px 4px rgba(139, 115, 85, 0.1) !important;
+  outline: none !important;
+  background: rgba(255, 250, 240, 0.95) !important;
+}
+
+.layout-warm-beige input::placeholder,
+.layout-warm-beige textarea::placeholder {
+  color: rgba(139, 115, 85, 0.5) !important;
+}
+
+/* 카드 호버 효과 */
+.layout-warm-beige [class*="hover:shadow-xl"]:hover,
+.layout-warm-beige [class*="hover:shadow-lg"]:hover {
+  box-shadow: 
+    0 8px 24px rgba(139, 115, 85, 0.2),
+    0 4px 8px rgba(139, 115, 85, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-color: rgba(139, 115, 85, 0.35) !important;
+}
+
+/* 배지 스타일 */
+.layout-warm-beige [class*="bg-pink-100"],
+.layout-warm-beige [class*="bg-pink-500"] {
+  background: rgba(139, 115, 85, 0.2) !important;
+  color: hsl(25 45% 45%) !important;
+  border: 1px solid rgba(139, 115, 85, 0.3) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* 선택 박스 스타일 */
+.layout-warm-beige [role="combobox"],
+.layout-warm-beige [role="listbox"] {
+  background: rgba(255, 250, 240, 0.85) !important;
+  backdrop-filter: blur(15px);
+  border-color: rgba(139, 115, 85, 0.3) !important;
+  color: hsl(25 35% 18%) !important;
+  border-radius: 0.75rem !important;
+}
+
+.layout-warm-beige [role="option"]:hover {
+  background: rgba(139, 115, 85, 0.15) !important;
+}
+
+/* 스위치 스타일 */
+.layout-warm-beige [role="switch"][aria-checked="true"] {
+  background: hsl(25 45% 50%) !important;
+}
+
+/* 체크박스 스타일 */
+.layout-warm-beige [type="checkbox"]:checked {
+  background: hsl(25 45% 50%) !important;
+  border-color: hsl(25 45% 50%) !important;
+}
+
+/* 아이콘 버튼 스타일 */
+.layout-warm-beige button[class*="rounded-full"][class*="bg-pink"] {
+  background: rgba(139, 115, 85, 0.15) !important;
+  color: hsl(25 45% 50%) !important;
+  border: 1px solid rgba(139, 115, 85, 0.3) !important;
+  backdrop-filter: blur(8px);
+}
+
+.layout-warm-beige button[class*="rounded-full"][class*="bg-pink"]:hover {
+  background: rgba(139, 115, 85, 0.25) !important;
+  border-color: rgba(139, 115, 85, 0.4) !important;
+}
+
+/* Sheet/Dialog 오버레이 */
+.layout-warm-beige [data-radix-dialog-overlay] {
+  background: rgba(139, 115, 85, 0.4) !important;
+  backdrop-filter: blur(6px);
+}
+
+/* 탭 스타일 */
+.layout-warm-beige [role="tab"][aria-selected="true"] {
+  background: rgba(139, 115, 85, 0.2) !important;
+  color: hsl(25 45% 50%) !important;
+  border-color: rgba(139, 115, 85, 0.4) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* 그라디언트 하트 아이콘 배경 */
+.layout-warm-beige [class*="bg-gradient-to-br"][class*="from-pink-100"][class*="to-purple-100"] {
+  background: linear-gradient(135deg, rgba(255, 250, 240, 0.6) 0%, rgba(245, 241, 232, 0.6) 100%) !important;
+  border: 1px solid rgba(139, 115, 85, 0.3) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* 텍스트 색상 조정 */
+.layout-warm-beige .text-gray-500,
+.layout-warm-beige .text-gray-600 {
+  color: rgba(139, 115, 85, 0.7) !important;
+}
+
+.layout-warm-beige .text-muted-foreground {
+  color: rgba(139, 115, 85, 0.65) !important;
+}
+
+/* 3. Pastel Dream - 음악 플레이어 스타일 (파스텔 드림) */
+.layout-pastel-dream {
+  --background: 320 40% 97%;
+  --foreground: 320 30% 25%;
+  --card: 320 35% 99%;
+  --card-foreground: 320 30% 25%;
+  --border: 320 30% 90%;
+  --primary: 320 70% 75%;
+  --primary-foreground: 320 40% 97%;
+  --secondary: 320 30% 94%;
+  --secondary-foreground: 320 30% 25%;
+  --muted: 320 25% 92%;
+  --muted-foreground: 320 25% 50%;
+  --accent: 280 60% 80%;
+  --accent-foreground: 320 40% 97%;
+  --destructive: 0 70% 60%;
+  --destructive-foreground: 320 40% 97%;
+  --ring: 320 70% 75%;
+  --input: 320 30% 94%;
+  --button-outline: rgba(252, 228, 236, 0.4);
+  --badge-outline: rgba(252, 228, 236, 0.3);
+  --elevate-1: rgba(255, 255, 255, 0.3);
+  --elevate-2: rgba(255, 255, 255, 0.4);
+  --radius: 1.5rem;
+}
+
+.layout-pastel-dream body,
+.layout-pastel-dream .min-h-screen,
+.layout-pastel-dream [class*="bg-gradient-to-br"][class*="from-pink"] {
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 20%, #e1bee7 40%, #d1c4e9 60%, #f3e5f5 80%, #fce4ec 100%) !important;
+  background-size: 300% 300%;
+  animation: pastel-gradient-shift 20s ease infinite;
+}
+
+@keyframes pastel-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.layout-pastel-dream .bg-background {
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 20%, #e1bee7 40%, #d1c4e9 60%, #f3e5f5 80%, #fce4ec 100%);
+  background-size: 300% 300%;
+  animation: pastel-gradient-shift 20s ease infinite;
+}
+
+/* 반투명 글래스모피즘 카드 - 매우 둥근 모서리 */
+.layout-pastel-dream .bg-card,
+.layout-pastel-dream [class*="bg-gradient-to-br"],
+.layout-pastel-dream [class*="from-pink"],
+.layout-pastel-dream [class*="to-white"] {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 
+    0 8px 32px rgba(252, 228, 236, 0.3),
+    0 4px 16px rgba(225, 190, 231, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+.layout-pastel-dream .border-pink-200,
+.layout-pastel-dream .border-pink-200\/50,
+.layout-pastel-dream .border {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 텍스트 색상 - 부드러운 그라디언트 */
+.layout-pastel-dream [class*="text-\[#9333ea\]"] {
+  background: linear-gradient(135deg, #f8bbd0 0%, #e1bee7 50%, #d1c4e9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 버튼 스타일 - 부드러운 파스텔 그라디언트 */
+.layout-pastel-dream button,
+.layout-pastel-dream [class*="bg-\[#9333ea\]"],
+.layout-pastel-dream .bg-primary {
+  background: linear-gradient(135deg, #f8bbd0 0%, #e1bee7 50%, #d1c4e9 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 
+    0 4px 16px rgba(248, 187, 208, 0.4),
+    0 2px 8px rgba(225, 190, 231, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  border-radius: 1rem !important;
+}
+
+.layout-pastel-dream button:hover,
+.layout-pastel-dream [class*="hover:bg-\[#7e22ce\]"],
+.layout-pastel-dream .bg-primary:hover {
+  background: linear-gradient(135deg, #f5a5c7 0%, #d89ee0 50%, #c4a8e5 100%) !important;
+  box-shadow: 
+    0 6px 20px rgba(248, 187, 208, 0.5),
+    0 3px 10px rgba(225, 190, 231, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  transform: translateY(-2px);
+}
+
+/* 입력 필드 스타일 - 반투명 글래스 */
+.layout-pastel-dream input,
+.layout-pastel-dream textarea,
+.layout-pastel-dream select,
+.layout-pastel-dream [class*="border-pink-200"] {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(20px);
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  color: hsl(320 30% 25%) !important;
+  border-radius: 1rem !important;
+  box-shadow: 
+    0 2px 8px rgba(252, 228, 236, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+.layout-pastel-dream input:focus,
+.layout-pastel-dream textarea:focus,
+.layout-pastel-dream select:focus,
+.layout-pastel-dream input:focus-visible,
+.layout-pastel-dream textarea:focus-visible,
+.layout-pastel-dream select:focus-visible {
+  border-color: rgba(248, 187, 208, 0.8) !important;
+  box-shadow: 
+    0 0 0 4px rgba(248, 187, 208, 0.2),
+    0 4px 12px rgba(225, 190, 231, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  outline: none !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+}
+
+.layout-pastel-dream input::placeholder,
+.layout-pastel-dream textarea::placeholder {
+  color: rgba(248, 187, 208, 0.6) !important;
+}
+
+/* 카드 호버 효과 - 부드러운 상승 */
+.layout-pastel-dream [class*="hover:shadow-xl"]:hover,
+.layout-pastel-dream [class*="hover:shadow-lg"]:hover {
+  box-shadow: 
+    0 12px 40px rgba(252, 228, 236, 0.4),
+    0 6px 20px rgba(225, 190, 231, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  transform: translateY(-4px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 배지 스타일 */
+.layout-pastel-dream [class*="bg-pink-100"],
+.layout-pastel-dream [class*="bg-pink-500"] {
+  background: rgba(248, 187, 208, 0.3) !important;
+  color: #f8bbd0 !important;
+  border: 1px solid rgba(248, 187, 208, 0.4) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 0.75rem !important;
+}
+
+/* 선택 박스 스타일 */
+.layout-pastel-dream [role="combobox"],
+.layout-pastel-dream [role="listbox"] {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(25px);
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  color: hsl(320 30% 25%) !important;
+  border-radius: 1rem !important;
+  box-shadow: 
+    0 4px 16px rgba(252, 228, 236, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+.layout-pastel-dream [role="option"]:hover {
+  background: rgba(248, 187, 208, 0.2) !important;
+}
+
+/* 스위치 스타일 */
+.layout-pastel-dream [role="switch"][aria-checked="true"] {
+  background: linear-gradient(135deg, #f8bbd0 0%, #e1bee7 50%, #d1c4e9 100%) !important;
+}
+
+/* 체크박스 스타일 */
+.layout-pastel-dream [type="checkbox"]:checked {
+  background: linear-gradient(135deg, #f8bbd0 0%, #e1bee7 50%, #d1c4e9 100%) !important;
+  border-color: transparent !important;
+}
+
+/* 아이콘 버튼 스타일 */
+.layout-pastel-dream button[class*="rounded-full"][class*="bg-pink"] {
+  background: rgba(248, 187, 208, 0.25) !important;
+  color: #f8bbd0 !important;
+  border: 1px solid rgba(248, 187, 208, 0.4) !important;
+  backdrop-filter: blur(15px);
+  box-shadow: 
+    0 2px 8px rgba(248, 187, 208, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+.layout-pastel-dream button[class*="rounded-full"][class*="bg-pink"]:hover {
+  background: rgba(248, 187, 208, 0.35) !important;
+  border-color: rgba(248, 187, 208, 0.5) !important;
+  box-shadow: 
+    0 4px 12px rgba(248, 187, 208, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Sheet/Dialog 오버레이 */
+.layout-pastel-dream [data-radix-dialog-overlay] {
+  background: rgba(252, 228, 236, 0.5) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* 탭 스타일 */
+.layout-pastel-dream [role="tab"][aria-selected="true"] {
+  background: rgba(248, 187, 208, 0.3) !important;
+  color: #f8bbd0 !important;
+  border-color: rgba(248, 187, 208, 0.5) !important;
+  backdrop-filter: blur(15px);
+  border-radius: 1rem !important;
+}
+
+/* 그라디언트 하트 아이콘 배경 */
+.layout-pastel-dream [class*="bg-gradient-to-br"][class*="from-pink-100"][class*="to-purple-100"] {
+  background: linear-gradient(135deg, rgba(252, 228, 236, 0.5) 0%, rgba(225, 190, 231, 0.5) 100%) !important;
+  border: 1px solid rgba(248, 187, 208, 0.4) !important;
+  backdrop-filter: blur(15px);
+  border-radius: 50% !important;
+}
+
+/* 텍스트 색상 조정 */
+.layout-pastel-dream .text-gray-500,
+.layout-pastel-dream .text-gray-600 {
+  color: rgba(248, 187, 208, 0.7) !important;
+}
+
+.layout-pastel-dream .text-muted-foreground {
+  color: rgba(248, 187, 208, 0.65) !important;
+}
+
 @layer base {
   * {
     @apply border-border;

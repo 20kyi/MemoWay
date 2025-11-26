@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider, useLanguage, type Language } from "./lib/language-context";
 import { FontProvider } from "./lib/font-context";
 import { ThemeProvider } from "./lib/theme-context";
+import { LayoutThemeProvider } from "./lib/layout-theme-context";
 import { MapProviderProvider } from "./lib/map-provider-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, lazy, Suspense } from "react";
@@ -203,16 +204,18 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <LanguageProvider>
-          <FontProvider>
-            <MapProviderProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Router />
-              </TooltipProvider>
-            </MapProviderProvider>
-          </FontProvider>
-        </LanguageProvider>
+        <LayoutThemeProvider>
+          <LanguageProvider>
+            <FontProvider>
+              <MapProviderProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Router />
+                </TooltipProvider>
+              </MapProviderProvider>
+            </FontProvider>
+          </LanguageProvider>
+        </LayoutThemeProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
