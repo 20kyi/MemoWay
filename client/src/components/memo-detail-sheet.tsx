@@ -46,7 +46,7 @@ export function MemoDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-xl sm:rounded-t-2xl p-0 flex flex-col">
+      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-xl sm:rounded-t-2xl p-0 flex flex-col [&>button]:cursor-default">
         <TooltipProvider delayDuration={300}>
           <div className="flex flex-col relative w-full min-h-0">
             {/* 드래그 핸들 */}

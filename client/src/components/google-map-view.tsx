@@ -469,35 +469,104 @@ export function GoogleMapView({
     setIsSearching(true);
     try {
       const google = await loadGoogleMaps();
-      const geocoder = new google.maps.Geocoder();
-      const result = await geocoder.geocode({ address: searchQuery });
+      
+      // 방법 2: Geocoder API 폴백 함수 정의
+      const fallbackToGeocoder = () => {
+        try {
+          const geocoder = new google.maps.Geocoder();
+          geocoder.geocode({ address: searchQuery }, (results, status) => {
+            if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+              const location = results[0].geometry.location;
+              map.setCenter(location);
+              map.setZoom(16);
+              
+              toast({
+                title: "검색 완료",
+                description: `"${searchQuery}" 위치로 이동했습니다`,
+              });
+              
+              setSearchQuery("");
+            } else {
+              // Geocoder도 실패한 경우
+              let errorMessage = "주소를 찾을 수 없습니다";
+              if (status === google.maps.GeocoderStatus.ZERO_RESULTS) {
+                errorMessage = "검색 결과가 없습니다. 다른 키워드로 시도해주세요.";
+              } else if (status === google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
+                errorMessage = "검색 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.";
+              } else if (status === google.maps.GeocoderStatus.REQUEST_DENIED) {
+                errorMessage = "검색 요청이 거부되었습니다. Google Cloud Console에서 Geocoding API와 Places API를 활성화해주세요.";
+              } else if (status === google.maps.GeocoderStatus.INVALID_REQUEST) {
+                errorMessage = "검색어가 올바르지 않습니다.";
+              }
+              
+              toast({
+                title: "검색 실패",
+                description: errorMessage,
+                variant: "destructive",
+              });
+            }
+            setIsSearching(false);
+          });
+        } catch (geocoderError) {
+          console.error("Geocoding error:", geocoderError);
+          toast({
+            title: "검색 오류",
+            description: "주소 검색 중 오류가 발생했습니다. Google Cloud Console에서 Places API와 Geocoding API를 활성화해주세요.",
+            variant: "destructive",
+          });
+          setIsSearching(false);
+        }
+      };
+      
+      // 방법 1: Places API 사용 (더 정확하고 권장되는 방법)
+      try {
+        if (google.maps.places && google.maps.places.PlacesService) {
+          const placesService = new google.maps.places.PlacesService(map);
+          const request = {
+            query: searchQuery,
+            fields: ['geometry', 'formatted_address', 'name'],
+          };
 
-      if (result.results[0]) {
-        const location = result.results[0].geometry.location;
-        map.setCenter(location);
-        map.setZoom(16);
-        
-        toast({
-          title: "검색 완료",
-          description: `"${searchQuery}" 위치로 이동했습니다`,
-        });
-        
-        setSearchQuery("");
-      } else {
-        toast({
-          title: "검색 실패",
-          description: "주소를 찾을 수 없습니다",
-          variant: "destructive",
-        });
+          // Places API의 findPlaceFromQuery 사용
+          placesService.findPlaceFromQuery(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
+              const place = results[0];
+              if (place.geometry && place.geometry.location) {
+                const location = place.geometry.location;
+                map.setCenter(location);
+                map.setZoom(16);
+                
+                toast({
+                  title: "검색 완료",
+                  description: `"${place.name || searchQuery}" 위치로 이동했습니다`,
+                });
+                
+                setSearchQuery("");
+                setIsSearching(false);
+                return;
+              }
+            }
+            
+            // Places API 실패 시 Geocoder로 폴백
+            fallbackToGeocoder();
+          });
+        } else {
+          // Places API가 사용 불가능한 경우 바로 Geocoder 사용
+          console.warn("Places API not available, using Geocoder");
+          fallbackToGeocoder();
+        }
+      } catch (placesError) {
+        console.warn("Places API error, falling back to Geocoder:", placesError);
+        // Places API 실패 시 Geocoder로 폴백
+        fallbackToGeocoder();
       }
     } catch (error) {
-      console.error("Geocoding error:", error);
+      console.error("Search error:", error);
       toast({
         title: "검색 오류",
-        description: "주소 검색 중 오류가 발생했습니다. Geocoding API를 활성화해주세요.",
+        description: "주소 검색 중 오류가 발생했습니다. Google Maps API가 제대로 로드되었는지 확인해주세요.",
         variant: "destructive",
       });
-    } finally {
       setIsSearching(false);
     }
   };
