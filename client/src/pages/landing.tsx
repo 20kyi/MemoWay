@@ -433,6 +433,20 @@ export default function Landing() {
               {language === 'zh' && '使用 Apple 登录'}
               {language === 'ja' && 'Apple でログイン'}
             </Button>
+
+            {/* Kakao Login Button */}
+            <Button 
+              size="lg" 
+              className="w-full h-12 bg-[#FEE500] hover:bg-[#FDD835] border border-[#FDD835] hover:border-[#FBC02D] text-[#000000] font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
+              onClick={handleKakaoLogin}
+              data-testid="button-kakao-login"
+            >
+              <Heart className="h-5 w-5 mr-2 fill-current" />
+              {language === 'ko' && '카카오로 로그인'}
+              {language === 'en' && 'Sign in with Kakao'}
+              {language === 'zh' && '使用 Kakao 登录'}
+              {language === 'ja' && 'Kakao でログイン'}
+            </Button>
           </div>
 
           {/* Sign Up Link */}
