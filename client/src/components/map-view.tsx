@@ -1782,38 +1782,55 @@ export function MapView({
           
           {/* 주소 검색 바 */}
           <div className="absolute top-4 left-4 right-4 z-10">
-            <div className="flex gap-2 bg-card/80 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-primary/30 p-2">
-              <div className="relative flex-1">
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleSearchKeyPress}
-                  placeholder={t.common.addressSearchPlaceholder}
-                  className="pr-10 border-0 focus-visible:ring-0"
-                  disabled={isSearching}
-                  data-testid="input-address-search"
-                />
-                {searchQuery && (
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 bg-card/80 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-primary/30 p-2">
+                <div className="relative flex-1">
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleSearchKeyPress}
+                    placeholder={t.common.addressSearchPlaceholder}
+                    className="pr-10 border-0 focus-visible:ring-0"
+                    disabled={isSearching}
+                    data-testid="input-address-search"
+                  />
+                  {searchQuery && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                      onClick={handleClearSearch}
+                      data-testid="button-clear-search"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <Button
+                  size="icon"
+                  onClick={handleSearchAddress}
+                  disabled={!searchQuery.trim() || isSearching}
+                  className="h-10 w-10 flex-shrink-0"
+                  data-testid="button-search-address"
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* 검색 결과 취소 버튼 (검색 결과가 있을 때 표시) */}
+              {(searchMarker !== null || searchPlaceMarkers.length > 0) && (
+                <div className="flex justify-center">
                   <Button
-                    size="icon"
-                    variant="ghost"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                     onClick={handleClearSearch}
-                    data-testid="button-clear-search"
+                    variant="default"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg flex items-center gap-2"
+                    data-testid="button-cancel-search-results"
                   >
                     <X className="h-4 w-4" />
+                    <span>검색 결과 취소</span>
                   </Button>
-                )}
-              </div>
-              <Button
-                size="icon"
-                onClick={handleSearchAddress}
-                disabled={!searchQuery.trim() || isSearching}
-                className="h-10 w-10 flex-shrink-0"
-                data-testid="button-search-address"
-              >
-                <Search className="h-5 w-5" />
-              </Button>
+                </div>
+              )}
             </div>
           </div>
 
