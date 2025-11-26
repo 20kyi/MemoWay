@@ -138,7 +138,7 @@ export function MemoDetailSheet({
                       data-testid="button-add-memo"
                     >
                       <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
-                      새 메모 추가
+                      {t.memoDetail.addMemoHere}
                     </Button>
                   )}
                   {onEdit && (
@@ -153,7 +153,7 @@ export function MemoDetailSheet({
                       data-testid="button-edit-memo"
                     >
                       <Edit className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
-                      수정
+                      {t.common.edit}
                     </Button>
                   )}
                   {onDelete && (
@@ -161,7 +161,7 @@ export function MemoDetailSheet({
                       size="sm"
                       variant="destructive"
                       onClick={() => {
-                        if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
+                        if (confirm(t.memoDetail.confirmDelete)) {
                           onDelete(memo.id);
                           onOpenChange(false);
                         }
@@ -170,7 +170,7 @@ export function MemoDetailSheet({
                       data-testid="button-delete-memo"
                     >
                       <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
-                      삭제
+                      {t.common.delete}
                     </Button>
                   )}
                 </div>
