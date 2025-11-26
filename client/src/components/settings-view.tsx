@@ -52,7 +52,7 @@ export function SettingsView({
   const handleLogout = () => {
     window.location.href = "/api/logout";
   };
-  
+
   const getProviderName = (provider: string) => {
     if (provider === 'kakao') return '카카오';
     if (provider === 'replit') return 'Replit';
@@ -74,13 +74,13 @@ export function SettingsView({
     },
     onSuccess: async (data, amount) => {
       console.log('[Points Purchase] Success response:', data);
-      
+
       // 응답 데이터로 즉시 캐시 업데이트 (낙관적 업데이트)
       // 서버에서 전체 사용자 정보를 반환하므로 이를 활용
       if (data && data.points !== undefined) {
         // 현재 캐시 데이터 가져오기
         const currentCache = queryClient.getQueryData(["/api/auth/user"]) as any;
-        
+
         // 서버 응답 데이터로 완전한 사용자 객체 구성
         const updatedUserData = {
           id: data.id || currentCache?.id,
@@ -91,23 +91,23 @@ export function SettingsView({
           points: data.points, // 서버에서 반환한 최신 포인트 (가장 중요!)
           provider: data.provider || currentCache?.provider,
         };
-        
+
         // 캐시에 즉시 반영 (UI가 즉시 업데이트됨)
         queryClient.setQueryData(["/api/auth/user"], updatedUserData);
-        
-        console.log('[Points Purchase] ✅ Cache updated immediately:', { 
-          oldPoints: currentCache?.points, 
+
+        console.log('[Points Purchase] ✅ Cache updated immediately:', {
+          oldPoints: currentCache?.points,
           newPoints: data.points,
           userId: updatedUserData.id
         });
-        
+
         // 백그라운드에서 최신 정보 재요청 (데이터 동기화 보장)
         // invalidateQueries를 절대 사용하지 않음 (캐시 무효화 방지)
         // refetchQueries는 기존 캐시를 유지한 채로 업데이트만 수행하므로 안전
         // 지연 시간을 두어 낙관적 업데이트가 완전히 반영된 후 실행
         setTimeout(async () => {
           try {
-            const result = await queryClient.refetchQueries({ 
+            const result = await queryClient.refetchQueries({
               queryKey: ["/api/auth/user"],
               type: 'active',
             });
@@ -123,7 +123,7 @@ export function SettingsView({
         // 대신 refetchQueries만 사용하여 캐시 무효화 방지
         queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
       }
-      
+
       setIsPurchaseDialogOpen(false);
       toast({
         title: t.settings.pointsCharged,
@@ -141,7 +141,7 @@ export function SettingsView({
         // Don't close dialog or auto-redirect - let user manually close and re-authenticate
         return;
       }
-      
+
       // For other errors, keep dialog open so user can retry
       toast({
         title: t.settings.pointsChargeFailed,
@@ -158,51 +158,49 @@ export function SettingsView({
   ];
 
   return (
-    <div className="px-2 sm:px-4 py-3 sm:py-4 space-y-2.5 sm:space-y-3 overflow-y-auto h-full">
-      <h1 className="text-lg sm:text-xl font-medium mb-3 sm:mb-4">{t.settings.title}</h1>
+    <div className="px-3 py-3 sm:px-4 sm:py-4 space-y-2 sm:space-y-3 overflow-y-auto h-full">
+      <h1 className="text-xl sm:text-2xl font-medium mb-3 sm:mb-4">{t.settings.title}</h1>
 
       {/* 1. 계정 */}
       {user ? (
-        <Card className="rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 shadow-md hover:shadow-lg transition-all">
-          <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+        <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+          <CardHeader className="pb-3 sm:pb-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-                  <User className="h-4 w-4 sm:h-5 sm:w-5" />
-                  {t.settings.account}
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                  <span className="truncate">{t.settings.account}</span>
                 </CardTitle>
-                <CardDescription className="text-xs sm:text-sm mt-0.5">
+                {/* <CardDescription className="text-xs sm:text-sm mt-0.5">
                   {t.settings.accountInfo}
-                </CardDescription>
+                </CardDescription> */}
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={handleLogout}
                 data-testid="button-logout"
-                className="flex items-center gap-1.5 h-8 text-xs sm:text-sm px-2 sm:px-3 flex-shrink-0"
+                className="flex items-center gap-1.5 shrink-0 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
               >
-                <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">{t.settings.logout}</span>
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
-            <div className="flex items-center gap-2.5 sm:gap-3">
-              <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
+          <CardContent className="pt-0 pb-4 sm:pb-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Avatar className="h-12 w-12 sm:h-14 sm:w-14 shrink-0">
                 <AvatarImage src={(user as any).profileImageUrl || undefined} alt={(user as any).firstName} />
-                <AvatarFallback className="bg-primary/10 text-primary text-base sm:text-lg font-semibold">
-                  {(user as any).firstName?.[0] || (user as any).email?.[0]?.toUpperCase() || '?'}
-                </AvatarFallback>
+                <AvatarFallback>{(user as any).firstName?.[0] || "U"}</AvatarFallback>
               </Avatar>
-              <div className="flex-1 space-y-0.5 sm:space-y-1 min-w-0">
-                <p className="font-semibold text-sm sm:text-base truncate" data-testid="text-user-name">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-base sm:text-lg truncate" data-testid="text-user-name">
                   {(user as any).firstName} {(user as any).lastName}
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground truncate" data-testid="text-user-email">
                   {(user as any).email}
                 </p>
-                <div className="flex items-center gap-1.5 mt-0.5 sm:mt-1">
+                <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
                   <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">
                     {getProviderName((user as any).provider)}
                   </span>
@@ -214,65 +212,94 @@ export function SettingsView({
       ) : null}
 
       {/* 2. 포인트 */}
-      {user ? (
-        <Card className="rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm border border-amber-500/30 hover:border-amber-500/50 shadow-md hover:shadow-lg transition-all">
-          <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-              <Coins className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
-              {t.settings.points}
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm mt-0.5">
-              {t.settings.pointsDesc}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 sm:gap-2.5">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                  <Coins className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground">{t.settings.currentPointsLabel}</p>
-                  <p className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400 truncate" data-testid="text-user-points">
-                    {((user as any)?.points ?? 0).toLocaleString()}
-                  </p>
+      {
+        user ? (
+          <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm border border-amber-500/40 sm:border-2 shadow-md hover:shadow-lg transition-all">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
+                <Coins className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
+                {t.settings.points}
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm mt-0.5">
+                {t.settings.pointsDesc}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 sm:space-y-4 pt-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                    <Coins className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{t.settings.currentPointsLabel}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400" data-testid="text-user-points">
+                      {((user as any)?.points ?? 0).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <Button 
-              onClick={() => setIsPurchaseDialogOpen(true)}
-              size="sm"
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-md text-sm"
-              data-testid="button-purchase-points"
-            >
-              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
-              {t.settings.purchasePoints}
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
+
+              <Button
+                onClick={() => setIsPurchaseDialogOpen(true)}
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-md text-sm sm:text-base h-9 sm:h-10"
+                data-testid="button-purchase-points"
+              >
+                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                {t.settings.purchasePoints}
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null
+      }
+
+      {/* 4. 지도 프로바이더 */}
+      <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
+            <Map className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+            {t.settings.mapProvider}
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm mt-0.5">
+            {t.settings.mapProviderDesc}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0 pb-4 sm:pb-6">
+          <Select value={mapProvider} onValueChange={(value) => setMapProvider(value as MapProvider)}>
+            <SelectTrigger className="w-full h-9 sm:h-10 text-sm sm:text-base" data-testid="select-map-provider">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="kakao" data-testid="map-provider-kakao">
+                {t.settings.mapProviderKakao}
+              </SelectItem>
+              <SelectItem value="google" data-testid="map-provider-google">
+                {t.settings.mapProviderGoogle}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
       {/* 포인트 구매 다이얼로그 */}
       <Dialog open={isPurchaseDialogOpen} onOpenChange={setIsPurchaseDialogOpen}>
-        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto rounded-xl sm:rounded-2xl">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-4 sm:p-6">
+          <DialogHeader className="pb-3 sm:pb-4">
             <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
-              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
               {t.settings.purchasePointsTitle}
             </DialogTitle>
             <DialogDescription className="text-xs sm:text-sm">
               {t.settings.purchasePointsDesc}
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-2 sm:space-y-2.5 py-3 sm:py-4">
+
+          <div className="space-y-2 sm:space-y-3 py-2 sm:py-4">
             {pointPackages.map((pkg) => (
               <button
                 key={pkg.amount}
                 onClick={() => purchasePointsMutation.mutate(pkg.amount)}
                 disabled={purchasePointsMutation.isPending}
-                className={`w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br ${pkg.color} border hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left`}
+                className={`w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br ${pkg.color} border sm:border-2 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left`}
                 style={{
                   transform: purchasePointsMutation.isPending ? 'none' : undefined,
                 }}
@@ -280,22 +307,22 @@ export function SettingsView({
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                    <span className="text-2xl sm:text-3xl flex-shrink-0">{pkg.icon}</span>
+                    <span className="text-2xl sm:text-3xl shrink-0">{pkg.icon}</span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                        <p className="font-bold text-sm sm:text-base truncate">{pkg.amount.toLocaleString()} {t.settings.pointsPackage}</p>
+                        <p className="font-bold text-base sm:text-lg truncate">{pkg.amount.toLocaleString()} {t.settings.pointsPackage}</p>
                         {pkg.label === "인기" && (
-                          <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500 text-white font-semibold flex-shrink-0">
+                          <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500 text-white font-semibold shrink-0">
                             {t.settings.popular}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {t.settings.canCopyMemos.replace('{count}', (pkg.amount / 10).toLocaleString())}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right shrink-0">
                     <p className="font-bold text-base sm:text-lg text-amber-600 dark:text-amber-400">
                       {pkg.price}
                     </p>
@@ -313,228 +340,212 @@ export function SettingsView({
         </DialogContent>
       </Dialog>
 
-      {/* 3. 알림 */}
-      <Card className="rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-purple-500/30 hover:border-purple-500/50 shadow-md hover:shadow-lg transition-all">
-        <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-            <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-            {t.settings.notifications}
+      {/* 3. 알림 및 위치 */}
+      <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-base sm:text-lg">
+            서비스 설정
           </CardTitle>
-          <CardDescription className="text-xs sm:text-sm mt-0.5">
-            {t.settings.notificationsDesc}
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3 pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="notifications" className="cursor-pointer text-sm">
-              {t.settings.notificationsEnable}
-            </Label>
-            <Switch
-              id="notifications"
-              checked={notificationsEnabled}
-              onCheckedChange={onNotificationsChange}
-              data-testid="switch-notifications"
-            />
-          </div>
-          
-          {notificationsEnabled && (
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="proximity-radius" className="text-sm">{t.settings.proximityRadius}</Label>
-              <Select 
-                value={proximityRadius.toString()} 
-                onValueChange={(value) => onProximityRadiusChange(Number(value))}
-              >
-                <SelectTrigger id="proximity-radius" className="text-sm" data-testid="select-proximity-radius">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="50" data-testid="radius-50m">{t.settings.radius50m}</SelectItem>
-                  <SelectItem value="100" data-testid="radius-100m">{t.settings.radius100m}</SelectItem>
-                  <SelectItem value="200" data-testid="radius-200m">{t.settings.radius200m}</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                {t.settings.proximityRadiusDesc}
-              </p>
+        <CardContent className="space-y-4 sm:space-y-5 pt-0 pb-4 sm:pb-6">
+          {/* 알림 섹션 */}
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />
+              <div className="flex-1">
+                <Label htmlFor="notifications" className="cursor-pointer text-sm sm:text-base font-medium">
+                  {t.settings.notifications}
+                </Label>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  {t.settings.notificationsDesc}
+                </p>
+              </div>
+              <Switch
+                id="notifications"
+                checked={notificationsEnabled}
+                onCheckedChange={onNotificationsChange}
+                data-testid="switch-notifications"
+              />
             </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* 3. 위치 */}
-      <Card className="rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 shadow-md hover:shadow-lg transition-all">
-        <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-            <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
-            {t.settings.location}
-          </CardTitle>
-          <CardDescription className="text-xs sm:text-sm mt-0.5">
-            {t.settings.locationDesc}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="location" className="cursor-pointer text-sm">
-              {t.settings.locationTracking}
-            </Label>
-            <Switch
-              id="location"
-              checked={locationEnabled}
-              onCheckedChange={onLocationChange}
-              data-testid="switch-location"
-            />
+            {notificationsEnabled && (
+              <div className="space-y-2 pl-6 sm:pl-7">
+                <Label htmlFor="proximity-radius" className="text-xs sm:text-sm">{t.settings.proximityRadius}</Label>
+                <Select
+                  value={proximityRadius.toString()}
+                  onValueChange={(value) => onProximityRadiusChange(Number(value))}
+                >
+                  <SelectTrigger id="proximity-radius" className="h-9 sm:h-10 text-sm sm:text-base" data-testid="select-proximity-radius">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="50" data-testid="radius-50m">{t.settings.radius50m}</SelectItem>
+                    <SelectItem value="100" data-testid="radius-100m">{t.settings.radius100m}</SelectItem>
+                    <SelectItem value="200" data-testid="radius-200m">{t.settings.radius200m}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {/* 구분선 */}
+          <div className="border-t border-border/50"></div>
+
+          {/* 위치 섹션 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />
+              <div className="flex-1">
+                <Label htmlFor="location" className="cursor-pointer text-sm sm:text-base font-medium">
+                  {t.settings.location}
+                </Label>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  {t.settings.locationDesc}
+                </p>
+              </div>
+              <Switch
+                id="location"
+                checked={locationEnabled}
+                onCheckedChange={onLocationChange}
+                data-testid="switch-location"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 4. 지도 프로바이더 */}
-      <Card className="rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 shadow-md hover:shadow-lg transition-all">
-        <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-            <Map className="h-4 w-4 sm:h-5 sm:w-5" />
-            {t.settings.mapProvider}
+      {/* 4. 표시 설정 */}
+      <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-base sm:text-lg">
+            표시 설정
           </CardTitle>
-          <CardDescription className="text-xs sm:text-sm mt-0.5">
-            {t.settings.mapProviderDesc}
-          </CardDescription>
         </CardHeader>
-        <CardContent className="pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
-          <Select value={mapProvider} onValueChange={(value) => setMapProvider(value as MapProvider)}>
-            <SelectTrigger className="w-full text-sm" data-testid="select-map-provider">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="kakao" data-testid="map-provider-kakao">
-                {t.settings.mapProviderKakao}
-              </SelectItem>
-              <SelectItem value="google" data-testid="map-provider-google">
-                {t.settings.mapProviderGoogle}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
-
-      {/* 5. 다크모드 */}
-      <Card className="rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-purple-500/30 hover:border-purple-500/50 shadow-md hover:shadow-lg transition-all">
-        <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-            {theme === "dark" ? <Moon className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5" />}
-            {t.settings.darkMode}
-          </CardTitle>
-          <CardDescription className="text-xs sm:text-sm mt-0.5">
-            {t.settings.darkModeDesc}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="theme" className="cursor-pointer text-sm">
-              {t.settings.darkModeEnable}
-            </Label>
-            <Switch
-              id="theme"
-              checked={theme === "dark"}
-              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-              data-testid="switch-theme"
-            />
+        <CardContent className="space-y-4 sm:space-y-5 pt-0 pb-4 sm:pb-6">
+          {/* 다크모드 섹션 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              {theme === "dark" ? <Moon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />}
+              <div className="flex-1">
+                <Label htmlFor="theme" className="cursor-pointer text-sm sm:text-base font-medium">
+                  {t.settings.darkMode}
+                </Label>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  {t.settings.darkModeDesc}
+                </p>
+              </div>
+              <Switch
+                id="theme"
+                checked={theme === "dark"}
+                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                data-testid="switch-theme"
+              />
+            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* 6. 언어 */}
-      <Card className="rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 shadow-md hover:shadow-lg transition-all">
-        <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-            <Languages className="h-4 w-4 sm:h-5 sm:w-5" />
-            {t.settings.language}
-          </CardTitle>
-          <CardDescription className="text-xs sm:text-sm mt-0.5">
-            {t.settings.languageDesc}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
-          <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
-            <SelectTrigger className="w-full text-sm" data-testid="select-language">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {languageOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value} data-testid={`language-${option.value}`}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg sm:text-xl">{option.flag}</span>
-                    <span className="text-sm">{option.label}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+          {/* 구분선 */}
+          <div className="border-t border-border/50"></div>
 
-      {/* 7. 폰트 */}
-      <Card className="rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 shadow-md hover:shadow-lg transition-all">
-        <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-            <Type className="h-4 w-4 sm:h-5 sm:w-5" />
-            {t.settings.font}
-          </CardTitle>
-          <CardDescription className="text-xs sm:text-sm mt-0.5">
-            {t.settings.fontDesc}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2 pb-3 sm:pb-4 px-3 sm:px-4 space-y-3 sm:space-y-4">
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="font-family" className="text-sm">{t.settings.fontFamily}</Label>
-            <Select value={fontFamily} onValueChange={(value) => setFontFamily(value as FontFamily)}>
-              <SelectTrigger id="font-family" className="w-full text-sm" data-testid="select-font-family">
+          {/* 언어 섹션 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Languages className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />
+              <div className="flex-1">
+                <Label className="text-sm sm:text-base font-medium">
+                  {t.settings.language}
+                </Label>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  {t.settings.languageDesc}
+                </p>
+              </div>
+            </div>
+            <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
+              <SelectTrigger className="w-full h-9 sm:h-10 text-sm sm:text-base" data-testid="select-language">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {fontOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value} data-testid={`font-${option.value}`}>
-                    <span className="text-sm">{option.label}</span>
+                {languageOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value} data-testid={`language-${option.value}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg sm:text-xl">{option.flag}</span>
+                      <span>{option.label}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="font-size" className="text-sm">{t.settings.fontSize}</Label>
-              <span className="text-xs sm:text-sm font-medium text-muted-foreground">{fontSize}px</span>
+          {/* 구분선 */}
+          <div className="border-t border-border/50"></div>
+
+          {/* 폰트 섹션 */}
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2">
+              <Type className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />
+              <div className="flex-1">
+                <Label className="text-sm sm:text-base font-medium">
+                  {t.settings.font}
+                </Label>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  {t.settings.fontDesc}
+                </p>
+              </div>
             </div>
-            <Slider
-              id="font-size"
-              min={12}
-              max={24}
-              step={1}
-              value={[fontSize]}
-              onValueChange={(value) => setFontSize(value[0])}
-              className="w-full"
-              data-testid="slider-font-size"
-            />
-            <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground">
-              <span>12px</span>
-              <span>24px</span>
+
+            <div className="space-y-1.5 sm:space-y-2 pl-6 sm:pl-7">
+              <Label htmlFor="font-family" className="text-xs sm:text-sm">{t.settings.fontFamily}</Label>
+              <Select value={fontFamily} onValueChange={(value) => setFontFamily(value as FontFamily)}>
+                <SelectTrigger id="font-family" className="w-full h-9 sm:h-10 text-sm sm:text-base" data-testid="select-font-family">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {fontOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value} data-testid={`font-${option.value}`}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2 sm:space-y-3 pl-6 sm:pl-7">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="font-size" className="text-xs sm:text-sm">{t.settings.fontSize}</Label>
+                <span className="text-xs sm:text-sm font-medium text-muted-foreground">{fontSize}px</span>
+              </div>
+              <Slider
+                id="font-size"
+                min={12}
+                max={24}
+                step={1}
+                value={[fontSize]}
+                onValueChange={(value) => setFontSize(value[0])}
+                className="w-full"
+                data-testid="slider-font-size"
+              />
+              <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground">
+                <span>12px</span>
+                <span>24px</span>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 8. 앱정보 */}
-      <Card className="rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 shadow-md hover:shadow-lg transition-all">
-        <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+      {/* 5. 앱정보 */}
+      <Card className="rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/30 sm:border-2 shadow-md hover:shadow-lg transition-all">
+        <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="text-base sm:text-lg">{t.settings.appInfo}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-1.5 sm:space-y-2 pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
+        <CardContent className="pt-0 pb-4 sm:pb-6 space-y-1.5 sm:space-y-2">
           <div className="flex justify-between text-xs sm:text-sm">
             <span className="text-muted-foreground">{t.settings.version}</span>
             <span>1.0.0</span>
           </div>
           <div className="flex justify-between text-xs sm:text-sm">
             <span className="text-muted-foreground">{t.settings.developer}</span>
-            <span>{t.settings.developerName}</span>
+            <span className="truncate ml-2">{t.settings.developerName}</span>
           </div>
         </CardContent>
       </Card>
