@@ -185,7 +185,7 @@ export function SettingsView({
                 className="flex items-center gap-1.5 shrink-0 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
               >
                 <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">{t.settings.logout}</span>
+                <span>{t.settings.logout}</span>
               </Button>
             </div>
           </CardHeader>
