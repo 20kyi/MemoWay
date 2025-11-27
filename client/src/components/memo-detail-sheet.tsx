@@ -46,9 +46,9 @@ export function MemoDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[90vh] rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col [&>button]:cursor-default">
+      <SheetContent side="bottom" className="min-h-[50vh] max-h-[90vh] h-auto rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col [&>button]:cursor-default">
         <TooltipProvider delayDuration={300}>
-          <div className="flex flex-col relative w-full min-h-0">
+          <div className="flex flex-col h-full min-h-[50vh] relative w-full">
             {/* 드래그 핸들 */}
             <div className="w-12 h-1 bg-pink-300/50 rounded-full mx-auto mt-3 mb-4 flex-shrink-0" />
 
@@ -78,8 +78,8 @@ export function MemoDetailSheet({
               </div>
             </SheetHeader>
 
-            {/* 내용 영역 - 내용에 따라 높이 자동 조정 */}
-            <div className="px-4 sm:px-5 overflow-y-auto flex-1 min-h-0">
+            {/* 내용 영역 - 스크롤 가능, 하단 고정 영역을 위한 공간 확보 */}
+            <div className="px-4 sm:px-5 overflow-y-auto flex-1 min-h-0 flex-grow">
               <div className="space-y-4 pb-4">
                 {memo.photos && memo.photos.length > 0 && (
                   <div className="space-y-1.5 sm:space-y-2">
@@ -118,108 +118,112 @@ export function MemoDetailSheet({
               </div>
             </div>
 
-            {/* 액션 버튼들 - 메타데이터 영역 위에 배치 */}
-            {(onAddNewMemo || onEdit || onDelete) && (
-              <div className="px-4 sm:px-5 py-3 border-t border-pink-200/50 flex-shrink-0">
-                <div className="flex flex-wrap gap-2">
-                  {onAddNewMemo && (
-                    <Button
-                      size="lg"
-                      onClick={() => {
-                        onAddNewMemo({
-                          lat: memo.latitude,
-                          lng: memo.longitude,
-                          address: memo.address,
-                          buildingName: memo.buildingName,
-                        });
-                        onOpenChange(false);
-                      }}
-                      className="h-11 text-sm font-medium bg-[#9333ea] hover:bg-[#7e22ce] text-white flex-1 sm:flex-initial"
-                      data-testid="button-add-memo"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      {t.memoDetail.addMemoHere}
-                    </Button>
-                  )}
-                  {onEdit && (
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      onClick={() => {
-                        onEdit(memo.id);
-                        onOpenChange(false);
-                      }}
-                      className="h-11 text-sm font-medium border-pink-200 hover:bg-pink-50 flex-1 sm:flex-initial"
-                      data-testid="button-edit-memo"
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      {t.common.edit}
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      size="lg"
-                      variant="destructive"
-                      onClick={() => {
-                        if (confirm(t.memoDetail.confirmDelete)) {
-                          onDelete(memo.id);
+            {/* 하단 고정 영역 - 버튼 및 메타데이터 */}
+            <div className="mt-auto flex-shrink-0">
+              {/* 액션 버튼들 */}
+              {(onAddNewMemo || onEdit || onDelete) && (
+                <div className="px-4 sm:px-5 py-3 border-t border-pink-200/50">
+                  <div className="flex flex-wrap gap-2">
+                    {onAddNewMemo && (
+                      <Button
+                        size="lg"
+                        onClick={() => {
+                          onAddNewMemo({
+                            lat: memo.latitude,
+                            lng: memo.longitude,
+                            address: memo.address,
+                            buildingName: memo.buildingName,
+                          });
                           onOpenChange(false);
-                        }
-                      }}
-                      className="h-11 text-sm font-medium flex-1 sm:flex-initial"
-                      data-testid="button-delete-memo"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {t.common.delete}
-                    </Button>
-                  )}
+                        }}
+                        className="h-11 text-sm font-medium bg-[#9333ea] hover:bg-[#7e22ce] text-white flex-1 sm:flex-initial"
+                        data-testid="button-add-memo"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        {t.memoDetail.addMemoHere}
+                      </Button>
+                    )}
+                    {onEdit && (
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={() => {
+                          onEdit(memo.id);
+                          onOpenChange(false);
+                        }}
+                        className="h-11 text-sm font-medium border-pink-200 hover:bg-pink-50 flex-1 sm:flex-initial"
+                        data-testid="button-edit-memo"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        {t.common.edit}
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        size="lg"
+                        variant="destructive"
+                        onClick={() => {
+                          if (confirm(t.memoDetail.confirmDelete)) {
+                            onDelete(memo.id);
+                            onOpenChange(false);
+                          }
+                        }}
+                        className="h-11 text-sm font-medium flex-1 sm:flex-initial"
+                        data-testid="button-delete-memo"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {t.common.delete}
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <div className="px-4 sm:px-5 py-3 border-t border-pink-200/50 space-y-2 flex-shrink-0 bg-gradient-to-br from-pink-50/30 to-white">
-              <div className="space-y-2 text-xs sm:text-sm text-gray-600">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                  <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.memoDetail.author}:</span>
-                  <span className="font-medium text-foreground truncate text-xs sm:text-sm" data-testid="text-memo-author">{memo.member.name}</span>
-                </div>
-
-                {memo.group && memo.editorMember && memo.editorMember.id !== memo.member.id && (
+              {/* 메타데이터 영역 */}
+              <div className="px-4 sm:px-5 py-3 border-t border-pink-200/50 space-y-2 bg-gradient-to-br from-pink-50/30 to-white">
+                <div className="space-y-2 text-xs sm:text-sm text-gray-600">
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                    <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.memoDetail.editor}:</span>
-                    <span className="font-medium text-foreground truncate text-xs sm:text-sm" data-testid="text-memo-editor">{memo.editorMember.name}</span>
+                    <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.memoDetail.author}:</span>
+                    <span className="font-medium text-foreground truncate text-xs sm:text-sm" data-testid="text-memo-author">{memo.member.name}</span>
                   </div>
-                )}
 
-                {memo.group && (
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                    <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.memoDetail.group}:</span>
-                    <Badge variant="secondary" className="text-[9px] sm:text-[10px] px-1.5 py-0.5" data-testid="badge-memo-group">
-                      {memo.group.name}
-                    </Badge>
-                  </div>
-                )}
+                  {memo.group && memo.editorMember && memo.editorMember.id !== memo.member.id && (
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.memoDetail.editor}:</span>
+                      <span className="font-medium text-foreground truncate text-xs sm:text-sm" data-testid="text-memo-editor">{memo.editorMember.name}</span>
+                    </div>
+                  )}
 
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                  <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.memoDetail.created}:</span>
-                  <span className="text-foreground truncate text-xs sm:text-sm" data-testid="text-memo-created">
-                    {format(new Date(memo.createdAt), "PPP p", { locale: dateLocale })}
-                  </span>
-                </div>
+                  {memo.group && (
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.memoDetail.group}:</span>
+                      <Badge variant="secondary" className="text-[9px] sm:text-[10px] px-1.5 py-0.5" data-testid="badge-memo-group">
+                        {memo.group.name}
+                      </Badge>
+                    </div>
+                  )}
 
-                {memo.updatedAt && new Date(memo.updatedAt).getTime() !== new Date(memo.createdAt).getTime() && (
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                    <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.common.edit}:</span>
-                    <span className="text-foreground truncate text-xs sm:text-sm" data-testid="text-memo-updated">
-                      {format(new Date(memo.updatedAt), "PPP p", { locale: dateLocale })}
+                    <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.memoDetail.created}:</span>
+                    <span className="text-foreground truncate text-xs sm:text-sm" data-testid="text-memo-created">
+                      {format(new Date(memo.createdAt), "PPP p", { locale: dateLocale })}
                     </span>
                   </div>
-                )}
+
+                  {memo.updatedAt && new Date(memo.updatedAt).getTime() !== new Date(memo.createdAt).getTime() && (
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <span className="flex-shrink-0 text-[10px] sm:text-xs">{t.common.edit}:</span>
+                      <span className="text-foreground truncate text-xs sm:text-sm" data-testid="text-memo-updated">
+                        {format(new Date(memo.updatedAt), "PPP p", { locale: dateLocale })}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
