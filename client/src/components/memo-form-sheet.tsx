@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Camera, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, GripVertical, Star } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { Camera, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, GripVertical, Star, Users, ChevronDown } from "lucide-react";
 import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
 import {
@@ -429,18 +431,56 @@ export function MemoFormSheet({
                 <FormField
                   control={form.control}
                   name="groupIds"
-                  render={() => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm">{t.memoForm.groupShare}</FormLabel>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        {groups.filter(g => g.name !== "개인 메모").map(group => (
-                          <FormField
-                            key={group.id}
-                            control={form.control}
-                            name="groupIds"
-                            render={({ field }) => (
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between h-11 text-sm border-pink-200 hover:bg-pink-50"
+                              data-testid="button-group-select"
+                            >
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <Users className="w-4 h-4 flex-shrink-0" />
+                                <span className="flex-1 text-left truncate">
+                                  {field.value && field.value.length > 0
+                                    ? field.value.length === 1
+                                      ? groups.find(g => g.id === field.value[0])?.name || "그룹 선택"
+                                      : `${field.value.length}개 그룹 선택됨`
+                                    : "그룹 선택"}
+                                </span>
+                                {field.value && field.value.length > 0 && (
+                                  <Badge variant="secondary" className="px-1.5 h-5 text-xs flex-shrink-0">
+                                    {field.value.length}
+                                  </Badge>
+                                )}
+                              </div>
+                              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                          <div className="max-h-[300px] overflow-y-auto p-2">
+                            <div className="space-y-1.5">
+                              {groups.filter(g => g.name !== "개인 메모").map(group => (
+                                <div
+                                  key={group.id}
+                                  className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent cursor-pointer"
+                                  onClick={() => {
+                                    const value = field.value || [];
+                                    const isSelected = value.includes(group.id);
+                                    field.onChange(
+                                      isSelected
+                                        ? value.filter(id => id !== group.id)
+                                        : [...value, group.id]
+                                    );
+                                  }}
+                                  data-testid={`option-group-${group.id}`}
+                                >
                                   <Checkbox
                                     checked={field.value?.includes(group.id)}
                                     onCheckedChange={(checked) => {
@@ -453,15 +493,16 @@ export function MemoFormSheet({
                                     }}
                                     data-testid={`checkbox-group-${group.id}`}
                                   />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer text-sm">
-                                  {group.name}
-                                </FormLabel>
-                              </FormItem>
-                            )}
-                          />
-                        ))}
-                      </div>
+                                  <label className="flex-1 text-sm font-normal cursor-pointer">
+                                    {group.name}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
