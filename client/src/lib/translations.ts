@@ -1102,6 +1102,22 @@ type Translation = {
     mapProviderDesc: string;
     mapProviderKakao: string;
     mapProviderGoogle: string;
+    points: string;
+    pointsDesc: string;
+    currentPointsLabel: string;
+    purchasePoints: string;
+    purchasePointsTitle: string;
+    purchasePointsDesc: string;
+    pointsPackage: string;
+    canCopyMemos: string;
+    popular: string;
+    pointsUsageNote: string;
+    pointsCharged: string;
+    pointsChargedDesc: string;
+    authExpired: string;
+    authExpiredDesc: string;
+    pointsChargeFailed: string;
+    pointsChargeFailedDesc: string;
   };
   toast: {
     newMemo: string;
