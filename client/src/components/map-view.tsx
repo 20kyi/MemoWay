@@ -1695,7 +1695,7 @@ export function MapView({
             <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
               <div className="bg-blue-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg border-2 border-blue-400 flex items-center gap-2 animate-pulse">
                 <Lock className="h-4 w-4" />
-                <span className="text-sm font-medium">위치 고정 모드 활성화</span>
+                <span className="text-sm font-medium">{t.common.locationLockModeActive}</span>
               </div>
             </div>
           )}
@@ -1914,7 +1914,7 @@ export function MapView({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left">
-                <p>그룹 필터</p>
+                <p>{t.common.groupFilter}</p>
               </TooltipContent>
             </Tooltip>
 
@@ -1939,7 +1939,7 @@ export function MapView({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left">
-                <p>카테고리 필터</p>
+                <p>{t.common.markerFilter}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -1948,7 +1948,7 @@ export function MapView({
           <Dialog open={markerFilterOpen} onOpenChange={setMarkerFilterOpen}>
             <DialogContent className="sm:max-w-sm" data-testid="dialog-marker-filter">
               <DialogHeader>
-                <DialogTitle>마커 필터</DialogTitle>
+                <DialogTitle>{t.common.markerFilter}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3 py-4 max-h-96 overflow-y-auto">
                 <label className="flex items-center space-x-3 cursor-pointer">
@@ -1994,7 +1994,7 @@ export function MapView({
           <Dialog open={groupFilterOpen} onOpenChange={setGroupFilterOpen}>
             <DialogContent className="sm:max-w-sm" data-testid="dialog-group-filter">
               <DialogHeader>
-                <DialogTitle>그룹 필터</DialogTitle>
+                <DialogTitle>{t.common.groupFilter}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3 py-4 max-h-96 overflow-y-auto">
                 <label className="flex items-center space-x-3 cursor-pointer">

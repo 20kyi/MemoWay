@@ -25,6 +25,8 @@ export const translations = {
       personal: "개인",
       addressSearchPlaceholder: "주소를 입력하세요 (예: 서울시 강남구 역삼동)",
       locationLockModeActive: "위치 고정 모드 활성화",
+      markerFilter: "마커 필터",
+      groupFilter: "그룹 필터",
     },
     // Categories
     categories: {
@@ -261,6 +263,9 @@ export const translations = {
       no: "No",
       personal: "Personal",
       addressSearchPlaceholder: "Enter address (e.g., Gangnam-gu, Seoul)",
+      locationLockModeActive: "Location Lock Mode Active",
+      markerFilter: "Marker Filter",
+      groupFilter: "Group Filter",
     },
     // Categories
     categories: {
@@ -497,6 +502,9 @@ export const translations = {
       no: "否",
       personal: "个人",
       addressSearchPlaceholder: "输入地址（例如：北京市朝阳区）",
+      locationLockModeActive: "位置锁定模式已激活",
+      markerFilter: "标记筛选",
+      groupFilter: "组筛选",
     },
     // Categories
     categories: {
@@ -733,6 +741,9 @@ export const translations = {
       no: "いいえ",
       personal: "個人",
       addressSearchPlaceholder: "住所を入力してください（例：東京都渋谷区）",
+      locationLockModeActive: "位置固定モード有効",
+      markerFilter: "マーカーフィルター",
+      groupFilter: "グループフィルター",
     },
     // Categories
     categories: {
@@ -969,6 +980,9 @@ type Translation = {
     no: string;
     personal: string;
     addressSearchPlaceholder: string;
+    locationLockModeActive: string;
+    markerFilter: string;
+    groupFilter: string;
   };
   categories: {
     all: string;

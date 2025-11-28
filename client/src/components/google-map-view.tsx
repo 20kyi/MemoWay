@@ -657,7 +657,7 @@ export function GoogleMapView({
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
           <div className="bg-blue-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg border-2 border-blue-400 flex items-center gap-2 animate-pulse">
             <Lock className="h-4 w-4" />
-            <span className="text-sm font-medium">위치 고정 모드 활성화</span>
+            <span className="text-sm font-medium">{t.common.locationLockModeActive}</span>
           </div>
         </div>
       )}
@@ -726,7 +726,7 @@ export function GoogleMapView({
       <Dialog open={isMarkerFilterOpen} onOpenChange={setIsMarkerFilterOpen}>
         <DialogContent className="rounded-3xl max-h-[85vh] flex flex-col" data-testid="dialog-marker-filter">
           <DialogHeader>
-            <DialogTitle>마커 필터</DialogTitle>
+            <DialogTitle>{t.common.markerFilter}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 overflow-y-auto">
             {["all", "default", "travel", "love", "food", "cafe", "shopping", "sport", "work"].map((icon) => (
@@ -761,7 +761,7 @@ export function GoogleMapView({
       <Dialog open={isGroupFilterOpen} onOpenChange={setIsGroupFilterOpen}>
         <DialogContent className="rounded-3xl max-h-[85vh] flex flex-col" data-testid="dialog-group-filter">
           <DialogHeader>
-            <DialogTitle>그룹 필터</DialogTitle>
+            <DialogTitle>{t.common.groupFilter}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 overflow-y-auto">
             <div className="flex items-center space-x-2">
@@ -955,7 +955,7 @@ export function GoogleMapView({
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p>그룹 필터</p>
+            <p>{t.common.groupFilter}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -980,7 +980,7 @@ export function GoogleMapView({
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p>카테고리 필터</p>
+            <p>{t.common.markerFilter}</p>
           </TooltipContent>
         </Tooltip>
       </div>
