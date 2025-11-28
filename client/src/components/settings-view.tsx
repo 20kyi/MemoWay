@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun, Map, Coins, Plus, Sparkles, Heart } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily } from "@/lib/font-context";
-import { useTheme } from "@/lib/theme-context";
 import { useLayoutTheme, type LayoutTheme } from "@/lib/layout-theme-context";
 import { useMapProvider, type MapProvider } from "@/lib/map-provider-context";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,7 +45,6 @@ export function SettingsView({
 }: SettingsViewProps) {
   const { language, setLanguage, t } = useLanguage();
   const { fontFamily, setFontFamily, fontSize, setFontSize } = useFont();
-  const { theme, setTheme } = useTheme();
   const { layoutTheme, setLayoutTheme } = useLayoutTheme();
   const { mapProvider, setMapProvider } = useMapProvider();
   const { user } = useAuth();
