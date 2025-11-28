@@ -27,6 +27,7 @@ export const translations = {
       locationLockModeActive: "위치 고정 모드 활성화",
       markerFilter: "마커 필터",
       groupFilter: "그룹 필터",
+      allGroups: "전체 그룹",
     },
     // Categories
     categories: {
@@ -266,6 +267,7 @@ export const translations = {
       locationLockModeActive: "Location Lock Mode Active",
       markerFilter: "Marker Filter",
       groupFilter: "Group Filter",
+      allGroups: "All Groups",
     },
     // Categories
     categories: {
