@@ -13,13 +13,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   base: './', // Capacitor에서 상대 경로 사용
   // Vite는 기본적으로 VITE_* 환경 변수를 자동으로 import.meta.env에 주입합니다
-  // define을 사용하면 개발 모드에서 자동 로딩이 무시될 수 있으므로,
-  // 프로덕션 빌드 시에만 명시적으로 정의합니다
-  define: process.env.NODE_ENV === 'production' ? {
+  // 빌드 시 환경 변수가 확실히 포함되도록 define에 명시적으로 추가
+  define: {
     'import.meta.env.VITE_REPLIT_URL': JSON.stringify(process.env.VITE_REPLIT_URL || ''),
     'import.meta.env.VITE_KAKAO_API_KEY': JSON.stringify(process.env.VITE_KAKAO_API_KEY || ''),
+    'import.meta.env.VITE_KAKAO_NATIVE_APP_KEY': JSON.stringify(process.env.VITE_KAKAO_NATIVE_APP_KEY || ''),
     'import.meta.env.VITE_GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.VITE_GOOGLE_MAPS_API_KEY || ''),
-  } : {},
+  },
   plugins: [
     react(),
     runtimeErrorOverlay(),

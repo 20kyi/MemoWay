@@ -11,12 +11,37 @@ export function loadKakaoMaps(): Promise<void> {
       return;
     }
 
-    const apiKey = import.meta.env.VITE_KAKAO_API_KEY;
+    // Origin 확인 (도메인 디버깅용)
+    console.log("ORIGIN CHECK:", window.location.origin);
+    console.log("FULL URL:", window.location.href);
+    console.log("PROTOCOL:", window.location.protocol);
+    console.log("HOST:", window.location.host);
+
+    // 플랫폼 감지: 안드로이드 네이티브 앱인지 확인
+    const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
+    const isAndroid = isNativePlatform && (window as any).Capacitor?.getPlatform() === 'android';
+    
+    // 안드로이드 네이티브 앱에서는 네이티브 앱 키 사용, 웹에서는 JavaScript 키 사용
+    let apiKey: string | undefined;
+    
+    // 중요: JavaScript SDK는 JavaScript 키만 사용 가능합니다!
+    // 네이티브 앱 키는 네이티브 SDK에서만 사용되며, JavaScript SDK에서는 작동하지 않습니다.
+    // 안드로이드 앱에서도 웹뷰를 통해 JavaScript SDK를 사용하므로 JavaScript 키를 사용해야 합니다.
+    apiKey = import.meta.env.VITE_KAKAO_API_KEY;
+    
+    if (isAndroid) {
+      console.log('[Kakao Maps] Android Native Platform detected');
+      console.log('[Kakao Maps] Using JavaScript SDK with JavaScript Key (required for webview)');
+    } else {
+      console.log('[Kakao Maps] Web Platform detected');
+      console.log('[Kakao Maps] Using JavaScript Key for Web');
+    }
     
     // 상세한 디버깅 정보
     console.log('[Kakao Maps] Environment check:', {
+      platform: isAndroid ? 'Android Native' : 'Web',
       hasApiKey: !!apiKey,
-      apiKeyType: apiKey ? (apiKey.length > 30 ? 'JavaScript Key (expected)' : 'Native App Key (may not work)') : 'NOT SET',
+      apiKeyType: apiKey ? (apiKey.length > 30 ? 'JavaScript Key' : 'Native App Key') : 'NOT SET',
       apiKeyLength: apiKey?.length || 0,
       apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'N/A',
       allViteEnvKeys: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
@@ -30,15 +55,21 @@ export function loadKakaoMaps(): Promise<void> {
       console.error('[Kakao Maps]', error);
       console.error('[Kakao Maps] Available env vars:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
       console.error('[Kakao Maps] Please check:');
-      console.error('  1. .env file exists and contains VITE_KAKAO_API_KEY');
-      console.error('  2. Server was restarted after adding the key');
-      console.error('  3. For JavaScript SDK, use JavaScript Key (not Native App Key)');
+      if (isAndroid) {
+        console.error('  1. .env file exists and contains VITE_KAKAO_NATIVE_APP_KEY (for Android)');
+        console.error('  2. Or set VITE_KAKAO_API_KEY as fallback');
+        console.error('  3. For Android Native App, use Native App Key from Kakao Developer Console');
+      } else {
+        console.error('  1. .env file exists and contains VITE_KAKAO_API_KEY');
+        console.error('  2. Server was restarted after adding the key');
+        console.error('  3. For JavaScript SDK, use JavaScript Key (not Native App Key)');
+      }
       reject(new Error(error));
       return;
     }
 
-    // API 키 타입 검증 (JavaScript 키는 보통 32자 이상)
-    if (apiKey.length < 30) {
+    // API 키 타입 검증 및 경고
+    if (apiKey && apiKey.length < 30) {
       console.warn('[Kakao Maps] WARNING: API key seems to be a Native App Key.');
       console.warn('[Kakao Maps] JavaScript SDK requires JavaScript Key (usually 32+ characters).');
       console.warn('[Kakao Maps] Please check Kakao Developer Console > 앱 키 > JavaScript 키');
