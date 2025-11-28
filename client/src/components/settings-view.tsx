@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun, Map, Coins, Plus, Sparkles } from "lucide-react";
+import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun, Map, Coins, Plus, Sparkles, Heart } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily } from "@/lib/font-context";
 import { useTheme } from "@/lib/theme-context";
@@ -460,10 +460,12 @@ export function SettingsView({
                     <span>{language === 'ko' ? '라벤더 나이트 (다크)' : language === 'en' ? 'Lavender Night (Dark)' : language === 'zh' ? '薰衣草之夜 (深色)' : 'ラベンダーナイト (ダーク)'}</span>
                   </div>
                 </SelectItem>
-                <SelectItem value="warm-beige" data-testid="layout-warm-beige">
+                <SelectItem value="romantic-love" data-testid="layout-romantic-love">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200"></div>
-                    <span>{language === 'ko' ? '웜 베이지 (다이어리)' : language === 'en' ? 'Warm Beige (Diary)' : language === 'zh' ? '温暖米色 (日记)' : 'ウォームベージュ (ダイアリー)'}</span>
+                    <div className="w-4 h-4 rounded-full bg-gradient-to-br from-pink-400 via-rose-400 to-red-400 border border-pink-300/50 flex items-center justify-center">
+                      <Heart className="h-2.5 w-2.5 text-white fill-white" />
+                    </div>
+                    <span>{language === 'ko' ? '로맨틱 러브 (커플)' : language === 'en' ? 'Romantic Love (Couple)' : language === 'zh' ? '浪漫爱情 (情侣)' : 'ロマンチックラブ (カップル)'}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="pastel-dream" data-testid="layout-pastel-dream">

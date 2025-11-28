@@ -360,216 +360,561 @@
   border: 1px solid rgba(255, 179, 217, 0.3) !important;
 }
 
-/* 2. Warm Beige - 감성 다이어리 스타일 (Smart Home App 스타일) */
-.layout-warm-beige {
-  --background: 35 20% 92%;
-  --foreground: 25 35% 18%;
-  --card: 35 25% 88%;
-  --card-foreground: 25 35% 18%;
-  --border: 30 25% 80%;
-  --primary: 25 45% 50%;
-  --primary-foreground: 35 20% 95%;
-  --secondary: 35 20% 85%;
-  --secondary-foreground: 25 35% 18%;
-  --muted: 35 15% 82%;
-  --muted-foreground: 25 25% 45%;
-  --accent: 30 40% 60%;
-  --accent-foreground: 35 20% 95%;
-  --destructive: 0 65% 55%;
-  --destructive-foreground: 35 20% 95%;
-  --ring: 25 45% 50%;
-  --input: 35 20% 85%;
-  --button-outline: rgba(139, 115, 85, 0.25);
-  --badge-outline: rgba(139, 115, 85, 0.2);
-  --elevate-1: rgba(139, 115, 85, 0.05);
-  --elevate-2: rgba(139, 115, 85, 0.08);
+/* 2. Romantic Love - 커플 테마 (로맨틱 러브) */
+.layout-romantic-love {
+  --background: 340 60% 96%;
+  --foreground: 340 30% 20%;
+  --card: 340 50% 98%;
+  --card-foreground: 340 30% 20%;
+  --border: 340 40% 85%;
+  --primary: 340 70% 60%;
+  --primary-foreground: 340 20% 98%;
+  --secondary: 340 45% 90%;
+  --secondary-foreground: 340 30% 20%;
+  --muted: 340 40% 88%;
+  --muted-foreground: 340 25% 45%;
+  --accent: 350 75% 65%;
+  --accent-foreground: 340 20% 98%;
+  --destructive: 0 70% 55%;
+  --destructive-foreground: 340 20% 98%;
+  --ring: 340 70% 60%;
+  --input: 340 45% 90%;
+  --button-outline: rgba(236, 72, 153, 0.3);
+  --badge-outline: rgba(236, 72, 153, 0.25);
+  --elevate-1: rgba(236, 72, 153, 0.08);
+  --elevate-2: rgba(236, 72, 153, 0.12);
   --radius: 1rem;
 }
 
-.layout-warm-beige body,
-.layout-warm-beige .min-h-screen,
-.layout-warm-beige [class*="bg-gradient-to-br"][class*="from-pink"] {
-  background: linear-gradient(135deg, #f5f1e8 0%, #faf8f3 30%, #f0ebe0 60%, #ede8df 100%) !important;
-  background-image: 
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 115, 85, 0.02) 2px, rgba(139, 115, 85, 0.02) 4px),
-    linear-gradient(135deg, #f5f1e8 0%, #faf8f3 30%, #f0ebe0 60%, #ede8df 100%) !important;
+/* 로맨틱한 Soft Pink 배경 - #FCE7EF */
+.layout-romantic-love body,
+.layout-romantic-love .min-h-screen,
+.layout-romantic-love [class*="bg-gradient-to-br"][class*="from-pink"] {
+  background: #FCE7EF !important;
+  position: relative;
 }
 
-.layout-warm-beige .bg-background {
-  background: linear-gradient(135deg, #f5f1e8 0%, #faf8f3 30%, #f0ebe0 60%, #ede8df 100%);
-  background-image: 
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 115, 85, 0.02) 2px, rgba(139, 115, 85, 0.02) 4px);
+.layout-romantic-love .bg-background {
+  background: #FCE7EF !important;
 }
 
-/* 반투명 프로스티드 글래스 효과 카드 */
-.layout-warm-beige .bg-card,
-.layout-warm-beige [class*="bg-gradient-to-br"],
-.layout-warm-beige [class*="from-pink"],
-.layout-warm-beige [class*="to-white"] {
-  background: rgba(255, 250, 240, 0.75) !important;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: 
-    0 4px 16px rgba(139, 115, 85, 0.15),
-    0 2px 4px rgba(139, 115, 85, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-  border: 1px solid rgba(139, 115, 85, 0.25) !important;
-  border-radius: 1rem !important;
-}
-
-.layout-warm-beige .border-pink-200,
-.layout-warm-beige .border-pink-200\/50,
-.layout-warm-beige .border {
-  border-color: rgba(139, 115, 85, 0.3) !important;
-}
-
-/* 텍스트 색상 */
-.layout-warm-beige [class*="text-\[#9333ea\]"] {
-  color: hsl(25 45% 50%) !important;
-}
-
-/* 버튼 스타일 - 부드러운 브라운 톤 */
-.layout-warm-beige button,
-.layout-warm-beige [class*="bg-\[#9333ea\]"],
-.layout-warm-beige .bg-primary {
-  background: hsl(25 45% 50%) !important;
-  color: #faf8f3 !important;
-  border: 1px solid rgba(139, 115, 85, 0.3) !important;
-  box-shadow: 
-    0 2px 8px rgba(139, 115, 85, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-  border-radius: 0.75rem !important;
-}
-
-.layout-warm-beige button:hover,
-.layout-warm-beige [class*="hover:bg-\[#7e22ce\]"],
-.layout-warm-beige .bg-primary:hover {
-  background: hsl(25 45% 45%) !important;
-  box-shadow: 
-    0 4px 12px rgba(139, 115, 85, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
-  transform: translateY(-1px);
-}
-
-/* 입력 필드 스타일 */
-.layout-warm-beige input,
-.layout-warm-beige textarea,
-.layout-warm-beige select,
-.layout-warm-beige [class*="border-pink-200"] {
-  background: rgba(255, 250, 240, 0.8) !important;
-  backdrop-filter: blur(10px);
-  border-color: rgba(139, 115, 85, 0.3) !important;
-  color: hsl(25 35% 18%) !important;
-  border-radius: 0.75rem !important;
-}
-
-.layout-warm-beige input:focus,
-.layout-warm-beige textarea:focus,
-.layout-warm-beige select:focus,
-.layout-warm-beige input:focus-visible,
-.layout-warm-beige textarea:focus-visible,
-.layout-warm-beige select:focus-visible {
-  border-color: hsl(25 45% 50%) !important;
-  box-shadow: 
-    0 0 0 3px rgba(139, 115, 85, 0.15),
-    0 2px 4px rgba(139, 115, 85, 0.1) !important;
-  outline: none !important;
-  background: rgba(255, 250, 240, 0.95) !important;
-}
-
-.layout-warm-beige input::placeholder,
-.layout-warm-beige textarea::placeholder {
-  color: rgba(139, 115, 85, 0.5) !important;
-}
-
-/* 카드 호버 효과 */
-.layout-warm-beige [class*="hover:shadow-xl"]:hover,
-.layout-warm-beige [class*="hover:shadow-lg"]:hover {
-  box-shadow: 
-    0 8px 24px rgba(139, 115, 85, 0.2),
-    0 4px 8px rgba(139, 115, 85, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
-  transform: translateY(-2px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-color: rgba(139, 115, 85, 0.35) !important;
-}
-
-/* 배지 스타일 */
-.layout-warm-beige [class*="bg-pink-100"],
-.layout-warm-beige [class*="bg-pink-500"] {
-  background: rgba(139, 115, 85, 0.2) !important;
-  color: hsl(25 45% 45%) !important;
-  border: 1px solid rgba(139, 115, 85, 0.3) !important;
-  backdrop-filter: blur(8px);
-}
-
-/* 선택 박스 스타일 */
-.layout-warm-beige [role="combobox"],
-.layout-warm-beige [role="listbox"] {
-  background: rgba(255, 250, 240, 0.85) !important;
-  backdrop-filter: blur(15px);
-  border-color: rgba(139, 115, 85, 0.3) !important;
-  color: hsl(25 35% 18%) !important;
-  border-radius: 0.75rem !important;
-}
-
-.layout-warm-beige [role="option"]:hover {
-  background: rgba(139, 115, 85, 0.15) !important;
-}
-
-/* 스위치 스타일 */
-.layout-warm-beige [role="switch"][aria-checked="true"] {
-  background: hsl(25 45% 50%) !important;
-}
-
-/* 체크박스 스타일 */
-.layout-warm-beige [type="checkbox"]:checked {
-  background: hsl(25 45% 50%) !important;
-  border-color: hsl(25 45% 50%) !important;
-}
-
-/* 아이콘 버튼 스타일 */
-.layout-warm-beige button[class*="rounded-full"][class*="bg-pink"] {
-  background: rgba(139, 115, 85, 0.15) !important;
-  color: hsl(25 45% 50%) !important;
-  border: 1px solid rgba(139, 115, 85, 0.3) !important;
-  backdrop-filter: blur(8px);
-}
-
-.layout-warm-beige button[class*="rounded-full"][class*="bg-pink"]:hover {
-  background: rgba(139, 115, 85, 0.25) !important;
-  border-color: rgba(139, 115, 85, 0.4) !important;
-}
-
-/* Sheet/Dialog 오버레이 */
-.layout-warm-beige [data-radix-dialog-overlay] {
-  background: rgba(139, 115, 85, 0.4) !important;
+/* 반투명 프로스티드 글래스 효과 카드 - 미니어처 스타일 (성능 최적화) */
+.layout-romantic-love .bg-card,
+.layout-romantic-love [class*="bg-gradient-to-br"]:not([class*="from-pink-100"]):not([class*="to-purple-100"]),
+.layout-romantic-love [class*="from-pink"]:not([class*="from-pink-100"]),
+.layout-romantic-love [class*="to-white"] {
+  background: rgba(255, 245, 250, 0.95) !important;
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 
+    0 6px 20px rgba(236, 72, 153, 0.18),
+    0 2px 8px rgba(255, 105, 180, 0.12),
+    inset 0 1px 2px rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(236, 72, 153, 0.25) !important;
+  border-radius: 1.25rem !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transform: translateZ(0);
+  will-change: transform;
+  contain: layout style paint;
+  position: relative;
+}
+
+.layout-romantic-love .border-pink-200,
+.layout-romantic-love .border-pink-200\/50,
+.layout-romantic-love .border {
+  border-color: rgba(236, 72, 153, 0.35) !important;
+}
+
+/* 텍스트 색상 - 로맨틱한 핑크 */
+.layout-romantic-love [class*="text-\[#9333ea\]"] {
+  color: hsl(340 70% 60%) !important;
+}
+
+/* 버튼 스타일 - 미니어처 효과 (성능 최적화) */
+.layout-romantic-love button:not([data-testid="button-location-lock"]):not([data-testid="button-map-lock"]):not([data-testid="button-group-filter"]):not([data-testid="button-marker-filter"]),
+.layout-romantic-love [class*="bg-\[#9333ea\]"],
+.layout-romantic-love .bg-primary {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 50%, #db2777 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 
+    0 4px 16px rgba(236, 72, 153, 0.3),
+    0 2px 6px rgba(255, 105, 180, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+  border-radius: 0.875rem !important;
+  font-weight: 600 !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transform: translateZ(0);
+  position: relative;
+}
+
+.layout-romantic-love button:hover:not([data-testid="button-location-lock"]):not([data-testid="button-map-lock"]):not([data-testid="button-group-filter"]):not([data-testid="button-marker-filter"]),
+.layout-romantic-love [class*="hover:bg-\[#7e22ce\]"],
+.layout-romantic-love .bg-primary:hover {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 50%, #be185d 100%) !important;
+  box-shadow: 
+    0 6px 20px rgba(236, 72, 153, 0.4),
+    0 3px 10px rgba(255, 105, 180, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-2px) translateZ(0);
+  will-change: transform;
+}
+
+.layout-romantic-love button:active:not([data-testid="button-location-lock"]):not([data-testid="button-map-lock"]):not([data-testid="button-group-filter"]):not([data-testid="button-marker-filter"]) {
+  transform: translateY(0);
+  box-shadow: 
+    0 3px 10px rgba(236, 72, 153, 0.3),
+    0 1px 4px rgba(255, 105, 180, 0.25),
+    inset 0 1px 2px rgba(190, 24, 93, 0.4) !important;
+}
+
+/* 입력 필드 스타일 - 검색창 #F7B9C8 미니어처 (성능 최적화) */
+.layout-romantic-love input,
+.layout-romantic-love textarea,
+.layout-romantic-love select,
+.layout-romantic-love [class*="border-pink-200"] {
+  background: #F7B9C8 !important;
+  border: none !important;
+  color: hsl(340 30% 20%) !important;
+  border-radius: 0.875rem !important;
+  box-shadow: 
+    0 3px 10px rgba(247, 185, 200, 0.25),
+    0 1px 4px rgba(245, 174, 194, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transform: translateZ(0);
+}
+
+.layout-romantic-love input:focus,
+.layout-romantic-love textarea:focus,
+.layout-romantic-love select:focus,
+.layout-romantic-love input:focus-visible,
+.layout-romantic-love textarea:focus-visible,
+.layout-romantic-love select:focus-visible {
+  background: #F7B9C8 !important;
+  box-shadow: 
+    0 4px 12px rgba(236, 72, 153, 0.3),
+    0 2px 6px rgba(255, 105, 180, 0.25),
+    0 0 0 3px rgba(236, 72, 153, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  outline: none !important;
+  transform: translateY(-1px) translateZ(0);
+  will-change: transform;
+}
+
+.layout-romantic-love input::placeholder,
+.layout-romantic-love textarea::placeholder {
+  color: rgba(236, 72, 153, 0.5) !important;
+}
+
+/* 카드 호버 효과 - 미니어처 (성능 최적화) */
+.layout-romantic-love [class*="hover:shadow-xl"]:hover,
+.layout-romantic-love [class*="hover:shadow-lg"]:hover,
+.layout-romantic-love .bg-card:hover,
+.layout-romantic-love [class*="bg-gradient-to-br"]:hover {
+  box-shadow: 
+    0 8px 24px rgba(236, 72, 153, 0.25),
+    0 4px 12px rgba(255, 105, 180, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  transform: translateY(-3px) translateZ(0);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  border-color: rgba(236, 72, 153, 0.4) !important;
+  will-change: transform;
+}
+
+/* 배지 스타일 - 미니어처 (성능 최적화) */
+.layout-romantic-love [class*="bg-pink-100"],
+.layout-romantic-love [class*="bg-pink-500"],
+.layout-romantic-love [role="status"] {
+  background: linear-gradient(135deg, rgba(255, 200, 210, 0.4) 0%, rgba(255, 182, 193, 0.35) 100%) !important;
+  color: hsl(340 70% 55%) !important;
+  border: none !important;
+  font-weight: 600;
+  box-shadow: 
+    0 2px 8px rgba(236, 72, 153, 0.2),
+    0 1px 3px rgba(255, 105, 180, 0.15),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  border-radius: 0.75rem !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transform: translateZ(0);
+}
+
+.layout-romantic-love [class*="bg-pink-100"]:hover,
+.layout-romantic-love [class*="bg-pink-500"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 12px rgba(236, 72, 153, 0.3),
+    0 2px 6px rgba(255, 105, 180, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.7),
+    inset 0 -1px 2px rgba(255, 150, 170, 0.25) !important;
+}
+
+/* 선택 박스 스타일 - 미니어처 (성능 최적화) */
+.layout-romantic-love [role="combobox"],
+.layout-romantic-love [role="listbox"] {
+  background: rgba(255, 245, 250, 0.95) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none !important;
+  color: hsl(340 30% 20%) !important;
+  border-radius: 0.875rem !important;
+  box-shadow: 
+    0 4px 16px rgba(236, 72, 153, 0.18),
+    0 2px 6px rgba(255, 105, 180, 0.12),
+    inset 0 1px 2px rgba(255, 255, 255, 0.7) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transform: translateZ(0);
+}
+
+.layout-romantic-love [role="combobox"]:hover,
+.layout-romantic-love [role="listbox"]:hover {
+  transform: translateY(-1px) translateZ(0);
+  box-shadow: 
+    0 6px 20px rgba(236, 72, 153, 0.22),
+    0 3px 10px rgba(255, 105, 180, 0.18),
+    inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  will-change: transform;
+}
+
+.layout-romantic-love [role="option"] {
+  border-radius: 0.625rem !important;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.layout-romantic-love [role="option"]:hover {
+  background: linear-gradient(135deg, rgba(255, 200, 210, 0.3) 0%, rgba(255, 182, 193, 0.25) 100%) !important;
+  transform: translateX(2px);
+}
+
+/* 스위치 스타일 - 미니어처 */
+.layout-romantic-love [role="switch"][aria-checked="true"] {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%) !important;
+  box-shadow: 
+    0 3px 10px rgba(236, 72, 153, 0.35),
+    0 1px 4px rgba(255, 105, 180, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 2px rgba(219, 39, 119, 0.3) !important;
+}
+
+/* 체크박스 스타일 - 미니어처 */
+.layout-romantic-love [type="checkbox"]:checked {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%) !important;
+  border-color: hsl(340 70% 60%) !important;
+  box-shadow: 
+    0 2px 8px rgba(236, 72, 153, 0.3),
+    0 1px 3px rgba(255, 105, 180, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 2px rgba(219, 39, 119, 0.3) !important;
+}
+
+/* 아이콘 버튼 스타일 - 미니어처 (성능 최적화) */
+.layout-romantic-love button[class*="rounded-full"][class*="bg-pink"] {
+  background: linear-gradient(135deg, rgba(255, 200, 210, 0.4) 0%, rgba(255, 182, 193, 0.35) 100%) !important;
+  color: hsl(340 70% 60%) !important;
+  border: none !important;
+  box-shadow: 
+    0 3px 10px rgba(236, 72, 153, 0.25),
+    0 1px 4px rgba(255, 105, 180, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transform: translateZ(0);
+}
+
+.layout-romantic-love button[class*="rounded-full"][class*="bg-pink"]:hover {
+  background: linear-gradient(135deg, rgba(255, 200, 210, 0.5) 0%, rgba(255, 182, 193, 0.45) 100%) !important;
+  box-shadow: 
+    0 4px 12px rgba(236, 72, 153, 0.35),
+    0 2px 6px rgba(255, 105, 180, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-2px) scale(1.05) translateZ(0);
+  will-change: transform;
+}
+
+/* Sheet/Dialog 오버레이 - 미니어처 (성능 최적화) */
+.layout-romantic-love [data-radix-dialog-overlay] {
+  background: rgba(236, 72, 153, 0.5) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Sheet/Dialog Content - 미니어처 (성능 최적화) */
+.layout-romantic-love [data-radix-dialog-content],
+.layout-romantic-love [data-radix-sheet-content] {
+  background: rgba(255, 245, 250, 0.98) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 
+    0 12px 36px rgba(236, 72, 153, 0.25),
+    0 6px 18px rgba(255, 105, 180, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(236, 72, 153, 0.25) !important;
+  transition: box-shadow 0.2s ease;
+  transform: translateZ(0);
+  contain: layout style paint;
 }
 
 /* 탭 스타일 */
-.layout-warm-beige [role="tab"][aria-selected="true"] {
-  background: rgba(139, 115, 85, 0.2) !important;
-  color: hsl(25 45% 50%) !important;
-  border-color: rgba(139, 115, 85, 0.4) !important;
-  backdrop-filter: blur(10px);
+.layout-romantic-love [role="tab"][aria-selected="true"] {
+  background: linear-gradient(135deg, rgba(255, 182, 193, 0.3) 0%, rgba(255, 105, 180, 0.3) 100%) !important;
+  color: hsl(340 70% 60%) !important;
+  border-color: rgba(236, 72, 153, 0.45) !important;
+  backdrop-filter: blur(12px);
+  font-weight: 600;
 }
 
 /* 그라디언트 하트 아이콘 배경 */
-.layout-warm-beige [class*="bg-gradient-to-br"][class*="from-pink-100"][class*="to-purple-100"] {
-  background: linear-gradient(135deg, rgba(255, 250, 240, 0.6) 0%, rgba(245, 241, 232, 0.6) 100%) !important;
-  border: 1px solid rgba(139, 115, 85, 0.3) !important;
-  backdrop-filter: blur(10px);
+.layout-romantic-love [class*="bg-gradient-to-br"][class*="from-pink-100"][class*="to-purple-100"] {
+  background: linear-gradient(135deg, rgba(255, 182, 193, 0.4) 0%, rgba(255, 105, 180, 0.4) 50%, rgba(236, 72, 153, 0.4) 100%) !important;
+  border: 1px solid rgba(236, 72, 153, 0.35) !important;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.2) !important;
 }
 
 /* 텍스트 색상 조정 */
-.layout-warm-beige .text-gray-500,
-.layout-warm-beige .text-gray-600 {
-  color: rgba(139, 115, 85, 0.7) !important;
+.layout-romantic-love .text-gray-500,
+.layout-romantic-love .text-gray-600 {
+  color: rgba(236, 72, 153, 0.75) !important;
 }
 
-.layout-warm-beige .text-muted-foreground {
-  color: rgba(139, 115, 85, 0.65) !important;
+.layout-romantic-love .text-muted-foreground {
+  color: rgba(236, 72, 153, 0.7) !important;
+}
+
+/* 하단 네비게이션 바 - 미니어처 #FFEFF4 배경 (성능 최적화) */
+.layout-romantic-love nav.bottom-nav-romantic,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] {
+  background: #FFEFF4 !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-top: 2px solid rgba(228, 112, 174, 0.2) !important;
+  box-shadow: 
+    0 -4px 16px rgba(228, 112, 174, 0.12),
+    0 -2px 8px rgba(255, 182, 193, 0.08),
+    inset 0 1px 2px rgba(255, 255, 255, 0.7) !important;
+  transition: box-shadow 0.2s ease;
+  transform: translateZ(0);
+  contain: layout style paint;
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button {
+  transition: transform 0.2s ease;
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button:hover,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button[class*="text-primary"] div,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button[class*="text-primary"] div {
+  box-shadow: 
+    0 3px 10px rgba(228, 112, 174, 0.25),
+    0 1px 4px rgba(255, 182, 193, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  background: rgba(255, 182, 193, 0.15) !important;
+}
+
+/* 하단 네비게이션 아이콘 - 비활성 #A98BCF, 활성 #E470AE */
+.layout-romantic-love nav.bottom-nav-romantic button[class*="text-muted-foreground"],
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button[class*="text-muted-foreground"] {
+  color: #A98BCF !important;
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button[class*="text-muted-foreground"] svg,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button[class*="text-muted-foreground"] svg {
+  color: #A98BCF !important;
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button[class*="text-primary"],
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button[class*="text-primary"] {
+  color: #E470AE !important;
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button[class*="text-primary"] svg,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button[class*="text-primary"] svg {
+  color: #E470AE !important;
+}
+
+/* 위치 고정 모드 버튼 - #618BFA */
+.layout-romantic-love button[class*="bg-blue"],
+.layout-romantic-love button[class*="bg-indigo"],
+.layout-romantic-love button:has-text("위치 고정"),
+.layout-romantic-love button:has-text("위치") {
+  background: #618BFA !important;
+  color: #ffffff !important;
+  border-color: rgba(97, 139, 250, 0.3) !important;
+}
+
+/* 우측 플로팅 버튼 - #F27AAE 배경, #E8A3C3 그림자 */
+.layout-romantic-love button[class*="rounded-full"][class*="bg-pink"],
+.layout-romantic-love button[class*="fixed"][class*="right-"] {
+  background: #F27AAE !important;
+  box-shadow: 0 4px 12px rgba(232, 163, 195, 0.45) !important;
+  border: none !important;
+}
+
+.layout-romantic-love button[class*="rounded-full"][class*="bg-pink"]:hover,
+.layout-romantic-love button[class*="fixed"][class*="right-"]:hover {
+  background: #E470AE !important;
+  box-shadow: 0 6px 16px rgba(232, 163, 195, 0.55) !important;
+  transform: translateY(-2px);
+}
+
+/* 로고 색상 - 텍스트 #5A3F90 */
+.layout-romantic-love h1[class*="text-"],
+.layout-romantic-love [class*="logo"],
+.layout-romantic-love [class*="MemoWay"],
+.layout-romantic-love h1[class*="text-\[#9333ea\]"],
+.layout-romantic-love [class*="text-\[#9333ea\]"] {
+  color: #5A3F90 !important;
+}
+
+/* 로고 아이콘 색상 - 핑크 위치 핀 #D56ABE, 블루 지도 조각 #7AA7F7 */
+.layout-romantic-love svg[class*="map-pin"],
+.layout-romantic-love svg[class*="location"],
+.layout-romantic-love [data-testid*="map-pin"] svg,
+.layout-romantic-love [class*="MapPin"] svg,
+.layout-romantic-love svg path[d*="M20 10c0"],
+.layout-romantic-love svg path[d*="M12 2C6.5"] {
+  color: #D56ABE !important;
+  fill: #D56ABE !important;
+  stroke: #D56ABE !important;
+}
+
+.layout-romantic-love svg[class*="map"],
+.layout-romantic-love svg[class*="globe"],
+.layout-romantic-love [data-testid*="map"] svg,
+.layout-romantic-love [class*="Globe"] svg,
+.layout-romantic-love [class*="Map"] svg {
+  color: #7AA7F7 !important;
+  fill: #7AA7F7 !important;
+  stroke: #7AA7F7 !important;
+}
+
+/* 검색창 배경 - #F7B9C8 */
+.layout-romantic-love input[type="text"][placeholder*="주소"],
+.layout-romantic-love input[type="text"][placeholder*="address"],
+.layout-romantic-love input[type="text"][placeholder*="Address"],
+.layout-romantic-love input[class*="search"],
+.layout-romantic-love [data-testid*="search"] input,
+.layout-romantic-love input[data-testid*="search"] {
+  background: #F7B9C8 !important;
+  border-color: rgba(247, 185, 200, 0.6) !important;
+}
+
+.layout-romantic-love input[type="text"][placeholder*="주소"]:focus,
+.layout-romantic-love input[type="text"][placeholder*="address"]:focus,
+.layout-romantic-love input[type="text"][placeholder*="Address"]:focus {
+  background: #F7B9C8 !important;
+  border-color: rgba(247, 185, 200, 0.8) !important;
+  box-shadow: 0 0 0 3px rgba(247, 185, 200, 0.2) !important;
+}
+
+/* 위치 고정 모드 버튼 - #618BFA */
+.layout-romantic-love button[data-testid="button-location-lock"],
+.layout-romantic-love button[class*="bg-blue-500"],
+.layout-romantic-love button[class*="bg-blue-600"] {
+  background: #618BFA !important;
+  color: #ffffff !important;
+  border-color: rgba(97, 139, 250, 0.3) !important;
+}
+
+.layout-romantic-love button[data-testid="button-location-lock"]:hover,
+.layout-romantic-love button[class*="bg-blue-500"]:hover,
+.layout-romantic-love button[class*="bg-blue-600"]:hover {
+  background: #4A7AE8 !important;
+  border-color: rgba(97, 139, 250, 0.5) !important;
+}
+
+/* 우측 플로팅 버튼 세트 - 미니어처 #F27AAE 배경, #E8A3C3 그림자 (성능 최적화) */
+.layout-romantic-love button[class*="fixed"][class*="bottom-20"][class*="right-"],
+.layout-romantic-love button[class*="fixed"][class*="right-4"]:not([class*="bottom-0"]),
+.layout-romantic-love button[class*="absolute"][class*="right-"]:not([class*="bottom-"]),
+.layout-romantic-love [class*="floating"][class*="button"],
+.layout-romantic-love button[data-testid="button-map-lock"],
+.layout-romantic-love button[data-testid="button-group-filter"],
+.layout-romantic-love button[data-testid="button-marker-filter"] {
+  background: #F27AAE !important;
+  box-shadow: 
+    0 4px 16px rgba(232, 163, 195, 0.4),
+    0 2px 8px rgba(228, 112, 174, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+  border: none !important;
+  color: #ffffff !important;
+  border-radius: 0.875rem !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transform: translateZ(0);
+}
+
+.layout-romantic-love button[class*="fixed"][class*="bottom-20"][class*="right-"]:hover,
+.layout-romantic-love button[class*="fixed"][class*="right-4"]:not([class*="bottom-0"]):hover,
+.layout-romantic-love button[class*="absolute"][class*="right-"]:not([class*="bottom-"]):hover,
+.layout-romantic-love [class*="floating"][class*="button"]:hover,
+.layout-romantic-love button[data-testid="button-map-lock"]:hover,
+.layout-romantic-love button[data-testid="button-group-filter"]:hover,
+.layout-romantic-love button[data-testid="button-marker-filter"]:hover {
+  background: #E470AE !important;
+  box-shadow: 
+    0 6px 20px rgba(232, 163, 195, 0.5),
+    0 3px 10px rgba(228, 112, 174, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-3px) scale(1.05) translateZ(0);
+  will-change: transform;
+}
+
+/* 위치 고정 버튼 - 미니어처 #618BFA (성능 최적화) */
+.layout-romantic-love button[data-testid="button-location-lock"] {
+  background: #618BFA !important;
+  box-shadow: 
+    0 4px 16px rgba(97, 139, 250, 0.35),
+    0 2px 8px rgba(74, 122, 232, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+  border-radius: 0.875rem !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transform: translateZ(0);
+}
+
+.layout-romantic-love button[data-testid="button-location-lock"]:hover {
+  background: #4A7AE8 !important;
+  box-shadow: 
+    0 6px 20px rgba(97, 139, 250, 0.45),
+    0 3px 10px rgba(74, 122, 232, 0.35),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-3px) scale(1.05) translateZ(0);
+  will-change: transform;
+}
+
+/* 하단 네비게이션 바 개선 - 아이콘 색상 */
+.layout-romantic-love nav.bottom-nav-romantic button svg,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button svg {
+  color: #A98BCF !important;
+  stroke: #A98BCF !important;
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button[class*="text-primary"] svg,
+.layout-romantic-love nav.bottom-nav-romantic button[class*="text-primary"] path,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button[class*="text-primary"] svg,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button[class*="text-primary"] path {
+  color: #E470AE !important;
+  stroke: #E470AE !important;
+  fill: #E470AE !important;
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button span,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button span {
+  color: inherit !important;
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button[class*="text-muted-foreground"] span,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button[class*="text-muted-foreground"] span {
+  color: #A98BCF !important;
+}
+
+.layout-romantic-love nav.bottom-nav-romantic button[class*="text-primary"] span,
+.layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button[class*="text-primary"] span {
+  color: #E470AE !important;
+  font-weight: 600 !important;
 }
 
 /* 3. Pastel Dream - 음악 플레이어 스타일 (파스텔 드림) */

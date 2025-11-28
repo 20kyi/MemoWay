@@ -260,15 +260,51 @@ export default function Home() {
   };
 
   const handleNotificationsChange = async (enabled: boolean) => {
-    if (enabled && Notification.permission !== "granted") {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        toast({
-          title: "알림 권한 필요",
-          description: "알림을 받으려면 브라우저에서 알림 권한을 허용하세요",
-          variant: "destructive",
-        });
-        return;
+    if (enabled) {
+      // Capacitor 네이티브 플랫폼 감지
+      const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
+      
+      if (isNativePlatform) {
+        // 안드로이드/iOS 네이티브 앱
+        try {
+          const { LocalNotifications } = await import('@capacitor/local-notifications');
+          const { checkPermissions, requestPermissions } = LocalNotifications;
+          
+          const permissionStatus = await checkPermissions();
+          
+          if (permissionStatus.display !== 'granted') {
+            const requestResult = await requestPermissions();
+            if (requestResult.display !== 'granted') {
+              toast({
+                title: "알림 권한 필요",
+                description: "알림을 받으려면 설정에서 알림 권한을 허용하세요",
+                variant: "destructive",
+              });
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('알림 권한 요청 실패:', error);
+          toast({
+            title: "알림 권한 요청 실패",
+            description: "알림 권한을 요청하는 중 오류가 발생했습니다",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else {
+        // 웹 브라우저
+        if (Notification.permission !== "granted") {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            toast({
+              title: "알림 권한 필요",
+              description: "알림을 받으려면 브라우저에서 알림 권한을 허용하세요",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
       }
     }
     setNotificationsEnabled(enabled);

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-export type LayoutTheme = "default" | "lavender-night" | "warm-beige" | "pastel-dream";
+export type LayoutTheme = "default" | "lavender-night" | "romantic-love" | "pastel-dream";
 
 interface LayoutThemeContextType {
   layoutTheme: LayoutTheme;
@@ -17,7 +17,12 @@ export function LayoutThemeProvider({ children }: { children: React.ReactNode })
       localStorage.setItem("layoutTheme", "pastel-dream");
       return "pastel-dream";
     }
-    if (saved === "default" || saved === "lavender-night" || saved === "warm-beige" || saved === "pastel-dream") {
+    if (saved === "default" || saved === "lavender-night" || saved === "warm-beige" || saved === "romantic-love" || saved === "pastel-dream") {
+      // warm-beige를 romantic-love로 마이그레이션
+      if (saved === "warm-beige") {
+        localStorage.setItem("layoutTheme", "romantic-love");
+        return "romantic-love";
+      }
       return saved;
     }
     return "default";
@@ -27,7 +32,7 @@ export function LayoutThemeProvider({ children }: { children: React.ReactNode })
     const root = document.documentElement;
     
     // 기존 레이아웃 클래스 제거
-    root.classList.remove("layout-lavender-night", "layout-warm-beige", "layout-dreamy-gradient", "layout-pastel-dream");
+    root.classList.remove("layout-lavender-night", "layout-warm-beige", "layout-romantic-love", "layout-dreamy-gradient", "layout-pastel-dream");
     
     // 새 레이아웃 클래스 추가
     if (layoutTheme !== "default") {

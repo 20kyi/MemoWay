@@ -713,12 +713,6 @@ export function MapView({
           const address = roadAddress || jibunAddress || '주소 없음';
           const buildingName = result[0]?.road_address?.building_name || '건물명 없음';
           
-          console.log('=== 지도 클릭 주소 비교 ===');
-          console.log('클릭한 위치의 주소 (도로명):', roadAddress);
-          console.log('클릭한 위치의 주소 (지번):', jibunAddress);
-          console.log('사용할 주소:', address);
-          console.log('전체 geocoding 결과:', JSON.stringify(result[0], null, 2));
-          
           // 주소 정규화 함수 (시/도 표기 통일 + 공백 정리)
           const normalizeAddress = (addr: string): string => {
             if (!addr) return '';
@@ -759,63 +753,14 @@ export function MapView({
           
           const normalizedAddress = normalizeAddress(address);
           const normalizedBuildingName = normalizeBuildingName(buildingName);
-          console.log('클릭한 위치의 정규화된 주소:', `"${normalizedAddress}"`);
-          console.log('클릭한 위치의 정규화된 주소 (길이):', normalizedAddress.length);
-          console.log('클릭한 위치의 정규화된 주소 (문자 코드):', Array.from(normalizedAddress).map(c => c.charCodeAt(0)));
-          console.log('클릭한 위치의 정규화된 건물명:', `"${normalizedBuildingName}"`);
-          
-          // 모든 메모의 주소와 건물명 확인
-          console.log('저장된 모든 메모 (총', memos.length, '개):');
-          memos.forEach((memo, index) => {
-            const normalizedMemoAddress = normalizeAddress(memo.address);
-            const normalizedMemoBuildingName = normalizeBuildingName(memo.buildingName);
-            const addressMatch = normalizedAddress === normalizedMemoAddress;
-            const buildingMatch = normalizedBuildingName === normalizedMemoBuildingName;
-            const isMatch = addressMatch && buildingMatch;
-            
-            console.log(`[${index}] 메모 ID: ${memo.id}`);
-            console.log(`  - 원본 주소: "${memo.address}"`);
-            console.log(`  - 정규화 주소: "${normalizedMemoAddress}"`);
-            console.log(`  - 정규화 주소 (길이): ${normalizedMemoAddress.length}`);
-            console.log(`  - 정규화 주소 (문자 코드):`, Array.from(normalizedMemoAddress).map(c => c.charCodeAt(0)));
-            console.log(`  - 비교 대상 주소: "${normalizedAddress}"`);
-            console.log(`  - 주소 일치: ${addressMatch ? '✓' : '✗'}`);
-            if (!addressMatch) {
-              console.log(`  - 주소 불일치 원인 분석:`);
-              console.log(`    - 길이 비교: ${normalizedAddress.length} vs ${normalizedMemoAddress.length}`);
-              console.log(`    - 첫 10자 비교: "${normalizedAddress.substring(0, 10)}" vs "${normalizedMemoAddress.substring(0, 10)}"`);
-              console.log(`    - 마지막 10자 비교: "${normalizedAddress.slice(-10)}" vs "${normalizedMemoAddress.slice(-10)}"`);
-            }
-            console.log(`  - 원본 건물명: "${memo.buildingName}"`);
-            console.log(`  - 정규화 건물명: "${normalizedMemoBuildingName}"`);
-            console.log(`  - 건물명 일치: ${buildingMatch ? '✓' : '✗'}`);
-            console.log(`  - 전체 일치: ${isMatch ? '✓ 매칭!' : '✗ 불일치'}`);
-          });
           
           // 같은 주소와 건물명을 가진 메모 찾기 (정확히 일치하는 경우만)
-          console.log('\n주소 + 건물명 비교 시작 (둘 다 정확히 일치하는 경우만):');
           const memosAtLocation = memos.filter(memo => {
             const normalizedMemoAddress = normalizeAddress(memo.address);
             const normalizedMemoBuildingName = normalizeBuildingName(memo.buildingName);
-            const isMatch = normalizedAddress === normalizedMemoAddress && 
-                          normalizedBuildingName === normalizedMemoBuildingName;
-            if (isMatch) {
-              console.log(`✓ 매칭된 메모 발견: "${memo.address}", "${memo.buildingName}"`);
-            }
-            return isMatch;
+            return normalizedAddress === normalizedMemoAddress && 
+                   normalizedBuildingName === normalizedMemoBuildingName;
           });
-          
-          console.log('\n=== 비교 결과 ===');
-          console.log('같은 주소 + 건물명의 메모:', memosAtLocation.length, '개');
-          if (memosAtLocation.length > 0) {
-            console.log('매칭된 메모들:');
-            memosAtLocation.forEach(m => {
-              console.log(`  - ${m.id}: "${m.address}", "${m.buildingName}"`);
-            });
-          } else {
-            console.log('매칭된 메모가 없습니다.');
-            console.log('클릭한 주소/건물명과 저장된 메모들의 주소/건물명을 비교해보세요.');
-          }
           
           // 같은 주소에 메모가 있으면 저장된 메모 보여주기
           if (memosAtLocation.length > 0) {
