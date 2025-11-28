@@ -169,6 +169,8 @@ export const translations = {
       location: "위치",
       locationDesc: "현재 위치를 추적하여 근처 메모를 알려줍니다",
       locationTracking: "위치 추적",
+      serviceSettings: "서비스 설정",
+      displaySettings: "표시 설정",
       appInfo: "앱 정보",
       version: "버전",
       developer: "개발자",
@@ -413,6 +415,8 @@ export const translations = {
       location: "Location",
       locationDesc: "Track your current location to notify nearby memos",
       locationTracking: "Location Tracking",
+      serviceSettings: "Service Settings",
+      displaySettings: "Display Settings",
       appInfo: "App Information",
       version: "Version",
       developer: "Developer",
@@ -657,6 +661,8 @@ export const translations = {
       location: "位置",
       locationDesc: "跟踪您的当前位置以通知附近的备忘录",
       locationTracking: "位置跟踪",
+      serviceSettings: "服务设置",
+      displaySettings: "显示设置",
       appInfo: "应用信息",
       version: "版本",
       developer: "开发者",
@@ -901,6 +907,8 @@ export const translations = {
       location: "位置情報",
       locationDesc: "現在地を追跡して近くのメモを通知します",
       locationTracking: "位置追跡",
+      serviceSettings: "サービス設定",
+      displaySettings: "表示設定",
       appInfo: "アプリ情報",
       version: "バージョン",
       developer: "開発者",
@@ -1130,6 +1138,8 @@ type Translation = {
     location: string;
     locationDesc: string;
     locationTracking: string;
+    serviceSettings: string;
+    displaySettings: string;
     appInfo: string;
     version: string;
     developer: string;

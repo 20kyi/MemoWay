@@ -423,7 +423,7 @@ export function SettingsView({
       <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="text-base sm:text-lg">
-            서비스 설정
+            {t.settings.serviceSettings}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-5 pt-0 pb-4 sm:pb-6">
@@ -497,7 +497,7 @@ export function SettingsView({
       <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="text-base sm:text-lg">
-            표시 설정
+            {t.settings.displaySettings}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-5 pt-0 pb-4 sm:pb-6">
