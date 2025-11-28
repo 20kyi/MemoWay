@@ -95,6 +95,18 @@ export function setupKakaoAuth(app: Express) {
       isLocalDev,
       expectedRedirectUri,
       nodeEnv: process.env.NODE_ENV,
+      // 환경 변수 정보 추가 (디버깅용)
+      environmentVariables: {
+        APP_DOMAIN: process.env.APP_DOMAIN || 'NOT SET',
+        REPLIT_DEV_DOMAIN: process.env.REPLIT_DEV_DOMAIN || 'NOT SET',
+        REPL_SLUG: process.env.REPL_SLUG || 'NOT SET',
+        NODE_ENV: process.env.NODE_ENV || 'NOT SET',
+      },
+      resolved: {
+        appDomain: appDomain || 'NOT SET',
+        detectedReplitDomain: detectedReplitDomain || 'NOT SET',
+        useHttps,
+      },
     });
   });
 
@@ -103,6 +115,14 @@ export function setupKakaoAuth(app: Express) {
     // Get language and platform from query parameter
     const lang = req.query.lang || 'ko';
     const platform = req.query.platform || 'web';
+    
+    // 안드로이드 앱 요청 감지 (User-Agent 또는 X-Platform 헤더 확인)
+    const userAgent = req.get('user-agent') || '';
+    const xPlatform = req.get('x-platform');
+    const isAndroidApp = platform === 'android' || 
+                         xPlatform === 'android' ||
+                         userAgent.includes('wv') || // WebView
+                         (userAgent.includes('Android') && !userAgent.includes('Chrome'));
     
     // Generate CSRF state token with language and platform info
     const stateData = {
@@ -142,15 +162,26 @@ export function setupKakaoAuth(app: Express) {
       const requestHost = req.get('host') || '';
       const isReplitDevDomain = requestHost.includes('.riker.replit.dev');
       
-      // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
-      if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
+      // 안드로이드 앱 요청일 경우 항상 프로덕션 도메인 사용
+      // 또는 개발 도메인(*.riker.replit.dev)이 감지되면 프로덕션 도메인 사용 (안드로이드 앱)
+      if (isAndroidApp || (isReplitDevDomain && isAndroidApp)) {
         if (process.env.REPL_SLUG) {
-          // Replit 프로덕션 도메인 사용
           resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
-        } else if (isReplitDevDomain) {
-          // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
-          // 기본 프로덕션 도메인 사용
+        } else {
           resolvedHost = 'memoway.replit.app';
+        }
+        console.log('Android app detected - using production domain:', resolvedHost);
+      } else {
+        // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
+        if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
+          if (process.env.REPL_SLUG) {
+            // Replit 프로덕션 도메인 사용
+            resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
+          } else if (isReplitDevDomain) {
+            // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
+            // 기본 프로덕션 도메인 사용
+            resolvedHost = 'memoway.replit.app';
+          }
         }
       }
       
@@ -166,6 +197,10 @@ export function setupKakaoAuth(app: Express) {
     console.log('Kakao OAuth Redirect URI:', redirectUri);
     console.log('Kakao OAuth - Request details:', {
       isLocalDev,
+      isAndroidApp,
+      platform,
+      userAgent: userAgent.substring(0, 100), // 일부만 로그 (너무 길 수 있음)
+      xPlatform,
       host: req.get('host'),
       protocol: req.protocol,
       appDomain,
@@ -283,6 +318,14 @@ export function setupKakaoAuth(app: Express) {
     }
 
     // Determine redirect URI before try block so it's available in catch block
+    // 안드로이드 앱 요청 감지 (콜백에서도 동일한 로직 적용)
+    const userAgentCallback = req.get('user-agent') || '';
+    const xPlatformCallback = req.get('x-platform');
+    const isAndroidAppCallback = platform === 'android' || 
+                                  xPlatformCallback === 'android' ||
+                                  userAgentCallback.includes('wv') || // WebView
+                                  (userAgentCallback.includes('Android') && !userAgentCallback.includes('Chrome'));
+    
     let host: string;
     let protocol: string;
     
@@ -317,15 +360,24 @@ export function setupKakaoAuth(app: Express) {
       const requestHost = req.get('host') || '';
       const isReplitDevDomain = requestHost.includes('.riker.replit.dev');
       
-      // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
-      if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
+      // 안드로이드 앱 요청일 경우 항상 프로덕션 도메인 사용
+      if (isAndroidAppCallback) {
         if (process.env.REPL_SLUG) {
-          // Replit 프로덕션 도메인 사용
           resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
-        } else if (isReplitDevDomain) {
-          // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
-          // 기본 프로덕션 도메인 사용
+        } else {
           resolvedHost = 'memoway.replit.app';
+        }
+      } else {
+        // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
+        if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
+          if (process.env.REPL_SLUG) {
+            // Replit 프로덕션 도메인 사용
+            resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
+          } else if (isReplitDevDomain) {
+            // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
+            // 기본 프로덕션 도메인 사용
+            resolvedHost = 'memoway.replit.app';
+          }
         }
       }
       
@@ -482,9 +534,46 @@ export function setupKakaoAuth(app: Express) {
   });
 
   // Intermediate redirect page for Android app (shows loading message then redirects to app)
-  app.get("/api/kakao/redirect", (req, res) => {
+  app.get("/api/kakao/redirect", async (req, res) => {
     const lang = req.query.lang || 'ko';
-    const appDeepLink = `com.memoway.app://login?lang=${lang}`;
+    
+    // 세션 확인 및 로그
+    const isAuthenticated = req.isAuthenticated();
+    const userId = req.user ? (req.user as any).id : null;
+    console.log('Kakao redirect page - Auth status:', {
+      isAuthenticated,
+      userId,
+      hasSession: !!req.session,
+      sessionID: req.session?.id?.substring(0, 10)
+    });
+    
+    // 세션이 없으면 로그인 실패로 처리
+    if (!isAuthenticated || !userId) {
+      console.error('Kakao redirect - No authenticated session found');
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>로그인 실패</title>
+            <script>
+              alert('로그인에 실패했습니다. 다시 시도해주세요.');
+              setTimeout(() => {
+                window.location.href = 'com.memoway.app://login?error=session_failed';
+              }, 1000);
+            </script>
+          </head>
+          <body>
+            <p>로그인에 실패했습니다. 잠시 후 다시 시도해주세요.</p>
+          </body>
+        </html>
+      `);
+    }
+    
+    // 세션이 있으면 Deep Link로 리다이렉트
+    // 세션 쿠키가 WebView에 전달되도록 명시적으로 설정
+    const appDeepLink = `com.memoway.app://login?lang=${lang}&session_ok=true`;
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
     
     res.send(`
       <!DOCTYPE html>
@@ -561,20 +650,52 @@ export function setupKakaoAuth(app: Express) {
             <a href="${appDeepLink}" class="fallback-link">앱으로 돌아가기</a>
           </div>
           <script>
-            // Try to redirect to app immediately
-            try {
-              window.location.href = ${JSON.stringify(appDeepLink)};
-            } catch (e) {
-              console.error('Failed to redirect:', e);
-            }
+            // 세션 쿠키를 WebView에 설정하기 위해 API 호출
+            // 이렇게 하면 쿠키가 WebView의 쿠키 저장소에 저장됩니다
+            (async function() {
+              try {
+                // 세션을 확인하는 API 호출로 쿠키 동기화
+                const response = await fetch('${baseUrl}/api/auth/user', {
+                  method: 'GET',
+                  credentials: 'include',
+                  headers: {
+                    'Accept': 'application/json',
+                  }
+                });
+                
+                if (response.ok) {
+                  console.log('Session cookie synced to WebView');
+                  // 쿠키가 설정된 후 Deep Link로 리다이렉트
+                  setTimeout(() => {
+                    try {
+                      window.location.href = ${JSON.stringify(appDeepLink)};
+                    } catch (e) {
+                      console.error('Failed to redirect:', e);
+                    }
+                  }, 500);
+                } else {
+                  console.error('Session sync failed:', response.status);
+                  // 세션 동기화 실패 시에도 Deep Link로 리다이렉트 (앱에서 처리)
+                  setTimeout(() => {
+                    window.location.href = ${JSON.stringify(appDeepLink)};
+                  }, 500);
+                }
+              } catch (error) {
+                console.error('Failed to sync session cookie:', error);
+                // 에러 발생 시에도 Deep Link로 리다이렉트
+                setTimeout(() => {
+                  window.location.href = ${JSON.stringify(appDeepLink)};
+                }, 500);
+              }
+            })();
             
-            // Fallback: if not redirected after 2 seconds, show manual link
+            // Fallback: if not redirected after 3 seconds, show manual link
             setTimeout(() => {
               const link = document.querySelector('.fallback-link');
               if (link) {
                 link.style.display = 'block';
               }
-            }, 2000);
+            }, 3000);
           </script>
         </body>
       </html>

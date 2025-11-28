@@ -34,17 +34,48 @@ function Router() {
           const url = new URL(urlString);
           if (url.pathname === '/login') {
             const langParam = url.searchParams.get('lang');
+            const sessionOk = url.searchParams.get('session_ok');
+            const error = url.searchParams.get('error');
+            
+            if (error === 'session_failed') {
+              console.error('Kakao login failed: session not found');
+              // 에러 상태 표시 필요시 여기에 추가
+              return;
+            }
+            
             if (langParam && ['ko', 'en', 'zh', 'ja'].includes(langParam)) {
               setLanguage(langParam as Language);
             }
             
-            // 인증 상태 확인 및 재요청
+            // 세션 쿠키를 WebView에 동기화하기 위해 먼저 서버에 요청
+            // 이렇게 하면 쿠키가 WebView에 설정됩니다
+            const baseUrl = (window as any).Capacitor?.isNativePlatform() 
+              ? import.meta.env.VITE_REPLIT_URL || ''
+              : '';
+            
+            if (baseUrl) {
+              // 세션을 확인하는 API 호출로 쿠키 동기화
+              try {
+                await fetch(`${baseUrl}/api/auth/user`, {
+                  method: 'GET',
+                  credentials: 'include',
+                  headers: {
+                    'Accept': 'application/json',
+                  }
+                });
+                console.log('Session sync attempted via API call');
+              } catch (err) {
+                console.error('Failed to sync session:', err);
+              }
+            }
+            
+            // 인증 상태 확인 및 재요청 (쿠키가 동기화된 후)
             queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
             
-            // 잠시 대기 후 홈으로 이동 (세션 쿠키가 설정될 시간 확보)
+            // 세션 동기화를 위한 대기 시간 증가
             setTimeout(() => {
               window.location.href = '/';
-            }, 300);
+            }, 1000);
           }
         } catch (error) {
           console.error('Failed to parse Deep Link:', error);
