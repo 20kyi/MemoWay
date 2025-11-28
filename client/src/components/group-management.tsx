@@ -410,16 +410,16 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   name="memberName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>내 이름</FormLabel>
+                      <FormLabel>{t.groups.myName}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="홍길동" data-testid="input-join-member-name" />
+                        <Input {...field} placeholder={t.groups.myNamePlaceholder} data-testid="input-join-member-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-join-group">
-                {isLoading ? "참여 중..." : "참여하기"}
+                {isLoading ? t.groups.joining : t.groups.joinButton}
               </Button>
             </form>
           </Form>
@@ -781,7 +781,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                               data-testid={`button-transfer-${member.id}`}
                             >
                               <RefreshCw className="h-4 w-4 mr-1" />
-                              위임
+                              {t.groups.transfer}
                             </Button>
                           )}
                           {canRemove && (
@@ -796,7 +796,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                               data-testid={`button-remove-${member.id}`}
                             >
                               <UserMinus className="h-4 w-4 mr-1" />
-                              내보내기
+                              {t.groups.remove}
                             </Button>
                           )}
                         </div>

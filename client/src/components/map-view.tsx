@@ -2005,7 +2005,7 @@ export function MapView({
                     }}
                     data-testid="checkbox-group-all"
                   />
-                  <span>전체 그룹</span>
+                  <span>{t.common.allGroups}</span>
                 </label>
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <Checkbox

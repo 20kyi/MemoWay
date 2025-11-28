@@ -118,6 +118,10 @@ export const translations = {
       transferLeadership: "방장 이양",
       confirmTransferLeadership: "님에게 방장 권한을 이양하시겠습니까?",
       removeMember: "멤버 강퇴",
+      transfer: "위임",
+      remove: "내보내기",
+      joining: "참여 중...",
+      joinButton: "참여하기",
       searchGroups: "그룹 검색",
       searchPlaceholder: "그룹 이름, 설명, 멤버 검색...",
       noSearchResults: "검색 결과가 없습니다",
@@ -358,6 +362,10 @@ export const translations = {
       transferLeadership: "Transfer Leadership",
       confirmTransferLeadership: " to transfer leadership?",
       removeMember: "Remove Member",
+      transfer: "Transfer",
+      remove: "Remove",
+      joining: "Joining...",
+      joinButton: "Join",
       searchGroups: "Search Groups",
       searchPlaceholder: "Search groups by name, description, members...",
       noSearchResults: "No search results",
@@ -507,6 +515,7 @@ export const translations = {
       locationLockModeActive: "位置锁定模式已激活",
       markerFilter: "标记筛选",
       groupFilter: "组筛选",
+      allGroups: "所有组",
     },
     // Categories
     categories: {
@@ -597,6 +606,10 @@ export const translations = {
       transferLeadership: "转让群主",
       confirmTransferLeadership: " 转让群主权限？",
       removeMember: "移除成员",
+      transfer: "转让",
+      remove: "移除",
+      joining: "加入中...",
+      joinButton: "加入",
       searchGroups: "搜索群组",
       searchPlaceholder: "按群组名称、说明、成员搜索...",
       noSearchResults: "无搜索结果",
@@ -746,6 +759,7 @@ export const translations = {
       locationLockModeActive: "位置固定モード有効",
       markerFilter: "マーカーフィルター",
       groupFilter: "グループフィルター",
+      allGroups: "すべてのグループ",
     },
     // Categories
     categories: {
@@ -836,6 +850,10 @@ export const translations = {
       transferLeadership: "リーダー譲渡",
       confirmTransferLeadership: " にリーダー権限を譲渡しますか？",
       removeMember: "メンバーを削除",
+      transfer: "譲渡",
+      remove: "削除",
+      joining: "参加中...",
+      joinButton: "参加",
       searchGroups: "グループを検索",
       searchPlaceholder: "グループ名、説明、メンバーで検索...",
       noSearchResults: "検索結果がありません",
@@ -985,6 +1003,7 @@ type Translation = {
     locationLockModeActive: string;
     markerFilter: string;
     groupFilter: string;
+    allGroups: string;
   };
   categories: {
     all: string;
@@ -1069,6 +1088,10 @@ type Translation = {
     transferLeadership: string;
     confirmTransferLeadership: string;
     removeMember: string;
+    transfer: string;
+    remove: string;
+    joining: string;
+    joinButton: string;
     searchGroups: string;
     searchPlaceholder: string;
     noSearchResults: string;

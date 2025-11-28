@@ -265,7 +265,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
                 <Users className="w-4 h-4" />
                 <span className="flex-1 text-left truncate">
                   {selectedGroup === "all" 
-                    ? "전체 그룹" 
+                    ? t.common.allGroups 
                     : selectedGroup === "personal"
                     ? "개인 메모"
                     : groups.find(g => g.id === selectedGroup)?.name || "그룹"}
@@ -283,7 +283,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
               <SelectItem value="all" data-testid="filter-group-all">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
-                  <span>전체 그룹</span>
+                  <span>{t.common.allGroups}</span>
                   <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
                     {memos.length}
                   </Badge>
