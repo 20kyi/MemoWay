@@ -34,14 +34,14 @@
   --secondary-foreground: 0 0% 13%;
   --muted: 210 20% 95%;
   --muted-foreground: 0 0% 45%;
-  --accent: 5 100% 69%;
+  --accent: 217 91% 60%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
   --input: 210 20% 88%;
   --ring: 207 71% 58%;
   --chart-1: 207 71% 58%;
-  --chart-2: 5 100% 69%;
+  --chart-2: 217 91% 60%;
   --chart-3: 0 0% 13%;
   --chart-4: 180 50% 50%;
   --chart-5: 280 60% 60%;
@@ -90,43 +90,45 @@
 }
 
 .dark {
-  --button-outline: rgba(74, 144, 226, .12);
-  --badge-outline: rgba(74, 144, 226, .06);
+  --button-outline: rgba(99, 102, 241, .12);
+  --badge-outline: rgba(99, 102, 241, .06);
   --opaque-button-border-intensity: 8;
-  --elevate-1: rgba(74, 144, 226, .05);
-  --elevate-2: rgba(74, 144, 226, .10);
-  --background: 0 0% 13%;
-  --foreground: 210 30% 96%;
-  --border: 0 0% 20%;
-  --card: 0 0% 16%;
-  --card-foreground: 210 30% 96%;
-  --card-border: 0 0% 20%;
-  --sidebar: 0 0% 13%;
-  --sidebar-foreground: 210 30% 96%;
-  --sidebar-border: 0 0% 20%;
-  --sidebar-primary: 207 71% 58%;
-  --sidebar-primary-foreground: 0 0% 13%;
-  --sidebar-accent: 0 0% 20%;
-  --sidebar-accent-foreground: 210 30% 96%;
-  --sidebar-ring: 207 71% 58%;
-  --popover: 0 0% 16%;
-  --popover-foreground: 210 30% 96%;
-  --popover-border: 0 0% 20%;
-  --primary: 207 71% 58%;
-  --primary-foreground: 0 0% 13%;
-  --secondary: 0 0% 20%;
-  --secondary-foreground: 210 30% 96%;
-  --muted: 0 0% 20%;
-  --muted-foreground: 0 0% 60%;
-  --accent: 5 100% 69%;
-  --accent-foreground: 0 0% 13%;
+  --elevate-1: rgba(99, 102, 241, .05);
+  --elevate-2: rgba(99, 102, 241, .10);
+  /* 배경: 부드러운 다크 슬레이트 그레이 (검정 대신) */
+  --background: 222 15% 12%;
+  --foreground: 210 20% 98%;
+  --border: 217 15% 20%;
+  --card: 222 15% 14%;
+  --card-foreground: 210 20% 98%;
+  --card-border: 217 15% 20%;
+  --sidebar: 222 15% 12%;
+  --sidebar-foreground: 210 20% 98%;
+  --sidebar-border: 217 15% 20%;
+  --sidebar-primary: 217 91% 60%;
+  --sidebar-primary-foreground: 222 15% 12%;
+  --sidebar-accent: 217 15% 20%;
+  --sidebar-accent-foreground: 210 20% 98%;
+  --sidebar-ring: 217 91% 60%;
+  --popover: 222 15% 14%;
+  --popover-foreground: 210 20% 98%;
+  --popover-border: 217 15% 20%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 15% 12%;
+  --secondary: 217 15% 20%;
+  --secondary-foreground: 210 20% 98%;
+  --muted: 217 15% 20%;
+  --muted-foreground: 215 15% 65%;
+  /* 액센트: 부드러운 인디고 블루 (핑크 대신) */
+  --accent: 217 91% 60%;
+  --accent-foreground: 222 15% 12%;
   --destructive: 0 63% 31%;
-  --destructive-foreground: 210 30% 96%;
-  --input: 0 0% 20%;
-  --ring: 207 71% 58%;
-  --chart-1: 207 71% 58%;
-  --chart-2: 5 100% 69%;
-  --chart-3: 210 30% 96%;
+  --destructive-foreground: 210 20% 98%;
+  --input: 217 15% 20%;
+  --ring: 217 91% 60%;
+  --chart-1: 217 91% 60%;
+  --chart-2: 200 90% 55%;
+  --chart-3: 210 20% 98%;
   --chart-4: 180 50% 50%;
   --chart-5: 280 60% 60%;
   --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.15);
@@ -171,7 +173,7 @@
    LAYOUT THEMES
    ============================================ */
 
-/* 기본 테마 (핑크) - 레이아웃 테마가 없을 때는 기존 핑크 스타일 유지 */
+/* 기본 테마 - 레이아웃 테마가 없을 때는 기본 스타일 유지 */
 
 /* 1. Lavender Night - 어두운 감성 다크모드 (Pet App 스타일) */
 .layout-lavender-night {
@@ -180,20 +182,20 @@
   --card: 0 0% 8%;
   --card-foreground: 0 0% 95%;
   --border: 0 0% 15%;
-  --primary: 320 70% 75%;
+  --primary: 217 91% 60%;
   --primary-foreground: 0 0% 4%;
   --secondary: 0 0% 12%;
   --secondary-foreground: 0 0% 90%;
   --muted: 0 0% 10%;
   --muted-foreground: 0 0% 65%;
-  --accent: 270 60% 80%;
+  --accent: 217 91% 60%;
   --accent-foreground: 0 0% 4%;
   --destructive: 0 70% 60%;
   --destructive-foreground: 0 0% 95%;
-  --ring: 320 70% 75%;
+  --ring: 217 91% 60%;
   --input: 0 0% 12%;
-  --button-outline: rgba(255, 179, 217, 0.2);
-  --badge-outline: rgba(255, 179, 217, 0.15);
+  --button-outline: rgba(99, 102, 241, 0.2);
+  --badge-outline: rgba(99, 102, 241, 0.15);
   --elevate-1: rgba(255, 255, 255, 0.03);
   --elevate-2: rgba(255, 255, 255, 0.05);
   --radius: 0.75rem;
@@ -201,7 +203,7 @@
 
 .layout-lavender-night body,
 .layout-lavender-night .min-h-screen,
-.layout-lavender-night [class*="bg-gradient-to-br"][class*="from-pink"] {
+.layout-lavender-night [class*="bg-gradient-to-br"][class*="from-indigo"] {
   background: #0a0a0a !important;
 }
 
@@ -211,7 +213,7 @@
 
 .layout-lavender-night .bg-card,
 .layout-lavender-night [class*="bg-gradient-to-br"],
-.layout-lavender-night [class*="from-pink"],
+.layout-lavender-night [class*="from-indigo"],
 .layout-lavender-night [class*="to-white"] {
   background: rgba(20, 20, 20, 0.95) !important;
   backdrop-filter: blur(12px);
@@ -220,38 +222,38 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.layout-lavender-night .border-pink-200,
-.layout-lavender-night .border-pink-200\/50,
+.layout-lavender-night .border-indigo-200,
+.layout-lavender-night .border-indigo-200\/50,
 .layout-lavender-night .border {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .layout-lavender-night [class*="text-\[#9333ea\]"] {
-  color: #ffb3d9 !important;
+  color: #6366f1 !important;
 }
 
 .layout-lavender-night [class*="bg-\[#9333ea\]"] {
-  background: linear-gradient(135deg, #ffb3d9 0%, #c8a2f0 50%, #a8d5ff 100%) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #818cf8 50%, #a5b4fc 100%) !important;
   color: #0a0a0a !important;
 }
 
 .layout-lavender-night [class*="hover:bg-\[#7e22ce\]"] {
-  background: linear-gradient(135deg, #ff9fcc 0%, #b891e8 50%, #8fc4ff 100%) !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%) !important;
 }
 
 /* 버튼 스타일 */
 .layout-lavender-night button[class*="bg-primary"],
 .layout-lavender-night .bg-primary {
-  background: linear-gradient(135deg, #ffb3d9 0%, #c8a2f0 50%, #a8d5ff 100%) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #818cf8 50%, #a5b4fc 100%) !important;
   color: #0a0a0a !important;
   border: none !important;
-  box-shadow: 0 2px 8px rgba(255, 179, 217, 0.3);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 .layout-lavender-night button[class*="bg-primary"]:hover,
 .layout-lavender-night .bg-primary:hover {
-  background: linear-gradient(135deg, #ff9fcc 0%, #b891e8 50%, #8fc4ff 100%) !important;
-  box-shadow: 0 4px 12px rgba(255, 179, 217, 0.4);
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
   transform: translateY(-1px);
 }
 
@@ -259,7 +261,7 @@
 .layout-lavender-night input,
 .layout-lavender-night textarea,
 .layout-lavender-night select,
-.layout-lavender-night [class*="border-pink-200"] {
+.layout-lavender-night [class*="border-indigo-200"] {
   background: rgba(15, 15, 15, 0.8) !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   color: #f5f5f5 !important;
@@ -271,8 +273,8 @@
 .layout-lavender-night input:focus-visible,
 .layout-lavender-night textarea:focus-visible,
 .layout-lavender-night select:focus-visible {
-  border-color: #ffb3d9 !important;
-  box-shadow: 0 0 0 2px rgba(255, 179, 217, 0.2) !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
   outline: none !important;
 }
 
@@ -299,10 +301,10 @@
 }
 
 /* 배지 스타일 */
-.layout-lavender-night [class*="bg-pink-100"],
-.layout-lavender-night [class*="bg-pink-500"] {
-  background: rgba(255, 179, 217, 0.2) !important;
-  color: #ffb3d9 !important;
+.layout-lavender-night [class*="bg-indigo-100"],
+.layout-lavender-night [class*="bg-indigo-500"] {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #6366f1 !important;
   border: 1px solid rgba(255, 179, 217, 0.3) !important;
 }
 
@@ -315,30 +317,30 @@
 }
 
 .layout-lavender-night [role="option"]:hover {
-  background: rgba(255, 179, 217, 0.15) !important;
+  background: rgba(99, 102, 241, 0.15) !important;
 }
 
 /* 스위치 스타일 */
 .layout-lavender-night [role="switch"][aria-checked="true"] {
-  background: linear-gradient(135deg, #ffb3d9 0%, #c8a2f0 50%, #a8d5ff 100%) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #818cf8 50%, #a5b4fc 100%) !important;
 }
 
 /* 체크박스 스타일 */
 .layout-lavender-night [type="checkbox"]:checked {
-  background: linear-gradient(135deg, #ffb3d9 0%, #c8a2f0 50%, #a8d5ff 100%) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #818cf8 50%, #a5b4fc 100%) !important;
   border-color: transparent !important;
 }
 
 /* 아이콘 버튼 스타일 */
-.layout-lavender-night button[class*="rounded-full"][class*="bg-pink"] {
-  background: rgba(255, 179, 217, 0.15) !important;
-  color: #ffb3d9 !important;
+.layout-lavender-night button[class*="rounded-full"][class*="bg-indigo"] {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #6366f1 !important;
   border: 1px solid rgba(255, 179, 217, 0.3) !important;
 }
 
-.layout-lavender-night button[class*="rounded-full"][class*="bg-pink"]:hover {
-  background: rgba(255, 179, 217, 0.25) !important;
-  border-color: rgba(255, 179, 217, 0.5) !important;
+.layout-lavender-night button[class*="rounded-full"][class*="bg-indigo"]:hover {
+  background: rgba(99, 102, 241, 0.25) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
 }
 
 /* Sheet/Dialog 오버레이 */
@@ -349,15 +351,15 @@
 
 /* 탭 스타일 */
 .layout-lavender-night [role="tab"][aria-selected="true"] {
-  background: rgba(255, 179, 217, 0.2) !important;
-  color: #ffb3d9 !important;
-  border-color: rgba(255, 179, 217, 0.4) !important;
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #6366f1 !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
 }
 
 /* 그라디언트 하트 아이콘 배경 */
-.layout-lavender-night [class*="bg-gradient-to-br"][class*="from-pink-100"][class*="to-purple-100"] {
-  background: linear-gradient(135deg, rgba(255, 179, 217, 0.2) 0%, rgba(200, 162, 240, 0.2) 100%) !important;
-  border: 1px solid rgba(255, 179, 217, 0.3) !important;
+.layout-lavender-night [class*="bg-gradient-to-br"][class*="from-indigo-100"][class*="to-purple-100"] {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(129, 140, 248, 0.2) 100%) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
 }
 
 /* 2. Romantic Love - 커플 테마 (로맨틱 러브) */

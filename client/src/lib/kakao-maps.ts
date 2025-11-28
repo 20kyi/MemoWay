@@ -84,9 +84,26 @@ export function loadKakaoMaps(): Promise<void> {
       reject(new Error(error));
     }, 30000);
 
+    // 네트워크 연결 확인 (Android WebView에서 유용)
+    if (typeof navigator !== 'undefined' && 'onLine' in navigator) {
+      console.log('[Kakao Maps] Network status:', navigator.onLine ? 'online' : 'offline');
+      if (!navigator.onLine) {
+        console.warn('[Kakao Maps] Device appears to be offline. Please check network connection.');
+      }
+    }
+    
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services&autoload=false`;
+    
+    // 스크립트 로딩 전 상세 정보 로깅
+    console.log('[Kakao Maps] Attempting to load script from:', script.src);
+    console.log('[Kakao Maps] Script element created:', {
+      type: script.type,
+      async: script.async,
+      defer: script.defer,
+      crossOrigin: script.crossOrigin || 'not set'
+    });
     
     script.onload = () => {
       clearTimeout(timeout);
@@ -123,17 +140,50 @@ export function loadKakaoMaps(): Promise<void> {
     
     script.onerror = (error) => {
       clearTimeout(timeout);
-      const errorMsg = "Failed to load Kakao Maps SDK - API 키, 도메인 설정, 또는 네트워크 연결을 확인해주세요.";
-      console.error("[Kakao Maps]", errorMsg, error);
+      const origin = window.location.origin;
+      
+      // 더 자세한 에러 정보 수집
+      const errorDetails: any = {
+        message: error?.toString() || 'Unknown error',
+        type: error?.type || 'unknown',
+        target: error?.target || null,
+        timeStamp: error?.timeStamp || Date.now(),
+        networkStatus: typeof navigator !== 'undefined' && 'onLine' in navigator ? (navigator.onLine ? 'online' : 'offline') : 'unknown',
+        scriptSrc: script.src,
+        currentOrigin: origin,
+        userAgent: navigator.userAgent,
+      };
+      
+      console.error("[Kakao Maps] ===== Script Load Error =====");
+      console.error("[Kakao Maps] Error details:", errorDetails);
       console.error("[Kakao Maps] API Key used:", apiKey ? apiKey.substring(0, 10) + '...' : 'NOT SET');
       console.error("[Kakao Maps] API Key length:", apiKey?.length || 0);
       console.error("[Kakao Maps] Script URL:", script.src);
+      console.error("[Kakao Maps] Current Origin:", origin);
       console.error("[Kakao Maps] Platform:", navigator.userAgent);
-      console.error("[Kakao Maps] Troubleshooting:");
-      console.error("  1. Check if JavaScript Key (not Native App Key) is used");
-      console.error("  2. Verify domain is registered in Kakao Developer Console");
-      console.error("  3. Check network connection and CORS settings");
-      console.error("  4. Visit: https://developers.kakao.com > 내 애플리케이션 > 플랫폼 설정");
+      
+      // 네트워크 연결 확인
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const networkErrorMsg = "네트워크 연결이 없습니다. 인터넷 연결을 확인해주세요.";
+        console.error("[Kakao Maps] Network is offline!");
+        reject(new Error(networkErrorMsg));
+        return;
+      }
+      
+      // 도메인 설정 확인 안내
+      const errorMsg = `Failed to load Kakao Maps SDK - 네트워크 연결 또는 도메인 설정을 확인해주세요.`;
+      console.error("[Kakao Maps] ===== 해결 방법 =====");
+      console.error("1. 네트워크 연결 확인 (에뮬레이터/기기에서 인터넷 연결 확인)");
+      console.error("2. 카카오 개발자 콘솔 접속: https://developers.kakao.com");
+      console.error("3. 내 애플리케이션 > 앱 선택 > 플랫폼 설정");
+      console.error("4. Web 플랫폼 확인:");
+      console.error(`   - 사이트 도메인: ${origin} (등록되어 있는지 확인)`);
+      console.error("5. Android 플랫폼 확인:");
+      console.error("   - 패키지명: com.memoway.app (등록되어 있는지 확인)");
+      console.error("6. JavaScript 키 활성화 확인");
+      console.error("7. 앱 재빌드 및 재시작");
+      console.error("8. Logcat에서 네트워크 에러 메시지 확인");
+      
       reject(new Error(errorMsg));
     };
     

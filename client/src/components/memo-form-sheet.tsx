@@ -296,7 +296,7 @@ export function MemoFormSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col [&>button]:cursor-default">
-        <div className="w-12 h-1 bg-pink-300/50 rounded-full mx-auto mt-3 mb-4" />
+        <div className="w-12 h-1 bg-indigo-300/50 rounded-full mx-auto mt-3 mb-4" />
         
         <div className="px-4 sm:px-5 flex-shrink-0 pb-2">
           <SheetHeader className="mb-4">
@@ -314,7 +314,7 @@ export function MemoFormSheet({
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.buildingName}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} className="text-sm h-11 border-pink-200 focus:border-[#9333ea] focus:ring-[#9333ea]" data-testid="input-building-name" />
+                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} className="text-sm h-11 border-indigo-200 focus:border-[#9333ea] focus:ring-[#9333ea]" data-testid="input-building-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -328,7 +328,7 @@ export function MemoFormSheet({
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.address}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.memoForm.addressPlaceholder} className="text-sm h-11 border-pink-200 focus:border-[#9333ea] focus:ring-[#9333ea]" data-testid="input-address" />
+                      <Input {...field} placeholder={t.memoForm.addressPlaceholder} className="text-sm h-11 border-indigo-200 focus:border-[#9333ea] focus:ring-[#9333ea]" data-testid="input-address" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -359,7 +359,7 @@ export function MemoFormSheet({
                         />
                       ))}
                       {photoItems.length < 10 && (
-                        <label className="aspect-square border-2 border-dashed border-pink-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-pink-50/50 transition-colors">
+                        <label className="aspect-square border-2 border-dashed border-indigo-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-indigo-50/50 transition-colors">
                           <input
                             type="file"
                             accept="image/*"
@@ -368,7 +368,7 @@ export function MemoFormSheet({
                             className="hidden"
                             data-testid="input-photo-upload"
                           />
-                          <Camera className="h-6 w-6 text-pink-400" />
+                          <Camera className="h-6 w-6 text-indigo-400" />
                         </label>
                       )}
                     </div>
@@ -386,7 +386,7 @@ export function MemoFormSheet({
                       <Textarea 
                         {...field} 
                         placeholder={t.memoForm.contentPlaceholder} 
-                        className="min-h-24 sm:min-h-28 resize-none text-sm border-pink-200 focus:border-[#9333ea] focus:ring-[#9333ea]"
+                        className="min-h-24 sm:min-h-28 resize-none text-sm border-indigo-200 focus:border-[#9333ea] focus:ring-[#9333ea]"
                         data-testid="input-memo-content"
                       />
                     </FormControl>
@@ -441,7 +441,7 @@ export function MemoFormSheet({
                               type="button"
                               variant="outline"
                               role="combobox"
-                              className="w-full justify-between h-11 text-sm border-pink-200 hover:bg-pink-50"
+                              className="w-full justify-between h-11 text-sm border-indigo-200 hover:bg-indigo-50"
                               data-testid="button-group-select"
                             >
                               <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -515,12 +515,12 @@ export function MemoFormSheet({
               )}
             </div>
 
-            <div className="flex gap-3 px-4 sm:px-5 py-4 border-t border-pink-200/50 bg-gradient-to-br from-pink-50/50 to-white flex-shrink-0">
+            <div className="flex gap-3 px-4 sm:px-5 py-4 border-t border-indigo-200/50 bg-gradient-to-br from-indigo-50/50 to-white flex-shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
-                className="flex-1 h-11 text-sm font-medium border-pink-200 hover:bg-pink-50"
+                className="flex-1 h-11 text-sm font-medium border-indigo-200 hover:bg-indigo-50"
                 onClick={() => onOpenChange(false)}
                 data-testid="button-cancel"
               >

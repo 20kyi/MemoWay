@@ -4,9 +4,20 @@ import path from "path";
 import { fileURLToPath } from "url";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { config } from "dotenv";
+import { existsSync } from "fs";
 
-// .env 파일 로드
-config();
+// .env 파일 로드 (빌드 시점에 확실히 로드되도록)
+const envPath = path.resolve(process.cwd(), '.env');
+if (existsSync(envPath)) {
+  const result = config({ path: envPath });
+  if (result.error) {
+    console.warn('⚠️  .env 파일 로드 중 오류:', result.error);
+  } else {
+    console.log('✅ .env 파일 로드 완료');
+  }
+} else {
+  console.warn('⚠️  .env 파일을 찾을 수 없습니다. 시스템 환경 변수를 사용합니다.');
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -14,6 +25,7 @@ export default defineConfig({
   base: './', // Capacitor에서 상대 경로 사용
   // Vite는 기본적으로 VITE_* 환경 변수를 자동으로 import.meta.env에 주입합니다
   // 빌드 시 환경 변수가 확실히 포함되도록 define에 명시적으로 추가
+  // 중요: 빌드 시점에 환경 변수가 없으면 빈 문자열로 설정되므로, 반드시 .env 파일이 있어야 합니다
   define: {
     'import.meta.env.VITE_REPLIT_URL': JSON.stringify(process.env.VITE_REPLIT_URL || ''),
     'import.meta.env.VITE_KAKAO_API_KEY': JSON.stringify(process.env.VITE_KAKAO_API_KEY || ''),
@@ -53,6 +65,12 @@ export default defineConfig({
     reportCompressedSize: false, // Disable compressed size reporting for faster builds
     // manualChunks 제거: Capacitor WebView는 청크 로딩 순서를 보장하지 않음
     // 기본 Vite 청크 분리 로직이 자동으로 의존성 순서를 보장함
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // 환경 변수 관련 경고는 무시하지 않음
+        warn(warning);
+      },
+    },
   },
   server: {
     fs: {

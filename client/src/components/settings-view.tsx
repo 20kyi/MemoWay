@@ -259,12 +259,12 @@ export function SettingsView({
   ];
 
   return (
-    <div className="px-4 py-4 sm:px-5 sm:py-5 pb-20 sm:pb-24 space-y-3 sm:space-y-4 overflow-y-auto h-full bg-gradient-to-br from-pink-50/30 to-white min-h-screen">
+    <div className="px-4 py-4 sm:px-5 sm:py-5 pb-20 sm:pb-24 space-y-3 sm:space-y-4 overflow-y-auto h-full bg-gradient-to-br from-blue-50/30 to-white min-h-screen">
       <h1 className="text-2xl sm:text-3xl font-bold text-[#9333ea] mb-4 sm:mb-5">{t.settings.title}</h1>
 
       {/* 1. 계정 */}
       {user ? (
-        <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
+        <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-indigo-50/30 backdrop-blur-sm border border-indigo-200/50 shadow-lg hover:shadow-xl transition-all">
           <CardHeader className="pb-3 sm:pb-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
@@ -549,8 +549,8 @@ export function SettingsView({
               <SelectContent>
                 <SelectItem value="default" data-testid="layout-default">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200"></div>
-                    <span>{language === 'ko' ? '기본 (핑크)' : language === 'en' ? 'Default (Pink)' : language === 'zh' ? '默认 (粉色)' : 'デフォルト (ピンク)'}</span>
+                    <div className="w-4 h-4 rounded bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200"></div>
+                    <span>{language === 'ko' ? '기본' : language === 'en' ? 'Default' : language === 'zh' ? '默认' : 'デフォルト'}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="lavender-night" data-testid="layout-lavender-night">
