@@ -198,10 +198,10 @@ export function GoogleMapView({
         // 사용자에게 토스트는 한 번만 표시
         errorToastShownRef.current = true;
         toast({
-          title: "Google Maps를 불러올 수 없습니다",
-          description: "Google Maps API 키가 설정되지 않았습니다. 카카오맵을 사용하거나 환경 변수에 VITE_GOOGLE_MAPS_API_KEY를 추가해주세요.",
+          title: t.toast.googleMapsLoadFailed,
+          description: t.toast.googleMapsLoadFailedDesc,
           variant: "destructive",
-          duration: 5000, // 5초간 표시
+          duration: 3000, // 3초간 표시
         });
       }
     });
@@ -481,8 +481,8 @@ export function GoogleMapView({
               map.setZoom(16);
               
               toast({
-                title: "검색 완료",
-                description: `"${searchQuery}" 위치로 이동했습니다`,
+                title: t.toast.searchComplete,
+                description: t.toast.locationMoveComplete.replace('{query}', searchQuery),
               });
               
               setSearchQuery("");
@@ -500,8 +500,8 @@ export function GoogleMapView({
               }
               
               toast({
-                title: "검색 실패",
-                description: errorMessage,
+                title: t.toast.searchFailed,
+                description: errorMessage || t.toast.searchFailedDesc,
                 variant: "destructive",
               });
             }
@@ -510,8 +510,8 @@ export function GoogleMapView({
         } catch (geocoderError) {
           console.error("Geocoding error:", geocoderError);
           toast({
-            title: "검색 오류",
-            description: "주소 검색 중 오류가 발생했습니다. Google Cloud Console에서 Places API와 Geocoding API를 활성화해주세요.",
+            title: t.toast.searchError,
+            description: t.toast.searchErrorPlaces,
             variant: "destructive",
           });
           setIsSearching(false);
@@ -537,8 +537,8 @@ export function GoogleMapView({
                 map.setZoom(16);
                 
                 toast({
-                  title: "검색 완료",
-                  description: `"${place.name || searchQuery}" 위치로 이동했습니다`,
+                  title: t.toast.searchComplete,
+                  description: t.toast.locationMoveComplete.replace('{query}', place.name || searchQuery),
                 });
                 
                 setSearchQuery("");
@@ -563,8 +563,8 @@ export function GoogleMapView({
     } catch (error) {
       console.error("Search error:", error);
       toast({
-        title: "검색 오류",
-        description: "주소 검색 중 오류가 발생했습니다. Google Maps API가 제대로 로드되었는지 확인해주세요.",
+        title: t.toast.searchError,
+        description: t.toast.searchErrorDesc,
         variant: "destructive",
       });
       setIsSearching(false);
@@ -593,10 +593,10 @@ export function GoogleMapView({
     }
     
     toast({
-      title: newLockState ? "확대/축소 잠금" : "확대/축소 잠금 해제",
+      title: newLockState ? t.toast.zoomLockEnabled : t.toast.zoomLockDisabled,
       description: newLockState 
-        ? "지도 확대/축소가 비활성화되었습니다" 
-        : "지도를 자유롭게 확대/축소할 수 있습니다",
+        ? t.toast.zoomLockEnabledDesc
+        : t.toast.zoomLockDisabledDesc,
     });
   };
 
@@ -616,8 +616,8 @@ export function GoogleMapView({
         (error) => {
           console.error("Location error:", error);
           toast({
-            title: "위치 정보 오류",
-            description: "현재 위치를 가져올 수 없습니다",
+            title: t.toast.locationError,
+            description: t.toast.currentLocationError,
             variant: "destructive"
           });
         },
@@ -863,10 +863,10 @@ export function GoogleMapView({
                 }
                 
                 toast({
-                  title: newLockState ? "위치 고정" : "위치 고정 해제",
+                  title: newLockState ? t.toast.locationLockEnabled : t.toast.locationLockDisabled,
                   description: newLockState 
-                    ? "내 위치가 화면 중앙에 고정되며, 지도가 따라 움직입니다" 
-                    : "지도를 자유롭게 이동할 수 있습니다",
+                    ? t.toast.locationLockEnabledDesc
+                    : t.toast.locationLockDisabledDesc,
                 });
               }}
               className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl relative ${

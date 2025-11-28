@@ -449,9 +449,9 @@ export function MemoFormSheet({
                                 <span className="flex-1 text-left truncate">
                                   {field.value && field.value.length > 0
                                     ? field.value.length === 1
-                                      ? groups.find(g => g.id === field.value[0])?.name || "그룹 선택"
-                                      : `${field.value.length}개 그룹 선택됨`
-                                    : "그룹 선택"}
+                                      ? groups.find(g => g.id === field.value[0])?.name || t.memoForm.selectGroup
+                                      : t.memoForm.groupsSelected.replace('{count}', field.value.length.toString())
+                                    : t.memoForm.selectGroup}
                                 </span>
                                 {field.value && field.value.length > 0 && (
                                   <Badge variant="secondary" className="px-1.5 h-5 text-xs flex-shrink-0">

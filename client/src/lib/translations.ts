@@ -67,6 +67,7 @@ export const translations = {
       markerIcon: "마커 아이콘",
       groupShare: "그룹 공유 (선택 안 하면 개인 메모)",
       selectGroup: "그룹 선택",
+      groupsSelected: "{count}개 그룹 선택됨",
     },
     // Memo Detail
     memoDetail: {
@@ -228,6 +229,61 @@ export const translations = {
       deleteSuccess: "삭제 완료",
       deleteError: "삭제 실패",
       viewLocation: "위치 보기",
+      searchNoResults: "검색 결과 없음",
+      searchNoResultsDesc: "현재 위치에서 5km 반경 내에 검색 결과가 없습니다.",
+      searchComplete: "검색 완료",
+      searchCompleteDesc: "{count}개의 장소를 찾았습니다{radius}",
+      searchFailed: "검색 실패",
+      searchFailedDesc: "장소나 주소를 찾을 수 없습니다. 다른 키워드로 다시 시도해주세요",
+      locationFound: "위치 찾기 완료",
+      locationError: "오류",
+      locationErrorDesc: "위치 정보를 불러올 수 없습니다",
+      addressNotFound: "주소를 찾을 수 없습니다",
+      mapLockEnabled: "지도 확대/축소 잠금",
+      mapLockEnabledDesc: "지도를 움직일 수 있지만 확대/축소는 불가능합니다",
+      mapLockDisabled: "지도 확대/축소 잠금 해제",
+      mapLockDisabledDesc: "지도를 자유롭게 움직이고 확대/축소할 수 있습니다",
+      locationLockEnabled: "위치 고정",
+      locationLockEnabledDesc: "내 위치가 화면 중앙에 고정되며, 지도가 따라 움직입니다",
+      locationLockDisabled: "위치 고정 해제",
+      locationLockDisabledDesc: "내 위치 고정이 해제되었습니다",
+      zoomLockEnabled: "확대/축소 잠금",
+      zoomLockEnabledDesc: "지도 확대/축소가 비활성화되었습니다",
+      zoomLockDisabled: "확대/축소 잠금 해제",
+      zoomLockDisabledDesc: "지도를 자유롭게 확대/축소할 수 있습니다",
+      mainMemoSet: "메인 메모 설정 완료",
+      mainMemoSetDesc: "이 메모가 지도에 표시됩니다.",
+      groupLeaveFailed: "그룹 나가기 실패",
+      groupLeaveFailedDesc: "그룹에서 나가는 중 오류가 발생했습니다",
+      groupCopySuccess: "그룹 복사 완료",
+      groupCopySuccessDesc: "새로운 그룹 \"{name}\"이(가) 생성되었고, {count}개의 메모가 복사되었습니다 ({points} 포인트 사용)",
+      groupCopyFailed: "그룹 복사 실패",
+      pointsInsufficient: "포인트 부족",
+      memberRemoveSuccess: "멤버 강퇴 완료",
+      memberRemoveSuccessDesc: "멤버가 그룹에서 제거되었습니다",
+      memberRemoveFailed: "멤버 강퇴 실패",
+      memberRemoveFailedDesc: "멤버 제거 중 오류가 발생했습니다",
+      groupUpdateSuccess: "그룹 수정 완료",
+      memosLoadFailed: "메모를 불러올 수 없습니다",
+      memosLoadFailedDesc: "잠시 후 다시 시도해주세요.",
+      groupsLoadFailed: "그룹을 불러올 수 없습니다",
+      groupsLoadFailedDesc: "잠시 후 다시 시도해주세요.",
+      notificationPermissionRequired: "알림 권한 필요",
+      notificationPermissionRequiredDesc: "알림을 받으려면 설정에서 알림 권한을 허용하세요",
+      notificationPermissionRequestFailed: "알림 권한 요청 실패",
+      notificationPermissionRequestFailedDesc: "알림 권한을 요청하는 중 오류가 발생했습니다",
+      notificationPermissionRequiredBrowser: "알림 권한 필요",
+      notificationPermissionRequiredBrowserDesc: "알림을 받으려면 브라우저에서 알림 권한을 허용하세요",
+      locationServiceUnavailable: "위치 서비스 없음",
+      locationServiceUnavailableDesc: "이 브라우저는 위치 서비스를 지원하지 않습니다",
+      bulkDeleteSuccess: "{count}개의 메모가 삭제되었습니다.",
+      googleMapsLoadFailed: "Google Maps를 불러올 수 없습니다",
+      googleMapsLoadFailedDesc: "Google Maps API 키가 설정되지 않았습니다. 카카오맵을 사용하거나 환경 변수에 VITE_GOOGLE_MAPS_API_KEY를 추가해주세요.",
+      searchError: "검색 오류",
+      searchErrorDesc: "주소 검색 중 오류가 발생했습니다. Google Maps API가 제대로 로드되었는지 확인해주세요.",
+      searchErrorPlaces: "주소 검색 중 오류가 발생했습니다. Google Cloud Console에서 Places API와 Geocoding API를 활성화해주세요.",
+      locationMoveComplete: "\"{query}\" 위치로 이동했습니다",
+      currentLocationError: "현재 위치를 가져올 수 없습니다",
     },
     // Time
     time: {
@@ -313,6 +369,7 @@ export const translations = {
       markerIcon: "Marker Icon",
       groupShare: "Share with Group (Leave blank for personal memo)",
       selectGroup: "Select Group",
+      groupsSelected: "{count} groups selected",
     },
     // Memo Detail
     memoDetail: {
@@ -474,6 +531,61 @@ export const translations = {
       deleteSuccess: "Deleted successfully",
       deleteError: "Delete failed",
       viewLocation: "View Location",
+      searchNoResults: "No search results",
+      searchNoResultsDesc: "No search results found within 5km radius from current location.",
+      searchComplete: "Search complete",
+      searchCompleteDesc: "Found {count} places{radius}",
+      searchFailed: "Search failed",
+      searchFailedDesc: "Could not find place or address. Please try with different keywords",
+      locationFound: "Location found",
+      locationError: "Error",
+      locationErrorDesc: "Unable to load location information",
+      addressNotFound: "Address not found",
+      mapLockEnabled: "Map zoom lock enabled",
+      mapLockEnabledDesc: "You can move the map but zoom is disabled",
+      mapLockDisabled: "Map zoom lock disabled",
+      mapLockDisabledDesc: "You can freely move and zoom the map",
+      locationLockEnabled: "Location lock enabled",
+      locationLockEnabledDesc: "Your location is fixed at the center and the map follows",
+      locationLockDisabled: "Location lock disabled",
+      locationLockDisabledDesc: "Location lock has been disabled",
+      zoomLockEnabled: "Zoom lock enabled",
+      zoomLockEnabledDesc: "Map zoom is disabled",
+      zoomLockDisabled: "Zoom lock disabled",
+      zoomLockDisabledDesc: "You can freely zoom the map",
+      mainMemoSet: "Main memo set",
+      mainMemoSetDesc: "This memo will be displayed on the map",
+      groupLeaveFailed: "Failed to leave group",
+      groupLeaveFailedDesc: "An error occurred while leaving the group",
+      groupCopySuccess: "Group copy complete",
+      groupCopySuccessDesc: "New group \"{name}\" created and {count} memos copied ({points} points used)",
+      groupCopyFailed: "Group copy failed",
+      pointsInsufficient: "Insufficient points",
+      memberRemoveSuccess: "Member removed",
+      memberRemoveSuccessDesc: "Member has been removed from the group",
+      memberRemoveFailed: "Failed to remove member",
+      memberRemoveFailedDesc: "An error occurred while removing the member",
+      groupUpdateSuccess: "Group updated",
+      memosLoadFailed: "Failed to load memos",
+      memosLoadFailedDesc: "Please try again later",
+      groupsLoadFailed: "Failed to load groups",
+      groupsLoadFailedDesc: "Please try again later",
+      notificationPermissionRequired: "Notification permission required",
+      notificationPermissionRequiredDesc: "Please allow notification permission in settings to receive notifications",
+      notificationPermissionRequestFailed: "Notification permission request failed",
+      notificationPermissionRequestFailedDesc: "An error occurred while requesting notification permission",
+      notificationPermissionRequiredBrowser: "Notification permission required",
+      notificationPermissionRequiredBrowserDesc: "Please allow notification permission in browser to receive notifications",
+      locationServiceUnavailable: "Location service unavailable",
+      locationServiceUnavailableDesc: "This browser does not support location services",
+      bulkDeleteSuccess: "{count} memos deleted",
+      googleMapsLoadFailed: "Unable to load Google Maps",
+      googleMapsLoadFailedDesc: "Google Maps API key is not set. Use Kakao Map or add VITE_GOOGLE_MAPS_API_KEY to environment variables",
+      searchError: "Search error",
+      searchErrorDesc: "An error occurred while searching for address. Please check if Google Maps API is loaded correctly",
+      searchErrorPlaces: "An error occurred while searching for address. Please enable Places API and Geocoding API in Google Cloud Console",
+      locationMoveComplete: "Moved to \"{query}\"",
+      currentLocationError: "Unable to get current location",
     },
     // Time
     time: {
@@ -559,6 +671,7 @@ export const translations = {
       markerIcon: "标记图标",
       groupShare: "与群组分享（不选则为个人备忘录）",
       selectGroup: "选择群组",
+      groupsSelected: "已选择 {count} 个群组",
     },
     // Memo Detail
     memoDetail: {
@@ -720,6 +833,61 @@ export const translations = {
       deleteSuccess: "删除成功",
       deleteError: "删除失败",
       viewLocation: "查看位置",
+      searchNoResults: "无搜索结果",
+      searchNoResultsDesc: "当前位置5公里范围内未找到搜索结果",
+      searchComplete: "搜索完成",
+      searchCompleteDesc: "找到 {count} 个地点{radius}",
+      searchFailed: "搜索失败",
+      searchFailedDesc: "找不到地点或地址。请尝试使用其他关键词",
+      locationFound: "位置查找完成",
+      locationError: "错误",
+      locationErrorDesc: "无法加载位置信息",
+      addressNotFound: "找不到地址",
+      mapLockEnabled: "地图缩放锁定已启用",
+      mapLockEnabledDesc: "可以移动地图但无法缩放",
+      mapLockDisabled: "地图缩放锁定已禁用",
+      mapLockDisabledDesc: "可以自由移动和缩放地图",
+      locationLockEnabled: "位置锁定已启用",
+      locationLockEnabledDesc: "您的位置固定在中心，地图会跟随",
+      locationLockDisabled: "位置锁定已禁用",
+      locationLockDisabledDesc: "位置锁定已禁用",
+      zoomLockEnabled: "缩放锁定已启用",
+      zoomLockEnabledDesc: "地图缩放已禁用",
+      zoomLockDisabled: "缩放锁定已禁用",
+      zoomLockDisabledDesc: "可以自由缩放地图",
+      mainMemoSet: "主备忘录设置完成",
+      mainMemoSetDesc: "此备忘录将显示在地图上",
+      groupLeaveFailed: "退出群组失败",
+      groupLeaveFailedDesc: "退出群组时发生错误",
+      groupCopySuccess: "群组复制完成",
+      groupCopySuccessDesc: "新群组 \"{name}\" 已创建，已复制 {count} 个备忘录（使用 {points} 积分）",
+      groupCopyFailed: "群组复制失败",
+      pointsInsufficient: "积分不足",
+      memberRemoveSuccess: "成员已移除",
+      memberRemoveSuccessDesc: "成员已从群组中移除",
+      memberRemoveFailed: "移除成员失败",
+      memberRemoveFailedDesc: "移除成员时发生错误",
+      groupUpdateSuccess: "群组更新完成",
+      memosLoadFailed: "无法加载备忘录",
+      memosLoadFailedDesc: "请稍后再试",
+      groupsLoadFailed: "无法加载群组",
+      groupsLoadFailedDesc: "请稍后再试",
+      notificationPermissionRequired: "需要通知权限",
+      notificationPermissionRequiredDesc: "请在设置中允许通知权限以接收通知",
+      notificationPermissionRequestFailed: "通知权限请求失败",
+      notificationPermissionRequestFailedDesc: "请求通知权限时发生错误",
+      notificationPermissionRequiredBrowser: "需要通知权限",
+      notificationPermissionRequiredBrowserDesc: "请在浏览器中允许通知权限以接收通知",
+      locationServiceUnavailable: "位置服务不可用",
+      locationServiceUnavailableDesc: "此浏览器不支持位置服务",
+      bulkDeleteSuccess: "已删除 {count} 个备忘录",
+      googleMapsLoadFailed: "无法加载 Google 地图",
+      googleMapsLoadFailedDesc: "未设置 Google 地图 API 密钥。请使用 Kakao 地图或在环境变量中添加 VITE_GOOGLE_MAPS_API_KEY",
+      searchError: "搜索错误",
+      searchErrorDesc: "搜索地址时发生错误。请检查 Google 地图 API 是否正确加载",
+      searchErrorPlaces: "搜索地址时发生错误。请在 Google Cloud Console 中启用 Places API 和 Geocoding API",
+      locationMoveComplete: "已移动到 \"{query}\"",
+      currentLocationError: "无法获取当前位置",
     },
     // Time
     time: {
@@ -805,6 +973,7 @@ export const translations = {
       markerIcon: "マーカーアイコン",
       groupShare: "グループと共有（選択しない場合は個人メモ）",
       selectGroup: "グループを選択",
+      groupsSelected: "{count}個のグループが選択されました",
     },
     // Memo Detail
     memoDetail: {
@@ -966,6 +1135,61 @@ export const translations = {
       deleteSuccess: "削除しました",
       deleteError: "削除に失敗しました",
       viewLocation: "位置を表示",
+      searchNoResults: "検索結果なし",
+      searchNoResultsDesc: "現在地から5km圏内に検索結果が見つかりませんでした",
+      searchComplete: "検索完了",
+      searchCompleteDesc: "{count}件の場所が見つかりました{radius}",
+      searchFailed: "検索失敗",
+      searchFailedDesc: "場所や住所が見つかりません。別のキーワードで再試行してください",
+      locationFound: "位置検索完了",
+      locationError: "エラー",
+      locationErrorDesc: "位置情報を読み込めません",
+      addressNotFound: "住所が見つかりません",
+      mapLockEnabled: "地図ズームロック有効",
+      mapLockEnabledDesc: "地図を移動できますがズームはできません",
+      mapLockDisabled: "地図ズームロック無効",
+      mapLockDisabledDesc: "地図を自由に移動・ズームできます",
+      locationLockEnabled: "位置固定有効",
+      locationLockEnabledDesc: "現在地が中央に固定され、地図が追従します",
+      locationLockDisabled: "位置固定無効",
+      locationLockDisabledDesc: "位置固定が無効になりました",
+      zoomLockEnabled: "ズームロック有効",
+      zoomLockEnabledDesc: "地図のズームが無効になっています",
+      zoomLockDisabled: "ズームロック無効",
+      zoomLockDisabledDesc: "地図を自由にズームできます",
+      mainMemoSet: "メインメモ設定完了",
+      mainMemoSetDesc: "このメモが地図に表示されます",
+      groupLeaveFailed: "グループ退出失敗",
+      groupLeaveFailedDesc: "グループから退出中にエラーが発生しました",
+      groupCopySuccess: "グループコピー完了",
+      groupCopySuccessDesc: "新しいグループ \"{name}\" が作成され、{count}件のメモがコピーされました（{points}ポイント使用）",
+      groupCopyFailed: "グループコピー失敗",
+      pointsInsufficient: "ポイント不足",
+      memberRemoveSuccess: "メンバー削除完了",
+      memberRemoveSuccessDesc: "メンバーがグループから削除されました",
+      memberRemoveFailed: "メンバー削除失敗",
+      memberRemoveFailedDesc: "メンバー削除中にエラーが発生しました",
+      groupUpdateSuccess: "グループ更新完了",
+      memosLoadFailed: "メモを読み込めません",
+      memosLoadFailedDesc: "しばらくしてから再試行してください",
+      groupsLoadFailed: "グループを読み込めません",
+      groupsLoadFailedDesc: "しばらくしてから再試行してください",
+      notificationPermissionRequired: "通知権限が必要",
+      notificationPermissionRequiredDesc: "通知を受信するには設定で通知権限を許可してください",
+      notificationPermissionRequestFailed: "通知権限リクエスト失敗",
+      notificationPermissionRequestFailedDesc: "通知権限をリクエスト中にエラーが発生しました",
+      notificationPermissionRequiredBrowser: "通知権限が必要",
+      notificationPermissionRequiredBrowserDesc: "通知を受信するにはブラウザで通知権限を許可してください",
+      locationServiceUnavailable: "位置サービス利用不可",
+      locationServiceUnavailableDesc: "このブラウザは位置サービスをサポートしていません",
+      bulkDeleteSuccess: "{count}件のメモが削除されました",
+      googleMapsLoadFailed: "Google Mapsを読み込めません",
+      googleMapsLoadFailedDesc: "Google Maps APIキーが設定されていません。Kakao Mapを使用するか、環境変数にVITE_GOOGLE_MAPS_API_KEYを追加してください",
+      searchError: "検索エラー",
+      searchErrorDesc: "住所検索中にエラーが発生しました。Google Maps APIが正しく読み込まれているか確認してください",
+      searchErrorPlaces: "住所検索中にエラーが発生しました。Google Cloud ConsoleでPlaces APIとGeocoding APIを有効にしてください",
+      locationMoveComplete: "\"{query}\" の位置に移動しました",
+      currentLocationError: "現在地を取得できません",
     },
     // Time
     time: {
@@ -1048,6 +1272,7 @@ type Translation = {
     markerIcon: string;
     groupShare: string;
     selectGroup: string;
+    groupsSelected: string;
   };
   memoDetail: {
     photos: string;
@@ -1195,6 +1420,62 @@ type Translation = {
     leadershipTransferError: string;
     deleteSuccess: string;
     deleteError: string;
+    viewLocation: string;
+    searchNoResults: string;
+    searchNoResultsDesc: string;
+    searchComplete: string;
+    searchCompleteDesc: string;
+    searchFailed: string;
+    searchFailedDesc: string;
+    locationFound: string;
+    locationError: string;
+    locationErrorDesc: string;
+    addressNotFound: string;
+    mapLockEnabled: string;
+    mapLockEnabledDesc: string;
+    mapLockDisabled: string;
+    mapLockDisabledDesc: string;
+    locationLockEnabled: string;
+    locationLockEnabledDesc: string;
+    locationLockDisabled: string;
+    locationLockDisabledDesc: string;
+    zoomLockEnabled: string;
+    zoomLockEnabledDesc: string;
+    zoomLockDisabled: string;
+    zoomLockDisabledDesc: string;
+    mainMemoSet: string;
+    mainMemoSetDesc: string;
+    groupLeaveFailed: string;
+    groupLeaveFailedDesc: string;
+    groupCopySuccess: string;
+    groupCopySuccessDesc: string;
+    groupCopyFailed: string;
+    pointsInsufficient: string;
+    memberRemoveSuccess: string;
+    memberRemoveSuccessDesc: string;
+    memberRemoveFailed: string;
+    memberRemoveFailedDesc: string;
+    groupUpdateSuccess: string;
+    memosLoadFailed: string;
+    memosLoadFailedDesc: string;
+    groupsLoadFailed: string;
+    groupsLoadFailedDesc: string;
+    notificationPermissionRequired: string;
+    notificationPermissionRequiredDesc: string;
+    notificationPermissionRequestFailed: string;
+    notificationPermissionRequestFailedDesc: string;
+    notificationPermissionRequiredBrowser: string;
+    notificationPermissionRequiredBrowserDesc: string;
+    locationServiceUnavailable: string;
+    locationServiceUnavailableDesc: string;
+    bulkDeleteSuccess: string;
+    googleMapsLoadFailed: string;
+    googleMapsLoadFailedDesc: string;
+    searchError: string;
+    searchErrorDesc: string;
+    searchErrorPlaces: string;
+    locationMoveComplete: string;
+    currentLocationError: string;
   };
   time: {
     ago: string;

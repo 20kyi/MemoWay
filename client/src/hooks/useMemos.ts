@@ -158,8 +158,8 @@ export function useMemos({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
-        title: "메인 메모 설정 완료",
-        description: "이 메모가 지도에 표시됩니다.",
+        title: t.toast.mainMemoSet,
+        description: t.toast.mainMemoSetDesc,
       });
     },
   });

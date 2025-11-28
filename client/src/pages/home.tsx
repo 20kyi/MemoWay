@@ -107,16 +107,16 @@ export default function Home() {
     if (memosError) {
       console.error("메모 로딩 실패:", memosError);
       toast({
-        title: "메모를 불러올 수 없습니다",
-        description: "잠시 후 다시 시도해주세요.",
+        title: t.toast.memosLoadFailed,
+        description: t.toast.memosLoadFailedDesc,
         variant: "destructive",
       });
     }
     if (groupsError) {
       console.error("그룹 로딩 실패:", groupsError);
       toast({
-        title: "그룹을 불러올 수 없습니다",
-        description: "잠시 후 다시 시도해주세요.",
+        title: t.toast.groupsLoadFailed,
+        description: t.toast.groupsLoadFailedDesc,
         variant: "destructive",
       });
     }
@@ -276,8 +276,8 @@ export default function Home() {
             const requestResult = await requestPermissions();
             if (requestResult.display !== 'granted') {
               toast({
-                title: "알림 권한 필요",
-                description: "알림을 받으려면 설정에서 알림 권한을 허용하세요",
+                title: t.toast.notificationPermissionRequired,
+                description: t.toast.notificationPermissionRequiredDesc,
                 variant: "destructive",
               });
               return;
@@ -286,8 +286,8 @@ export default function Home() {
         } catch (error) {
           console.error('알림 권한 요청 실패:', error);
           toast({
-            title: "알림 권한 요청 실패",
-            description: "알림 권한을 요청하는 중 오류가 발생했습니다",
+            title: t.toast.notificationPermissionRequestFailed,
+            description: t.toast.notificationPermissionRequestFailedDesc,
             variant: "destructive",
           });
           return;
@@ -298,8 +298,8 @@ export default function Home() {
           const permission = await Notification.requestPermission();
           if (permission !== "granted") {
             toast({
-              title: "알림 권한 필요",
-              description: "알림을 받으려면 브라우저에서 알림 권한을 허용하세요",
+              title: t.toast.notificationPermissionRequiredBrowser,
+              description: t.toast.notificationPermissionRequiredBrowserDesc,
               variant: "destructive",
             });
             return;
@@ -313,8 +313,8 @@ export default function Home() {
   const handleLocationChange = (enabled: boolean) => {
     if (enabled && !navigator.geolocation) {
       toast({
-        title: "위치 서비스 없음",
-        description: "이 브라우저는 위치 서비스를 지원하지 않습니다",
+        title: t.toast.locationServiceUnavailable,
+        description: t.toast.locationServiceUnavailableDesc,
         variant: "destructive",
       });
       return;
@@ -432,7 +432,7 @@ export default function Home() {
                       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
                       toast({
                         title: t.toast.deleteSuccess,
-                        description: `${memoIds.length}개의 메모가 삭제되었습니다.`,
+                        description: t.toast.bulkDeleteSuccess.replace('{count}', memoIds.length.toString()),
                       });
                     })
                     .catch((error) => {

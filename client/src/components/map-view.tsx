@@ -1400,8 +1400,8 @@ export function MapView({
         if (top10Places.length === 0) {
           setIsSearching(false);
           toast({
-            title: "검색 결과 없음",
-            description: "현재 위치에서 5km 반경 내에 검색 결과가 없습니다.",
+            title: t.toast.searchNoResults,
+            description: t.toast.searchNoResultsDesc,
             variant: "destructive",
           });
           return;
@@ -1461,8 +1461,10 @@ export function MapView({
         setIsSearching(false);
 
         toast({
-          title: "검색 완료",
-          description: `${top10Places.length}개의 장소를 찾았습니다${hasUserLocation ? ` (5km 반경 내, 거리순)` : ''}`,
+          title: t.toast.searchComplete,
+          description: t.toast.searchCompleteDesc
+            .replace('{count}', top10Places.length.toString())
+            .replace('{radius}', hasUserLocation ? ` (5km 반경 내, 거리순)` : ''),
         });
         
         setSearchQuery("");
@@ -1477,8 +1479,8 @@ export function MapView({
         if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
           if (!result || result.length === 0 || !result[0] || result[0].x === undefined || result[0].y === undefined) {
             toast({
-              title: "오류",
-              description: "주소를 찾을 수 없습니다",
+              title: t.toast.locationError,
+              description: t.toast.addressNotFound,
               variant: "destructive",
             });
             return;
@@ -1503,15 +1505,15 @@ export function MapView({
           setIsLocationLocked(false);
 
           toast({
-            title: "위치 찾기 완료",
+            title: t.toast.locationFound,
             description: result[0].address_name || searchQuery,
           });
           
           setSearchQuery("");
         } else {
           toast({
-            title: "검색 실패",
-            description: "장소나 주소를 찾을 수 없습니다. 다른 키워드로 다시 시도해주세요",
+            title: t.toast.searchFailed,
+            description: t.toast.searchFailedDesc,
             variant: "destructive",
           });
         }
@@ -1553,8 +1555,8 @@ export function MapView({
     
     if (lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng)) {
       toast({
-        title: "오류",
-        description: "위치 정보를 불러올 수 없습니다",
+        title: t.toast.locationError,
+        description: t.toast.locationErrorDesc,
         variant: "destructive",
       });
       return;
@@ -1584,16 +1586,16 @@ export function MapView({
       map.setDraggable(true);
       map.setZoomable(false);
       toast({
-        title: "지도 확대/축소 잠금",
-        description: "지도를 움직일 수 있지만 확대/축소는 불가능합니다",
+        title: t.toast.mapLockEnabled,
+        description: t.toast.mapLockEnabledDesc,
       });
     } else {
       // 지도 고정 해제: 드래그와 줌 활성화
       map.setDraggable(true);
       map.setZoomable(true);
       toast({
-        title: "지도 확대/축소 잠금 해제",
-        description: "지도를 자유롭게 움직이고 확대/축소할 수 있습니다",
+        title: t.toast.mapLockDisabled,
+        description: t.toast.mapLockDisabledDesc,
       });
     }
   };
@@ -1822,10 +1824,10 @@ export function MapView({
                     }
                     
                     toast({
-                      title: newLockState ? "위치 고정" : "위치 고정 해제",
+                      title: newLockState ? t.toast.locationLockEnabled : t.toast.locationLockDisabled,
                       description: newLockState 
-                        ? "내 위치가 화면 중앙에 고정되며, 지도가 따라 움직입니다" 
-                        : "지도를 자유롭게 이동할 수 있습니다",
+                        ? t.toast.locationLockEnabledDesc
+                        : t.toast.locationLockDisabledDesc,
                     });
                   }}
                   className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl relative ${

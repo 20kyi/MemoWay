@@ -100,8 +100,8 @@ export function useGroups({
     },
     onError: (error: any) => {
       toast({
-        title: "그룹 나가기 실패",
-        description: error.message || "그룹에서 나가는 중 오류가 발생했습니다",
+        title: t.toast.groupLeaveFailed,
+        description: error.message || t.toast.groupLeaveFailedDesc,
         variant: "destructive",
       });
     },
@@ -130,8 +130,11 @@ export function useGroups({
 
       const pointsUsed = data.copiedCount * 10;
       toast({
-        title: "✅ 그룹 복사 완료",
-        description: `새로운 그룹 "${data.group.name}"이(가) 생성되었고, ${data.copiedCount}개의 메모가 복사되었습니다 (${pointsUsed} 포인트 사용)`,
+        title: t.toast.groupCopySuccess,
+        description: t.toast.groupCopySuccessDesc
+          .replace('{name}', data.group.name)
+          .replace('{count}', data.copiedCount.toString())
+          .replace('{points}', pointsUsed.toString()),
       });
     },
     onError: (error: any) => {
@@ -139,7 +142,7 @@ export function useGroups({
       const errorMsg = error.error || error.message || "그룹 메모 복사 중 오류가 발생했습니다";
       const isInsufficientPoints = errorMsg.includes("포인트가 부족합니다");
       toast({
-        title: isInsufficientPoints ? "포인트 부족" : "그룹 복사 실패",
+        title: isInsufficientPoints ? t.toast.pointsInsufficient : t.toast.groupCopyFailed,
         description: errorMsg,
         variant: "destructive",
       });
@@ -175,14 +178,14 @@ export function useGroups({
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
-        title: "멤버 강퇴 완료",
-        description: "멤버가 그룹에서 제거되었습니다",
+        title: t.toast.memberRemoveSuccess,
+        description: t.toast.memberRemoveSuccessDesc,
       });
     },
     onError: (error: any) => {
       toast({
-        title: "멤버 강퇴 실패",
-        description: error.message || "멤버 제거 중 오류가 발생했습니다",
+        title: t.toast.memberRemoveFailed,
+        description: error.message || t.toast.memberRemoveFailedDesc,
         variant: "destructive",
       });
     },
@@ -207,7 +210,7 @@ export function useGroups({
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
-        title: "그룹 수정 완료",
+        title: t.toast.groupUpdateSuccess,
         description: "그룹 정보가 수정되었습니다",
       });
     },
