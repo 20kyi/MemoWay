@@ -29,7 +29,7 @@ app.use(cors({
     
     // 웹 브라우저: Replit 도메인 및 localhost 허용
     const allowedOrigins = [
-      'https://memoway.replit.app',
+      'https://memo-way.replit.app',
       'http://localhost:5000',
       'http://127.0.0.1:5000',
     ];

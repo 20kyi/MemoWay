@@ -82,10 +82,29 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  // 정적 파일 서빙 (assets, favicon 등)
+  // 파일이 존재하지 않으면 자동으로 다음 미들웨어로 넘어감
+  app.use(express.static(distPath, {
+    index: false, // index.html 자동 서빙 비활성화 (아래에서 처리)
+    fallthrough: true, // 파일이 없으면 다음 미들웨어로 넘어감
+  }));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
+  // SPA fallback: API 경로와 정적 파일 요청 제외
+  app.use("*", (req, res) => {
+    // API 경로는 404 반환
+    if (req.path.startsWith("/api")) {
+      return res.status(404).json({ error: "API endpoint not found" });
+    }
+    
+    // 정적 파일 경로 또는 확장자가 있는 요청은 404 반환
+    // (express.static에서 처리되지 않았다는 것은 파일이 없다는 의미)
+    if (req.path.startsWith("/assets/") || 
+        req.path.startsWith("/_vite/") ||
+        path.extname(req.path)) {
+      return res.status(404).send("File not found");
+    }
+    
+    // 그 외의 경우 (SPA 라우트 요청) index.html 반환
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

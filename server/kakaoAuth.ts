@@ -162,15 +162,11 @@ export function setupKakaoAuth(app: Express) {
       const requestHost = req.get('host') || '';
       const isReplitDevDomain = requestHost.includes('.riker.replit.dev');
       
-      // 안드로이드 앱 요청일 경우 항상 프로덕션 도메인 사용
-      // 또는 개발 도메인(*.riker.replit.dev)이 감지되면 프로덕션 도메인 사용 (안드로이드 앱)
+      // 안드로이드 앱 요청일 경우 항상 memo-way.replit.app 사용 (Kakao에 등록된 도메인)
+      // REPL_SLUG을 무시하고 하드코딩된 도메인 사용 (등록된 URI와 일치해야 함)
       if (isAndroidApp || (isReplitDevDomain && isAndroidApp)) {
-        if (process.env.REPL_SLUG) {
-          resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
-        } else {
-          resolvedHost = 'memoway.replit.app';
-        }
-        console.log('Android app detected - using production domain:', resolvedHost);
+        resolvedHost = 'memo-way.replit.app';
+        console.log('Android app detected - using registered domain:', resolvedHost);
       } else {
         // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
         if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
@@ -180,14 +176,14 @@ export function setupKakaoAuth(app: Express) {
           } else if (isReplitDevDomain) {
             // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
             // 기본 프로덕션 도메인 사용
-            resolvedHost = 'memoway.replit.app';
+            resolvedHost = 'memo-way.replit.app';
           }
         }
       }
       
       // Fallback to configured domain or request host (if not dev domain)
       host = resolvedHost || process.env.REPLIT_DEV_DOMAIN || 
-             (isReplitDevDomain ? 'memoway.replit.app' : (requestHost || process.env.HOST || 'memoway.replit.app'));
+             (isReplitDevDomain ? 'memo-way.replit.app' : (requestHost || process.env.HOST || 'memo-way.replit.app'));
       // Use HTTPS for Replit production domain
       protocol = useHttps || host.includes('.replit.app') ? 'https' : (req.protocol || 'http');
     }
@@ -211,58 +207,10 @@ export function setupKakaoAuth(app: Express) {
     
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
     
-    // Break out of Replit preview iframe to avoid X-Frame-Options blocking
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>카카오 로그인으로 이동 중...</title>
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              height: 100vh;
-              margin: 0;
-              background: #fee500;
-            }
-            .message { margin: 20px; text-align: center; }
-            .button {
-              background: #000;
-              color: #fee500;
-              padding: 12px 24px;
-              border-radius: 6px;
-              text-decoration: none;
-              font-weight: bold;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="message">
-            <p>카카오 로그인 페이지로 이동 중입니다...</p>
-            <p>자동으로 이동되지 않으면 아래 버튼을 클릭하세요:</p>
-            <a href="${kakaoAuthUrl.replace(/"/g, '&quot;')}" class="button">카카오 로그인하기</a>
-          </div>
-          <script>
-            try {
-              // Try multiple redirect methods
-              if (window.top !== window.self) {
-                // In iframe - try to break out
-                try { window.top.location.href = ${JSON.stringify(kakaoAuthUrl)}; } catch(e) {}
-              }
-              // Fallback: redirect current window
-              setTimeout(() => {
-                window.location.href = ${JSON.stringify(kakaoAuthUrl)};
-              }, 100);
-            } catch(e) {
-              console.error('Redirect failed:', e);
-            }
-          </script>
-        </body>
-      </html>
-    `);
+    // 서버 측 리다이렉트로 직접 이동 (더 안정적)
+    // 안드로이드 앱의 외부 브라우저에서도 작동
+    console.log('Redirecting to Kakao OAuth:', kakaoAuthUrl);
+    res.redirect(kakaoAuthUrl);
   });
 
   // Kakao OAuth callback
@@ -360,13 +308,11 @@ export function setupKakaoAuth(app: Express) {
       const requestHost = req.get('host') || '';
       const isReplitDevDomain = requestHost.includes('.riker.replit.dev');
       
-      // 안드로이드 앱 요청일 경우 항상 프로덕션 도메인 사용
+      // 안드로이드 앱 요청일 경우 항상 memo-way.replit.app 사용 (Kakao에 등록된 도메인)
+      // REPL_SLUG을 무시하고 하드코딩된 도메인 사용 (등록된 URI와 일치해야 함)
       if (isAndroidAppCallback) {
-        if (process.env.REPL_SLUG) {
-          resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
-        } else {
-          resolvedHost = 'memoway.replit.app';
-        }
+        resolvedHost = 'memo-way.replit.app';
+        console.log('Android app callback detected - using registered domain:', resolvedHost);
       } else {
         // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
         if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
@@ -376,14 +322,14 @@ export function setupKakaoAuth(app: Express) {
           } else if (isReplitDevDomain) {
             // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
             // 기본 프로덕션 도메인 사용
-            resolvedHost = 'memoway.replit.app';
+            resolvedHost = 'memo-way.replit.app';
           }
         }
       }
       
       // Fallback to configured domain or request host (if not dev domain)
       host = resolvedHost || 
-             (isReplitDevDomain ? 'memoway.replit.app' : (requestHost || process.env.HOST || 'memoway.replit.app'));
+             (isReplitDevDomain ? 'memo-way.replit.app' : (requestHost || process.env.HOST || 'memo-way.replit.app'));
       // Use HTTPS for Replit production domain
       protocol = useHttpsCallback || host.includes('.replit.app') ? 'https' : (req.protocol || 'http');
     }

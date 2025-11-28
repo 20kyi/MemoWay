@@ -7,7 +7,7 @@ export function setupGoogleAuth(app: Express) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   // Support multiple hosting options:
-  // - APP_DOMAIN: Custom domain (e.g., https://memoway.replit.app, yourdomain.com)
+  // - APP_DOMAIN: Custom domain (e.g., https://memo-way.replit.app, yourdomain.com)
   // - REPLIT_DEV_DOMAIN: Replit dev domain
   // - REPL_SLUG: Replit app name (auto-detect published domain: https://{REPL_SLUG}.replit.app)
   // - HOST: Fallback host
@@ -56,9 +56,9 @@ export function setupGoogleAuth(app: Express) {
       }
     }
     // Fallback to Replit production domain if no domain is configured
-    host = resolvedHost || process.env.HOST || 'memoway.replit.app';
+    host = resolvedHost || process.env.HOST || 'memo-way.replit.app';
     // Use HTTPS for Replit production domain
-    protocol = useHttps || host === 'memoway.replit.app' ? 'https' : 'http';
+    protocol = useHttps || host === 'memo-way.replit.app' ? 'https' : 'http';
   }
   
   const callbackURL = `${protocol}://${host}/api/google/callback`;

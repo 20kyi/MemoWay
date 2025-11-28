@@ -11,7 +11,7 @@ const rootDir = join(__dirname, '..');
 config({ path: join(rootDir, '.env') });
 
 const requiredVars = {
-  'VITE_REPLIT_URL': 'https://memoway.replit.app',
+  'VITE_REPLIT_URL': 'https://memo-way.replit.app',
   'KAKAO_CLIENT_ID': 'Kakao OAuth Client ID',
   'KAKAO_CLIENT_SECRET': 'Kakao OAuth Client Secret',
   'GOOGLE_CLIENT_ID': 'Google OAuth Client ID',
