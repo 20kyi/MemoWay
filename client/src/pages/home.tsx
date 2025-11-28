@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BottomNav } from "@/components/bottom-nav";
 import { ExitDialog } from "@/components/exit-dialog";
@@ -89,8 +89,11 @@ export default function Home() {
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user, // user가 있을 때만 실행
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    gcTime: 10 * 60 * 1000, // 10분간 가비지 컬렉션 방지
     retry: 1, // 실패 시 1번만 재시도 (로딩 시간 단축)
     retryDelay: 500, // 0.5초 후 재시도
+    refetchOnWindowFocus: false, // 창 포커스 시 자동 재요청 방지
+    refetchOnReconnect: false, // 재연결 시 자동 재요청 방지
   });
 
   const { data: groups = [], isFetched: groupsIsFetched, error: groupsError, isLoading: groupsLoading } = useQuery<GroupWithMembers[]>({
@@ -98,6 +101,9 @@ export default function Home() {
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user, // user가 있을 때만 실행
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    gcTime: 10 * 60 * 1000, // 10분간 가비지 컬렉션 방지
+    refetchOnWindowFocus: false, // 창 포커스 시 자동 재요청 방지
+    refetchOnReconnect: false, // 재연결 시 자동 재요청 방지
     retry: 1, // 실패 시 1번만 재시도 (로딩 시간 단축)
     retryDelay: 500, // 0.5초 후 재시도
   });
@@ -151,11 +157,16 @@ export default function Home() {
     user,
   });
 
-  // Filter groups for current user
-  const filteredGroups = groups.filter((g) =>
-    g.members.some((m) => m.userId === (user as any)?.id)
-  );
-  const filteredGroupsWithoutPersonal = filteredGroups.filter((g) => g.name !== "개인 메모");
+  // Filter groups for current user (메모이제이션으로 불필요한 재계산 방지)
+  const filteredGroups = useMemo(() => {
+    return groups.filter((g) =>
+      g.members.some((m) => m.userId === (user as any)?.id)
+    );
+  }, [groups, user]);
+  
+  const filteredGroupsWithoutPersonal = useMemo(() => {
+    return filteredGroups.filter((g) => g.name !== "개인 메모");
+  }, [filteredGroups]);
 
   // Memo mutations
   const { createMemoMutation, updateMemoMutation, deleteMemoMutation, setMainMemoMutation } =
@@ -243,23 +254,23 @@ export default function Home() {
     localStorage.setItem("proximityRadius", proximityRadius.toString());
   }, [proximityRadius]);
 
-  // Handlers
-  const handleLocationSelect = (location: SelectedLocation) => {
+  // Handlers (useCallback으로 메모이제이션하여 불필요한 리렌더링 방지)
+  const handleLocationSelect = useCallback((location: SelectedLocation) => {
     setEditingMemo(null);
     setSelectedLocation(location);
     setMemoFormOpen(true);
-  };
+  }, []);
 
-  const handleEditMemo = (memoId: string) => {
+  const handleEditMemo = useCallback((memoId: string) => {
     const memo = memos.find((m) => m.id === memoId);
     if (memo) {
       setEditingMemo(memo);
       setSelectedLocation(null);
       setMemoFormOpen(true);
     }
-  };
+  }, [memos]);
 
-  const handleNotificationsChange = async (enabled: boolean) => {
+  const handleNotificationsChange = useCallback(async (enabled: boolean) => {
     if (enabled) {
       // Capacitor 네이티브 플랫폼 감지
       const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
@@ -308,9 +319,9 @@ export default function Home() {
       }
     }
     setNotificationsEnabled(enabled);
-  };
+  }, [t, toast]);
 
-  const handleLocationChange = (enabled: boolean) => {
+  const handleLocationChange = useCallback((enabled: boolean) => {
     if (enabled && !navigator.geolocation) {
       toast({
         title: t.toast.locationServiceUnavailable,
@@ -320,8 +331,47 @@ export default function Home() {
       return;
     }
     setLocationEnabled(enabled);
-  };
+  }, [t, toast]);
 
+  // 마커 클릭 핸들러 (메모이제이션)
+  const handleMarkerClick = useCallback((memoId: string) => {
+    const memo = memos.find((m) => m.id === memoId);
+    if (memo) {
+      setSelectedMemo(memo);
+      setMemoDetailOpen(true);
+    }
+  }, [memos]);
+
+  // 클러스터 클릭 핸들러 (메모이제이션)
+  const handleClusterClick = useCallback((memoIds: string[]) => {
+    setClusterMemoIds(memoIds);
+    setMemoClusterOpen(true);
+  }, []);
+
+  // 내 위치 클릭 핸들러 (메모이제이션)
+  const handleMyLocationClick = useCallback((location: { lat: number; lng: number }) => {
+    setUserLocation(location);
+  }, []);
+
+  // 메모 삭제 핸들러 (메모이제이션)
+  const handleDeleteMemo = useCallback((memoId: string) => {
+    if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
+      deleteMemoMutation.mutate(memoId);
+    }
+  }, [deleteMemoMutation]);
+
+  // 새 메모 추가 핸들러 (메모이제이션)
+  const handleAddNewMemo = useCallback((location: { lat: number; lng: number; address: string; buildingName: string }) => {
+    setMemoDetailOpen(false);
+    setSelectedMemo(null);
+    setSelectedLocation(location);
+    setMemoFormOpen(true);
+  }, []);
+
+  // 메인 메모 설정 핸들러 (메모이제이션)
+  const handleSetMainMemo = useCallback((memoId: string) => {
+    setMainMemoMutation.mutate(memoId);
+  }, [setMainMemoMutation]);
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden">
@@ -332,22 +382,11 @@ export default function Home() {
               <MapView
                   onLocationSelect={handleLocationSelect}
                   memos={memos}
-                  onMarkerClick={(memoId) => {
-                    const memo = memos.find((m) => m.id === memoId);
-                    if (memo) {
-                      setSelectedMemo(memo);
-                      setMemoDetailOpen(true);
-                    }
-                  }}
-                  onClusterClick={(memoIds) => {
-                    setClusterMemoIds(memoIds);
-                    setMemoClusterOpen(true);
-                  }}
+                  onMarkerClick={handleMarkerClick}
+                  onClusterClick={handleClusterClick}
                   userLocation={userLocation}
                   onMapReady={setMapInstance}
-                  onMyLocationClick={(location) => {
-                    setUserLocation(location);
-                  }}
+                  onMyLocationClick={handleMyLocationClick}
                   pendingLocation={pendingLocation}
                   groups={filteredGroups}
                   selectedMarkerIcons={selectedMarkerIcons}
@@ -357,38 +396,18 @@ export default function Home() {
                   selectedMemo={selectedMemo}
                   memoDetailOpen={memoDetailOpen}
                   onEditMemo={handleEditMemo}
-                  onDeleteMemo={(memoId) => {
-                    if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
-                      deleteMemoMutation.mutate(memoId);
-                    }
-                  }}
-                  onAddNewMemo={(location) => {
-                    setMemoDetailOpen(false);
-                    setSelectedMemo(null);
-                    setSelectedLocation(location);
-                    setMemoFormOpen(true);
-                  }}
+                  onDeleteMemo={handleDeleteMemo}
+                  onAddNewMemo={handleAddNewMemo}
                 />
               ) : (
                 <GoogleMapView
                   onLocationSelect={handleLocationSelect}
                   memos={memos}
-                  onMarkerClick={(memoId) => {
-                    const memo = memos.find((m) => m.id === memoId);
-                    if (memo) {
-                      setSelectedMemo(memo);
-                      setMemoDetailOpen(true);
-                    }
-                  }}
-                  onClusterClick={(memoIds) => {
-                    setClusterMemoIds(memoIds);
-                    setMemoClusterOpen(true);
-                  }}
+                  onMarkerClick={handleMarkerClick}
+                  onClusterClick={handleClusterClick}
                   userLocation={userLocation}
                   onMapReady={setMapInstance}
-                  onMyLocationClick={(location) => {
-                    setUserLocation(location);
-                  }}
+                  onMyLocationClick={handleMyLocationClick}
                   pendingLocation={pendingLocation}
                   groups={filteredGroups}
                   selectedMarkerIcons={selectedMarkerIcons}
@@ -398,17 +417,8 @@ export default function Home() {
                   selectedMemo={selectedMemo}
                   memoDetailOpen={memoDetailOpen}
                   onEditMemo={handleEditMemo}
-                  onDeleteMemo={(memoId) => {
-                    if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
-                      deleteMemoMutation.mutate(memoId);
-                    }
-                  }}
-                  onAddNewMemo={(location) => {
-                    setMemoDetailOpen(false);
-                    setSelectedMemo(null);
-                    setSelectedLocation(location);
-                    setMemoFormOpen(true);
-                  }}
+                  onDeleteMemo={handleDeleteMemo}
+                  onAddNewMemo={handleAddNewMemo}
                 />
               )}
           </div>
@@ -444,16 +454,8 @@ export default function Home() {
                     });
                 }
               }}
-              onMemoClick={(memoId) => {
-                const memo = memos.find((m) => m.id === memoId);
-                if (memo) {
-                  setSelectedMemo(memo);
-                  setMemoDetailOpen(true);
-                }
-              }}
-              onSetMainMemo={(memoId) => {
-                setMainMemoMutation.mutate(memoId);
-              }}
+              onMemoClick={handleMarkerClick}
+              onSetMainMemo={handleSetMainMemo}
             />
         )}
         {activeTab === "groups" && (

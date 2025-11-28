@@ -127,8 +127,30 @@ export function SettingsView({
         });
       }
     } else {
-      // 웹 브라우저: 기존 방식 사용 (서버 리다이렉트)
-      window.location.href = "/api/logout";
+      // 웹 브라우저: 서버 리다이렉트 사용
+      // 서버가 JSON 응답을 반환하는 경우를 대비해 fetch로 처리
+      fetch('/api/logout', {
+        method: 'GET',
+        credentials: 'include',
+        redirect: 'follow', // 서버 리다이렉트를 따름
+      })
+      .then(response => {
+        // 서버가 리다이렉트하면 브라우저가 자동으로 따라감
+        // JSON 응답인 경우 (서버가 잘못 감지한 경우) 수동으로 리다이렉트
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          // JSON 응답이면 랜딩 페이지로 리다이렉트
+          queryClient.invalidateQueries();
+          window.location.href = '/?logout=true';
+        }
+        // 리다이렉트 응답이면 브라우저가 자동으로 처리
+      })
+      .catch(error => {
+        console.error('Logout error:', error);
+        // 에러가 발생해도 랜딩 페이지로 이동 시도
+        queryClient.invalidateQueries();
+        window.location.href = '/?logout=true';
+      });
     }
   };
 

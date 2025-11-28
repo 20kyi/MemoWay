@@ -1,5 +1,5 @@
 /// <reference types="@types/google.maps" />
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +51,7 @@ interface MarkerData {
   count: number;
 }
 
-export function GoogleMapView({ 
+function GoogleMapViewComponent({ 
   onLocationSelect, 
   memos, 
   onMarkerClick, 
@@ -987,3 +987,6 @@ export function GoogleMapView({
     </div>
   );
 }
+
+// React.memo로 메모이제이션하여 불필요한 리렌더링 방지
+export const GoogleMapView = memo(GoogleMapViewComponent);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -367,7 +367,7 @@ const MARKER_ICON_COMPONENTS = {
   work: Briefcase,
 };
 
-export function MapView({ 
+function MapViewComponent({ 
   onLocationSelect, 
   memos, 
   onMarkerClick, 
@@ -808,9 +808,12 @@ export function MapView({
     };
   }, [map, memos, markers, onLocationSelect, onMarkerClick, onClusterClick]);
 
-  // Render markers for memos
+  // Render markers for memos (디바운스로 성능 최적화)
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
+
+    // 디바운스: 마커 업데이트를 100ms 지연시켜 빠른 연속 업데이트 방지
+    const timeoutId = setTimeout(() => {
 
     // 검색 결과가 있으면 메모 핀을 숨김 (마커를 생성하지 않음)
     const hasSearchResults = searchMarker !== null || searchPlaceMarkers.length > 0;
@@ -828,18 +831,7 @@ export function MapView({
       return;
     }
 
-    // Remove existing markers and their event listeners
-    markers.forEach(marker => {
-      if (marker.overlay) {
-        // DOM 이벤트 리스너 제거
-        if (marker.handler && marker.contentDiv) {
-          marker.contentDiv.removeEventListener('click', marker.handler);
-        }
-        marker.overlay.setMap(null);
-      }
-    });
-
-    // Remove existing markers and their event listeners
+    // Remove existing markers and their event listeners (중복 제거)
     markers.forEach(marker => {
       if (marker.overlay) {
         // DOM 이벤트 리스너 제거
@@ -1140,16 +1132,23 @@ export function MapView({
     }).filter((marker): marker is NonNullable<typeof marker> => marker !== null);
 
     setMarkers(newMarkers);
+    }, 100); // 100ms 디바운스
 
     return () => {
-      newMarkers.forEach(marker => {
+      clearTimeout(timeoutId);
+      // 기존 마커 정리
+      markers.forEach(marker => {
         if (marker && marker.overlay) {
+          // DOM 이벤트 리스너 제거
+          if (marker.handler && marker.contentDiv) {
+            marker.contentDiv.removeEventListener('click', marker.handler);
+          }
           // overlay를 제거하면 자동으로 모든 이벤트 리스너가 정리됨
           marker.overlay.setMap(null);
         }
       });
     };
-  }, [map, filteredMemos, onMarkerClick, onClusterClick, searchMarker, searchPlaceMarkers]);
+  }, [map, filteredMemos, onMarkerClick, onClusterClick, searchMarker, searchPlaceMarkers, markers]);
 
   // Start watching user's real-time location
   useEffect(() => {
@@ -2059,3 +2058,6 @@ export function MapView({
     </div>
   );
 }
+
+// React.memo로 메모이제이션하여 불필요한 리렌더링 방지
+export const MapView = memo(MapViewComponent);

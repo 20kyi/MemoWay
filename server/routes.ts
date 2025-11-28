@@ -40,14 +40,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/logout', async (req, res) => {
     console.log('[LOGOUT] === Logout request received ===');
     
-    // 안드로이드 앱인지 확인 (Accept 헤더, User-Agent, 또는 커스텀 헤더 확인)
-    const acceptHeader = req.get('Accept') || '';
+    // 안드로이드 앱인지 확인 (X-Platform 헤더 우선, User-Agent 확인)
+    // Accept 헤더만으로는 판단하지 않음 (웹 브라우저도 JSON을 요청할 수 있음)
     const userAgent = req.get('User-Agent') || '';
     const platformHeader = req.get('X-Platform') || '';
     const isNativeApp = platformHeader === 'android' ||
-                        acceptHeader.includes('application/json') || 
-                        userAgent.includes('Capacitor') || 
-                        userAgent.includes('Android');
+                        (userAgent.includes('Capacitor') && !userAgent.includes('Chrome')) ||
+                        (userAgent.includes('Android') && userAgent.includes('wv') && !userAgent.includes('Chrome'));
     
     // 사용자 정보 확인 (Replit Auth 사용자인지 확인)
     let isReplitAuthUser = false;
@@ -70,7 +69,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     console.log('[LOGOUT] Request details:', {
-      acceptHeader,
       userAgent,
       platformHeader,
       isNativeApp,

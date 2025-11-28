@@ -65,5 +65,15 @@ export default defineConfig({
       port: 5000,
       clientPort: 5000,
     },
+    // 성능 최적화: 파일 시스템 감시 최적화
+    watch: {
+      usePolling: false,
+      interval: 100,
+    },
+  },
+  // 성능 최적화: 의존성 사전 번들링
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+    exclude: ['@capacitor/core'],
   },
 });
