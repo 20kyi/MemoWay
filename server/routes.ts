@@ -9,6 +9,7 @@ import { type InsertMemo } from "@shared/schema";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 import { normalizeAddress } from "./utils/address-normalizer";
+import * as oidcClient from "openid-client";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -36,15 +37,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupEmailAuth(app);
 
   // Logout route (common for all auth methods - register after Passport is initialized)
-  app.get('/api/logout', (req, res) => {
+  app.get('/api/logout', async (req, res) => {
     console.log('[LOGOUT] === Logout request received ===');
     
-    // Helper function to safely redirect
-    const safeRedirect = () => {
+    // 안드로이드 앱인지 확인 (Accept 헤더, User-Agent, 또는 커스텀 헤더 확인)
+    const acceptHeader = req.get('Accept') || '';
+    const userAgent = req.get('User-Agent') || '';
+    const platformHeader = req.get('X-Platform') || '';
+    const isNativeApp = platformHeader === 'android' ||
+                        acceptHeader.includes('application/json') || 
+                        userAgent.includes('Capacitor') || 
+                        userAgent.includes('Android');
+    
+    // 사용자 정보 확인 (Replit Auth 사용자인지 확인)
+    let isReplitAuthUser = false;
+    let userProvider = null;
+    if (req.isAuthenticated() && req.user) {
+      const user = req.user as any;
+      // DB에서 사용자 정보 가져오기
       try {
-        console.log('[LOGOUT] Redirecting to /');
-        // 로그아웃 후 랜딩 페이지로 리다이렉트 (쿼리 파라미터로 로그아웃 상태 명시)
-        res.redirect('/?logout=true');
+        const userId = user.claims?.sub || user.id;
+        if (userId) {
+          const dbUser = await storage.getUser(userId);
+          if (dbUser) {
+            userProvider = dbUser.provider;
+            isReplitAuthUser = dbUser.provider === 'replit';
+          }
+        }
+      } catch (error) {
+        console.error('[LOGOUT] Error checking user provider:', error);
+      }
+    }
+    
+    console.log('[LOGOUT] Request details:', {
+      acceptHeader,
+      userAgent,
+      platformHeader,
+      isNativeApp,
+      userProvider,
+      isReplitAuthUser,
+      isAuthenticated: req.isAuthenticated(),
+      hasUser: !!req.user,
+    });
+    
+    // Helper function to safely redirect or send JSON
+    const safeRedirect = async () => {
+      try {
+        if (isNativeApp) {
+          // 안드로이드 앱: JSON 응답 반환 (Replit OIDC 로그아웃 건너뛰기)
+          console.log('[LOGOUT] Sending JSON response for native app');
+          res.status(200).json({ 
+            message: 'Logout successful',
+            success: true 
+          });
+        } else {
+          // 웹 브라우저: Replit Auth 사용자인 경우 Replit OIDC 로그아웃 URL로 리다이렉트
+          if (isReplitAuthUser && process.env.REPL_ID) {
+            try {
+              // Replit OIDC 설정 가져오기
+              const config = await oidcClient.discovery(
+                new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+                process.env.REPL_ID
+              );
+              const client = new oidcClient.Client({
+                client_id: process.env.REPL_ID!,
+              });
+              const logoutUrl = client.buildEndSessionUrl(config, {
+                client_id: process.env.REPL_ID!,
+                post_logout_redirect_uri: `${req.protocol}://${req.get('host')}`,
+              }).href;
+              console.log('[LOGOUT] Redirecting to Replit OIDC logout:', logoutUrl);
+              res.redirect(logoutUrl);
+              return;
+            } catch (oidcError) {
+              console.error('[LOGOUT] Replit OIDC logout error:', oidcError);
+              // Fallback to regular redirect
+            }
+          }
+          // 일반 로그아웃: 랜딩 페이지로 리다이렉트
+          console.log('[LOGOUT] Redirecting to /');
+          res.redirect('/?logout=true');
+        }
       } catch (redirectErr: any) {
         console.error('[LOGOUT] Redirect error:', redirectErr);
         res.status(200).json({ message: 'Logout successful' });
@@ -102,14 +175,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
 
     // Step 3: Clear cookie
-    const handleClearCookie = () => {
+    const handleClearCookie = async () => {
       try {
         res.clearCookie('connect.sid');
         console.log('[LOGOUT] Session cookie cleared');
       } catch (cookieErr: any) {
         console.error('[LOGOUT] Cookie clear error:', cookieErr);
       }
-      safeRedirect();
+      await safeRedirect();
     };
 
     // Execute logout flow
@@ -129,13 +202,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fallback: try to clean up anyway
       try {
         if (req.session) {
-          req.session.destroy(() => {
+          req.session.destroy(async () => {
             res.clearCookie('connect.sid');
-            safeRedirect();
+            await safeRedirect();
           });
         } else {
           res.clearCookie('connect.sid');
-          safeRedirect();
+          await safeRedirect();
         }
       } catch (fallbackErr: any) {
         console.error('[LOGOUT] === Fallback cleanup failed ===');

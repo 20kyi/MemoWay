@@ -196,16 +196,17 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  app.get("/api/logout", (req, res) => {
-    req.logout(() => {
-      res.redirect(
-        client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
-        }).href
-      );
-    });
-  });
+  // 로그아웃 라우트는 routes.ts에서 통합 관리 (중복 방지)
+  // app.get("/api/logout", (req, res) => {
+  //   req.logout(() => {
+  //     res.redirect(
+  //       client.buildEndSessionUrl(config, {
+  //         client_id: process.env.REPL_ID!,
+  //         post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
+  //       }).href
+  //     );
+  //   });
+  // });
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {

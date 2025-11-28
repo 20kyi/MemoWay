@@ -136,11 +136,29 @@ export function setupKakaoAuth(app: Express) {
           // Invalid URL, use as-is
         }
       }
-      // Fallback to Replit production domain if no domain is configured
+      
+      // Replit 개발 도메인(*.riker.replit.dev)은 동적으로 생성되므로 Kakao에 등록할 수 없음
+      // 프로덕션 도메인(*.replit.app)을 우선적으로 사용
+      const requestHost = req.get('host') || '';
+      const isReplitDevDomain = requestHost.includes('.riker.replit.dev');
+      
+      // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
+      if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
+        if (process.env.REPL_SLUG) {
+          // Replit 프로덕션 도메인 사용
+          resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
+        } else if (isReplitDevDomain) {
+          // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
+          // 기본 프로덕션 도메인 사용
+          resolvedHost = 'memoway.replit.app';
+        }
+      }
+      
+      // Fallback to configured domain or request host (if not dev domain)
       host = resolvedHost || process.env.REPLIT_DEV_DOMAIN || 
-             (req.get('host') || process.env.HOST || 'memoway.replit.app');
+             (isReplitDevDomain ? 'memoway.replit.app' : (requestHost || process.env.HOST || 'memoway.replit.app'));
       // Use HTTPS for Replit production domain
-      protocol = useHttps || host === 'memoway.replit.app' ? 'https' : (req.protocol || 'http');
+      protocol = useHttps || host.includes('.replit.app') ? 'https' : (req.protocol || 'http');
     }
     
     const redirectUri = `${protocol}://${host}/api/kakao/callback`;
@@ -293,11 +311,29 @@ export function setupKakaoAuth(app: Express) {
           // Invalid URL, use as-is
         }
       }
-      // Fallback to Replit production domain if no domain is configured
+      
+      // Replit 개발 도메인(*.riker.replit.dev)은 동적으로 생성되므로 Kakao에 등록할 수 없음
+      // 프로덕션 도메인(*.replit.app)을 우선적으로 사용
+      const requestHost = req.get('host') || '';
+      const isReplitDevDomain = requestHost.includes('.riker.replit.dev');
+      
+      // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
+      if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
+        if (process.env.REPL_SLUG) {
+          // Replit 프로덕션 도메인 사용
+          resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
+        } else if (isReplitDevDomain) {
+          // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
+          // 기본 프로덕션 도메인 사용
+          resolvedHost = 'memoway.replit.app';
+        }
+      }
+      
+      // Fallback to configured domain or request host (if not dev domain)
       host = resolvedHost || 
-             (req.get('host') || process.env.HOST || 'memoway.replit.app');
+             (isReplitDevDomain ? 'memoway.replit.app' : (requestHost || process.env.HOST || 'memoway.replit.app'));
       // Use HTTPS for Replit production domain
-      protocol = useHttpsCallback || host === 'memoway.replit.app' ? 'https' : (req.protocol || 'http');
+      protocol = useHttpsCallback || host.includes('.replit.app') ? 'https' : (req.protocol || 'http');
     }
     
     const redirectUri = `${protocol}://${host}/api/kakao/callback`;

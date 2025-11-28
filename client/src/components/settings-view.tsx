@@ -17,6 +17,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Capacitor } from "@capacitor/core";
+import { getApiBaseUrl } from "@/lib/api-config";
 
 interface SettingsViewProps {
   notificationsEnabled: boolean;
@@ -51,8 +53,85 @@ export function SettingsView({
   const { toast } = useToast();
   const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
+  const handleLogout = async () => {
+    if (Capacitor.isNativePlatform()) {
+      // 안드로이드 앱: fetch API를 사용하여 로그아웃 요청
+      try {
+        const baseUrl = getApiBaseUrl();
+        if (!baseUrl) {
+          toast({
+            title: language === 'ko' ? "오류" : "Error",
+            description: language === 'ko' 
+              ? "서버 연결 설정이 없습니다. 앱을 다시 설치해주세요."
+              : "Server configuration missing. Please reinstall the app.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        const logoutUrl = `${baseUrl}/api/logout`;
+        console.log('[LOGOUT] Sending logout request to:', logoutUrl);
+        
+        const response = await fetch(logoutUrl, {
+          method: 'GET',
+          credentials: 'include', // 쿠키 포함
+          redirect: 'manual', // 리다이렉트를 수동으로 처리 (CORS 오류 방지)
+          headers: {
+            'Accept': 'application/json',
+            'X-Platform': 'android', // 서버에서 안드로이드 앱임을 명확히 알 수 있도록
+          },
+        });
+        
+        console.log('[LOGOUT] Response status:', response.status);
+        console.log('[LOGOUT] Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        // 모든 응답 상태 코드 처리
+        if (response.status >= 200 && response.status < 300) {
+          // 성공 응답 (2xx)
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            try {
+              const data = await response.json();
+              console.log('[LOGOUT] Logout successful:', data);
+            } catch (e) {
+              console.log('[LOGOUT] Response is not JSON, but status is OK');
+            }
+          } else {
+            console.log('[LOGOUT] Response is not JSON, but status is OK');
+          }
+        } else if (response.status >= 300 && response.status < 400) {
+          // 리다이렉트 응답 (3xx) - 서버가 여전히 리다이렉트를 시도하는 경우
+          const location = response.headers.get('location');
+          console.log('[LOGOUT] Server redirected to:', location);
+          console.log('[LOGOUT] Ignoring redirect for native app');
+        } else {
+          // 에러 응답 (4xx, 5xx)
+          const errorText = await response.text().catch(() => 'Unknown error');
+          console.error('[LOGOUT] Logout failed:', response.status, errorText);
+          throw new Error(`Logout failed: ${response.status} ${errorText}`);
+        }
+        
+        // 쿼리 캐시 무효화
+        console.log('[LOGOUT] Invalidating queries...');
+        await queryClient.invalidateQueries();
+        
+        // 로그아웃 성공 후 랜딩 페이지로 이동
+        console.log('[LOGOUT] Redirecting to landing page...');
+        window.location.href = '/';
+      } catch (error) {
+        console.error('Logout error:', error);
+        toast({
+          title: language === 'ko' ? "로그아웃 실패" : "Logout failed",
+          description: language === 'ko' 
+            ? "로그아웃 중 오류가 발생했습니다."
+            : "An error occurred during logout.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      // 웹 브라우저: 기존 방식 사용 (서버 리다이렉트)
+      window.location.href = "/api/logout";
+    }
   };
 
   const getProviderName = (provider: string) => {
