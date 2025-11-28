@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-export type LayoutTheme = "default" | "lavender-night" | "romantic-love" | "pastel-dream";
+export type LayoutTheme = "default" | "lavender-night";
 
 interface LayoutThemeContextType {
   layoutTheme: LayoutTheme;
@@ -12,18 +12,13 @@ const LayoutThemeContext = createContext<LayoutThemeContextType | undefined>(und
 export function LayoutThemeProvider({ children }: { children: React.ReactNode }) {
   const [layoutTheme, setLayoutThemeState] = useState<LayoutTheme>(() => {
     const saved = localStorage.getItem("layoutTheme");
-    // 이전 dreamy-gradient를 pastel-dream으로 마이그레이션
-    if (saved === "dreamy-gradient") {
-      localStorage.setItem("layoutTheme", "pastel-dream");
-      return "pastel-dream";
-    }
-    if (saved === "default" || saved === "lavender-night" || saved === "warm-beige" || saved === "romantic-love" || saved === "pastel-dream") {
-      // warm-beige를 romantic-love로 마이그레이션
-      if (saved === "warm-beige") {
-        localStorage.setItem("layoutTheme", "romantic-love");
-        return "romantic-love";
-      }
+    // 지원되는 테마만 유지하고, 나머지는 기본값으로 마이그레이션
+    if (saved === "default" || saved === "lavender-night") {
       return saved;
+    }
+    // 지원되지 않는 테마는 기본값으로 변경
+    if (saved) {
+      localStorage.setItem("layoutTheme", "default");
     }
     return "default";
   });

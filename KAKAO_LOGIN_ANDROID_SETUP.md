@@ -217,3 +217,4 @@ if (Capacitor.getPlatform() === 'android') {
 - [ ] 앱 빌드 및 테스트
 - [ ] 로그인 플로우 정상 작동 확인
 
+
