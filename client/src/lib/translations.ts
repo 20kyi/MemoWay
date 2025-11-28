@@ -24,6 +24,7 @@ export const translations = {
       no: "아니요",
       personal: "개인",
       addressSearchPlaceholder: "주소를 입력하세요 (예: 서울시 강남구 역삼동)",
+      locationLockModeActive: "위치 고정 모드 활성화",
     },
     // Categories
     categories: {
