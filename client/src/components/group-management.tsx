@@ -237,12 +237,13 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
       {/* 그룹 만들기 Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto rounded-xl sm:rounded-2xl">
-          <DialogHeader className="pb-2 sm:pb-3">
+        <DialogContent className="sm:max-w-md w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-[calc(100%-2rem)] mx-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-xl sm:rounded-2xl p-4 sm:p-6">
+          <DialogHeader className="flex-shrink-0 pb-2 sm:pb-3">
             <DialogTitle className="text-lg sm:text-xl">{t.groups.newGroup}</DialogTitle>
           </DialogHeader>
           <Form {...createForm}>
-            <form onSubmit={createForm.handleSubmit(handleCreateGroup)} className="space-y-3 sm:space-y-4">
+            <form onSubmit={createForm.handleSubmit(handleCreateGroup)} className="flex flex-col flex-1 overflow-hidden">
+              <div className="space-y-3 sm:space-y-4 overflow-y-auto flex-1 pr-1 sm:pr-2">
                 <FormField
                   control={createForm.control}
                   name="name"
@@ -376,9 +377,12 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className="flex-shrink-0 pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
                 <Button type="submit" size="sm" className="w-full text-sm" disabled={isLoading} data-testid="button-submit-create-group">
                   {isLoading ? `${t.common.create}...` : t.common.create}
                 </Button>
+              </div>
             </form>
           </Form>
         </DialogContent>
@@ -386,12 +390,13 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
       {/* 그룹 참여하기 Dialog */}
       <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
-        <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto">
-          <DialogHeader>
-            <DialogTitle>{t.groups.joinGroup}</DialogTitle>
+        <DialogContent className="sm:max-w-md w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-[calc(100%-2rem)] mx-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-xl sm:rounded-2xl p-4 sm:p-6">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="text-lg sm:text-xl">{t.groups.joinGroup}</DialogTitle>
           </DialogHeader>
           <Form {...joinForm}>
-            <form onSubmit={joinForm.handleSubmit(handleJoinGroup)} className="space-y-4">
+            <form onSubmit={joinForm.handleSubmit(handleJoinGroup)} className="flex flex-col flex-1 overflow-hidden">
+              <div className="space-y-4 overflow-y-auto flex-1 pr-1 sm:pr-2">
                 <FormField
                   control={joinForm.control}
                   name="inviteCode"
@@ -418,9 +423,12 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                     </FormItem>
                   )}
                 />
-              <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-join-group">
-                {isLoading ? t.groups.joining : t.groups.joinButton}
-              </Button>
+              </div>
+              <div className="flex-shrink-0 pt-4 border-t mt-4">
+                <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-join-group">
+                  {isLoading ? t.groups.joining : t.groups.joinButton}
+                </Button>
+              </div>
             </form>
           </Form>
         </DialogContent>
@@ -812,13 +820,13 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
 
       {/* 그룹 복사 확인 다이얼로그 */}
       <AlertDialog open={!!copyConfirmGroup} onOpenChange={(open) => !open && setCopyConfirmGroup(null)}>
-        <AlertDialogContent className="sm:max-w-md w-[calc(100%-2rem)] mx-auto">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
+        <AlertDialogContent className="sm:max-w-md w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-[calc(100%-2rem)] mx-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-xl sm:rounded-2xl p-4 sm:p-6">
+          <AlertDialogHeader className="flex-shrink-0">
+            <AlertDialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Copy className="h-5 w-5 text-primary" />
               {t.groups.copyGroup}
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3 pt-2">
+            <AlertDialogDescription className="space-y-3 pt-2 overflow-y-auto flex-1 max-h-[60vh] pr-1 sm:pr-2">
               <p>
                 <span className="font-semibold">{copyConfirmGroup?.name}</span> {t.groups.copyGroupDesc}
               </p>
@@ -852,7 +860,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-shrink-0 pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
             <AlertDialogCancel data-testid="button-cancel-copy">{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
