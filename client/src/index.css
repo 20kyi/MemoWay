@@ -1170,13 +1170,14 @@
 /* ============================================
    커플 클레이 3D 테마 (Couple Clay 3D Theme)
    ============================================ */
+/* 커플 테마는 기본 테마와 동일합니다. */
 
-/* 하단 네비게이션 바 - 커플 테마 전용 스타일 */
+/* 커플 테마 하단 네비게이션 바 스타일 */
 .layout-couple-clay .bottom-nav-couple-theme {
   /* 배경: 거의 흰색에 가까운 핑크 (#FFF5FB), 윗부분은 조금 밝고, 아랫부분은 조금 어둡게 */
   background: linear-gradient(to bottom, #FFFBFD 0%, #FFF5FB 50%, #FFEFF7 100%) !important;
-  /* 모서리: 많이 둥글게 (pill과 직사각형 사이) - 상단만 둥글게 */
-  border-radius: 28px 28px 0 0 !important;
+  /* 모서리: 많이 둥글게 (pill과 직사각형 사이) - 상하 모두 둥글게 */
+  border-radius: 28px !important;
   /* 바 아래쪽으로 짧고 넓게 퍼지는 그림자 → "바가 화면 위에 둥둥 떠 있는 느낌" */
   box-shadow: 
     0 -12px 40px rgba(255, 105, 180, 0.12),
@@ -1184,49 +1185,133 @@
     0 -3px 10px rgba(255, 192, 203, 0.22) !important;
   border: none !important;
   backdrop-filter: none !important;
+  /* 높이 조정 - 조금 더 작게 */
+  min-height: 72px !important;
   /* 좌우 여백을 주어 둥근 모서리가 보이도록 */
   margin-left: 12px !important;
   margin-right: 12px !important;
   width: calc(100% - 24px) !important;
   /* 상단에 약간의 패딩을 추가하여 둥근 모서리 영역 확보 */
-  padding-top: 8px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
 }
 
-/* 커플 테마 네비 아이콘 - 활성 상태 */
+/* 커플 테마 네비 아이콘 - 활성 상태 (기본 스타일) */
 .layout-couple-clay .bottom-nav-icon-active-couple {
-  /* 뒤에 분홍색 작은 캡슐 배경 (pill shape) */
-  background: linear-gradient(135deg, #FFB6C1 0%, #FFC0CB 50%, #FFB6C1 100%) !important;
-  border-radius: 24px !important;
-  padding: 10px 20px !important;
-  /* 3D 아이콘 그림자 효과 */
+  border-radius: 20px !important;
+  padding: 8px 16px !important;
+  position: relative;
+  transition: all 0.3s ease;
+  /* 레이아웃 흔들림 방지를 위한 고정 크기 설정 */
+  width: 52px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+}
+
+.layout-couple-clay .bottom-nav-icon-active-couple svg {
+  position: relative;
+  z-index: 1;
+}
+
+/* 지도 아이콘 - 하늘색 계열 */
+.layout-couple-clay button[data-testid="nav-map"] .bottom-nav-icon-active-couple {
+  background: linear-gradient(135deg, #B3E5FC 0%, #81D4FA 50%, #B3E5FC 100%) !important;
+  box-shadow: 
+    0 5px 15px rgba(129, 212, 250, 0.35),
+    0 3px 8px rgba(179, 229, 252, 0.4),
+    inset 0 2px 3px rgba(255, 255, 255, 0.7),
+    inset 0 -2px 3px rgba(129, 212, 250, 0.25) !important;
+}
+
+.layout-couple-clay button[data-testid="nav-map"] .bottom-nav-icon-active-couple svg {
+  color: #81D4FA !important;
+  filter: 
+    drop-shadow(0 2px 4px rgba(129, 212, 250, 0.4))
+    drop-shadow(0 1px 2px rgba(179, 229, 252, 0.5))
+    drop-shadow(0 -1px 2px rgba(255, 255, 255, 0.8))
+    drop-shadow(1px 0 2px rgba(129, 212, 250, 0.3))
+    drop-shadow(-1px 0 2px rgba(179, 229, 252, 0.3)) !important;
+}
+
+/* 메모 아이콘 - 핑크 계열 */
+.layout-couple-clay button[data-testid="nav-memos"] .bottom-nav-icon-active-couple {
+  background: linear-gradient(135deg, #FFB6C1 0%, #FF69B4 50%, #FFB6C1 100%) !important;
   box-shadow: 
     0 5px 15px rgba(255, 105, 180, 0.35),
     0 3px 8px rgba(255, 182, 193, 0.4),
     inset 0 2px 3px rgba(255, 255, 255, 0.7),
     inset 0 -2px 3px rgba(255, 105, 180, 0.25) !important;
-  position: relative;
-  transition: all 0.3s ease;
 }
 
-.layout-couple-clay .bottom-nav-icon-active-couple svg {
-  /* 3D 아이콘 그림자 효과 */
+.layout-couple-clay button[data-testid="nav-memos"] .bottom-nav-icon-active-couple svg {
+  color: #FF69B4 !important;
   filter: 
     drop-shadow(0 2px 4px rgba(255, 105, 180, 0.4))
     drop-shadow(0 1px 2px rgba(255, 182, 193, 0.5))
     drop-shadow(0 -1px 2px rgba(255, 255, 255, 0.8))
     drop-shadow(1px 0 2px rgba(255, 105, 180, 0.3))
     drop-shadow(-1px 0 2px rgba(255, 182, 193, 0.3)) !important;
-  position: relative;
-  z-index: 1;
+}
+
+/* 그룹 아이콘 - 라벤더 계열 */
+.layout-couple-clay button[data-testid="nav-groups"] .bottom-nav-icon-active-couple {
+  background: linear-gradient(135deg, #C4B5FD 0%, #A78BFA 50%, #C4B5FD 100%) !important;
+  box-shadow: 
+    0 5px 15px rgba(167, 139, 250, 0.35),
+    0 3px 8px rgba(196, 181, 253, 0.4),
+    inset 0 2px 3px rgba(255, 255, 255, 0.7),
+    inset 0 -2px 3px rgba(167, 139, 250, 0.25) !important;
+}
+
+.layout-couple-clay button[data-testid="nav-groups"] .bottom-nav-icon-active-couple svg {
+  color: #A78BFA !important;
+  filter: 
+    drop-shadow(0 2px 4px rgba(167, 139, 250, 0.4))
+    drop-shadow(0 1px 2px rgba(196, 181, 253, 0.5))
+    drop-shadow(0 -1px 2px rgba(255, 255, 255, 0.8))
+    drop-shadow(1px 0 2px rgba(167, 139, 250, 0.3))
+    drop-shadow(-1px 0 2px rgba(196, 181, 253, 0.3)) !important;
+}
+
+/* 설정 아이콘 - 파스텔 그린 계열 */
+.layout-couple-clay button[data-testid="nav-settings"] .bottom-nav-icon-active-couple {
+  background: linear-gradient(135deg, #A5D6A7 0%, #81C784 50%, #A5D6A7 100%) !important;
+  box-shadow: 
+    0 5px 15px rgba(129, 199, 132, 0.35),
+    0 3px 8px rgba(165, 214, 167, 0.4),
+    inset 0 2px 3px rgba(255, 255, 255, 0.7),
+    inset 0 -2px 3px rgba(129, 199, 132, 0.25) !important;
+}
+
+.layout-couple-clay button[data-testid="nav-settings"] .bottom-nav-icon-active-couple svg {
+  color: #81C784 !important;
+  filter: 
+    drop-shadow(0 2px 4px rgba(129, 199, 132, 0.4))
+    drop-shadow(0 1px 2px rgba(165, 214, 167, 0.5))
+    drop-shadow(0 -1px 2px rgba(255, 255, 255, 0.8))
+    drop-shadow(1px 0 2px rgba(129, 199, 132, 0.3))
+    drop-shadow(-1px 0 2px rgba(165, 214, 167, 0.3)) !important;
 }
 
 /* 커플 테마 네비 아이콘 - 비활성 상태 */
 .layout-couple-clay .bottom-nav-icon-inactive-couple {
-  padding: 8px !important;
+  padding: 0 !important;
   /* 심볼만 3D 조각처럼 배치 (아이콘 주위에 살짝 음영) */
+  /* 레이아웃 흔들림 방지를 위해 활성 상태와 동일한 크기 유지 */
+  width: 52px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
 }
 
 .layout-couple-clay .bottom-nav-icon-inactive-couple svg {
+  /* 비활성 아이콘 색상 */
+  color: rgba(255, 182, 193, 0.7) !important;
   /* 아이콘 주위에 살짝 음영 (3D 조각 효과) */
   filter: 
     drop-shadow(0 1px 2px rgba(255, 182, 193, 0.3))

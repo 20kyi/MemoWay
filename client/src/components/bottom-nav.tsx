@@ -1,6 +1,10 @@
 import { Map, List, Users, Settings, Heart } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { useLayoutTheme } from "@/lib/layout-theme-context";
+import { CustomMapPin } from "./icons/custom-map-pin";
+import { CustomMemoIcon } from "./icons/custom-memo-icon";
+import { CustomGroupIcon } from "./icons/custom-group-icon";
+import { CustomSettingsIcon } from "./icons/custom-settings-icon";
 
 interface BottomNavProps {
   activeTab: "map" | "memos" | "groups" | "settings";
@@ -20,10 +24,10 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   ];
 
   return (
-    <nav className={`fixed bottom-0 left-0 right-0 min-h-16 flex items-center justify-around gap-2 px-4 z-50 pb-[max(1rem,env(safe-area-inset-bottom))] ${
+    <nav className={`fixed left-0 right-0 flex items-center justify-around z-50 ${
       isCoupleTheme 
-        ? "bottom-nav-couple-theme" 
-        : "bg-card/95 backdrop-blur-md border-t-2 border-primary/20 shadow-lg bottom-nav-romantic"
+        ? "bottom-nav-couple-theme px-2 bottom-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" 
+        : "bottom-0 bg-card/95 backdrop-blur-md border-t-2 border-primary/20 min-h-16 gap-2 px-4 shadow-lg bottom-nav-romantic pb-[max(1rem,env(safe-area-inset-bottom))]"
     }`}>
       {tabs.map(tab => {
         const Icon = tab.icon;
@@ -33,11 +37,13 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`relative flex flex-col items-center justify-center min-h-12 min-w-14 gap-1 transition-all ${
+            className={`relative flex items-center justify-center transition-all ${
+              isCoupleTheme
+                ? "min-h-14 min-w-14 p-2"
+                : "flex-col min-h-12 min-w-14 gap-1"
+            } ${
               isActive 
-                ? isCoupleTheme 
-                  ? "text-pink-600" 
-                  : "text-primary"
+                ? "text-primary" 
                 : "text-muted-foreground hover:text-foreground hover-elevate"
             }`}
             data-testid={`nav-${tab.id}`}
@@ -52,9 +58,21 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                   : "bottom-nav-icon-inactive-couple"
                 : `rounded-full p-2 ${isActive ? "bg-primary/10 shadow-md" : ""}`
             }`}>
-              <Icon className="h-6 w-6" />
+              {isCoupleTheme && tab.id === "map" ? (
+                <CustomMapPin size={26} isActive={isActive} />
+              ) : isCoupleTheme && tab.id === "memos" ? (
+                <CustomMemoIcon size={28} isActive={isActive} />
+              ) : isCoupleTheme && tab.id === "groups" ? (
+                <CustomGroupIcon size={28} isActive={isActive} />
+              ) : isCoupleTheme && tab.id === "settings" ? (
+                <CustomSettingsIcon size={28} isActive={isActive} />
+              ) : (
+                <Icon className="h-6 w-6" />
+              )}
             </div>
-            <span className={`text-xs font-medium ${isActive ? "font-bold" : ""}`}>{tab.label}</span>
+            {!isCoupleTheme && (
+              <span className={`text-xs font-medium ${isActive ? "font-bold" : ""}`}>{tab.label}</span>
+            )}
           </button>
         );
       })}
