@@ -255,7 +255,7 @@ export default function Landing() {
                 {/* Heart shape path */}
                 <path 
                   d="M50 85C50 85 20 60 20 35C20 22 30 12 43 12C49 12 50 15 50 15C50 15 51 12 57 12C70 12 80 22 80 35C80 60 50 85 50 85Z" 
-                  fill="#9333ea"
+                  fill="#0ea5e9"
                   clipPath="url(#leftHalf)"
                 />
                 <path 
@@ -267,7 +267,7 @@ export default function Landing() {
             </div>
             
             {/* MemoWay Text */}
-            <h1 className="text-4xl sm:text-5xl font-bold text-[#9333ea] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl font-bold text-sky-600 dark:text-sky-500 tracking-tight">
               MemoWay
             </h1>
           </div>
@@ -279,7 +279,7 @@ export default function Landing() {
               <DialogTrigger asChild>
                 <Button 
                   size="lg" 
-                  className="w-full h-12 bg-[#9333ea] hover:bg-[#7e22ce] text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
+                  className="w-full h-12 bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
                 >
                   <Mail className="h-5 w-5 mr-2 text-white" />
                   {language === 'ko' && '이메일로 계속하기'}
@@ -457,7 +457,7 @@ export default function Landing() {
             {language === 'ja' && 'アカウントをお持ちでないですか？'}
             <button
               onClick={() => setRegisterDialogOpen(true)}
-              className="text-[#9333ea] hover:text-[#7e22ce] font-medium underline"
+              className="text-sky-600 hover:text-sky-700 dark:text-sky-500 dark:hover:text-sky-400 font-medium underline"
             >
               {language === 'ko' && '회원가입'}
               {language === 'en' && 'Sign up'}

@@ -54,7 +54,7 @@ export function MemoDetailSheet({
 
             <SheetHeader className="px-4 sm:px-5 pb-3 pt-0 flex-shrink-0 pr-12 sm:pr-14">
               <div className="flex items-center gap-2 mb-2">
-                <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#9333ea] truncate flex-1" data-testid="text-memo-title">
+                <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-sky-600 dark:text-sky-500 truncate flex-1" data-testid="text-memo-title">
                   {memo.buildingName}
                 </SheetTitle>
               </div>
@@ -67,7 +67,7 @@ export function MemoDetailSheet({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 text-[#9333ea] hover:text-[#7e22ce] hover:bg-[#9333ea]/10 -mr-1"
+                        className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 text-sky-600 dark:text-sky-500 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/20 -mr-1"
                         onClick={() => {
                           onNavigateToLocation(memo.latitude, memo.longitude);
                           onOpenChange(false);
@@ -143,7 +143,7 @@ export function MemoDetailSheet({
                           });
                           onOpenChange(false);
                         }}
-                        className="h-11 text-sm font-medium bg-[#9333ea] hover:bg-[#7e22ce] text-white flex-1 sm:flex-initial"
+                        className="h-11 text-sm font-medium bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white flex-1 sm:flex-initial"
                         data-testid="button-add-memo"
                       >
                         <Plus className="w-4 h-4 mr-2" />

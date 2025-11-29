@@ -300,7 +300,7 @@ export function MemoFormSheet({
         
         <div className="px-4 sm:px-5 flex-shrink-0 pb-2">
           <SheetHeader className="mb-4">
-            <SheetTitle className="text-xl sm:text-2xl font-bold text-[#9333ea]">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
+            <SheetTitle className="text-xl sm:text-2xl font-bold text-sky-600 dark:text-sky-500">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
           </SheetHeader>
         </div>
 
@@ -314,7 +314,7 @@ export function MemoFormSheet({
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.buildingName}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} className="text-sm h-11 border-indigo-200 focus:border-[#9333ea] focus:ring-[#9333ea]" data-testid="input-building-name" />
+                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} className="text-sm h-11 border-indigo-200 focus:border-sky-500 focus:ring-sky-500" data-testid="input-building-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -328,7 +328,7 @@ export function MemoFormSheet({
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.address}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.memoForm.addressPlaceholder} className="text-sm h-11 border-indigo-200 focus:border-[#9333ea] focus:ring-[#9333ea]" data-testid="input-address" />
+                      <Input {...field} placeholder={t.memoForm.addressPlaceholder} className="text-sm h-11 border-indigo-200 focus:border-sky-500 focus:ring-sky-500" data-testid="input-address" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -386,7 +386,7 @@ export function MemoFormSheet({
                       <Textarea 
                         {...field} 
                         placeholder={t.memoForm.contentPlaceholder} 
-                        className="min-h-24 sm:min-h-28 resize-none text-sm border-indigo-200 focus:border-[#9333ea] focus:ring-[#9333ea]"
+                        className="min-h-24 sm:min-h-28 resize-none text-sm border-indigo-200 focus:border-sky-500 focus:ring-sky-500"
                         data-testid="input-memo-content"
                       />
                     </FormControl>
@@ -529,7 +529,7 @@ export function MemoFormSheet({
               <Button 
                 type="submit" 
                 size="lg"
-                className="flex-1 h-11 text-sm font-medium bg-[#9333ea] hover:bg-[#7e22ce] text-white"
+                className="flex-1 h-11 text-sm font-medium bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white"
                 disabled={isLoading || (!isPersonalMemberReady && !currentMemberId)}
                 data-testid="button-save-memo"
               >

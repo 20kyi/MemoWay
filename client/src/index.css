@@ -228,16 +228,16 @@
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-.layout-lavender-night [class*="text-\[#9333ea\]"] {
+.layout-lavender-night [class*="text-sky-"] {
   color: #6366f1 !important;
 }
 
-.layout-lavender-night [class*="bg-\[#9333ea\]"] {
+.layout-lavender-night [class*="bg-sky-"] {
   background: linear-gradient(135deg, #6366f1 0%, #818cf8 50%, #a5b4fc 100%) !important;
   color: #0a0a0a !important;
 }
 
-.layout-lavender-night [class*="hover:bg-\[#7e22ce\]"] {
+.layout-lavender-night [class*="hover:bg-sky-"] {
   background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%) !important;
 }
 
@@ -428,13 +428,13 @@
 }
 
 /* 텍스트 색상 - 로맨틱한 핑크 */
-.layout-romantic-love [class*="text-\[#9333ea\]"] {
+.layout-romantic-love [class*="text-sky-"] {
   color: hsl(340 70% 60%) !important;
 }
 
 /* 버튼 스타일 - 미니어처 효과 (성능 최적화) */
 .layout-romantic-love button:not([data-testid="button-location-lock"]):not([data-testid="button-map-lock"]):not([data-testid="button-group-filter"]):not([data-testid="button-marker-filter"]),
-.layout-romantic-love [class*="bg-\[#9333ea\]"],
+.layout-romantic-love [class*="bg-sky-"],
 .layout-romantic-love .bg-primary {
   background: linear-gradient(135deg, #f472b6 0%, #ec4899 50%, #db2777 100%) !important;
   color: #ffffff !important;
@@ -451,7 +451,7 @@
 }
 
 .layout-romantic-love button:hover:not([data-testid="button-location-lock"]):not([data-testid="button-map-lock"]):not([data-testid="button-group-filter"]):not([data-testid="button-marker-filter"]),
-.layout-romantic-love [class*="hover:bg-\[#7e22ce\]"],
+.layout-romantic-love [class*="hover:bg-sky-"],
 .layout-romantic-love .bg-primary:hover {
   background: linear-gradient(135deg, #ec4899 0%, #db2777 50%, #be185d 100%) !important;
   box-shadow: 
@@ -767,8 +767,8 @@
 .layout-romantic-love h1[class*="text-"],
 .layout-romantic-love [class*="logo"],
 .layout-romantic-love [class*="MemoWay"],
-.layout-romantic-love h1[class*="text-\[#9333ea\]"],
-.layout-romantic-love [class*="text-\[#9333ea\]"] {
+.layout-romantic-love h1[class*="text-sky-"],
+.layout-romantic-love [class*="text-sky-"] {
   color: #5A3F90 !important;
 }
 
@@ -988,8 +988,8 @@
 }
 
 /* 텍스트 색상 - 부드러운 그라디언트 */
-.layout-pastel-dream [class*="text-\[#9333ea\]"] {
-  background: linear-gradient(135deg, #f8bbd0 0%, #e1bee7 50%, #d1c4e9 100%);
+.layout-pastel-dream [class*="text-sky-"] {
+  background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 50%, #38bdf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -997,20 +997,20 @@
 
 /* 버튼 스타일 - 부드러운 파스텔 그라디언트 */
 .layout-pastel-dream button,
-.layout-pastel-dream [class*="bg-\[#9333ea\]"],
+.layout-pastel-dream [class*="bg-sky-"],
 .layout-pastel-dream .bg-primary {
-  background: linear-gradient(135deg, #f8bbd0 0%, #e1bee7 50%, #d1c4e9 100%) !important;
+  background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 50%, #38bdf8 100%) !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.5) !important;
   box-shadow: 
-    0 4px 16px rgba(248, 187, 208, 0.4),
-    0 2px 8px rgba(225, 190, 231, 0.3),
+    0 4px 16px rgba(186, 230, 253, 0.4),
+    0 2px 8px rgba(125, 211, 252, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
   border-radius: 1rem !important;
 }
 
 .layout-pastel-dream button:hover,
-.layout-pastel-dream [class*="hover:bg-\[#7e22ce\]"],
+.layout-pastel-dream [class*="hover:bg-sky-"],
 .layout-pastel-dream .bg-primary:hover {
   background: linear-gradient(135deg, #f5a5c7 0%, #d89ee0 50%, #c4a8e5 100%) !important;
   box-shadow: 
