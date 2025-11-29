@@ -55,22 +55,31 @@ export function useMapInstance({
     [handleTabChange]
   );
 
+  // mapInstance를 통해 직접 이동하는 경우 (다른 경로에서 사용)
   useEffect(() => {
     if (mapInstance && pendingLocation) {
-      if (mapProvider === "kakao" && window.kakao?.maps) {
-        const position = new window.kakao.maps.LatLng(
-          pendingLocation.lat,
-          pendingLocation.lng
-        );
-        mapInstance.panTo(position);
-        mapInstance.setLevel(3);
-      } else if (mapProvider === "google") {
-        mapInstance.panTo({ lat: pendingLocation.lat, lng: pendingLocation.lng });
-        mapInstance.setZoom(16);
-      }
-      // pendingLocation 처리 후 위치 고정 모드 해제 (메모 위치로 이동했으므로)
-      // 위치 고정 모드는 MapView/GoogleMapView 내부에서 관리되므로 여기서는 pendingLocation만 초기화
-      setPendingLocation(null);
+      // 지도가 완전히 준비될 때까지 약간의 딜레이
+      const timeoutId = setTimeout(() => {
+        if (mapProvider === "kakao" && window.kakao?.maps) {
+          const position = new window.kakao.maps.LatLng(
+            pendingLocation.lat,
+            pendingLocation.lng
+          );
+          // setCenter를 사용하여 정확히 중심으로 이동
+          mapInstance.setCenter(position);
+          mapInstance.setLevel(3);
+        } else if (mapProvider === "google") {
+          // setCenter를 사용하여 정확히 중심으로 이동
+          mapInstance.setCenter({ lat: pendingLocation.lat, lng: pendingLocation.lng });
+          mapInstance.setZoom(16);
+        }
+        // pendingLocation 처리 후 초기화
+        setPendingLocation(null);
+      }, 150);
+      
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
   }, [mapInstance, pendingLocation, mapProvider]);
 

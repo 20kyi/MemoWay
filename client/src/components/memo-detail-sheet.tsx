@@ -52,29 +52,36 @@ export function MemoDetailSheet({
             {/* 드래그 핸들 */}
             <div className="w-12 h-1 bg-pink-300/50 rounded-full mx-auto mt-3 mb-4 flex-shrink-0" />
 
-            <SheetHeader className="px-4 sm:px-5 pb-3 pt-0 flex-shrink-0">
+            <SheetHeader className="px-4 sm:px-5 pb-3 pt-0 flex-shrink-0 pr-12 sm:pr-14">
               <div className="flex items-center gap-2 mb-2">
                 <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#9333ea] truncate flex-1" data-testid="text-memo-title">
                   {memo.buildingName}
                 </SheetTitle>
-                {onNavigateToLocation && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0"
-                    onClick={() => {
-                      onNavigateToLocation(memo.latitude, memo.longitude);
-                      onOpenChange(false);
-                    }}
-                    data-testid="button-navigate-to-location"
-                  >
-                    <Navigation className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  </Button>
-                )}
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground text-xs sm:text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm">
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span className="truncate" data-testid="text-memo-address">{memo.address}</span>
+                <span className="truncate flex-1" data-testid="text-memo-address">{memo.address}</span>
+                {onNavigateToLocation && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 text-[#9333ea] hover:text-[#7e22ce] hover:bg-[#9333ea]/10 -mr-1"
+                        onClick={() => {
+                          onNavigateToLocation(memo.latitude, memo.longitude);
+                          onOpenChange(false);
+                        }}
+                        data-testid="button-navigate-to-location"
+                      >
+                        <Navigation className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t.memoDetail.viewOnMap}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </div>
             </SheetHeader>
 

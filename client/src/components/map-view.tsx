@@ -590,14 +590,40 @@ function MapViewComponent({
     tryGetAccuratePosition();
   }, [map, userLocation, onMyLocationClick, pendingLocation]);
 
-  // pendingLocation이 처리되면 자동 위치 이동을 막고 위치 고정 모드 해제
+  // pendingLocation 처리: 메모 위치로 정확히 이동
   useEffect(() => {
-    if (pendingLocation && map) {
+    if (pendingLocation && map && window.kakao?.maps) {
       hasMovedToUserLocationRef.current = true;
-      // pendingLocation이 있으면 위치 고정 모드를 해제하여 메모 위치로 이동할 수 있도록 함
+      
+      // 위치 고정 모드 해제
       if (isLocationLocked) {
         setIsLocationLocked(false);
       }
+      
+      // 지도가 완전히 준비될 때까지 약간의 딜레이 후 정확한 위치로 이동
+      const moveToPendingLocation = () => {
+        try {
+          const position = new window.kakao.maps.LatLng(
+            pendingLocation.lat,
+            pendingLocation.lng
+          );
+          
+          // setCenter를 사용하여 정확히 중심으로 이동 (panTo 대신)
+          map.setCenter(position);
+          map.setLevel(3); // 적절한 줌 레벨 설정
+          
+          console.log('✅ 메모 위치로 이동 완료:', { lat: pendingLocation.lat, lng: pendingLocation.lng });
+        } catch (error) {
+          console.error('❌ 지도 이동 실패:', error);
+        }
+      };
+      
+      // 지도 렌더링 완료를 보장하기 위한 딜레이
+      const timeoutId = setTimeout(moveToPendingLocation, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
   }, [pendingLocation, map, isLocationLocked]);
 

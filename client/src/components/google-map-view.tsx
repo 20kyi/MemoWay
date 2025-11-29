@@ -246,12 +246,35 @@ function GoogleMapViewComponent({
     };
   }, [map, isLocationLocked, onMyLocationClick, pendingLocation]);
 
-  // pendingLocation이 처리되면 위치 고정 모드 해제
+  // pendingLocation 처리: 메모 위치로 정확히 이동
   useEffect(() => {
-    if (pendingLocation && isLocationLocked) {
-      setIsLocationLocked(false);
+    if (pendingLocation && map) {
+      // 위치 고정 모드 해제
+      if (isLocationLocked) {
+        setIsLocationLocked(false);
+      }
+      
+      // 지도가 완전히 준비될 때까지 약간의 딜레이 후 정확한 위치로 이동
+      const moveToPendingLocation = () => {
+        try {
+          // setCenter를 사용하여 정확히 중심으로 이동 (panTo 대신)
+          map.setCenter({ lat: pendingLocation.lat, lng: pendingLocation.lng });
+          map.setZoom(16); // 적절한 줌 레벨 설정
+          
+          console.log('✅ 메모 위치로 이동 완료:', { lat: pendingLocation.lat, lng: pendingLocation.lng });
+        } catch (error) {
+          console.error('❌ 지도 이동 실패:', error);
+        }
+      };
+      
+      // 지도 렌더링 완료를 보장하기 위한 딜레이
+      const timeoutId = setTimeout(moveToPendingLocation, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
-  }, [pendingLocation, isLocationLocked]);
+  }, [pendingLocation, map, isLocationLocked]);
 
   // Update user marker (only when location is NOT locked)
   useEffect(() => {
