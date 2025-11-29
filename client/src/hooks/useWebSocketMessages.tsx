@@ -7,9 +7,10 @@ import type { MemoWithDetails } from "@shared/schema";
 
 interface UseWebSocketMessagesProps {
   moveToLocation: (lat: number, lng: number, memo?: MemoWithDetails) => void;
+  myMemberIds: string[];
 }
 
-export function useWebSocketMessages({ moveToLocation }: UseWebSocketMessagesProps) {
+export function useWebSocketMessages({ moveToLocation, myMemberIds }: UseWebSocketMessagesProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -20,6 +21,11 @@ export function useWebSocketMessages({ moveToLocation }: UseWebSocketMessagesPro
         queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
 
         if (data.type === "memo_created" && data.memo) {
+          // Skip notification if this memo was created by the current user
+          if (data.memo.memberId && myMemberIds.includes(data.memo.memberId)) {
+            return;
+          }
+          
           toast({
             title: t.toast.newMemo,
             description: `${data.memo?.buildingName}${t.toast.newMemoDesc}`,
@@ -36,6 +42,11 @@ export function useWebSocketMessages({ moveToLocation }: UseWebSocketMessagesPro
             ),
           });
         } else if (data.type === "memo_updated" && data.memo) {
+          // Skip notification if this memo was created by the current user
+          if (data.memo.memberId && myMemberIds.includes(data.memo.memberId)) {
+            return;
+          }
+          
           toast({
             title: t.toast.memoUpdated,
             description: `${data.memo?.buildingName}${t.toast.memoUpdatedDesc}`,
@@ -54,7 +65,7 @@ export function useWebSocketMessages({ moveToLocation }: UseWebSocketMessagesPro
         }
       }
     },
-    [toast, t, moveToLocation]
+    [toast, t, moveToLocation, myMemberIds]
   );
 
   return { handleWebSocketMessage };

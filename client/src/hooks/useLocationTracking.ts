@@ -9,6 +9,7 @@ interface UseLocationTrackingProps {
   notificationsEnabled: boolean;
   proximityRadius: number;
   memos: MemoWithDetails[];
+  myMemberIds: string[];
 }
 
 export function useLocationTracking({
@@ -16,6 +17,7 @@ export function useLocationTracking({
   notificationsEnabled,
   proximityRadius,
   memos,
+  myMemberIds,
 }: UseLocationTrackingProps) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [notifiedMemoIds, setNotifiedMemoIds] = useState<Set<string>>(new Set());
@@ -42,6 +44,9 @@ export function useLocationTracking({
               memos.forEach((memo) => {
                 // Skip if already notified
                 if (notifiedMemoIds.has(memo.id)) return;
+                
+                // Skip if this memo was created by the current user
+                if (myMemberIds.includes(memo.memberId)) return;
 
                 const distance = calculateDistance(
                   latitude,
@@ -86,7 +91,7 @@ export function useLocationTracking({
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [locationEnabled, notificationsEnabled, memos, proximityRadius, notifiedMemoIds, toast]);
+  }, [locationEnabled, notificationsEnabled, memos, proximityRadius, notifiedMemoIds, myMemberIds, toast]);
 
   // Additional location tracking for settings
   useEffect(() => {
@@ -126,8 +131,11 @@ export function useLocationTracking({
         return distance <= 100;
       });
 
-      // Only notify for new memos that haven't been notified yet
+      // Only notify for new memos that haven't been notified yet and are not created by the current user
       nearbyMemos.forEach((memo) => {
+        // Skip if this memo was created by the current user
+        if (myMemberIds.includes(memo.memberId)) return;
+        
         if (Notification.permission === "granted" && !notifiedMemoIds.has(memo.id)) {
           new Notification("근처 메모 있음", {
             body: `${memo.buildingName}에 메모가 있습니다`,
@@ -151,7 +159,7 @@ export function useLocationTracking({
         return updated;
       });
     },
-    [memos, notifiedMemoIds]
+    [memos, notifiedMemoIds, myMemberIds]
   );
 
   return {

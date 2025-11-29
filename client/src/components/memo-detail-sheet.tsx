@@ -62,25 +62,18 @@ export function MemoDetailSheet({
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="truncate flex-1" data-testid="text-memo-address">{memo.address}</span>
                 {onNavigateToLocation && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 text-sky-600 dark:text-sky-500 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/20 -mr-1"
-                        onClick={() => {
-                          onNavigateToLocation(memo.latitude, memo.longitude);
-                          onOpenChange(false);
-                        }}
-                        data-testid="button-navigate-to-location"
-                      >
-                        <Navigation className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t.memoDetail.viewOnMap}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 text-sky-600 dark:text-sky-500 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/20 -mr-1"
+                    onClick={() => {
+                      onNavigateToLocation(memo.latitude, memo.longitude);
+                      onOpenChange(false);
+                    }}
+                    data-testid="button-navigate-to-location"
+                  >
+                    <Navigation className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </Button>
                 )}
               </div>
             </SheetHeader>

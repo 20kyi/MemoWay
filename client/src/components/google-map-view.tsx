@@ -677,10 +677,10 @@ function GoogleMapViewComponent({
       
       {/* 위치 고정 모드 상태 배너 */}
       {isLocationLocked && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none max-w-[calc(100vw-2rem)] px-2">
-          <div className="bg-blue-500/90 backdrop-blur-sm text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-lg border-2 border-blue-400 flex items-center gap-1.5 sm:gap-2 animate-pulse">
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
+          <div className="bg-blue-500/90 backdrop-blur-sm text-white px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-lg border-2 border-blue-400 flex items-center gap-1.5 sm:gap-2 animate-pulse whitespace-nowrap">
             <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-            <span className="text-xs sm:text-sm font-medium leading-tight whitespace-normal text-center">{t.common.locationLockModeActive}</span>
+            <span className="text-[10px] sm:text-xs md:text-sm font-medium leading-tight">{t.common.locationLockModeActive}</span>
           </div>
         </div>
       )}

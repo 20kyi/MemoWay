@@ -134,6 +134,7 @@ export default function Home() {
     notificationsEnabled,
     proximityRadius,
     memos,
+    myMemberIds,
   });
 
   // Map instance management
@@ -145,7 +146,7 @@ export default function Home() {
     });
 
   // WebSocket messages
-  const { handleWebSocketMessage } = useWebSocketMessages({ moveToLocation });
+  const { handleWebSocketMessage } = useWebSocketMessages({ moveToLocation, myMemberIds });
   useWebSocket(handleWebSocketMessage);
 
   // Personal member management (groups가 로드된 후에만 실행)
