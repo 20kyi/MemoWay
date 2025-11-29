@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/language-context";
 import { useMapProvider } from "@/lib/map-provider-context";
+import { useLayoutTheme } from "@/lib/layout-theme-context";
 import { useToast } from "@/hooks/use-toast";
 import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 import type { SelectedLocation } from "@/types/home";
@@ -34,6 +35,8 @@ export default function Home() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { mapProvider } = useMapProvider();
+  const { layoutTheme } = useLayoutTheme();
+  const isCoupleTheme = layoutTheme === "couple-clay";
   const { toast } = useToast();
 
   // Tab navigation
@@ -376,7 +379,9 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden pt-[env(safe-area-inset-top)]">
-      <div className="flex-1 overflow-hidden pb-16 relative z-10">
+      <div className={`overflow-hidden relative z-10 ${
+        isCoupleTheme ? "h-screen pb-0" : "flex-1 pb-16"
+      }`}>
         {activeTab === "map" && (
           <div className="relative h-full">
             {mapProvider === "kakao" ? (

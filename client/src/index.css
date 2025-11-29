@@ -1196,6 +1196,29 @@
   padding-bottom: 6px !important;
 }
 
+/* 커플 테마에서 지도가 네비게이션 바 아래까지 확장되도록 */
+.layout-couple-clay .h-screen.overflow-hidden {
+  height: 100vh !important;
+  padding-bottom: 0 !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+}
+
+.layout-couple-clay .relative.h-full {
+  height: 100% !important;
+  min-height: 100% !important;
+}
+
+/* 지도 컨테이너가 네비게이션 바 아래까지 확장 */
+.layout-couple-clay [data-testid="map-container"],
+.layout-couple-clay [class*="map-container"] {
+  height: 100% !important;
+}
+
 /* 커플 테마 네비 아이콘 - 활성 상태 (기본 스타일) */
 .layout-couple-clay .bottom-nav-icon-active-couple {
   border-radius: 20px !important;
