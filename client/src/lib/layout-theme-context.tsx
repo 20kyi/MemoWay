@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-export type LayoutTheme = "default" | "lavender-night";
+export type LayoutTheme = "default" | "lavender-night" | "couple-clay";
 
 interface LayoutThemeContextType {
   layoutTheme: LayoutTheme;
@@ -13,7 +13,7 @@ export function LayoutThemeProvider({ children }: { children: React.ReactNode })
   const [layoutTheme, setLayoutThemeState] = useState<LayoutTheme>(() => {
     const saved = localStorage.getItem("layoutTheme");
     // 지원되는 테마만 유지하고, 나머지는 기본값으로 마이그레이션
-    if (saved === "default" || saved === "lavender-night") {
+    if (saved === "default" || saved === "lavender-night" || saved === "couple-clay") {
       return saved;
     }
     // 지원되지 않는 테마는 기본값으로 변경
@@ -27,7 +27,7 @@ export function LayoutThemeProvider({ children }: { children: React.ReactNode })
     const root = document.documentElement;
     
     // 기존 레이아웃 클래스 제거
-    root.classList.remove("layout-lavender-night", "layout-warm-beige", "layout-romantic-love", "layout-dreamy-gradient", "layout-pastel-dream");
+    root.classList.remove("layout-lavender-night", "layout-warm-beige", "layout-romantic-love", "layout-dreamy-gradient", "layout-pastel-dream", "layout-couple-clay");
     
     // 새 레이아웃 클래스 추가
     if (layoutTheme !== "default") {

@@ -594,6 +594,12 @@ export function SettingsView({
                     <span>{language === 'ko' ? '라벤더 나이트 (다크)' : language === 'en' ? 'Lavender Night (Dark)' : language === 'zh' ? '薰衣草之夜 (深色)' : 'ラベンダーナイト (ダーク)'}</span>
                   </div>
                 </SelectItem>
+                <SelectItem value="couple-clay" data-testid="layout-couple-clay">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gradient-to-br from-pink-300 to-rose-400 shadow-md" style={{ boxShadow: '0 2px 4px rgba(255, 105, 180, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(255, 20, 147, 0.3)' }}></div>
+                    <span>{language === 'ko' ? '커플 클레이 3D' : language === 'en' ? 'Couple Clay 3D' : language === 'zh' ? '情侣粘土3D' : 'カップルクレイ3D'}</span>
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
