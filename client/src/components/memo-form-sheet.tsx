@@ -299,8 +299,8 @@ export function MemoFormSheet({
         <div className="w-12 h-1 bg-indigo-300/50 rounded-full mx-auto mt-3 mb-4" />
         
         <div className="px-4 sm:px-5 flex-shrink-0 pb-2">
-          <SheetHeader className="mb-4">
-            <SheetTitle className="text-xl sm:text-2xl font-bold text-sky-600 dark:text-sky-500">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
+            <SheetHeader className="mb-4">
+            <SheetTitle className="text-xl sm:text-2xl font-bold text-sky-600 dark:text-white">{editMode ? t.memoForm.editMemo : t.memoForm.newMemo}</SheetTitle>
           </SheetHeader>
         </div>
 
@@ -312,7 +312,7 @@ export function MemoFormSheet({
                 name="buildingName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.buildingName}</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-white">{t.memoForm.buildingName}</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} className="text-sm h-11 border-indigo-200 focus:border-sky-500 focus:ring-sky-500" data-testid="input-building-name" />
                     </FormControl>
@@ -326,7 +326,7 @@ export function MemoFormSheet({
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.address}</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-white">{t.memoForm.address}</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder={t.memoForm.addressPlaceholder} className="text-sm h-11 border-indigo-200 focus:border-sky-500 focus:ring-sky-500" data-testid="input-address" />
                     </FormControl>
@@ -336,8 +336,8 @@ export function MemoFormSheet({
               />
 
               <div>
-                <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.photos}</FormLabel>
-                <p className="text-xs text-gray-500 mt-1 mb-3">
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-white">{t.memoForm.photos}</FormLabel>
+                <p className="text-xs text-gray-500 dark:text-white/80 mt-1 mb-3">
                   첫 번째 사진이 대표 사진으로 표시됩니다. 드래그하여 순서를 변경할 수 있습니다.
                 </p>
                 
@@ -381,7 +381,7 @@ export function MemoFormSheet({
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">{t.memoForm.content}</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-white">{t.memoForm.content}</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
@@ -400,7 +400,7 @@ export function MemoFormSheet({
                 name="markerIcon"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm">{t.memoForm.markerIcon}</FormLabel>
+                    <FormLabel className="text-sm text-gray-700 dark:text-white">{t.memoForm.markerIcon}</FormLabel>
                     <FormControl>
                       <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                         {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
@@ -433,7 +433,7 @@ export function MemoFormSheet({
                   name="groupIds"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm">{t.memoForm.groupShare}</FormLabel>
+                      <FormLabel className="text-sm text-gray-700 dark:text-white">{t.memoForm.groupShare}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
