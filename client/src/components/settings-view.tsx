@@ -113,9 +113,19 @@ export function SettingsView({
         console.log('[LOGOUT] Invalidating queries...');
         await queryClient.invalidateQueries();
         
+        // 로그아웃 성공 메시지 표시
+        toast({
+          title: language === 'ko' ? "로그아웃 완료" : "Logged out",
+          description: language === 'ko' 
+            ? "로그아웃되었습니다."
+            : "You have been logged out.",
+        });
+        
         // 로그아웃 성공 후 랜딩 페이지로 이동
         console.log('[LOGOUT] Redirecting to landing page...');
-        window.location.href = '/';
+        setTimeout(() => {
+          window.location.href = '/?logout=true';
+        }, 500); // 토스트 메시지를 보여주기 위한 짧은 지연
       } catch (error) {
         console.error('Logout error:', error);
         toast({
@@ -127,30 +137,55 @@ export function SettingsView({
         });
       }
     } else {
-      // 웹 브라우저: 서버 리다이렉트 사용
-      // 서버가 JSON 응답을 반환하는 경우를 대비해 fetch로 처리
-      fetch('/api/logout', {
-        method: 'GET',
-        credentials: 'include',
-        redirect: 'follow', // 서버 리다이렉트를 따름
-      })
-      .then(response => {
-        // 서버가 리다이렉트하면 브라우저가 자동으로 따라감
-        // JSON 응답인 경우 (서버가 잘못 감지한 경우) 수동으로 리다이렉트
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          // JSON 응답이면 랜딩 페이지로 리다이렉트
-          queryClient.invalidateQueries();
-          window.location.href = '/?logout=true';
+      // 웹 브라우저: 로그아웃 처리
+      try {
+        // 먼저 쿼리 캐시 무효화
+        await queryClient.invalidateQueries();
+        
+        // 로그아웃 요청
+        const response = await fetch('/api/logout', {
+          method: 'GET',
+          credentials: 'include',
+          redirect: 'manual', // 리다이렉트를 수동으로 처리
+        });
+        
+        console.log('[LOGOUT] Response status:', response.status);
+        console.log('[LOGOUT] Response type:', response.type);
+        
+        // 성공 메시지 표시
+        toast({
+          title: language === 'ko' ? "로그아웃 완료" : "Logged out",
+          description: language === 'ko' 
+            ? "로그아웃되었습니다."
+            : "You have been logged out.",
+        });
+        
+        // 리다이렉트 응답이거나 성공 응답인 경우
+        if (response.status >= 200 && response.status < 400) {
+          // 랜딩 페이지로 이동
+          setTimeout(() => {
+            window.location.href = '/?logout=true';
+          }, 500); // 토스트 메시지를 보여주기 위한 짧은 지연
+        } else {
+          // 에러 응답인 경우에도 랜딩 페이지로 이동
+          setTimeout(() => {
+            window.location.href = '/?logout=true';
+          }, 500);
         }
-        // 리다이렉트 응답이면 브라우저가 자동으로 처리
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Logout error:', error);
-        // 에러가 발생해도 랜딩 페이지로 이동 시도
-        queryClient.invalidateQueries();
-        window.location.href = '/?logout=true';
-      });
+        // 에러가 발생해도 로그아웃 처리 시도
+        await queryClient.invalidateQueries();
+        toast({
+          title: language === 'ko' ? "로그아웃 완료" : "Logged out",
+          description: language === 'ko' 
+            ? "로그아웃되었습니다."
+            : "You have been logged out.",
+        });
+        setTimeout(() => {
+          window.location.href = '/?logout=true';
+        }, 500);
+      }
     }
   };
 
