@@ -259,7 +259,7 @@ export function SettingsView({
   ];
 
   return (
-    <div className="px-4 pt-6 sm:pt-4 pb-4 sm:pb-5 sm:px-5 pb-20 sm:pb-24 space-y-3 sm:space-y-4 overflow-y-auto h-full bg-gradient-to-br from-blue-50/30 to-white min-h-screen">
+    <div className="px-4 pt-6 sm:pt-4 sm:px-5 space-y-3 sm:space-y-4 overflow-y-auto h-full bg-gradient-to-br from-blue-50/30 to-white min-h-screen pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom))+1rem)]">
       <h1 className="text-2xl sm:text-3xl font-bold text-sky-600 dark:text-sky-500 mb-4 sm:mb-5">{t.settings.title}</h1>
 
       {/* 1. 계정 */}
