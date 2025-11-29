@@ -218,3 +218,4 @@ if (Capacitor.getPlatform() === 'android') {
 - [ ] 로그인 플로우 정상 작동 확인
 
 
+
