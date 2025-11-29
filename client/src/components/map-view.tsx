@@ -1328,17 +1328,60 @@ function MapViewComponent({
     const searchCenterLat = hasUserLocation ? userLat! : mapCenter.getLat();
     const searchCenterLng = hasUserLocation ? userLng! : mapCenter.getLng();
 
-    // 1. 먼저 Places.keywordSearch로 장소 키워드 검색 시도
-    const places = new window.kakao.maps.services.Places();
-    
-    // 검색 옵션 설정: 현재 위치 기준으로 반경 5km 내에서 검색 (카카오맵 웹사이트와 동일)
-    const searchOptions = {
-      location: new window.kakao.maps.LatLng(searchCenterLat, searchCenterLng),
-      radius: MAX_RADIUS, // 5km 반경
-      sort: 'distance' as const, // 거리순 정렬
-    };
-    
-    places.keywordSearch(searchQuery, (data: any, status: any, pagination: any) => {
+    // 1. 먼저 주소 검색 시도 (5km 제한 없음)
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    geocoder.addressSearch(searchQuery, (addressResult: any, addressStatus: any) => {
+      if (addressStatus === window.kakao.maps.services.Status.OK && addressResult && addressResult.length > 0) {
+        // 주소 검색 성공 - 제한 없이 자유롭게 검색
+        setIsSearching(false);
+        
+        if (!addressResult || addressResult.length === 0 || !addressResult[0] || addressResult[0].x === undefined || addressResult[0].y === undefined) {
+          toast({
+            title: t.toast.locationError,
+            description: t.toast.addressNotFound,
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // 주소 검색 결과는 단일 마커로 표시
+        const coords = new window.kakao.maps.LatLng(addressResult[0].y, addressResult[0].x);
+        const markerContent = document.createElement('div');
+        markerContent.innerHTML = createSearchMarkerContent();
+        
+        const customOverlay = new window.kakao.maps.CustomOverlay({
+          position: coords,
+          content: markerContent,
+          yAnchor: 1,
+        });
+        
+        customOverlay.setMap(map);
+        setSearchMarker(customOverlay);
+        
+        map.setCenter(coords);
+        map.setLevel(3);
+        setIsLocationLocked(false);
+
+        toast({
+          title: t.toast.locationFound,
+          description: addressResult[0].address_name || searchQuery,
+        });
+        
+        setSearchQuery("");
+        return;
+      }
+      
+      // 주소 검색 실패 시 플레이스 검색 시도 (5km 제한)
+      const places = new window.kakao.maps.services.Places();
+      
+      // 플레이스 검색 옵션: 현재 위치 기준으로 반경 5km 내에서만 검색
+      const searchOptions = {
+        location: new window.kakao.maps.LatLng(searchCenterLat, searchCenterLng),
+        radius: MAX_RADIUS, // 5km 반경
+        sort: 'distance' as const, // 거리순 정렬
+      };
+      
+      places.keywordSearch(searchQuery, (data: any, status: any, pagination: any) => {
       if (status === window.kakao.maps.services.Status.OK && data && data.length > 0) {
         // 검색어 정규화 (공백 제거, 소문자 변환)
         const normalizedQuery = searchQuery.trim().replace(/\s+/g, '').toLowerCase();
@@ -1463,61 +1506,22 @@ function MapViewComponent({
           title: t.toast.searchComplete,
           description: t.toast.searchCompleteDesc
             .replace('{count}', top10Places.length.toString())
-            .replace('{radius}', hasUserLocation ? ` (5km 반경 내, 거리순)` : ''),
+            .replace('{radius}', hasUserLocation ? ` (5km 반경 내 장소 검색, 거리순)` : ' (5km 반경 내 장소 검색)'),
         });
         
         setSearchQuery("");
         return;
       }
       
-      // 키워드 검색 실패 시 주소 검색으로 폴백
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      geocoder.addressSearch(searchQuery, (result: any, status: any) => {
-        setIsSearching(false);
-
-        if (status === window.kakao.maps.services.Status.OK && result && result.length > 0) {
-          if (!result || result.length === 0 || !result[0] || result[0].x === undefined || result[0].y === undefined) {
-            toast({
-              title: t.toast.locationError,
-              description: t.toast.addressNotFound,
-              variant: "destructive",
-            });
-            return;
-          }
-          
-          // 주소 검색 결과는 단일 마커로 표시
-          const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
-          const markerContent = document.createElement('div');
-          markerContent.innerHTML = createSearchMarkerContent();
-          
-          const customOverlay = new window.kakao.maps.CustomOverlay({
-            position: coords,
-            content: markerContent,
-            yAnchor: 1,
-          });
-          
-          customOverlay.setMap(map);
-          setSearchMarker(customOverlay);
-          
-          map.setCenter(coords);
-          map.setLevel(3);
-          setIsLocationLocked(false);
-
-          toast({
-            title: t.toast.locationFound,
-            description: result[0].address_name || searchQuery,
-          });
-          
-          setSearchQuery("");
-        } else {
-          toast({
-            title: t.toast.searchFailed,
-            description: t.toast.searchFailedDesc,
-            variant: "destructive",
-          });
-        }
+      // 플레이스 검색도 실패한 경우
+      setIsSearching(false);
+      toast({
+        title: t.toast.searchFailed,
+        description: t.toast.searchFailedDesc,
+        variant: "destructive",
       });
-    }, searchOptions); // 검색 옵션 전달: 현재 위치 기준, 5km 반경, 거리순 정렬
+    }, searchOptions); // 플레이스 검색 옵션: 현재 위치 기준, 5km 반경, 거리순 정렬
+    }); // 주소 검색 콜백 종료
   };
 
   const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
