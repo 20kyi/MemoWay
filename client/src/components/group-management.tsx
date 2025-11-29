@@ -202,9 +202,9 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
   });
 
   return (
-    <div className="px-2 sm:px-4 py-3 sm:py-4 space-y-3 overflow-y-auto h-full relative">
+    <div className="px-2 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 space-y-3 sm:space-y-4 overflow-y-auto h-full relative">
       {/* 그룹 검색 바 */}
-      <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1.5 sm:p-2">
+      <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
         <div className="relative flex-1">
           <Input
             value={searchQuery}

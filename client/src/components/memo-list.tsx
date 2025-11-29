@@ -147,7 +147,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
 
   if (memos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+      <div className="flex flex-col items-center justify-center h-full pt-6 sm:pt-4 px-4 pb-8 text-center">
         <p className="text-muted-foreground text-lg mb-2">{t.memoList.noMemos}</p>
         <p className="text-muted-foreground text-sm">{t.memoList.noMemosDesc}</p>
       </div>
@@ -171,7 +171,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
     <div className="flex flex-col h-full">
       {/* Selection Mode Header */}
       {isSelectionMode ? (
-        <div className="px-4 py-3 bg-muted/50 border-b flex items-center justify-between">
+        <div className="px-4 pt-6 sm:pt-4 pb-3 bg-muted/50 border-b flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
               size="icon"
@@ -208,7 +208,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
         </div>
       ) : (
         /* Category and Group Filter Dropdowns */
-        <div className="px-4 pt-4 pb-2 grid grid-cols-2 gap-2">
+        <div className="px-4 pt-6 sm:pt-4 pb-2 grid grid-cols-2 gap-2">
           {/* Category Filter */}
           <Select
             value={selectedCategory}
