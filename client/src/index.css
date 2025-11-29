@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Safe area insets for mobile devices */
+@supports (padding: max(0px)) {
+  :root {
+    --safe-area-inset-top: env(safe-area-inset-top);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    --safe-area-inset-left: env(safe-area-inset-left);
+    --safe-area-inset-right: env(safe-area-inset-right);
+  }
+}
+
 /* LIGHT MODE - Urban Minimal Theme */
 :root {
   --font-family: 'Roboto', sans-serif;

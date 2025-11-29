@@ -202,7 +202,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-pink-100/50 to-pink-50 flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-pink-100/50 to-pink-50 flex items-center justify-center relative overflow-hidden pt-[env(safe-area-inset-top)]">
       {/* Language Selector - Top Right */}
       <div className="absolute top-4 right-4 z-50">
         <DropdownMenu modal={false}>

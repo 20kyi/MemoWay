@@ -374,7 +374,7 @@ export default function Home() {
   }, [setMainMemoMutation]);
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden pt-[env(safe-area-inset-top)]">
       <div className="flex-1 overflow-hidden pb-16 relative z-10">
         {activeTab === "map" && (
           <div className="relative h-full">

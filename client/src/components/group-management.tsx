@@ -881,7 +881,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
       </AlertDialog>
 
       {/* 플로팅 액션 버튼 */}
-      <div className="fixed bottom-16 sm:bottom-20 right-3 sm:right-4 flex flex-col gap-2 z-50">
+      <div className="fixed bottom-[calc(4rem+max(1rem,env(safe-area-inset-bottom))+0.5rem)] sm:bottom-[calc(4rem+max(1rem,env(safe-area-inset-bottom))+1rem)] right-3 sm:right-4 flex flex-col gap-2 z-50">
         {/* 그룹 참여하기 버튼 */}
         <Button
           size="icon"
