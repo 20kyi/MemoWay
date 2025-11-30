@@ -19,6 +19,7 @@ import { Search, X, Filter, Users, User, Lock, Unlock, Edit, Trash2, Plus } from
 import { loadGoogleMaps } from "@/lib/google-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
+import { useLayoutTheme } from "@/lib/layout-theme-context";
 import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 
 interface GoogleMapViewProps {
@@ -86,6 +87,8 @@ function GoogleMapViewComponent({
   const errorToastShownRef = useRef(false); // 토스트 중복 표시 방지
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { layoutTheme } = useLayoutTheme();
+  const isCoupleTheme = layoutTheme === "couple-clay";
   const watchIdRef = useRef<number | null>(null);
 
   // Initialize Google Map
@@ -756,7 +759,10 @@ function GoogleMapViewComponent({
 
       {/* 주소 검색 바 */}
       <div className="absolute top-4 left-4 right-4 z-10">
-        <div className="search-bar-couple-theme flex gap-2 p-2">
+        <div className={isCoupleTheme 
+          ? "search-bar-couple-theme flex gap-2 p-2"
+          : "flex gap-2 p-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
+        }>
           <div className="relative flex-1">
             <Input
               value={searchQuery}
@@ -899,13 +905,20 @@ function GoogleMapViewComponent({
             <Button
               size="icon"
               onClick={toggleMapLock}
-              className="map-lock-button-couple h-12 w-12 rounded-full"
+              className={isCoupleTheme 
+                ? "map-lock-button-couple h-12 w-12 rounded-full"
+                : `h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
+                    isMapLocked 
+                      ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
+                      : 'bg-primary hover:bg-primary/90 border-2 border-primary'
+                  }`
+              }
               data-testid="button-map-lock"
             >
               {isMapLocked ? (
-                <Lock className="h-6 w-6 text-white" />
+                <Lock className={isCoupleTheme ? "h-6 w-6 text-white" : "h-5 w-5 text-primary-foreground"} />
               ) : (
-                <Unlock className="h-6 w-6 text-white" />
+                <Unlock className={isCoupleTheme ? "h-6 w-6 text-white" : "h-5 w-5 text-primary-foreground"} />
               )}
             </Button>
           </TooltipTrigger>
