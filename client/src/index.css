@@ -1281,6 +1281,66 @@
   z-index: 2;
 }
 
+/* 커플 테마 지도 확대/축소 잠금 버튼 네오모피즘 스타일 */
+.layout-couple-clay .map-lock-button-couple {
+  /* 네오모피즘 스타일: 파스텔 핑크 원형 배경 */
+  background: #FFE4E9 !important;
+  /* 완전한 원형 */
+  border-radius: 50% !important;
+  /* 네오모피즘 그림자: 부드러운 외부 그림자와 내부 하이라이트/그림자 */
+  box-shadow: 
+    0 6px 12px -3px rgba(255, 182, 193, 0.3),
+    0 3px 6px -2px rgba(255, 192, 203, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 3px rgba(255, 182, 193, 0.3) !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  transition: all 0.3s ease !important;
+}
+
+.layout-couple-clay .map-lock-button-couple:hover {
+  box-shadow: 
+    0 8px 16px -4px rgba(255, 182, 193, 0.35),
+    0 4px 8px -2px rgba(255, 192, 203, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 3px rgba(255, 182, 193, 0.3) !important;
+  transform: translateY(-1px);
+}
+
+/* 지도 확대/축소 잠금 버튼 네오모피즘 볼록 효과를 위한 오버레이 */
+.layout-couple-clay .map-lock-button-couple::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  /* 볼록한 느낌을 위한 방사형 그라데이션 - 상단 중앙이 약간 밝음 (너무 밝지 않게) */
+  background: radial-gradient(ellipse 110% 70% at 50% 25%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 25%, transparent 55%);
+}
+
+.layout-couple-clay .map-lock-button-couple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  /* 가장자리 어둡게 - 특히 하단 (두 개의 그라데이션을 합쳐서 적용, 더 연한 핑크에 맞게 조정) */
+  background: 
+    radial-gradient(ellipse 130% 90% at 50% 50%, transparent 45%, rgba(255, 182, 193, 0.2) 75%, rgba(255, 192, 203, 0.3) 100%),
+    linear-gradient(to top, rgba(255, 192, 203, 0.25) 0%, transparent 35%);
+}
+
+/* 지도 확대/축소 잠금 버튼 내부 아이콘 z-index 조정 */
+.layout-couple-clay .map-lock-button-couple > * {
+  position: relative;
+  z-index: 2;
+}
+
 /* 커플 테마에서 지도가 네비게이션 바 아래까지 확장되도록 */
 .layout-couple-clay .h-screen.overflow-hidden {
   height: 100vh !important;

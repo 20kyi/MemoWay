@@ -899,17 +899,13 @@ function GoogleMapViewComponent({
             <Button
               size="icon"
               onClick={toggleMapLock}
-              className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
-                isMapLocked 
-                  ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
-                  : 'bg-primary hover:bg-primary/90 border-2 border-primary'
-              }`}
+              className="map-lock-button-couple h-12 w-12 rounded-full"
               data-testid="button-map-lock"
             >
               {isMapLocked ? (
-                <Lock className="h-5 w-5 text-primary-foreground" />
+                <Lock className="h-6 w-6 text-white" />
               ) : (
-                <Unlock className="h-5 w-5 text-primary-foreground" />
+                <Unlock className="h-6 w-6 text-white" />
               )}
             </Button>
           </TooltipTrigger>
