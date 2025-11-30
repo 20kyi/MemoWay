@@ -4,12 +4,14 @@ interface CustomMemoIconProps {
   className?: string;
   size?: number;
   isActive?: boolean;
+  color?: string;
 }
 
 export function CustomMemoIcon({ 
   className = "", 
   size = 24, 
-  isActive = false 
+  isActive = false,
+  color
 }: CustomMemoIconProps) {
   const gradientIds = useMemo(() => {
     const uniqueId = Math.random().toString(36).substring(7);
@@ -21,11 +23,15 @@ export function CustomMemoIcon({
     };
   }, []);
 
-  // 활성/비활성에 따른 색상 - 핑크색
-  const pinkColor = isActive ? "#FF69B4" : "#FFB6C1";
-  const shadowColor = isActive 
-    ? "rgba(255, 105, 180, 0.4)" 
-    : "rgba(255, 182, 193, 0.3)";
+  // 활성/비활성에 따른 색상 - 핑크색 (color prop이 있으면 사용)
+  const pinkColor = color || (isActive ? "#FF69B4" : "#FFB6C1");
+  const shadowColor = color 
+    ? color === "#EB8FA6" 
+      ? "rgba(235, 143, 166, 0.4)" 
+      : "rgba(255, 105, 180, 0.4)"
+    : (isActive 
+      ? "rgba(255, 105, 180, 0.4)" 
+      : "rgba(255, 182, 193, 0.3)");
 
   return (
     <svg

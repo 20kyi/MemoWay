@@ -59,13 +59,13 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                 : `rounded-full p-2 ${isActive ? "bg-primary/10 shadow-md" : ""}`
             }`}>
               {isCoupleTheme && tab.id === "map" ? (
-                <CustomMapPin size={26} isActive={isActive} />
+                <CustomMapPin size={40} isActive={isActive} color="#6289F3" />
               ) : isCoupleTheme && tab.id === "memos" ? (
-                <CustomMemoIcon size={28} isActive={isActive} />
+                <CustomMemoIcon size={42} isActive={isActive} color="#EB8FA6" />
               ) : isCoupleTheme && tab.id === "groups" ? (
-                <CustomGroupIcon size={28} isActive={isActive} />
+                <CustomGroupIcon size={63} isActive={isActive} color="#8E66D5" />
               ) : isCoupleTheme && tab.id === "settings" ? (
-                <CustomSettingsIcon size={28} isActive={isActive} />
+                <CustomSettingsIcon size={42} isActive={isActive} />
               ) : (
                 <Icon className="h-6 w-6" />
               )}

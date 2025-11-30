@@ -383,7 +383,7 @@ export default function Home() {
         isCoupleTheme ? "h-screen pb-0" : "flex-1 pb-16"
       }`}>
         {activeTab === "map" && (
-          <div className="relative h-full">
+          <div className={`relative h-full ${isCoupleTheme ? 'bg-[#FCEDEF]' : ''}`}>
             {mapProvider === "kakao" ? (
               <MapView
                   onLocationSelect={handleLocationSelect}

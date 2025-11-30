@@ -4,12 +4,14 @@ interface CustomGroupIconProps {
   className?: string;
   size?: number;
   isActive?: boolean;
+  color?: string;
 }
 
 export function CustomGroupIcon({ 
   className = "", 
   size = 24, 
-  isActive = false 
+  isActive = false,
+  color
 }: CustomGroupIconProps) {
   const gradientIds = useMemo(() => {
     const uniqueId = Math.random().toString(36).substring(7);
@@ -19,11 +21,15 @@ export function CustomGroupIcon({
     };
   }, []);
 
-  // 활성/비활성에 따른 색상 - 라벤더/보라색
-  const lavenderColor = isActive ? "#A78BFA" : "#C4B5FD";
-  const shadowColor = isActive 
-    ? "rgba(167, 139, 250, 0.4)" 
-    : "rgba(196, 181, 253, 0.3)";
+  // 활성/비활성에 따른 색상 - 라벤더/보라색 (color prop이 있으면 사용)
+  const lavenderColor = color || (isActive ? "#A78BFA" : "#C4B5FD");
+  const shadowColor = color 
+    ? color === "#8E66D5" 
+      ? "rgba(142, 102, 213, 0.4)" 
+      : "rgba(167, 139, 250, 0.4)"
+    : (isActive 
+      ? "rgba(167, 139, 250, 0.4)" 
+      : "rgba(196, 181, 253, 0.3)");
 
   return (
     <svg

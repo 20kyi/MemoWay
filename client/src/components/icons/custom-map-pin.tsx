@@ -23,11 +23,15 @@ export function CustomMapPin({
     };
   }, []);
 
-  // 활성/비활성에 따른 색상 조정
-  const activeColor = isActive ? "#81D4FA" : "#B3E5FC";
-  const shadowColor = isActive 
-    ? "rgba(129, 212, 250, 0.4)" 
-    : "rgba(179, 229, 252, 0.3)";
+  // 활성/비활성에 따른 색상 조정 (color prop이 있으면 사용)
+  const activeColor = color || (isActive ? "#81D4FA" : "#B3E5FC");
+  const shadowColor = color 
+    ? color === "#6289F3" 
+      ? "rgba(98, 137, 243, 0.4)" 
+      : "rgba(129, 212, 250, 0.4)"
+    : (isActive 
+      ? "rgba(129, 212, 250, 0.4)" 
+      : "rgba(179, 229, 252, 0.3)");
 
   return (
     <svg

@@ -1172,18 +1172,40 @@
    ============================================ */
 /* 커플 테마는 기본 테마와 동일합니다. */
 
+/* 커플 테마 카드/바탕 크림핑크(무광 3D 표면) */
+.layout-couple-clay .bg-card,
+.layout-couple-clay [class*="bg-card"],
+.layout-couple-clay [data-radix-dialog-content],
+.layout-couple-clay [data-radix-sheet-content],
+.layout-couple-clay [role="dialog"],
+.layout-couple-clay [role="alertdialog"],
+.layout-couple-clay .card,
+.layout-couple-clay [class*="Card"],
+.layout-couple-clay [class*="Sheet"],
+.layout-couple-clay [class*="sheet"] {
+  background: #F3DEDF !important;
+}
+
+/* 커플 테마 입력 필드 바탕 */
+.layout-couple-clay input,
+.layout-couple-clay textarea,
+.layout-couple-clay select,
+.layout-couple-clay [class*="Input"],
+.layout-couple-clay [class*="Textarea"] {
+  background: #F3DEDF !important;
+}
+
 /* 커플 테마 하단 네비게이션 바 스타일 */
 .layout-couple-clay .bottom-nav-couple-theme {
-  /* 네오모피즘 스타일: 거의 흰색에 가까운 핑크 배경 */
-  background: #FFF5FB !important;
+  /* 네오모피즘 스타일: 연한 화이트핑크 배경 */
+  background: #F7EDEE !important;
   /* 모서리: 상하 모두 둥글게 (떠 있는 느낌) */
   border-radius: 28px !important;
-  /* 네오모피즘 그림자: 부드러운 외부 그림자와 내부 하이라이트/그림자 */
+  /* 카드 그림자: RGBA: 0, 0, 0, 0.10 (blur 30px) */
   box-shadow: 
-    0 6px 12px -3px rgba(255, 182, 193, 0.25),
-    0 3px 6px -2px rgba(255, 192, 203, 0.2),
-    inset 0 1px 2px rgba(255, 255, 255, 0.5),
-    inset 0 -1px 3px rgba(255, 182, 193, 0.25) !important;
+    0 0 30px rgba(0, 0, 0, 0.10),
+    0 0 0 rgba(80, 100, 200, 0.25),
+    0 0 0 rgba(240, 120, 150, 0.25) !important;
   border: none !important;
   backdrop-filter: none !important;
   /* 하단에서 약간 올려서 위치 (안전한 여백 확보) */
@@ -1206,7 +1228,7 @@
   box-sizing: border-box !important;
 }
 
-/* 네오모피즘 볼록 효과를 위한 오버레이 - 위치 고정 배너와 동일한 스타일 */
+/* 상단 하이라이트: #FFFFFF (투명도 40~60%), RGBA: 255,255,255,0.5 */
 .layout-couple-clay .bottom-nav-couple-theme::before {
   content: '';
   position: absolute;
@@ -1214,10 +1236,11 @@
   border-radius: 28px;
   pointer-events: none;
   z-index: 1;
-  /* 볼록한 느낌을 위한 방사형 그라데이션 - 상단 중앙이 약간 밝음 (너무 밝지 않게) */
-  background: radial-gradient(ellipse 110% 70% at 50% 25%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 25%, transparent 55%);
+  /* 상단 하이라이트 그라데이션 */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.4) 30%, transparent 70%);
 }
 
+/* 하단 그림자 효과: 블루 요소 + 핑크 요소 */
 .layout-couple-clay .bottom-nav-couple-theme::after {
   content: '';
   position: absolute;
@@ -1225,24 +1248,20 @@
   border-radius: 28px;
   pointer-events: none;
   z-index: 1;
-  /* 가장자리 어둡게 - 특히 하단 (두 개의 그라데이션을 합쳐서 적용, 더 연한 핑크에 맞게 조정) */
-  background: 
-    radial-gradient(ellipse 130% 90% at 50% 50%, transparent 45%, rgba(255, 182, 193, 0.2) 75%, rgba(255, 192, 203, 0.3) 100%),
-    linear-gradient(to top, rgba(255, 192, 203, 0.25) 0%, transparent 35%);
+  /* 하단 그림자 그라데이션: 핑크 요소만 */
+  background: linear-gradient(to top, 
+    rgba(240, 120, 150, 0.25) 0%, 
+    transparent 50%);
 }
 
 /* 커플 테마 검색창 네오모피즘 스타일 */
 .layout-couple-clay .search-bar-couple-theme {
   /* 네오모피즘 스타일: 연한 파스텔 핑크 배경 */
-  background: #F5C6CB !important;
+  background: #F5AFC0 !important;
   /* 모서리: 둥글게 */
   border-radius: 24px !important;
-  /* 네오모피즘 그림자: 부드러운 외부 그림자와 내부 하이라이트/그림자 */
-  box-shadow: 
-    0 6px 12px -3px rgba(245, 198, 203, 0.35),
-    0 3px 6px -2px rgba(245, 198, 203, 0.25),
-    inset 0 1px 2px rgba(255, 255, 255, 0.4),
-    inset 0 -1px 3px rgba(225, 170, 175, 0.35) !important;
+  /* 카드 그림자: RGBA: 0, 0, 0, 0.10 (blur 30px) */
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.10) !important;
   border: none !important;
   backdrop-filter: none !important;
   position: relative !important;
@@ -1250,7 +1269,7 @@
   box-sizing: border-box !important;
 }
 
-/* 검색창 네오모피즘 볼록 효과를 위한 오버레이 */
+/* 상단 하이라이트: #FFFFFF (투명도 40~60%), RGBA: 255,255,255,0.5 */
 .layout-couple-clay .search-bar-couple-theme::before {
   content: '';
   position: absolute;
@@ -1258,10 +1277,11 @@
   border-radius: 24px;
   pointer-events: none;
   z-index: 1;
-  /* 볼록한 느낌을 위한 방사형 그라데이션 - 상단 중앙이 약간 밝음 (너무 밝지 않게) */
-  background: radial-gradient(ellipse 110% 70% at 50% 25%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 25%, transparent 55%);
+  /* 상단 하이라이트 그라데이션 */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.4) 30%, transparent 70%);
 }
 
+/* 하단 그림자 효과: 핑크 요소 */
 .layout-couple-clay .search-bar-couple-theme::after {
   content: '';
   position: absolute;
@@ -1269,74 +1289,14 @@
   border-radius: 24px;
   pointer-events: none;
   z-index: 1;
-  /* 가장자리 어둡게 - 특히 하단 (두 개의 그라데이션을 합쳐서 적용) */
-  background: 
-    radial-gradient(ellipse 130% 90% at 50% 50%, transparent 45%, rgba(225, 170, 175, 0.25) 75%, rgba(200, 150, 155, 0.4) 100%),
-    linear-gradient(to top, rgba(200, 150, 155, 0.3) 0%, transparent 35%);
+  /* 하단 그림자 그라데이션: 핑크 요소만 */
+  background: linear-gradient(to top, 
+    rgba(240, 120, 150, 0.25) 0%, 
+    transparent 50%);
 }
 
 /* 검색창 내부 요소 z-index 조정 */
 .layout-couple-clay .search-bar-couple-theme > * {
-  position: relative;
-  z-index: 2;
-}
-
-/* 커플 테마 지도 확대/축소 잠금 버튼 네오모피즘 스타일 */
-.layout-couple-clay .map-lock-button-couple {
-  /* 네오모피즘 스타일: 파스텔 핑크 원형 배경 */
-  background: #FFE4E9 !important;
-  /* 완전한 원형 */
-  border-radius: 50% !important;
-  /* 네오모피즘 그림자: 부드러운 외부 그림자와 내부 하이라이트/그림자 */
-  box-shadow: 
-    0 6px 12px -3px rgba(255, 182, 193, 0.3),
-    0 3px 6px -2px rgba(255, 192, 203, 0.25),
-    inset 0 1px 2px rgba(255, 255, 255, 0.5),
-    inset 0 -1px 3px rgba(255, 182, 193, 0.3) !important;
-  border: none !important;
-  backdrop-filter: none !important;
-  position: relative !important;
-  overflow: hidden !important;
-  box-sizing: border-box !important;
-  transition: all 0.3s ease !important;
-}
-
-.layout-couple-clay .map-lock-button-couple:hover {
-  box-shadow: 
-    0 8px 16px -4px rgba(255, 182, 193, 0.35),
-    0 4px 8px -2px rgba(255, 192, 203, 0.3),
-    inset 0 1px 2px rgba(255, 255, 255, 0.5),
-    inset 0 -1px 3px rgba(255, 182, 193, 0.3) !important;
-  transform: translateY(-1px);
-}
-
-/* 지도 확대/축소 잠금 버튼 네오모피즘 볼록 효과를 위한 오버레이 */
-.layout-couple-clay .map-lock-button-couple::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 1;
-  /* 볼록한 느낌을 위한 방사형 그라데이션 - 상단 중앙이 약간 밝음 (너무 밝지 않게) */
-  background: radial-gradient(ellipse 110% 70% at 50% 25%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 25%, transparent 55%);
-}
-
-.layout-couple-clay .map-lock-button-couple::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 1;
-  /* 가장자리 어둡게 - 특히 하단 (두 개의 그라데이션을 합쳐서 적용, 더 연한 핑크에 맞게 조정) */
-  background: 
-    radial-gradient(ellipse 130% 90% at 50% 50%, transparent 45%, rgba(255, 182, 193, 0.2) 75%, rgba(255, 192, 203, 0.3) 100%),
-    linear-gradient(to top, rgba(255, 192, 203, 0.25) 0%, transparent 35%);
-}
-
-/* 지도 확대/축소 잠금 버튼 내부 아이콘 z-index 조정 */
-.layout-couple-clay .map-lock-button-couple > * {
   position: relative;
   z-index: 2;
 }
@@ -1358,10 +1318,42 @@
   min-height: 100% !important;
 }
 
-/* 지도 컨테이너가 네비게이션 바 아래까지 확장 */
-.layout-couple-clay [data-testid="map-container"],
-.layout-couple-clay [class*="map-container"] {
-  height: 100% !important;
+/* 커플 테마 지도 탭 전체 배경 */
+.layout-couple-clay [class*="relative h-full"]:has([data-testid="map-container"]),
+.layout-couple-clay .relative.h-full:has([data-testid="map-container"]) {
+  background: #FCEDEF !important;
+}
+
+/* 커플 테마 지도 컨테이너 - 레이아웃 안에 들어가도록 */
+.layout-couple-clay [data-testid="map-container"].map-container-couple-theme,
+.layout-couple-clay .map-container-couple-theme {
+  position: absolute !important;
+  /* 상단: 검색창 아래 여백 1.3rem (검색창 top: 5.5rem + 검색창 높이 약 3rem + 여백 1.3rem) */
+  top: 9.8rem !important; /* 모바일 */
+  /* 하단: 하단 네비게이션 상단까지 + 여백 0.75rem (bottom: 12px + 네비게이션 높이 72px + 여백 0.75rem = 6rem) */
+  bottom: 6rem !important;
+  /* 좌우: 살짝 여백 */
+  left: 0.75rem !important;
+  right: 0.75rem !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  /* 레이아웃 바깥쪽 그림자: 지도 레이아웃에 맞게 */
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.10) !important;
+}
+
+@media (min-width: 640px) {
+  .layout-couple-clay [data-testid="map-container"].map-container-couple-theme,
+  .layout-couple-clay .map-container-couple-theme {
+    /* 데스크톱: 검색창 top: 6.5rem + 검색창 높이 약 3rem + 여백 1.3rem */
+    top: 10.8rem !important;
+  }
+}
+
+/* 커플 테마 플로팅 버튼들 - 지도 레이아웃 안에 배치 */
+.layout-couple-clay .relative.w-full.h-full {
+  position: relative !important;
 }
 
 /* 커플 테마 네비 아이콘 - 활성 상태 (기본 스타일) */

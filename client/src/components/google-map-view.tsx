@@ -15,7 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Search, X, Filter, Users, User, Lock, Unlock, Edit, Trash2, Plus } from "lucide-react";
+import { Search, X, Filter, Users, User, Lock, Unlock, Edit, Trash2, Plus, MapPin } from "lucide-react";
 import { loadGoogleMaps } from "@/lib/google-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -675,14 +675,18 @@ function GoogleMapViewComponent({
           </div>
         </div>
       ) : (
-        <div ref={mapRef} className="w-full h-full" data-testid="map-container" />
+        <div 
+          ref={mapRef} 
+          className={`w-full h-full ${isCoupleTheme ? 'map-container-couple-theme' : ''}`} 
+          data-testid="map-container" 
+        />
       )}
       
       {/* 위치 고정 모드 상태 배너 */}
       {isLocationLocked && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
           <div 
-            className="relative text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl flex items-center gap-2 sm:gap-2.5 whitespace-nowrap overflow-hidden"
+            className="relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5 gap-2 sm:gap-2.5"
             style={{
               background: '#8fa0d8',
               boxShadow: `
@@ -716,13 +720,13 @@ function GoogleMapViewComponent({
               }}
             />
             <Lock 
-              className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0 relative z-10" 
+              className="flex-shrink-0 relative z-10 h-3.5 w-3.5 sm:h-4 sm:w-4"
               style={{ 
                 filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25))',
               }} 
             />
             <span 
-              className="text-[10px] sm:text-xs md:text-sm font-medium leading-tight relative z-10" 
+              className="font-medium leading-tight relative z-10 text-[10px] sm:text-xs md:text-sm"
               style={{ 
                 textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
                 letterSpacing: '0.01em',
@@ -757,8 +761,20 @@ function GoogleMapViewComponent({
         </div>
       )}
 
+      {/* MemoWay 로고 - 커플 테마에서만 표시 */}
+      {isCoupleTheme && (
+        <div className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap">
+          <div className="relative flex-shrink-0">
+            <MapPin className="h-8 w-8 sm:h-14 sm:w-14 text-[#A28DB3] drop-shadow-md" fill="currentColor" />
+          </div>
+          <span className="text-3xl sm:text-5xl font-bold text-[#A28DB3] tracking-tight drop-shadow-md">
+            Memo Way
+          </span>
+        </div>
+      )}
+
       {/* 주소 검색 바 */}
-      <div className="absolute top-4 left-4 right-4 z-10">
+      <div className={`absolute ${isCoupleTheme ? 'top-[5.5rem] sm:top-[6.5rem]' : 'top-4'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
         <div className={isCoupleTheme 
           ? "search-bar-couple-theme flex gap-2 p-2"
           : "flex gap-2 p-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
@@ -905,20 +921,17 @@ function GoogleMapViewComponent({
             <Button
               size="icon"
               onClick={toggleMapLock}
-              className={isCoupleTheme 
-                ? "map-lock-button-couple h-12 w-12 rounded-full"
-                : `h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
-                    isMapLocked 
-                      ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
-                      : 'bg-primary hover:bg-primary/90 border-2 border-primary'
-                  }`
-              }
+              className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
+                isMapLocked 
+                  ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
+                  : 'bg-primary hover:bg-primary/90 border-2 border-primary'
+              }`}
               data-testid="button-map-lock"
             >
               {isMapLocked ? (
-                <Lock className={isCoupleTheme ? "h-6 w-6 text-white" : "h-5 w-5 text-primary-foreground"} />
+                <Lock className="h-5 w-5 text-primary-foreground" />
               ) : (
-                <Unlock className={isCoupleTheme ? "h-6 w-6 text-white" : "h-5 w-5 text-primary-foreground"} />
+                <Unlock className="h-5 w-5 text-primary-foreground" />
               )}
             </Button>
           </TooltipTrigger>
@@ -1042,7 +1055,7 @@ function GoogleMapViewComponent({
           <TooltipTrigger asChild>
             <Button
               size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg relative bg-primary hover:bg-primary/90 border-2 border-primary hover:shadow-2xl transition-all"
+              className="h-10 w-10 rounded-lg shadow-lg relative hover:shadow-2xl transition-all bg-primary hover:bg-primary/90 border-2 border-primary"
               onClick={() => setIsMarkerFilterOpen(true)}
               data-testid="button-marker-filter"
             >
