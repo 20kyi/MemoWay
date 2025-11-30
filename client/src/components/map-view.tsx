@@ -1805,14 +1805,14 @@ function MapViewComponent({
           {/* 주소 검색 바 */}
           <div className="absolute top-4 left-4 right-4 z-10">
             <div className="flex flex-col gap-2">
-              <div className="flex gap-2 bg-card/80 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-primary/30 p-2">
+              <div className="search-bar-couple-theme flex gap-2 p-2">
                 <div className="relative flex-1">
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleSearchKeyPress}
                     placeholder={t.common.addressSearchPlaceholder}
-                    className="pr-10 border-0 focus-visible:ring-0"
+                    className="pr-10 border-0 focus-visible:ring-0 bg-transparent"
                     disabled={isSearching}
                     data-testid="input-address-search"
                   />

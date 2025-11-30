@@ -26,7 +26,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
     <nav className={`fixed left-0 right-0 flex items-center justify-around z-50 ${
       isCoupleTheme 
-        ? "bottom-nav-couple-theme px-2 bottom-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" 
+        ? "bottom-nav-couple-theme px-2" 
         : "bottom-0 bg-card/95 backdrop-blur-md border-t-2 border-primary/20 min-h-16 gap-2 px-4 shadow-lg bottom-nav-romantic pb-[max(1rem,env(safe-area-inset-bottom))]"
     }`}>
       {tabs.map(tab => {

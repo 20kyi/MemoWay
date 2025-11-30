@@ -1174,26 +1174,111 @@
 
 /* 커플 테마 하단 네비게이션 바 스타일 */
 .layout-couple-clay .bottom-nav-couple-theme {
-  /* 배경: 거의 흰색에 가까운 핑크 (#FFF5FB), 윗부분은 조금 밝고, 아랫부분은 조금 어둡게 */
-  background: linear-gradient(to bottom, #FFFBFD 0%, #FFF5FB 50%, #FFEFF7 100%) !important;
-  /* 모서리: 많이 둥글게 (pill과 직사각형 사이) - 상하 모두 둥글게 */
+  /* 네오모피즘 스타일: 거의 흰색에 가까운 핑크 배경 */
+  background: #FFF5FB !important;
+  /* 모서리: 상하 모두 둥글게 (떠 있는 느낌) */
   border-radius: 28px !important;
-  /* 바 아래쪽으로 짧고 넓게 퍼지는 그림자 → "바가 화면 위에 둥둥 떠 있는 느낌" */
+  /* 네오모피즘 그림자: 부드러운 외부 그림자와 내부 하이라이트/그림자 */
   box-shadow: 
-    0 -12px 40px rgba(255, 105, 180, 0.12),
-    0 -6px 20px rgba(255, 182, 193, 0.18),
-    0 -3px 10px rgba(255, 192, 203, 0.22) !important;
+    0 6px 12px -3px rgba(255, 182, 193, 0.25),
+    0 3px 6px -2px rgba(255, 192, 203, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 3px rgba(255, 182, 193, 0.25) !important;
   border: none !important;
   backdrop-filter: none !important;
-  /* 높이 조정 - 조금 더 작게 */
+  /* 하단에서 약간 올려서 위치 (안전한 여백 확보) */
+  bottom: 12px !important;
+  /* 높이 조정 */
   min-height: 72px !important;
   /* 좌우 여백을 주어 둥근 모서리가 보이도록 */
   margin-left: 12px !important;
   margin-right: 12px !important;
+  margin-bottom: 0 !important;
   width: calc(100% - 24px) !important;
-  /* 상단에 약간의 패딩을 추가하여 둥근 모서리 영역 확보 */
+  /* 패딩: 상단은 여백, 하단은 safe area inset 고려 */
   padding-top: 6px !important;
-  padding-bottom: 6px !important;
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom)) !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+  position: fixed !important;
+  overflow: hidden !important;
+  /* 하단이 잘리지 않도록 box-sizing 설정 */
+  box-sizing: border-box !important;
+}
+
+/* 네오모피즘 볼록 효과를 위한 오버레이 - 위치 고정 배너와 동일한 스타일 */
+.layout-couple-clay .bottom-nav-couple-theme::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  pointer-events: none;
+  z-index: 1;
+  /* 볼록한 느낌을 위한 방사형 그라데이션 - 상단 중앙이 약간 밝음 (너무 밝지 않게) */
+  background: radial-gradient(ellipse 110% 70% at 50% 25%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 25%, transparent 55%);
+}
+
+.layout-couple-clay .bottom-nav-couple-theme::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  pointer-events: none;
+  z-index: 1;
+  /* 가장자리 어둡게 - 특히 하단 (두 개의 그라데이션을 합쳐서 적용, 더 연한 핑크에 맞게 조정) */
+  background: 
+    radial-gradient(ellipse 130% 90% at 50% 50%, transparent 45%, rgba(255, 182, 193, 0.2) 75%, rgba(255, 192, 203, 0.3) 100%),
+    linear-gradient(to top, rgba(255, 192, 203, 0.25) 0%, transparent 35%);
+}
+
+/* 커플 테마 검색창 네오모피즘 스타일 */
+.layout-couple-clay .search-bar-couple-theme {
+  /* 네오모피즘 스타일: 연한 파스텔 핑크 배경 */
+  background: #F5C6CB !important;
+  /* 모서리: 둥글게 */
+  border-radius: 24px !important;
+  /* 네오모피즘 그림자: 부드러운 외부 그림자와 내부 하이라이트/그림자 */
+  box-shadow: 
+    0 6px 12px -3px rgba(245, 198, 203, 0.35),
+    0 3px 6px -2px rgba(245, 198, 203, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 3px rgba(225, 170, 175, 0.35) !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* 검색창 네오모피즘 볼록 효과를 위한 오버레이 */
+.layout-couple-clay .search-bar-couple-theme::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  pointer-events: none;
+  z-index: 1;
+  /* 볼록한 느낌을 위한 방사형 그라데이션 - 상단 중앙이 약간 밝음 (너무 밝지 않게) */
+  background: radial-gradient(ellipse 110% 70% at 50% 25%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 25%, transparent 55%);
+}
+
+.layout-couple-clay .search-bar-couple-theme::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  pointer-events: none;
+  z-index: 1;
+  /* 가장자리 어둡게 - 특히 하단 (두 개의 그라데이션을 합쳐서 적용) */
+  background: 
+    radial-gradient(ellipse 130% 90% at 50% 50%, transparent 45%, rgba(225, 170, 175, 0.25) 75%, rgba(200, 150, 155, 0.4) 100%),
+    linear-gradient(to top, rgba(200, 150, 155, 0.3) 0%, transparent 35%);
+}
+
+/* 검색창 내부 요소 z-index 조정 */
+.layout-couple-clay .search-bar-couple-theme > * {
+  position: relative;
+  z-index: 2;
 }
 
 /* 커플 테마에서 지도가 네비게이션 바 아래까지 확장되도록 */
@@ -1241,12 +1326,8 @@
 
 /* 지도 아이콘 - 하늘색 계열 */
 .layout-couple-clay button[data-testid="nav-map"] .bottom-nav-icon-active-couple {
-  background: linear-gradient(135deg, #B3E5FC 0%, #81D4FA 50%, #B3E5FC 100%) !important;
-  box-shadow: 
-    0 5px 15px rgba(129, 212, 250, 0.35),
-    0 3px 8px rgba(179, 229, 252, 0.4),
-    inset 0 2px 3px rgba(255, 255, 255, 0.7),
-    inset 0 -2px 3px rgba(129, 212, 250, 0.25) !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .layout-couple-clay button[data-testid="nav-map"] .bottom-nav-icon-active-couple svg {
@@ -1261,12 +1342,8 @@
 
 /* 메모 아이콘 - 핑크 계열 */
 .layout-couple-clay button[data-testid="nav-memos"] .bottom-nav-icon-active-couple {
-  background: linear-gradient(135deg, #FFB6C1 0%, #FF69B4 50%, #FFB6C1 100%) !important;
-  box-shadow: 
-    0 5px 15px rgba(255, 105, 180, 0.35),
-    0 3px 8px rgba(255, 182, 193, 0.4),
-    inset 0 2px 3px rgba(255, 255, 255, 0.7),
-    inset 0 -2px 3px rgba(255, 105, 180, 0.25) !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .layout-couple-clay button[data-testid="nav-memos"] .bottom-nav-icon-active-couple svg {
@@ -1281,12 +1358,8 @@
 
 /* 그룹 아이콘 - 라벤더 계열 */
 .layout-couple-clay button[data-testid="nav-groups"] .bottom-nav-icon-active-couple {
-  background: linear-gradient(135deg, #C4B5FD 0%, #A78BFA 50%, #C4B5FD 100%) !important;
-  box-shadow: 
-    0 5px 15px rgba(167, 139, 250, 0.35),
-    0 3px 8px rgba(196, 181, 253, 0.4),
-    inset 0 2px 3px rgba(255, 255, 255, 0.7),
-    inset 0 -2px 3px rgba(167, 139, 250, 0.25) !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .layout-couple-clay button[data-testid="nav-groups"] .bottom-nav-icon-active-couple svg {
@@ -1301,12 +1374,8 @@
 
 /* 설정 아이콘 - 파스텔 그린 계열 */
 .layout-couple-clay button[data-testid="nav-settings"] .bottom-nav-icon-active-couple {
-  background: linear-gradient(135deg, #A5D6A7 0%, #81C784 50%, #A5D6A7 100%) !important;
-  box-shadow: 
-    0 5px 15px rgba(129, 199, 132, 0.35),
-    0 3px 8px rgba(165, 214, 167, 0.4),
-    inset 0 2px 3px rgba(255, 255, 255, 0.7),
-    inset 0 -2px 3px rgba(129, 199, 132, 0.25) !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .layout-couple-clay button[data-testid="nav-settings"] .bottom-nav-icon-active-couple svg {
