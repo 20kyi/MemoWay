@@ -914,167 +914,214 @@ function GoogleMapViewComponent({
       </Dialog>
 
         {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
-        <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
-        {/* 지도 확대/축소 잠금 버튼 */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              onClick={toggleMapLock}
-              className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
-                isMapLocked 
-                  ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
-                  : 'bg-primary hover:bg-primary/90 border-2 border-primary'
-              }`}
-              data-testid="button-map-lock"
-            >
-              {isMapLocked ? (
-                <Lock className="h-5 w-5 text-primary-foreground" />
-              ) : (
-                <Unlock className="h-5 w-5 text-primary-foreground" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            <p>{isMapLocked ? "확대/축소 잠금 해제" : "확대/축소 잠금"}</p>
-          </TooltipContent>
-        </Tooltip>
-
-        {/* 위치 고정 버튼 */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              onClick={() => {
-                const newLockState = !isLocationLocked;
-                setIsLocationLocked(newLockState);
-                
-                if (newLockState && map && currentUserLocation) {
-                  map.panTo(currentUserLocation);
-                }
-                
-                toast({
-                  title: newLockState ? t.toast.locationLockEnabled : t.toast.locationLockDisabled,
-                  description: newLockState 
-                    ? t.toast.locationLockEnabledDesc
-                    : t.toast.locationLockDisabledDesc,
-                });
-              }}
-              className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl relative ${
-                isLocationLocked 
-                  ? 'bg-blue-500 hover:bg-blue-600 border-2 border-blue-500' 
-                  : 'bg-muted hover:bg-muted/80 border-2 border-border'
-              }`}
-              data-testid="button-location-lock"
-            >
-              {isLocationLocked ? (
-                <Lock className="h-5 w-5 text-white" />
-              ) : (
-                <Unlock className="h-5 w-5 text-muted-foreground" />
-              )}
-              {/* 상태 표시 점 */}
-              {isLocationLocked && (
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 border-2 border-white rounded-full animate-pulse" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            <p className="font-medium">{isLocationLocked ? "위치 고정 해제" : "위치 고정"}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {isLocationLocked 
-                ? "내 위치가 화면 중앙에 고정됩니다" 
-                : "내 위치를 화면 중앙에 고정합니다"}
-            </p>
-          </TooltipContent>
-        </Tooltip>
-
-        {/* 그룹 필터 버튼 */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
-                selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
-              }`}
-              onClick={() => setIsGroupFilterOpen(true)}
-              data-testid="button-group-filter"
-              style={(() => {
-                if (selectedGroupIds.includes("all")) return {};
-                
-                const colors: string[] = [];
-                selectedGroupIds.forEach(id => {
-                  if (id === "personal") {
-                    colors.push(PERSONAL_MEMO_COLOR);
-                  } else {
-                    const group = groups.find(g => g.id === id);
-                    if (group) colors.push(group.color);
-                  }
-                });
-
-                if (colors.length === 0) return {};
-                if (colors.length === 1) {
-                  return { backgroundColor: colors[0], borderColor: colors[0] };
-                }
-
-                const step = 100 / colors.length;
-                const gradientStops = colors.map((color, index) => {
-                  const start = index * step;
-                  const end = (index + 1) * step;
-                  return `${color} ${start}%, ${color} ${end}%`;
-                }).join(', ');
-
-                return {
-                  background: `linear-gradient(135deg, ${gradientStops})`,
-                  borderColor: colors[0]
-                };
-              })()}
-            >
-              <Users className={`h-5 w-5 ${
-                selectedGroupIds.includes("all") ? 'text-primary-foreground' : ''
-              }`} style={{
-                color: selectedGroupIds.includes("all") ? undefined : 'white',
-                filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
-              }} />
-              {!selectedGroupIds.includes("all") && (
-                <Badge 
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
-                  data-testid="badge-group-filter-count"
+        <div className={`${isCoupleTheme ? 'absolute bottom-[8rem] right-4' : 'fixed bottom-20 right-4'} flex flex-col ${isCoupleTheme ? 'gap-3' : 'gap-2'} z-50`}>
+            {/* 지도 확대/축소 잠금 버튼 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  onClick={toggleMapLock}
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-2xl ${
+                    isMapLocked 
+                      ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
+                      : 'bg-primary hover:bg-primary/90 border-2 border-primary'
+                  }`}
+                  style={isCoupleTheme && !isMapLocked ? {
+                    backgroundColor: '#EE88A1',
+                    borderColor: '#EE88A1',
+                    boxShadow: `
+                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+                      0 4px 8px rgba(240, 120, 150, 0.25),
+                      0 0 30px rgba(0, 0, 0, 0.10)
+                    `,
+                  } : undefined}
+                  data-testid="button-map-lock"
                 >
-                  {selectedGroupIds.filter(id => id !== "all").length}
-                </Badge>
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            <p>{t.common.groupFilter}</p>
-          </TooltipContent>
-        </Tooltip>
+                  {isMapLocked ? (
+                    <Lock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} text-primary-foreground`} />
+                  ) : (
+                    <Unlock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-primary-foreground'}`} />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>{isMapLocked ? "확대/축소 잠금 해제" : "확대/축소 잠금"}</p>
+              </TooltipContent>
+            </Tooltip>
 
-        {/* 마커 필터 버튼 */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              className="h-10 w-10 rounded-lg shadow-lg relative hover:shadow-2xl transition-all bg-primary hover:bg-primary/90 border-2 border-primary"
-              onClick={() => setIsMarkerFilterOpen(true)}
-              data-testid="button-marker-filter"
-            >
-              <Filter className="h-5 w-5 text-primary-foreground" />
-              {!selectedMarkerIcons.includes("all") && (
-                <Badge 
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
-                  data-testid="badge-marker-filter-count"
+            {/* 위치 고정 버튼 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  onClick={() => {
+                    const newLockState = !isLocationLocked;
+                    setIsLocationLocked(newLockState);
+                    
+                    if (newLockState && map && currentUserLocation) {
+                      map.panTo(currentUserLocation);
+                    }
+                    
+                    toast({
+                      title: newLockState ? t.toast.locationLockEnabled : t.toast.locationLockDisabled,
+                      description: newLockState 
+                        ? t.toast.locationLockEnabledDesc
+                        : t.toast.locationLockDisabledDesc,
+                    });
+                  }}
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-2xl relative ${
+                    isLocationLocked 
+                      ? 'bg-blue-500 hover:bg-blue-600 border-2 border-blue-500' 
+                      : 'bg-muted hover:bg-muted/80 border-2 border-border'
+                  }`}
+                  style={isCoupleTheme ? {
+                    backgroundColor: isLocationLocked ? '#EE88A1' : '#FFE4E9',
+                    borderColor: isLocationLocked ? '#EE88A1' : '#FFE4E9',
+                    boxShadow: `
+                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+                      0 4px 8px rgba(240, 120, 150, 0.25),
+                      0 0 30px rgba(0, 0, 0, 0.10)
+                    `,
+                  } : undefined}
+                  data-testid="button-location-lock"
                 >
-                  {selectedMarkerIcons.filter(icon => icon !== "all").length}
-                </Badge>
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            <p>{t.common.markerFilter}</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
+                  {isLocationLocked ? (
+                    <Lock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-white'}`} />
+                  ) : (
+                    <Unlock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-[#EE88A1]' : 'text-muted-foreground'}`} />
+                  )}
+                  {/* 상태 표시 점 */}
+                  {isLocationLocked && (
+                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 border-2 border-white rounded-full animate-pulse" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p className="font-medium">{isLocationLocked ? "위치 고정 해제" : "위치 고정"}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {isLocationLocked 
+                    ? "내 위치가 화면 중앙에 고정됩니다" 
+                    : "내 위치를 화면 중앙에 고정합니다"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* 그룹 필터 버튼 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
+                    selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
+                  }`}
+                  onClick={() => setIsGroupFilterOpen(true)}
+                  data-testid="button-group-filter"
+                  style={(() => {
+                    const baseShadow = isCoupleTheme ? `
+                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+                      0 4px 8px rgba(240, 120, 150, 0.25),
+                      0 0 30px rgba(0, 0, 0, 0.10)
+                    ` : undefined;
+
+                    if (isCoupleTheme && selectedGroupIds.includes("all")) {
+                      return {
+                        backgroundColor: '#EE88A1',
+                        borderColor: '#EE88A1',
+                        boxShadow: baseShadow,
+                      };
+                    }
+                    if (selectedGroupIds.includes("all")) return {};
+                    
+                    const colors: string[] = [];
+                    selectedGroupIds.forEach(id => {
+                      if (id === "personal") {
+                        colors.push(PERSONAL_MEMO_COLOR);
+                      } else {
+                        const group = groups.find(g => g.id === id);
+                        if (group) colors.push(group.color);
+                      }
+                    });
+
+                    if (colors.length === 0) {
+                      return isCoupleTheme ? { boxShadow: baseShadow } : {};
+                    }
+                    if (colors.length === 1) {
+                      return {
+                        backgroundColor: colors[0],
+                        borderColor: colors[0],
+                        ...(isCoupleTheme ? { boxShadow: baseShadow } : {})
+                      };
+                    }
+
+                    const step = 100 / colors.length;
+                    const gradientStops = colors.map((color, index) => {
+                      const start = index * step;
+                      const end = (index + 1) * step;
+                      return `${color} ${start}%, ${color} ${end}%`;
+                    }).join(', ');
+
+                    return {
+                      background: `linear-gradient(135deg, ${gradientStops})`,
+                      borderColor: colors[0],
+                      ...(isCoupleTheme ? { boxShadow: baseShadow } : {})
+                    };
+                  })()}
+                >
+                  <Users className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${
+                    selectedGroupIds.includes("all") ? (isCoupleTheme ? 'text-white' : 'text-primary-foreground') : ''
+                  }`} style={{
+                    color: selectedGroupIds.includes("all") ? undefined : 'white',
+                    filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
+                  }} />
+                  {!selectedGroupIds.includes("all") && (
+                    <Badge 
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
+                      data-testid="badge-group-filter-count"
+                    >
+                      {selectedGroupIds.filter(id => id !== "all").length}
+                    </Badge>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>{t.common.groupFilter}</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* 마커 필터 버튼 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative hover:shadow-2xl transition-all bg-primary hover:bg-primary/90 border-2 border-primary`}
+                  style={isCoupleTheme ? {
+                    backgroundColor: '#EE88A1',
+                    borderColor: '#EE88A1',
+                    boxShadow: `
+                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+                      0 4px 8px rgba(240, 120, 150, 0.25),
+                      0 0 30px rgba(0, 0, 0, 0.10)
+                    `,
+                  } : undefined}
+                  onClick={() => setIsMarkerFilterOpen(true)}
+                  data-testid="button-marker-filter"
+                >
+                  <Filter className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-primary-foreground'}`} />
+                  {!selectedMarkerIcons.includes("all") && (
+                    <Badge 
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
+                      data-testid="badge-marker-filter-count"
+                    >
+                      {selectedMarkerIcons.filter(icon => icon !== "all").length}
+                    </Badge>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>{t.common.markerFilter}</p>
+              </TooltipContent>
+            </Tooltip>
+        </div>
     </div>
   );
 }

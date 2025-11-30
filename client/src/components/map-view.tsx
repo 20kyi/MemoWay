@@ -1891,87 +1891,33 @@ function MapViewComponent({
           </div>
 
           {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
-          <div className={`${isCoupleTheme 
-            ? 'absolute bottom-[8rem] right-4' 
-            : 'fixed bottom-20 right-4'
-          } flex flex-col gap-2 z-50`}>
+          <div className={`${isCoupleTheme ? 'absolute bottom-[8rem] right-4' : 'fixed bottom-20 right-4'} flex flex-col ${isCoupleTheme ? 'gap-3' : 'gap-2'} z-50`}>
             {/* 지도 확대/축소 잠금 버튼 */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
                   onClick={toggleMapLock}
-                  className={isCoupleTheme 
-                    ? "map-lock-button-couple h-12 w-12 rounded-full"
-                    : `h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl ${
-                        isMapLocked 
-                          ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
-                          : 'bg-primary hover:bg-primary/90 border-2 border-primary'
-                      }`
-                  }
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-2xl ${
+                    isMapLocked 
+                      ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
+                      : 'bg-primary hover:bg-primary/90 border-2 border-primary'
+                  }`}
+                  style={isCoupleTheme && !isMapLocked ? {
+                    backgroundColor: '#EE88A1',
+                    borderColor: '#EE88A1',
+                    boxShadow: `
+                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+                      0 4px 8px rgba(240, 120, 150, 0.25),
+                      0 0 30px rgba(0, 0, 0, 0.10)
+                    `,
+                  } : undefined}
                   data-testid="button-map-lock"
                 >
-                  {isCoupleTheme ? (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                          {/* 네오모피즘 효과를 위한 필터 */}
-                          <filter id="softShadow">
-                            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-                            <feOffset dx="0" dy="2" result="offsetblur"/>
-                            <feComponentTransfer>
-                              <feFuncA type="linear" slope="0.3"/>
-                            </feComponentTransfer>
-                            <feMerge>
-                              <feMergeNode/>
-                              <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                          </filter>
-                          {/* 핑크 원형 배경 그라데이션 */}
-                          <radialGradient id="pinkCircleGradient" cx="50%" cy="50%">
-                            <stop offset="0%" stopColor="#FFB6C1" stopOpacity="1"/>
-                            <stop offset="100%" stopColor="#FFB6C1" stopOpacity="0.95"/>
-                          </radialGradient>
-                          {/* 내부 그림자 효과 */}
-                          <radialGradient id="innerShadow" cx="30%" cy="30%">
-                            <stop offset="0%" stopColor="rgba(0,0,0,0.1)" stopOpacity="0.3"/>
-                            <stop offset="100%" stopColor="rgba(0,0,0,0)" stopOpacity="0"/>
-                          </radialGradient>
-                        </defs>
-                        {/* 핑크 원형 배경 */}
-                        <circle cx="24" cy="24" r="20" fill="url(#pinkCircleGradient)" filter="url(#softShadow)"/>
-                        {/* 내부 그림자 (상단 왼쪽) */}
-                        <circle cx="24" cy="24" r="20" fill="url(#innerShadow)"/>
-                        {/* 외부 그림자 (하단 오른쪽) */}
-                        <circle cx="25" cy="25" r="20" fill="rgba(0,0,0,0.1)" opacity="0.2"/>
-                        {/* 상단 왼쪽 하이라이트 */}
-                        <ellipse cx="18" cy="18" rx="8" ry="8" fill="rgba(255,255,255,0.3)" opacity="0.4"/>
-                        {/* 패드락 아이콘 (중앙) */}
-                        <g transform="translate(14, 10)">
-                          {/* 패드락 몸체 (둥근 모서리 직사각형, 오프화이트/크림색) */}
-                          <rect x="8" y="12" width="12" height="14" rx="2.5" fill="#FFFEF5" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5"/>
-                          {/* 패드락 상단 U자형 shackle */}
-                          <path d="M10 12 Q10 8 14 8 Q18 8 18 12" stroke="#FFFEF5" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                          {/* 패드락 그림자 (핑크 원 위에) */}
-                          <ellipse cx="14" cy="22" rx="6" ry="2" fill="rgba(0,0,0,0.1)" opacity="0.3"/>
-                          {/* 키홀 (역방향 물방울 + 작은 직사각형, 어두운 핑크) */}
-                          <g transform="translate(14, 19)">
-                            {/* 역방향 물방울 상단 */}
-                            <path d="M0 -2 Q-2 -2 -2 0 Q-2 2 0 2 Q2 2 2 0 Q2 -2 0 -2 Z" fill="#FFB6C1"/>
-                            {/* 작은 직사각형 확장 (하단) */}
-                            <rect x="-1" y="2" width="2" height="2" fill="#FFB6C1"/>
-                          </g>
-                        </g>
-                      </svg>
-                    </div>
+                  {isMapLocked ? (
+                    <Lock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} text-primary-foreground`} />
                   ) : (
-                    <>
-                      {isMapLocked ? (
-                        <Lock className="h-5 w-5 text-primary-foreground" />
-                      ) : (
-                        <Unlock className="h-5 w-5 text-primary-foreground" />
-                      )}
-                    </>
+                    <Unlock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-primary-foreground'}`} />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -2002,45 +1948,30 @@ function MapViewComponent({
                         : t.toast.locationLockDisabledDesc,
                     });
                   }}
-                  className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-2xl relative ${
-                    isCoupleTheme 
-                      ? 'bg-transparent border-0 p-0'
-                      : isLocationLocked 
-                        ? 'bg-blue-500 hover:bg-blue-600 border-2 border-blue-500' 
-                        : 'bg-muted hover:bg-muted/80 border-2 border-border'
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-2xl relative ${
+                    isLocationLocked 
+                      ? 'bg-blue-500 hover:bg-blue-600 border-2 border-blue-500' 
+                      : 'bg-muted hover:bg-muted/80 border-2 border-border'
                   }`}
+                  style={isCoupleTheme ? {
+                    backgroundColor: isLocationLocked ? '#EE88A1' : '#FFE4E9',
+                    borderColor: isLocationLocked ? '#EE88A1' : '#FFE4E9',
+                    boxShadow: `
+                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+                      0 4px 8px rgba(240, 120, 150, 0.25),
+                      0 0 30px rgba(0, 0, 0, 0.10)
+                    `,
+                  } : undefined}
                   data-testid="button-location-lock"
                 >
-                  {isCoupleTheme ? (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        {/* 핑크 원형 배경 */}
-                        <circle cx="20" cy="20" r="18" fill="#FF69B4" opacity="0.95"/>
-                        {/* 위치 핀 아이콘 */}
-                        <g transform="translate(10, 6)">
-                          {/* 위치 핀 몸체 (연한 핑크/오프화이트) */}
-                          <path d="M10 2C5.582 2 2 5.582 2 10C2 15 10 28 10 28S18 15 18 10C18 5.582 14.418 2 10 2Z" fill="#FFE4E9" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5"/>
-                          {/* 위치 핀 구멍 */}
-                          <circle cx="10" cy="10" r="3" fill="#FF69B4"/>
-                          {/* 위치 핀 하이라이트 */}
-                          <ellipse cx="9" cy="8" rx="2" ry="1.5" fill="rgba(255,255,255,0.4)" opacity="0.6"/>
-                        </g>
-                        {/* 부드러운 그림자 효과 */}
-                        <circle cx="20" cy="22" r="18" fill="rgba(0,0,0,0.1)" opacity="0.3"/>
-                      </svg>
-                    </div>
+                  {isLocationLocked ? (
+                    <Lock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-white'}`} />
                   ) : (
-                    <>
-                      {isLocationLocked ? (
-                        <Lock className="h-5 w-5 text-white" />
-                      ) : (
-                        <Unlock className="h-5 w-5 text-muted-foreground" />
-                      )}
-                      {/* 상태 표시 점 */}
-                      {isLocationLocked && (
-                        <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 border-2 border-white rounded-full animate-pulse" />
-                      )}
-                    </>
+                    <Unlock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-[#EE88A1]' : 'text-muted-foreground'}`} />
+                  )}
+                  {/* 상태 표시 점 */}
+                  {isLocationLocked && (
+                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 border-2 border-white rounded-full animate-pulse" />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -2059,15 +1990,25 @@ function MapViewComponent({
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
-                  className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
-                    isCoupleTheme 
-                      ? 'bg-transparent border-0 p-0'
-                      : selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
+                    selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
                   }`}
                   onClick={() => setGroupFilterOpen(true)}
                   data-testid="button-group-filter"
                   style={(() => {
-                    if (isCoupleTheme) return {};
+                    const baseShadow = isCoupleTheme ? `
+                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+                      0 4px 8px rgba(240, 120, 150, 0.25),
+                      0 0 30px rgba(0, 0, 0, 0.10)
+                    ` : undefined;
+
+                    if (isCoupleTheme && selectedGroupIds.includes("all")) {
+                      return {
+                        backgroundColor: '#EE88A1',
+                        borderColor: '#EE88A1',
+                        boxShadow: baseShadow,
+                      };
+                    }
                     if (selectedGroupIds.includes("all")) return {};
                     
                     const colors: string[] = [];
@@ -2080,9 +2021,15 @@ function MapViewComponent({
                       }
                     });
 
-                    if (colors.length === 0) return {};
+                    if (colors.length === 0) {
+                      return isCoupleTheme ? { boxShadow: baseShadow } : {};
+                    }
                     if (colors.length === 1) {
-                      return { backgroundColor: colors[0], borderColor: colors[0] };
+                      return {
+                        backgroundColor: colors[0],
+                        borderColor: colors[0],
+                        ...(isCoupleTheme ? { boxShadow: baseShadow } : {})
+                      };
                     }
 
                     const step = 100 / colors.length;
@@ -2094,54 +2041,24 @@ function MapViewComponent({
 
                     return {
                       background: `linear-gradient(135deg, ${gradientStops})`,
-                      borderColor: colors[0]
+                      borderColor: colors[0],
+                      ...(isCoupleTheme ? { boxShadow: baseShadow } : {})
                     };
                   })()}
                 >
-                  {isCoupleTheme ? (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        {/* 핑크 원형 배경 */}
-                        <circle cx="20" cy="20" r="18" fill="#FFB6C1" opacity="0.95"/>
-                        {/* 왼쪽 사람 (큰) */}
-                        <g transform="translate(8, 10)">
-                          {/* 머리 */}
-                          <circle cx="6" cy="4" r="3.5" fill="white"/>
-                          {/* 몸체 */}
-                          <path d="M2.5 8 Q2.5 6 6 6 Q9.5 6 9.5 8 L9.5 14 L2.5 14 Z" fill="white"/>
-                          {/* 하이라이트 */}
-                          <ellipse cx="5.5" cy="3.5" rx="2" ry="1.2" fill="rgba(255,255,255,0.6)" opacity="0.6"/>
-                        </g>
-                        {/* 오른쪽 사람 (작은, 약간 뒤) */}
-                        <g transform="translate(18, 11)">
-                          {/* 머리 */}
-                          <circle cx="4" cy="3" r="2.5" fill="white" opacity="0.95"/>
-                          {/* 몸체 */}
-                          <path d="M1.5 6.5 Q1.5 5 4 5 Q6.5 5 6.5 6.5 L6.5 11 L1.5 11 Z" fill="white" opacity="0.95"/>
-                          {/* 하이라이트 */}
-                          <ellipse cx="3.5" cy="2.8" rx="1.5" ry="0.9" fill="rgba(255,255,255,0.6)" opacity="0.5"/>
-                        </g>
-                        {/* 부드러운 그림자 효과 */}
-                        <circle cx="20" cy="22" r="18" fill="rgba(0,0,0,0.1)" opacity="0.3"/>
-                      </svg>
-                    </div>
-                  ) : (
-                    <>
-                      <Users className={`h-5 w-5 ${
-                        selectedGroupIds.includes("all") ? 'text-primary-foreground' : ''
-                      }`} style={{
-                        color: selectedGroupIds.includes("all") ? undefined : 'white',
-                        filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
-                      }} />
-                      {!selectedGroupIds.includes("all") && (
-                        <Badge 
-                          className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
-                          data-testid="badge-group-filter-count"
-                        >
-                          {selectedGroupIds.filter(id => id !== "all").length}
-                        </Badge>
-                      )}
-                    </>
+                  <Users className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${
+                    selectedGroupIds.includes("all") ? (isCoupleTheme ? 'text-white' : 'text-primary-foreground') : ''
+                  }`} style={{
+                    color: selectedGroupIds.includes("all") ? undefined : 'white',
+                    filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
+                  }} />
+                  {!selectedGroupIds.includes("all") && (
+                    <Badge 
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
+                      data-testid="badge-group-filter-count"
+                    >
+                      {selectedGroupIds.filter(id => id !== "all").length}
+                    </Badge>
                   )}
                 </Button>
               </TooltipTrigger>
@@ -2155,44 +2072,27 @@ function MapViewComponent({
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
-                  className={`h-10 w-10 rounded-lg shadow-lg relative hover:shadow-2xl transition-all ${
-                    isCoupleTheme 
-                      ? 'bg-transparent border-0 p-0'
-                      : 'bg-primary hover:bg-primary/90 border-2 border-primary'
-                  }`}
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative hover:shadow-2xl transition-all bg-primary hover:bg-primary/90 border-2 border-primary`}
+                  style={isCoupleTheme ? {
+                    backgroundColor: '#EE88A1',
+                    borderColor: '#EE88A1',
+                    boxShadow: `
+                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+                      0 4px 8px rgba(240, 120, 150, 0.25),
+                      0 0 30px rgba(0, 0, 0, 0.10)
+                    `,
+                  } : undefined}
                   onClick={() => setMarkerFilterOpen(true)}
                   data-testid="button-marker-filter"
                 >
-                  {isCoupleTheme ? (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        {/* 핑크 원형 배경 */}
-                        <circle cx="20" cy="20" r="18" fill="#FFB6C1" opacity="0.95"/>
-                        {/* 2x2 그리드의 4개 흰색 사각형 */}
-                        {/* 왼쪽 위 */}
-                        <rect x="10" y="10" width="7" height="7" rx="1.5" fill="white" stroke="rgba(255,182,193,0.3)" strokeWidth="0.5"/>
-                        {/* 오른쪽 위 */}
-                        <rect x="23" y="10" width="7" height="7" rx="1.5" fill="white" stroke="rgba(255,182,193,0.3)" strokeWidth="0.5"/>
-                        {/* 왼쪽 아래 */}
-                        <rect x="10" y="23" width="7" height="7" rx="1.5" fill="white" stroke="rgba(255,182,193,0.3)" strokeWidth="0.5"/>
-                        {/* 오른쪽 아래 */}
-                        <rect x="23" y="23" width="7" height="7" rx="1.5" fill="white" stroke="rgba(255,182,193,0.3)" strokeWidth="0.5"/>
-                        {/* 부드러운 그림자 효과 */}
-                        <circle cx="20" cy="22" r="18" fill="rgba(0,0,0,0.1)" opacity="0.3"/>
-                      </svg>
-                    </div>
-                  ) : (
-                    <>
-                      <Filter className="h-5 w-5 text-primary-foreground" />
-                      {!selectedMarkerIcons.includes("all") && (
-                        <Badge 
-                          className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
-                          data-testid="badge-marker-filter-count"
-                        >
-                          {selectedMarkerIcons.filter(icon => icon !== "all").length}
-                        </Badge>
-                      )}
-                    </>
+                  <Filter className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-primary-foreground'}`} />
+                  {!selectedMarkerIcons.includes("all") && (
+                    <Badge 
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
+                      data-testid="badge-marker-filter-count"
+                    >
+                      {selectedMarkerIcons.filter(icon => icon !== "all").length}
+                    </Badge>
                   )}
                 </Button>
               </TooltipTrigger>
