@@ -1724,9 +1724,55 @@ function MapViewComponent({
           {/* 위치 고정 모드 상태 배너 */}
           {isLocationLocked && (
             <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
-              <div className="bg-blue-500/90 backdrop-blur-sm text-white px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-lg border-2 border-blue-400 flex items-center gap-1.5 sm:gap-2 animate-pulse whitespace-nowrap">
-                <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                <span className="text-[10px] sm:text-xs md:text-sm font-medium leading-tight">{t.common.locationLockModeActive}</span>
+              <div 
+                className="relative text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl flex items-center gap-2 sm:gap-2.5 whitespace-nowrap overflow-hidden"
+                style={{
+                  background: '#8fa0d8',
+                  boxShadow: `
+                    0 6px 12px -3px rgba(120, 139, 200, 0.35),
+                    0 3px 6px -2px rgba(120, 139, 200, 0.25),
+                    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+                    inset 0 -1px 3px rgba(90, 110, 180, 0.35)
+                  `,
+                  transform: 'translateY(-1px)',
+                }}
+              >
+                {/* 볼록한 느낌을 위한 방사형 그라데이션 - 상단 중앙이 약간 밝음 (너무 밝지 않게) */}
+                <div 
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: 'radial-gradient(ellipse 110% 70% at 50% 25%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 25%, transparent 55%)',
+                  }}
+                />
+                {/* 가장자리 어둡게 - 특히 하단 */}
+                <div 
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: 'radial-gradient(ellipse 130% 90% at 50% 50%, transparent 45%, rgba(90, 110, 180, 0.25) 75%, rgba(70, 90, 160, 0.4) 100%)',
+                  }}
+                />
+                {/* 하단 가장자리 더 어둡게 */}
+                <div 
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(70, 90, 160, 0.3) 0%, transparent 35%)',
+                  }}
+                />
+                <Lock 
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0 relative z-10" 
+                  style={{ 
+                    filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25))',
+                  }} 
+                />
+                <span 
+                  className="text-[10px] sm:text-xs md:text-sm font-medium leading-tight relative z-10" 
+                  style={{ 
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  {t.common.locationLockModeActive}
+                </span>
               </div>
             </div>
           )}
