@@ -169,9 +169,16 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
 
   return (
     <div className="flex flex-col h-full">
+      {/* App Name Header */}
+      <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
+          MemoWay
+        </h1>
+      </div>
+
       {/* Selection Mode Header */}
       {isSelectionMode ? (
-        <div className="px-4 pt-6 sm:pt-4 pb-3 bg-muted/50 border-b flex items-center justify-between">
+        <div className="px-4 pt-4 pb-3 bg-muted/50 border-b flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <Button
               size="icon"
@@ -208,7 +215,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
         </div>
       ) : (
         /* Category and Group Filter Dropdowns */
-        <div className="px-4 pt-6 sm:pt-4 pb-2 grid grid-cols-2 gap-2">
+        <div className="px-4 pt-4 pb-2 grid grid-cols-2 gap-2 flex-shrink-0">
           {/* Category Filter */}
           <Select
             value={selectedCategory}

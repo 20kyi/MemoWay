@@ -47,15 +47,12 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
             }`}
             data-testid={`nav-${tab.id}`}
           >
-            {isActive && !isCoupleTheme && (
-              <div className="absolute -top-1 w-12 h-1 bg-gradient-to-r from-primary via-secondary to-primary rounded-full animate-pulse" />
-            )}
             <div className={`transition-all ${
               isCoupleTheme
                 ? isActive
                   ? "bottom-nav-icon-active-couple"
                   : "bottom-nav-icon-inactive-couple"
-                : `rounded-full p-2 ${isActive ? "bg-primary/10 shadow-md" : ""}`
+                : "rounded-full p-2"
             }`}>
               {isCoupleTheme && tab.id === "map" ? (
                 <CustomMapPin size={40} isActive={isActive} color="#6289F3" />
