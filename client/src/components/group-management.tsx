@@ -101,6 +101,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
   const [memberDialogOpen, setMemberDialogOpen] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [copyConfirmGroup, setCopyConfirmGroup] = useState<Group | null>(null);
+  const [activeTab, setActiveTab] = useState<"leader" | "member">("leader");
   const { toast } = useToast();
 
   const groupFormSchema = z.object({
@@ -190,8 +191,16 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
     });
   };
 
-  // 그룹 검색 필터링
+  // 그룹 필터링 (탭 + 검색)
   const filteredGroups = groups.filter(group => {
+    // 탭 필터링
+    const myMember = group.members.find(m => m.userId === userId);
+    const isLeader = myMember?.role === 'leader';
+    
+    if (activeTab === "leader" && !isLeader) return false;
+    if (activeTab === "member" && (!myMember || isLeader)) return false; // 나를 초대한 그룹 = 멤버이지만 방장이 아닌 그룹
+    
+    // 검색 필터링
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -201,10 +210,82 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
     );
   });
 
+  // 탭별 그룹 개수 계산
+  const groupCounts = {
+    leader: groups.filter(g => {
+      const member = g.members.find(m => m.userId === userId);
+      return member?.role === 'leader';
+    }).length,
+    member: groups.filter(g => {
+      const member = g.members.find(m => m.userId === userId);
+      return !!member && member.role !== 'leader'; // 나를 초대한 그룹 = 멤버이지만 방장이 아닌 그룹
+    }).length,
+  };
+
   return (
-    <div className="px-2 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 space-y-3 sm:space-y-4 overflow-y-auto h-full relative">
-      {/* 그룹 검색 바 */}
-      <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
+    <div className="flex flex-col h-full">
+      {/* App Name Header */}
+      <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
+          MemoWay
+        </h1>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 pb-3 sm:pb-4 space-y-3 sm:space-y-4">
+        {/* 탭 전환 버튼 */}
+        <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5 sm:p-2">
+          <button
+            onClick={() => setActiveTab("leader")}
+            className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+              activeTab === "leader"
+                ? "bg-amber-500 text-white shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+            data-testid="tab-leader"
+          >
+            <Crown className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" fill={activeTab === "leader" ? "currentColor" : "none"} />
+            <span className="truncate">내가 초대한 그룹</span>
+            {groupCounts.leader > 0 && (
+              <Badge 
+                variant="secondary" 
+                className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
+                  activeTab === "leader" 
+                    ? "bg-white/20 text-white" 
+                    : "bg-muted"
+                }`}
+              >
+                {groupCounts.leader}
+              </Badge>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("member")}
+            className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+              activeTab === "member"
+                ? "bg-primary/80 text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+            data-testid="tab-member"
+          >
+            <Users className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" />
+            <span className="truncate">나를 초대한 그룹</span>
+            {groupCounts.member > 0 && (
+              <Badge 
+                variant="secondary" 
+                className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
+                  activeTab === "member" 
+                    ? "bg-primary-foreground/20 text-primary-foreground" 
+                    : "bg-muted"
+                }`}
+              >
+                {groupCounts.member}
+              </Badge>
+            )}
+          </button>
+        </div>
+
+        {/* 그룹 검색 바 */}
+        <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
         <div className="relative flex-1">
           <Input
             value={searchQuery}
@@ -434,8 +515,8 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
         </DialogContent>
       </Dialog>
 
-      {filteredGroups.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-center px-4">
+        {filteredGroups.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-center px-4">
           <div className="bg-primary/10 rounded-full p-4 sm:p-6 mb-3 sm:mb-4">
             <Users className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
           </div>
@@ -450,55 +531,83 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
               <p className="text-muted-foreground text-xs sm:text-sm">{t.groups.noGroupsDesc}</p>
             </>
           )}
-        </div>
-      ) : (
+          </div>
+        ) : (
         <div className="space-y-2.5 sm:space-y-3">
-          {filteredGroups.map(group => (
-            <Card key={group.id} className="hover-elevate transition-all shadow-md border border-primary/20 hover:border-primary/40 rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg" data-testid={`card-group-${group.id}`}>
-              <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div 
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-sm border" 
-                      style={{ 
-                        backgroundColor: `${group.color}30`,
-                        borderColor: `${group.color}60`
-                      }}
-                      data-testid={`color-dot-${group.id}`}
-                    >
-                      {(() => {
-                        const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
-                        return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: group.color }} />;
-                      })()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base sm:text-lg font-semibold truncate leading-tight">{group.name}</h3>
-                      {group.description && (
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">{group.description}</p>
+          {filteredGroups.map(group => {
+            const myMember = group.members.find(m => m.userId === userId);
+            const isLeader = myMember?.role === 'leader';
+            
+            return (
+              <Card 
+                key={group.id} 
+                className={`hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg ${
+                  isLeader 
+                    ? 'border-2 border-amber-400/60 hover:border-amber-400/80 bg-gradient-to-br from-amber-50/30 to-card/90' 
+                    : 'border border-primary/20 hover:border-primary/40'
+                }`} 
+                data-testid={`card-group-${group.id}`}
+              >
+                <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div 
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-sm border relative" 
+                        style={{ 
+                          backgroundColor: `${group.color}30`,
+                          borderColor: `${group.color}60`
+                        }}
+                        data-testid={`color-dot-${group.id}`}
+                      >
+                        {(() => {
+                          const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
+                          return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: group.color }} />;
+                        })()}
+                        {isLeader && (
+                          <div className="absolute -top-1 -right-1 bg-amber-400 rounded-full p-0.5 shadow-sm">
+                            <Crown className="h-3 w-3 text-amber-900" fill="currentColor" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="text-base sm:text-lg font-semibold truncate leading-tight">{group.name}</h3>
+                          {isLeader && (
+                            <Badge 
+                              variant="secondary" 
+                              className="flex-shrink-0 text-[10px] sm:text-xs px-1.5 py-0.5 bg-amber-400/20 text-amber-700 border-amber-400/40"
+                            >
+                              <Crown className="h-2.5 w-2.5 mr-0.5" fill="currentColor" />
+                              방장
+                            </Badge>
+                          )}
+                        </div>
+                        {group.description && (
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">{group.description}</p>
+                        )}
+                      </div>
+                      {onCopyGroup && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 flex-shrink-0"
+                          onClick={() => setCopyConfirmGroup(group)}
+                          data-testid={`button-copy-${group.id}`}
+                          title="새 그룹으로 복사 (그룹 생성)"
+                        >
+                          <Copy className="h-3.5 w-3.5 text-primary" />
+                        </Button>
                       )}
                     </div>
-                    {onCopyGroup && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 flex-shrink-0"
-                        onClick={() => setCopyConfirmGroup(group)}
-                        data-testid={`button-copy-${group.id}`}
-                        title="새 그룹으로 복사 (그룹 생성)"
-                      >
-                        <Copy className="h-3.5 w-3.5 text-primary" />
-                      </Button>
-                    )}
+                    <Badge 
+                      variant="secondary" 
+                      className="flex-shrink-0 text-xs px-2 py-0.5"
+                    >
+                      <Users className="h-3 w-3 mr-1" />
+                      {group.members.length}/{group.maxMembers || 20}
+                    </Badge>
                   </div>
-                  <Badge 
-                    variant="secondary" 
-                    className="flex-shrink-0 text-xs px-2 py-0.5"
-                  >
-                    <Users className="h-3 w-3 mr-1" />
-                    {group.members.length}/{group.maxMembers || 20}
-                  </Badge>
-                </div>
-              </CardHeader>
+                </CardHeader>
 
               <CardFooter className="pt-2 pb-3 sm:pb-4 px-3 sm:px-4 flex flex-wrap gap-1.5 sm:gap-2">
                 <Button
@@ -512,9 +621,6 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   {t.groups.copyInviteCode}
                 </Button>
                 {(() => {
-                  const myMember = group.members.find(m => m.userId === userId);
-                  const isLeader = myMember?.role === 'leader';
-                  
                   return (
                     <>
                       {myMember && isLeader && onUpdateGroup && (
@@ -557,9 +663,11 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 })()}
               </CardFooter>
             </Card>
-          ))}
+            );
+          })}
         </div>
-      )}
+        )}
+      </div>
 
       {/* 그룹 수정 다이얼로그 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
