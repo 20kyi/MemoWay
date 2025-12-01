@@ -400,11 +400,11 @@ export function ProfileView({
       {/* 계정 카드 */}
       {user && (
         <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-indigo-50/30 backdrop-blur-sm border border-indigo-200/50 shadow-lg hover:shadow-xl transition-all">
-          <CardHeader className="pb-3 sm:pb-4">
+          <CardHeader className="pb-4 sm:pb-6">
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-                  <User className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
+                  <User className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
                   <span className="truncate">{t.settings.account}</span>
                 </CardTitle>
               </div>
@@ -420,120 +420,49 @@ export function ProfileView({
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="pt-0 pb-4 sm:pb-6">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <Avatar className="h-12 w-12 sm:h-14 sm:w-14 shrink-0">
+          <CardContent className="pt-0 pb-6 sm:pb-8">
+            <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 shrink-0 border-4 border-indigo-200/50 shadow-lg">
                 <AvatarImage src={profileImage || undefined} alt={userName} />
-                <AvatarFallback>{userName[0]?.toUpperCase() || "U"}</AvatarFallback>
+                <AvatarFallback className="text-2xl sm:text-3xl font-bold">{userName[0]?.toUpperCase() || "U"}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-base sm:text-lg truncate" data-testid="text-user-name">
+                <p className="font-bold text-xl sm:text-2xl mb-1 sm:mb-2 truncate" data-testid="text-user-name">
                   {userName}
                 </p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate" data-testid="text-user-email">
+                <p className="text-sm sm:text-base text-muted-foreground truncate mb-2 sm:mb-3" data-testid="text-user-email">
                   {userEmail}
                 </p>
-                <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
-                  <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-md bg-primary/10 text-primary font-medium">
                     {getProviderName(provider)}
                   </span>
+                </div>
+              </div>
+            </div>
+            
+            {/* 포인트 표시 */}
+            <div className="pt-4 sm:pt-6 border-t border-indigo-200/50">
+              <div className="flex items-center justify-between p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50/50 to-orange-50/30 border border-amber-200/50">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md">
+                    <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1 font-medium">
+                      {language === 'ko' ? '보유 포인트' : language === 'en' ? 'Current Points' : language === 'zh' ? '当前积分' : '保有ポイント'}
+                    </p>
+                    <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent" data-testid="text-user-points">
+                      {userPoints.toLocaleString()}
+                      <span className="text-base sm:text-lg text-muted-foreground ml-1">P</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
-
-      {/* 포인트 카드 */}
-      <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm border border-amber-500/40 shadow-lg hover:shadow-xl transition-all">
-        <CardHeader className="pb-3 sm:pb-4">
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
-            <Coins className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
-            {language === 'ko' ? '포인트' : language === 'en' ? 'Points' : language === 'zh' ? '积分' : 'ポイント'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0 pb-4 sm:pb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-                <Coins className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {language === 'ko' ? '보유 포인트' : language === 'en' ? 'Current Points' : language === 'zh' ? '当前积分' : '保有ポイント'}
-                </p>
-                <p className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400" data-testid="text-user-points">
-                  {userPoints.toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 통계 카드 */}
-      <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
-        <CardHeader className="pb-3 sm:pb-4">
-          <CardTitle className="text-base sm:text-lg">
-            {language === 'ko' ? '활동 통계' : language === 'en' ? 'Activity Statistics' : language === 'zh' ? '活动统计' : '活動統計'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {/* 총 메모 수 */}
-            <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-background/50">
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {language === 'ko' ? '총 메모' : language === 'en' ? 'Total Memos' : language === 'zh' ? '总备忘录' : '総メモ'}
-                </p>
-                <p className="text-base sm:text-lg font-bold">{totalMemos}</p>
-              </div>
-            </div>
-
-            {/* 개인 메모 */}
-            <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-background/50">
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {language === 'ko' ? '개인 메모' : language === 'en' ? 'Personal' : language === 'zh' ? '个人' : '個人'}
-                </p>
-                <p className="text-base sm:text-lg font-bold">{personalMemos}</p>
-              </div>
-            </div>
-
-            {/* 그룹 메모 */}
-            <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-background/50">
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {language === 'ko' ? '그룹 메모' : language === 'en' ? 'Group Memos' : language === 'zh' ? '群组备忘录' : 'グループメモ'}
-                </p>
-                <p className="text-base sm:text-lg font-bold">{groupMemos}</p>
-              </div>
-            </div>
-
-            {/* 참여 그룹 */}
-            <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-background/50">
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {language === 'ko' ? '참여 그룹' : language === 'en' ? 'Joined Groups' : language === 'zh' ? '加入的群组' : '参加グループ'}
-                </p>
-                <p className="text-base sm:text-lg font-bold">{joinedGroups}</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* 메뉴 버튼들 */}
       <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
