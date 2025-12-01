@@ -54,6 +54,7 @@ export function ProfileView({
   const [isAppInfoDialogOpen, setIsAppInfoDialogOpen] = useState(false);
   const [isPersonalSettingsDialogOpen, setIsPersonalSettingsDialogOpen] = useState(false);
   const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
+  const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
   
   // 알림 기능 (토스트 알림 제어)
   const [toastNotificationsEnabled, setToastNotificationsEnabled] = useState(() => {
@@ -1154,10 +1155,8 @@ export function ProfileView({
                 {/* 이용약관 */}
                 <button
                   onClick={() => {
-                    toast({
-                      title: t.settings.supportTerms,
-                      description: language === 'ko' ? '이용약관 페이지 준비 중입니다.' : language === 'en' ? 'Terms of Service page is coming soon.' : language === 'zh' ? '服务条款页面即将推出。' : '利用規約ページは準備中です。',
-                    });
+                    setIsSupportDialogOpen(false);
+                    setTimeout(() => setIsTermsDialogOpen(true), 300);
                   }}
                   className="w-full p-4 rounded-2xl bg-gradient-to-br from-slate-50/80 to-gray-50/80 border-2 border-slate-200/60 hover:border-slate-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -1362,10 +1361,8 @@ export function ProfileView({
                 {/* 이용약관 */}
                 <button
                   onClick={() => {
-                    toast({
-                      title: t.settings.supportTerms,
-                      description: language === 'ko' ? '이용약관 페이지 준비 중입니다.' : language === 'en' ? 'Terms of Service page is coming soon.' : language === 'zh' ? '服务条款页面即将推出。' : '利用規約ページは準備中です。',
-                    });
+                    setIsSupportDialogOpen(false);
+                    setTimeout(() => setIsTermsDialogOpen(true), 300);
                   }}
                   className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-50/80 to-gray-50/80 border-2 border-slate-200/60 hover:border-slate-300 hover:shadow-lg transition-all duration-300 text-left group"
                 >
