@@ -55,6 +55,7 @@ export function ProfileView({
   const [isPersonalSettingsDialogOpen, setIsPersonalSettingsDialogOpen] = useState(false);
   const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
+  const [isPrivacyDialogOpen, setIsPrivacyDialogOpen] = useState(false);
   
   // 알림 기능 (토스트 알림 제어)
   const [toastNotificationsEnabled, setToastNotificationsEnabled] = useState(() => {
@@ -1180,10 +1181,8 @@ export function ProfileView({
                 {/* 개인정보처리방침 */}
                 <button
                   onClick={() => {
-                    toast({
-                      title: t.settings.supportPrivacy,
-                      description: language === 'ko' ? '개인정보처리방침 페이지 준비 중입니다.' : language === 'en' ? 'Privacy Policy page is coming soon.' : language === 'zh' ? '隐私政策页面即将推出。' : 'プライバシーポリシーページは準備中です。',
-                    });
+                    setIsSupportDialogOpen(false);
+                    setTimeout(() => setIsPrivacyDialogOpen(true), 300);
                   }}
                   className="w-full p-4 rounded-2xl bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-2 border-violet-200/60 hover:border-violet-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -1385,10 +1384,8 @@ export function ProfileView({
                 {/* 개인정보처리방침 */}
                 <button
                   onClick={() => {
-                    toast({
-                      title: t.settings.supportPrivacy,
-                      description: language === 'ko' ? '개인정보처리방침 페이지 준비 중입니다.' : language === 'en' ? 'Privacy Policy page is coming soon.' : language === 'zh' ? '隐私政策页面即将推出。' : 'プライバシーポリシーページは準備中です。',
-                    });
+                    setIsSupportDialogOpen(false);
+                    setTimeout(() => setIsPrivacyDialogOpen(true), 300);
                   }}
                   className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-2 border-violet-200/60 hover:border-violet-300 hover:shadow-lg transition-all duration-300 text-left group"
                 >
@@ -1422,6 +1419,969 @@ export function ProfileView({
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* 이용약관 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
+      {isMobile ? (
+        <Sheet open={isTermsDialogOpen} onOpenChange={setIsTermsDialogOpen}>
+          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
+            <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-slate-50/50 to-gray-50/30">
+              <SheetTitle className="flex items-center gap-2 text-xl">
+                <FileTextIcon className="h-6 w-6 text-slate-600 shrink-0" />
+                {language === 'ko' ? '이용약관' : language === 'en' ? 'Terms of Service' : language === 'zh' ? '服务条款' : '利用規約'}
+              </SheetTitle>
+              <SheetDescription className="text-sm mt-1.5">
+                {language === 'ko' ? 'MemoWay 서비스 이용약관' : language === 'en' ? 'MemoWay Terms of Service' : language === 'zh' ? 'MemoWay 服务条款' : 'MemoWay 利用規約'}
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="flex-1 overflow-y-auto px-5 py-6">
+              <div className="space-y-6 text-sm leading-relaxed">
+                {language === 'ko' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제1조 (목적)</h3>
+                      <p className="text-muted-foreground">
+                        본 약관은 MemoWay(이하 "회사")가 제공하는 위치 기반 메모 공유 서비스(이하 "서비스")의 이용과 관련하여 회사와 이용자 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제2조 (정의)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. "서비스"란 회사가 제공하는 위치 기반 메모 작성, 공유, 그룹 관리 등의 기능을 포함하는 모든 서비스를 의미합니다.
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. "이용자"란 본 약관에 동의하고 회사가 제공하는 서비스를 이용하는 자를 의미합니다.
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. "메모"란 이용자가 특정 위치에 작성한 텍스트, 사진 등의 콘텐츠를 의미합니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제3조 (서비스의 제공)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 회사는 다음과 같은 서비스를 제공합니다:
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>위치 기반 메모 작성 및 관리</li>
+                        <li>그룹 생성 및 메모 공유</li>
+                        <li>지도 기반 메모 탐색</li>
+                        <li>포인트 구매 및 사용</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 서비스는 연중무휴, 1일 24시간 제공함을 원칙으로 합니다. 다만, 회사의 업무상 또는 기술상의 이유로 서비스가 일시 중단될 수 있으며, 이 경우 회사는 사전에 공지합니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제4조 (이용자의 의무)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 이용자는 다음 행위를 하여서는 안 됩니다:
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>타인의 개인정보를 무단으로 수집, 이용하거나 타인에게 제공하는 행위</li>
+                        <li>서비스의 안정적 운영을 방해하는 행위</li>
+                        <li>불법적이거나 부적절한 콘텐츠를 게시하는 행위</li>
+                        <li>다른 이용자의 서비스 이용을 방해하는 행위</li>
+                        <li>회사의 지적재산권을 침해하는 행위</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 이용자가 본 조의 의무를 위반한 경우, 회사는 서비스 이용을 제한하거나 계약을 해지할 수 있습니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제5조 (포인트 및 유료 서비스)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 회사는 일부 서비스에 대해 포인트를 통한 유료 서비스를 제공할 수 있습니다.
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 포인트는 회사가 정한 방법으로 구매할 수 있으며, 구매한 포인트는 환불되지 않습니다.
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 포인트는 서비스 내에서만 사용 가능하며, 현금으로 환전하거나 양도할 수 없습니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제6조 (개인정보 보호)</h3>
+                      <p className="text-muted-foreground">
+                        회사는 이용자의 개인정보를 보호하기 위하여 노력합니다. 개인정보의 보호 및 사용에 대해서는 관련 법령 및 회사의 개인정보처리방침이 적용됩니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제7조 (서비스의 변경 및 중단)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 회사는 서비스의 내용을 변경하거나 중단할 수 있습니다.
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 회사는 서비스 중단 시 사전에 공지하며, 중단으로 인한 이용자의 손해에 대해 책임을 지지 않습니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제8조 (면책사항)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 회사는 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 회사는 이용자의 귀책사유로 인한 서비스 이용의 장애에 대하여는 책임을 지지 않습니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제9조 (약관의 변경)</h3>
+                      <p className="text-muted-foreground">
+                        회사는 필요한 경우 본 약관을 변경할 수 있으며, 변경된 약관은 서비스 화면에 공지함으로써 효력을 발생합니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">제10조 (준거법 및 관할법원)</h3>
+                      <p className="text-muted-foreground">
+                        본 약관에 명시되지 않은 사항은 대한민국 법령을 따르며, 서비스 이용과 관련하여 발생한 분쟁에 대해서는 회사의 본사 소재지를 관할하는 법원을 관할법원으로 합니다.
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        본 약관은 2024년 1월 1일부터 시행됩니다.
+                      </p>
+                    </div>
+                  </>
+                ) : language === 'en' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 1 (Purpose)</h3>
+                      <p className="text-muted-foreground">
+                        These Terms of Service govern the use of MemoWay's location-based memo sharing service (the "Service") and establish the rights, obligations, and responsibilities between the Company and users.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 2 (Definitions)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. "Service" means all services provided by the Company, including location-based memo creation, sharing, and group management features.
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. "User" means any person who agrees to these Terms and uses the Service.
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. "Memo" means content such as text and photos created by users at specific locations.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 3 (Service Provision)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. The Company provides the following services:
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>Location-based memo creation and management</li>
+                        <li>Group creation and memo sharing</li>
+                        <li>Map-based memo exploration</li>
+                        <li>Point purchase and usage</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. The Service is provided 24 hours a day, 365 days a year. However, the Service may be temporarily suspended due to business or technical reasons, and the Company will provide prior notice in such cases.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 4 (User Obligations)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. Users must not engage in the following acts:
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>Unauthorized collection, use, or provision of others' personal information</li>
+                        <li>Acts that interfere with the stable operation of the Service</li>
+                        <li>Posting illegal or inappropriate content</li>
+                        <li>Acts that interfere with other users' use of the Service</li>
+                        <li>Acts that infringe upon the Company's intellectual property rights</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. If a user violates the obligations under this Article, the Company may restrict Service use or terminate the agreement.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 5 (Points and Paid Services)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. The Company may provide paid services through points for some services.
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. Points can be purchased through methods determined by the Company, and purchased points are non-refundable.
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. Points can only be used within the Service and cannot be exchanged for cash or transferred.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 6 (Privacy Protection)</h3>
+                      <p className="text-muted-foreground">
+                        The Company strives to protect users' personal information. The protection and use of personal information is governed by applicable laws and the Company's Privacy Policy.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 7 (Service Changes and Suspension)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. The Company may change or suspend the Service.
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. The Company will provide prior notice when suspending the Service and is not liable for any damages to users resulting from such suspension.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 8 (Disclaimer)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. The Company is exempt from liability for Service provision in cases of natural disasters or similar force majeure events.
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. The Company is not liable for Service disruptions caused by user negligence.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 9 (Amendment of Terms)</h3>
+                      <p className="text-muted-foreground">
+                        The Company may amend these Terms when necessary, and amended Terms become effective upon notification on the Service screen.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">Article 10 (Governing Law and Jurisdiction)</h3>
+                      <p className="text-muted-foreground">
+                        Matters not specified in these Terms are governed by the laws of the Republic of Korea, and disputes arising from Service use shall be subject to the jurisdiction of the court having jurisdiction over the Company's headquarters.
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        These Terms take effect from January 1, 2024.
+                      </p>
+                    </div>
+                  </>
+                ) : language === 'zh' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第1条 (目的)</h3>
+                      <p className="text-muted-foreground">
+                        本条款旨在规定MemoWay（以下简称"公司"）提供的位置备忘录共享服务（以下简称"服务"）的使用，以及公司与用户之间的权利、义务和责任。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第2条 (定义)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. "服务"是指公司提供的包括基于位置的备忘录创建、共享、群组管理等功能的所有服务。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. "用户"是指同意本条款并使用公司提供的服务的个人。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. "备忘录"是指用户在特定位置创建的文本、照片等内容。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第3条 (服务提供)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司提供以下服务：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>基于位置的备忘录创建和管理</li>
+                        <li>群组创建和备忘录共享</li>
+                        <li>基于地图的备忘录探索</li>
+                        <li>积分购买和使用</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 服务原则上全年365天、每天24小时提供。但是，由于公司业务或技术原因，服务可能会暂时中断，在这种情况下，公司将提前通知。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第4条 (用户义务)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 用户不得从事以下行为：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>未经授权收集、使用或提供他人的个人信息</li>
+                        <li>干扰服务稳定运行的行为</li>
+                        <li>发布非法或不适当的内容</li>
+                        <li>干扰其他用户使用服务的行为</li>
+                        <li>侵犯公司知识产权的行为</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 如果用户违反本条的义务，公司可以限制服务使用或终止协议。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第5条 (积分和付费服务)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司可能对某些服务提供通过积分的付费服务。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 积分可以通过公司确定的方式购买，购买的积分不可退款。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 积分只能在服务内使用，不能兑换现金或转让。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第6条 (隐私保护)</h3>
+                      <p className="text-muted-foreground">
+                        公司努力保护用户的个人信息。个人信息的保护和使用受相关法律法规和公司隐私政策的约束。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第7条 (服务变更和中止)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司可以更改或中止服务。
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 公司在中止服务时将提前通知，不对因中止而给用户造成的损害承担责任。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第8条 (免责声明)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 因自然灾害或类似不可抗力导致无法提供服务时，公司对服务提供不承担责任。
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 因用户过错导致的服务使用障碍，公司不承担责任。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第9条 (条款变更)</h3>
+                      <p className="text-muted-foreground">
+                        公司可以在必要时修改本条款，修改后的条款通过在服务屏幕上通知而生效。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第10条 (适用法律和管辖法院)</h3>
+                      <p className="text-muted-foreground">
+                        本条款未规定的事项适用大韩民国法律，与服务使用相关的争议应由对公司总部有管辖权的法院管辖。
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        本条款自2024年1月1日起生效。
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第1条 (目的)</h3>
+                      <p className="text-muted-foreground">
+                        本規約は、MemoWay（以下「会社」）が提供する位置情報ベースのメモ共有サービス（以下「サービス」）の利用に関し、会社と利用者間の権利、義務および責任事項を定めることを目的とします。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第2条 (定義)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 「サービス」とは、会社が提供する位置情報ベースのメモ作成、共有、グループ管理などの機能を含むすべてのサービスを意味します。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 「利用者」とは、本規約に同意し、会社が提供するサービスを利用する者を意味します。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 「メモ」とは、利用者が特定の場所に作成したテキスト、写真などのコンテンツを意味します。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第3条 (サービスの提供)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は以下のサービスを提供します：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>位置情報ベースのメモ作成および管理</li>
+                        <li>グループ作成およびメモ共有</li>
+                        <li>地図ベースのメモ探索</li>
+                        <li>ポイント購入および使用</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. サービスは原則として年中無休、1日24時間提供されます。ただし、会社の業務上または技術上の理由により、サービスが一時的に中断される場合があり、この場合、会社は事前に通知します。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第4条 (利用者の義務)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 利用者は以下の行為を行ってはなりません：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>他人の個人情報を無断で収集、利用または他人に提供する行為</li>
+                        <li>サービスの安定した運営を妨害する行為</li>
+                        <li>違法または不適切なコンテンツを投稿する行為</li>
+                        <li>他の利用者のサービス利用を妨害する行為</li>
+                        <li>会社の知的財産権を侵害する行為</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 利用者が本条の義務に違反した場合、会社はサービスの利用を制限または契約を解除することができます。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第5条 (ポイントおよび有料サービス)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は一部のサービスについて、ポイントを通じた有料サービスを提供する場合があります。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. ポイントは会社が定めた方法で購入でき、購入したポイントは返金されません。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. ポイントはサービス内でのみ使用可能で、現金に交換したり譲渡したりすることはできません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第6条 (個人情報保護)</h3>
+                      <p className="text-muted-foreground">
+                        会社は利用者の個人情報を保護するために努力します。個人情報の保護および使用については、関連法令および会社のプライバシーポリシーが適用されます。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第7条 (サービスの変更および中断)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社はサービスの内容を変更または中断することができます。
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 会社はサービス中断時に事前に通知し、中断による利用者の損害について責任を負いません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第8条 (免責事項)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は天災地変またはこれに準ずる不可抗力によりサービスを提供できない場合、サービス提供に関する責任を免れます。
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 会社は利用者の責めに帰すべき事由によるサービス利用の障害について責任を負いません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第9条 (規約の変更)</h3>
+                      <p className="text-muted-foreground">
+                        会社は必要な場合、本規約を変更することができ、変更された規約はサービス画面に通知することにより効力を発生します。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第10条 (準拠法および管轄裁判所)</h3>
+                      <p className="text-muted-foreground">
+                        本規約に明示されていない事項は大韓民国の法令に従い、サービス利用に関連して発生した紛争については、会社の本社所在地を管轄する裁判所を管轄裁判所とします。
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        本規約は2024年1月1日から施行されます。
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isTermsDialogOpen} onOpenChange={setIsTermsDialogOpen}>
+          <DialogContent className="sm:max-w-2xl w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-slate-50/50 to-gray-50/30">
+              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
+                <FileTextIcon className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600 shrink-0" />
+                {language === 'ko' ? '이용약관' : language === 'en' ? 'Terms of Service' : language === 'zh' ? '服务条款' : '利用規約'}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm mt-1">
+                {language === 'ko' ? 'MemoWay 서비스 이용약관' : language === 'en' ? 'MemoWay Terms of Service' : language === 'zh' ? 'MemoWay 服务条款' : 'MemoWay 利用規約'}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+              <div className="space-y-6 text-sm sm:text-base leading-relaxed">
+                {language === 'ko' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제1조 (목적)</h3>
+                      <p className="text-muted-foreground">
+                        본 약관은 MemoWay(이하 "회사")가 제공하는 위치 기반 메모 공유 서비스(이하 "서비스")의 이용과 관련하여 회사와 이용자 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제2조 (정의)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. "서비스"란 회사가 제공하는 위치 기반 메모 작성, 공유, 그룹 관리 등의 기능을 포함하는 모든 서비스를 의미합니다.
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. "이용자"란 본 약관에 동의하고 회사가 제공하는 서비스를 이용하는 자를 의미합니다.
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. "메모"란 이용자가 특정 위치에 작성한 텍스트, 사진 등의 콘텐츠를 의미합니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제3조 (서비스의 제공)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 회사는 다음과 같은 서비스를 제공합니다:
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>위치 기반 메모 작성 및 관리</li>
+                        <li>그룹 생성 및 메모 공유</li>
+                        <li>지도 기반 메모 탐색</li>
+                        <li>포인트 구매 및 사용</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 서비스는 연중무휴, 1일 24시간 제공함을 원칙으로 합니다. 다만, 회사의 업무상 또는 기술상의 이유로 서비스가 일시 중단될 수 있으며, 이 경우 회사는 사전에 공지합니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제4조 (이용자의 의무)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 이용자는 다음 행위를 하여서는 안 됩니다:
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>타인의 개인정보를 무단으로 수집, 이용하거나 타인에게 제공하는 행위</li>
+                        <li>서비스의 안정적 운영을 방해하는 행위</li>
+                        <li>불법적이거나 부적절한 콘텐츠를 게시하는 행위</li>
+                        <li>다른 이용자의 서비스 이용을 방해하는 행위</li>
+                        <li>회사의 지적재산권을 침해하는 행위</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 이용자가 본 조의 의무를 위반한 경우, 회사는 서비스 이용을 제한하거나 계약을 해지할 수 있습니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제5조 (포인트 및 유료 서비스)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 회사는 일부 서비스에 대해 포인트를 통한 유료 서비스를 제공할 수 있습니다.
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 포인트는 회사가 정한 방법으로 구매할 수 있으며, 구매한 포인트는 환불되지 않습니다.
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 포인트는 서비스 내에서만 사용 가능하며, 현금으로 환전하거나 양도할 수 없습니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제6조 (개인정보 보호)</h3>
+                      <p className="text-muted-foreground">
+                        회사는 이용자의 개인정보를 보호하기 위하여 노력합니다. 개인정보의 보호 및 사용에 대해서는 관련 법령 및 회사의 개인정보처리방침이 적용됩니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제7조 (서비스의 변경 및 중단)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 회사는 서비스의 내용을 변경하거나 중단할 수 있습니다.
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 회사는 서비스 중단 시 사전에 공지하며, 중단으로 인한 이용자의 손해에 대해 책임을 지지 않습니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제8조 (면책사항)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 회사는 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 회사는 이용자의 귀책사유로 인한 서비스 이용의 장애에 대하여는 책임을 지지 않습니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제9조 (약관의 변경)</h3>
+                      <p className="text-muted-foreground">
+                        회사는 필요한 경우 본 약관을 변경할 수 있으며, 변경된 약관은 서비스 화면에 공지함으로써 효력을 발생합니다.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제10조 (준거법 및 관할법원)</h3>
+                      <p className="text-muted-foreground">
+                        본 약관에 명시되지 않은 사항은 대한민국 법령을 따르며, 서비스 이용과 관련하여 발생한 분쟁에 대해서는 회사의 본사 소재지를 관할하는 법원을 관할법원으로 합니다.
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        본 약관은 2024년 1월 1일부터 시행됩니다.
+                      </p>
+                    </div>
+                  </>
+                ) : language === 'en' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 1 (Purpose)</h3>
+                      <p className="text-muted-foreground">
+                        These Terms of Service govern the use of MemoWay's location-based memo sharing service (the "Service") and establish the rights, obligations, and responsibilities between the Company and users.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 2 (Definitions)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. "Service" means all services provided by the Company, including location-based memo creation, sharing, and group management features.
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. "User" means any person who agrees to these Terms and uses the Service.
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. "Memo" means content such as text and photos created by users at specific locations.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 3 (Service Provision)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. The Company provides the following services:
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>Location-based memo creation and management</li>
+                        <li>Group creation and memo sharing</li>
+                        <li>Map-based memo exploration</li>
+                        <li>Point purchase and usage</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. The Service is provided 24 hours a day, 365 days a year. However, the Service may be temporarily suspended due to business or technical reasons, and the Company will provide prior notice in such cases.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 4 (User Obligations)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. Users must not engage in the following acts:
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>Unauthorized collection, use, or provision of others' personal information</li>
+                        <li>Acts that interfere with the stable operation of the Service</li>
+                        <li>Posting illegal or inappropriate content</li>
+                        <li>Acts that interfere with other users' use of the Service</li>
+                        <li>Acts that infringe upon the Company's intellectual property rights</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. If a user violates the obligations under this Article, the Company may restrict Service use or terminate the agreement.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 5 (Points and Paid Services)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. The Company may provide paid services through points for some services.
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. Points can be purchased through methods determined by the Company, and purchased points are non-refundable.
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. Points can only be used within the Service and cannot be exchanged for cash or transferred.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 6 (Privacy Protection)</h3>
+                      <p className="text-muted-foreground">
+                        The Company strives to protect users' personal information. The protection and use of personal information is governed by applicable laws and the Company's Privacy Policy.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 7 (Service Changes and Suspension)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. The Company may change or suspend the Service.
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. The Company will provide prior notice when suspending the Service and is not liable for any damages to users resulting from such suspension.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 8 (Disclaimer)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. The Company is exempt from liability for Service provision in cases of natural disasters or similar force majeure events.
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. The Company is not liable for Service disruptions caused by user negligence.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 9 (Amendment of Terms)</h3>
+                      <p className="text-muted-foreground">
+                        The Company may amend these Terms when necessary, and amended Terms become effective upon notification on the Service screen.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">Article 10 (Governing Law and Jurisdiction)</h3>
+                      <p className="text-muted-foreground">
+                        Matters not specified in these Terms are governed by the laws of the Republic of Korea, and disputes arising from Service use shall be subject to the jurisdiction of the court having jurisdiction over the Company's headquarters.
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        These Terms take effect from January 1, 2024.
+                      </p>
+                    </div>
+                  </>
+                ) : language === 'zh' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第1条 (目的)</h3>
+                      <p className="text-muted-foreground">
+                        本条款旨在规定MemoWay（以下简称"公司"）提供的位置备忘录共享服务（以下简称"服务"）的使用，以及公司与用户之间的权利、义务和责任。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第2条 (定义)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. "服务"是指公司提供的包括基于位置的备忘录创建、共享、群组管理等功能的所有服务。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. "用户"是指同意本条款并使用公司提供的服务的个人。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. "备忘录"是指用户在特定位置创建的文本、照片等内容。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第3条 (服务提供)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司提供以下服务：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>基于位置的备忘录创建和管理</li>
+                        <li>群组创建和备忘录共享</li>
+                        <li>基于地图的备忘录探索</li>
+                        <li>积分购买和使用</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 服务原则上全年365天、每天24小时提供。但是，由于公司业务或技术原因，服务可能会暂时中断，在这种情况下，公司将提前通知。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第4条 (用户义务)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 用户不得从事以下行为：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>未经授权收集、使用或提供他人的个人信息</li>
+                        <li>干扰服务稳定运行的行为</li>
+                        <li>发布非法或不适当的内容</li>
+                        <li>干扰其他用户使用服务的行为</li>
+                        <li>侵犯公司知识产权的行为</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 如果用户违反本条的义务，公司可以限制服务使用或终止协议。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第5条 (积分和付费服务)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司可能对某些服务提供通过积分的付费服务。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 积分可以通过公司确定的方式购买，购买的积分不可退款。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 积分只能在服务内使用，不能兑换现金或转让。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第6条 (隐私保护)</h3>
+                      <p className="text-muted-foreground">
+                        公司努力保护用户的个人信息。个人信息的保护和使用受相关法律法规和公司隐私政策的约束。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第7条 (服务变更和中止)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司可以更改或中止服务。
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 公司在中止服务时将提前通知，不对因中止而给用户造成的损害承担责任。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第8条 (免责声明)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 因自然灾害或类似不可抗力导致无法提供服务时，公司对服务提供不承担责任。
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 因用户过错导致的服务使用障碍，公司不承担责任。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第9条 (条款变更)</h3>
+                      <p className="text-muted-foreground">
+                        公司可以在必要时修改本条款，修改后的条款通过在服务屏幕上通知而生效。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第10条 (适用法律和管辖法院)</h3>
+                      <p className="text-muted-foreground">
+                        本条款未规定的事项适用大韩民国法律，与服务使用相关的争议应由对公司总部有管辖权的法院管辖。
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        本条款自2024年1月1日起生效。
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第1条 (目的)</h3>
+                      <p className="text-muted-foreground">
+                        本規約は、MemoWay（以下「会社」）が提供する位置情報ベースのメモ共有サービス（以下「サービス」）の利用に関し、会社と利用者間の権利、義務および責任事項を定めることを目的とします。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第2条 (定義)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 「サービス」とは、会社が提供する位置情報ベースのメモ作成、共有、グループ管理などの機能を含むすべてのサービスを意味します。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 「利用者」とは、本規約に同意し、会社が提供するサービスを利用する者を意味します。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 「メモ」とは、利用者が特定の場所に作成したテキスト、写真などのコンテンツを意味します。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第3条 (サービスの提供)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は以下のサービスを提供します：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>位置情報ベースのメモ作成および管理</li>
+                        <li>グループ作成およびメモ共有</li>
+                        <li>地図ベースのメモ探索</li>
+                        <li>ポイント購入および使用</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. サービスは原則として年中無休、1日24時間提供されます。ただし、会社の業務上または技術上の理由により、サービスが一時的に中断される場合があり、この場合、会社は事前に通知します。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第4条 (利用者の義務)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 利用者は以下の行為を行ってはなりません：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>他人の個人情報を無断で収集、利用または他人に提供する行為</li>
+                        <li>サービスの安定した運営を妨害する行為</li>
+                        <li>違法または不適切なコンテンツを投稿する行為</li>
+                        <li>他の利用者のサービス利用を妨害する行為</li>
+                        <li>会社の知的財産権を侵害する行為</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        2. 利用者が本条の義務に違反した場合、会社はサービスの利用を制限または契約を解除することができます。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第5条 (ポイントおよび有料サービス)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は一部のサービスについて、ポイントを通じた有料サービスを提供する場合があります。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. ポイントは会社が定めた方法で購入でき、購入したポイントは返金されません。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. ポイントはサービス内でのみ使用可能で、現金に交換したり譲渡したりすることはできません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第6条 (個人情報保護)</h3>
+                      <p className="text-muted-foreground">
+                        会社は利用者の個人情報を保護するために努力します。個人情報の保護および使用については、関連法令および会社のプライバシーポリシーが適用されます。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第7条 (サービスの変更および中断)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社はサービスの内容を変更または中断することができます。
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 会社はサービス中断時に事前に通知し、中断による利用者の損害について責任を負いません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第8条 (免責事項)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は天災地変またはこれに準ずる不可抗力によりサービスを提供できない場合、サービス提供に関する責任を免れます。
+                      </p>
+                      <p className="text-muted-foreground">
+                        2. 会社は利用者の責めに帰すべき事由によるサービス利用の障害について責任を負いません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第9条 (規約の変更)</h3>
+                      <p className="text-muted-foreground">
+                        会社は必要な場合、本規約を変更することができ、変更された規約はサービス画面に通知することにより効力を発生します。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第10条 (準拠法および管轄裁判所)</h3>
+                      <p className="text-muted-foreground">
+                        本規約に明示されていない事項は大韓民国の法令に従い、サービス利用に関連して発生した紛争については、会社の本社所在地を管轄する裁判所を管轄裁判所とします。
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        本規約は2024年1月1日から施行されます。
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </DialogContent>
