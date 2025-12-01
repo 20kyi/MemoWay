@@ -238,15 +238,6 @@ export function ProfileView({
       },
     },
     {
-      id: "appInfo",
-      icon: Info,
-      title: t.settings.appInfo,
-      description: t.settings.appInfoDesc,
-      color: "from-green-500/10 to-emerald-500/10 border-green-500/40",
-      iconColor: "text-green-500",
-      onClick: () => setIsAppInfoDialogOpen(true),
-    },
-    {
       id: "community",
       icon: Users,
       title: t.settings.community,
@@ -256,6 +247,15 @@ export function ProfileView({
       onClick: () => {
         window.open('https://cafe.naver.com/memoway', '_blank', 'noopener,noreferrer');
       },
+    },
+    {
+      id: "appInfo",
+      icon: Info,
+      title: t.settings.appInfo,
+      description: t.settings.appInfoDesc,
+      color: "from-slate-500/10 to-gray-500/10 border-slate-500/40",
+      iconColor: "text-slate-600",
+      onClick: () => setIsAppInfoDialogOpen(true),
     },
   ];
 
