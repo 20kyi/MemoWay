@@ -212,6 +212,22 @@ export const translations = {
       storeDesc: "포인트를 구매하고 다양한 기능을 이용하세요",
       customerSupport: "고객지원",
       customerSupportDesc: "문의사항이나 도움이 필요하신가요?",
+      supportFaq: "자주 묻는 질문",
+      supportFaqDesc: "자주 묻는 질문과 답변을 확인하세요",
+      supportInquiry: "문의하기",
+      supportInquiryDesc: "이메일로 문의사항을 보내주세요",
+      supportFeedback: "피드백 보내기",
+      supportFeedbackDesc: "앱 개선을 위한 의견을 보내주세요",
+      supportBugReport: "버그 신고",
+      supportBugReportDesc: "발견한 버그를 신고해주세요",
+      supportTerms: "이용약관",
+      supportTermsDesc: "서비스 이용약관을 확인하세요",
+      supportPrivacy: "개인정보처리방침",
+      supportPrivacyDesc: "개인정보 처리방침을 확인하세요",
+      supportNotice: "공지사항",
+      supportNoticeDesc: "앱 관련 공지사항을 확인하세요",
+      supportEmail: "이메일 문의",
+      supportEmailDesc: "support@memoway.com으로 문의해주세요",
       appInfo: "앱 정보",
       appInfoDesc: "앱 버전 및 개발자 정보를 확인하세요",
     },
@@ -528,6 +544,22 @@ export const translations = {
       storeDesc: "Purchase points and access various features",
       customerSupport: "Customer Support",
       customerSupportDesc: "Need help or have questions?",
+      supportFaq: "FAQ",
+      supportFaqDesc: "Check frequently asked questions and answers",
+      supportInquiry: "Contact Us",
+      supportInquiryDesc: "Send us your inquiries via email",
+      supportFeedback: "Send Feedback",
+      supportFeedbackDesc: "Share your thoughts to improve the app",
+      supportBugReport: "Report Bug",
+      supportBugReportDesc: "Report any bugs you've found",
+      supportTerms: "Terms of Service",
+      supportTermsDesc: "View terms of service",
+      supportPrivacy: "Privacy Policy",
+      supportPrivacyDesc: "View privacy policy",
+      supportNotice: "Announcements",
+      supportNoticeDesc: "Check app-related announcements",
+      supportEmail: "Email Support",
+      supportEmailDesc: "Contact us at support@memoway.com",
       appInfo: "App Information",
       appInfoDesc: "View app version and developer information",
     },
@@ -844,6 +876,22 @@ export const translations = {
       storeDesc: "购买积分并访问各种功能",
       customerSupport: "客户支持",
       customerSupportDesc: "需要帮助或有疑问？",
+      supportFaq: "常见问题",
+      supportFaqDesc: "查看常见问题和答案",
+      supportInquiry: "联系我们",
+      supportInquiryDesc: "通过电子邮件发送您的咨询",
+      supportFeedback: "发送反馈",
+      supportFeedbackDesc: "分享您的想法以改进应用",
+      supportBugReport: "报告错误",
+      supportBugReportDesc: "报告您发现的任何错误",
+      supportTerms: "服务条款",
+      supportTermsDesc: "查看服务条款",
+      supportPrivacy: "隐私政策",
+      supportPrivacyDesc: "查看隐私政策",
+      supportNotice: "公告",
+      supportNoticeDesc: "查看应用相关公告",
+      supportEmail: "邮件支持",
+      supportEmailDesc: "通过 support@memoway.com 联系我们",
       appInfo: "应用信息",
       appInfoDesc: "查看应用版本和开发者信息",
     },
@@ -1160,6 +1208,22 @@ export const translations = {
       storeDesc: "ポイントを購入して様々な機能を利用できます",
       customerSupport: "カスタマーサポート",
       customerSupportDesc: "お問い合わせやサポートが必要ですか？",
+      supportFaq: "よくある質問",
+      supportFaqDesc: "よくある質問と回答を確認してください",
+      supportInquiry: "お問い合わせ",
+      supportInquiryDesc: "メールでお問い合わせください",
+      supportFeedback: "フィードバックを送信",
+      supportFeedbackDesc: "アプリ改善のためのご意見をお聞かせください",
+      supportBugReport: "バグを報告",
+      supportBugReportDesc: "見つけたバグを報告してください",
+      supportTerms: "利用規約",
+      supportTermsDesc: "利用規約を確認してください",
+      supportPrivacy: "プライバシーポリシー",
+      supportPrivacyDesc: "プライバシーポリシーを確認してください",
+      supportNotice: "お知らせ",
+      supportNoticeDesc: "アプリ関連のお知らせを確認してください",
+      supportEmail: "メールサポート",
+      supportEmailDesc: "support@memoway.com までお問い合わせください",
       appInfo: "アプリ情報",
       appInfoDesc: "アプリバージョンと開発者情報を確認できます",
     },
@@ -1461,6 +1525,22 @@ type Translation = {
     storeDesc: string;
     customerSupport: string;
     customerSupportDesc: string;
+    supportFaq: string;
+    supportFaqDesc: string;
+    supportInquiry: string;
+    supportInquiryDesc: string;
+    supportFeedback: string;
+    supportFeedbackDesc: string;
+    supportBugReport: string;
+    supportBugReportDesc: string;
+    supportTerms: string;
+    supportTermsDesc: string;
+    supportPrivacy: string;
+    supportPrivacyDesc: string;
+    supportNotice: string;
+    supportNoticeDesc: string;
+    supportEmail: string;
+    supportEmailDesc: string;
     appInfo: string;
     appInfoDesc: string;
   };

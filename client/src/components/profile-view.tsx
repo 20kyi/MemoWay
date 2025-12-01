@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { User, Coins, FileText, Users, LogOut, Settings, ShoppingBag, HelpCircle, Info, ExternalLink, ChevronRight, Bell, Map, Languages, Type, Sparkles, Plus, Gem, Star } from "lucide-react";
+import { User, Coins, FileText, Users, LogOut, Settings, ShoppingBag, HelpCircle, Info, ExternalLink, ChevronRight, Bell, Map, Languages, Type, Sparkles, Plus, Gem, Star, Mail, MessageSquare, Bug, FileText as FileTextIcon, Shield, Megaphone, MessageCircle } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily } from "@/lib/font-context";
 import { useLayoutTheme, type LayoutTheme } from "@/lib/layout-theme-context";
@@ -19,6 +19,8 @@ import { Capacitor } from "@capacitor/core";
 import { getApiBaseUrl } from "@/lib/api-config";
 import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect } from "react";
 
 interface ProfileViewProps {
@@ -47,9 +49,11 @@ export function ProfileView({
   const { fontFamily, setFontFamily, fontSize, setFontSize } = useFont();
   const { layoutTheme, setLayoutTheme } = useLayoutTheme();
   const { mapProvider, setMapProvider } = useMapProvider();
+  const isMobile = useIsMobile();
   const [isStoreDialogOpen, setIsStoreDialogOpen] = useState(false);
   const [isAppInfoDialogOpen, setIsAppInfoDialogOpen] = useState(false);
   const [isPersonalSettingsDialogOpen, setIsPersonalSettingsDialogOpen] = useState(false);
+  const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
   
   // 알림 기능 (토스트 알림 제어)
   const [toastNotificationsEnabled, setToastNotificationsEnabled] = useState(() => {
@@ -228,7 +232,7 @@ export function ProfileView({
       color: "from-blue-500/10 to-cyan-500/10 border-blue-500/40",
       iconColor: "text-blue-500",
       onClick: () => {
-        window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '문의사항' : language === 'en' ? 'Inquiry' : language === 'zh' ? '咨询' : 'お問い合わせ')}`;
+        setIsSupportDialogOpen(true);
       },
     },
     {
@@ -500,117 +504,231 @@ export function ProfileView({
         </CardContent>
       </Card>
 
-      {/* 상점 다이얼로그 */}
-      <Dialog open={isStoreDialogOpen} onOpenChange={setIsStoreDialogOpen}>
-        <DialogContent className="sm:max-w-lg w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
-          <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-amber-50/50 to-orange-50/30">
-            <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
-              <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500 shrink-0" />
-              {language === 'ko' ? '상점' : language === 'en' ? 'Store' : language === 'zh' ? '商店' : 'ショップ'}
-            </DialogTitle>
-            <DialogDescription className="text-xs sm:text-sm mt-1">
-              {t.settings.purchasePointsDesc}
-            </DialogDescription>
-          </DialogHeader>
+      {/* 상점 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
+      {isMobile ? (
+        <Sheet open={isStoreDialogOpen} onOpenChange={setIsStoreDialogOpen}>
+          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
+            <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-amber-50/50 to-orange-50/30">
+              <SheetTitle className="flex items-center gap-2 text-xl">
+                <ShoppingBag className="h-6 w-6 text-amber-500 shrink-0" />
+                {language === 'ko' ? '상점' : language === 'en' ? 'Store' : language === 'zh' ? '商店' : 'ショップ'}
+              </SheetTitle>
+              <SheetDescription className="text-sm mt-1.5">
+                {t.settings.purchasePointsDesc}
+              </SheetDescription>
+            </SheetHeader>
 
-          {/* 보유 포인트 표시 */}
-          <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4">
-            <div className="relative rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 border-2 border-purple-200/50 shadow-lg overflow-hidden">
-              {/* 배경 패턴 */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-400 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-400 rounded-full blur-2xl"></div>
-              </div>
-              
-              <div className="relative p-4 sm:p-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg flex items-center justify-center shrink-0">
-                      <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm text-muted-foreground mb-1 font-medium">
-                        {language === 'ko' ? '보유 포인트' : language === 'en' ? 'Current Points' : language === 'zh' ? '当前积分' : '保有ポイント'}
-                      </p>
-                      <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent" data-testid="text-user-points-store">
-                        {userPoints.toLocaleString()}
-                        <span className="text-base sm:text-lg text-muted-foreground ml-1">P</span>
-                      </p>
+            {/* 보유 포인트 표시 */}
+            <div className="px-5 pt-5 pb-4">
+              <div className="relative rounded-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 border-2 border-purple-200/50 shadow-lg overflow-hidden">
+                {/* 배경 패턴 */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-purple-400 rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-400 rounded-full blur-2xl"></div>
+                </div>
+                
+                <div className="relative p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg flex items-center justify-center shrink-0">
+                        <Sparkles className="h-8 w-8 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1 font-medium">
+                          {language === 'ko' ? '보유 포인트' : language === 'en' ? 'Current Points' : language === 'zh' ? '当前积分' : '保有ポイント'}
+                        </p>
+                        <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent" data-testid="text-user-points-store">
+                          {userPoints.toLocaleString()}
+                          <span className="text-lg text-muted-foreground ml-1">P</span>
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* 포인트 구매 패키지 */}
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-sm sm:text-base font-semibold text-foreground mb-3 sm:mb-4">
-                {t.settings.purchasePointsTitle}
-              </h3>
-              {pointPackages.map((pkg) => {
-                const IconComponent = pkg.icon;
-                return (
-                  <button
-                    key={pkg.amount}
-                    onClick={() => purchasePointsMutation.mutate(pkg.amount)}
-                    disabled={purchasePointsMutation.isPending}
-                    className={`w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br ${pkg.color} border-2 ${pkg.borderColor} hover:shadow-xl hover:scale-[1.02] hover:border-opacity-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg text-left relative overflow-hidden group`}
-                    data-testid={`button-purchase-${pkg.amount}`}
-                  >
-                    {/* 배경 장식 */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${pkg.bgColor} rounded-full blur-3xl`}></div>
-                      <div className={`absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br ${pkg.bgColor} rounded-full blur-2xl`}></div>
-                    </div>
-                    
-                    <div className="relative z-10 flex items-center justify-between gap-3 sm:gap-4">
-                      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                        <div className={`h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-gradient-to-br ${pkg.bgColor} border ${pkg.borderColor} shadow-md flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:shadow-lg transition-all duration-300`}>
-                          <IconComponent className={`h-7 w-7 sm:h-8 sm:w-8 ${pkg.iconColor}`} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 sm:gap-3 flex-wrap mb-1.5">
-                            <p className="font-bold text-lg sm:text-xl text-foreground">
-                              {pkg.amount.toLocaleString()} {t.settings.pointsPackage}
-                            </p>
-                            {pkg.label === "인기" && (
-                              <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold shrink-0 shadow-md">
-                                {t.settings.popular}
-                              </span>
-                            )}
+            {/* 포인트 구매 패키지 */}
+            <div className="flex-1 overflow-y-auto px-5 pb-6">
+              <div className="space-y-4">
+                <h3 className="text-base font-semibold text-foreground mb-4">
+                  {t.settings.purchasePointsTitle}
+                </h3>
+                {pointPackages.map((pkg) => {
+                  const IconComponent = pkg.icon;
+                  return (
+                    <button
+                      key={pkg.amount}
+                      onClick={() => purchasePointsMutation.mutate(pkg.amount)}
+                      disabled={purchasePointsMutation.isPending}
+                      className={`w-full p-5 rounded-3xl bg-gradient-to-br ${pkg.color} border-2 ${pkg.borderColor} active:scale-[0.98] active:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 text-left relative overflow-hidden touch-manipulation`}
+                      data-testid={`button-purchase-${pkg.amount}`}
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
+                    >
+                      {/* 배경 장식 */}
+                      <div className="absolute inset-0 opacity-0 active:opacity-100 transition-opacity duration-200">
+                        <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${pkg.bgColor} rounded-full blur-3xl`}></div>
+                        <div className={`absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br ${pkg.bgColor} rounded-full blur-2xl`}></div>
+                      </div>
+                      
+                      <div className="relative z-10 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${pkg.bgColor} border ${pkg.borderColor} shadow-md flex items-center justify-center shrink-0`}>
+                            <IconComponent className={`h-8 w-8 ${pkg.iconColor}`} />
                           </div>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            {t.settings.canCopyMemos.replace('{count}', (pkg.amount / 10).toLocaleString())}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-3 flex-wrap mb-1.5">
+                              <p className="font-bold text-xl text-foreground">
+                                {pkg.amount.toLocaleString()} {t.settings.pointsPackage}
+                              </p>
+                              {pkg.label === "인기" && (
+                                <span className="text-xs px-2.5 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold shrink-0 shadow-md">
+                                  {t.settings.popular}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {t.settings.canCopyMemos.replace('{count}', (pkg.amount / 10).toLocaleString())}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-bold text-2xl bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-0.5">
+                            {pkg.price}
                           </p>
+                          {purchasePointsMutation.isPending && (
+                            <p className="text-xs text-muted-foreground">
+                              {language === 'ko' ? '처리 중...' : language === 'en' ? 'Processing...' : language === 'zh' ? '处理中...' : '処理中...'}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="font-bold text-xl sm:text-2xl bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-0.5">
-                          {pkg.price}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 하단 안내 */}
+            <div className="px-5 pt-4 pb-6 border-t bg-muted/30">
+              <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                {t.settings.pointsUsageNote}
+              </p>
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isStoreDialogOpen} onOpenChange={setIsStoreDialogOpen}>
+          <DialogContent className="sm:max-w-lg w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-amber-50/50 to-orange-50/30">
+              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
+                <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500 shrink-0" />
+                {language === 'ko' ? '상점' : language === 'en' ? 'Store' : language === 'zh' ? '商店' : 'ショップ'}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm mt-1">
+                {t.settings.purchasePointsDesc}
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* 보유 포인트 표시 */}
+            <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4">
+              <div className="relative rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 border-2 border-purple-200/50 shadow-lg overflow-hidden">
+                {/* 배경 패턴 */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-purple-400 rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-400 rounded-full blur-2xl"></div>
+                </div>
+                
+                <div className="relative p-4 sm:p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg flex items-center justify-center shrink-0">
+                        <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-1 font-medium">
+                          {language === 'ko' ? '보유 포인트' : language === 'en' ? 'Current Points' : language === 'zh' ? '当前积分' : '保有ポイント'}
                         </p>
-                        {purchasePointsMutation.isPending && (
-                          <p className="text-[10px] sm:text-xs text-muted-foreground">
-                            {language === 'ko' ? '처리 중...' : language === 'en' ? 'Processing...' : language === 'zh' ? '处理中...' : '処理中...'}
-                          </p>
-                        )}
+                        <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent" data-testid="text-user-points-store">
+                          {userPoints.toLocaleString()}
+                          <span className="text-base sm:text-lg text-muted-foreground ml-1">P</span>
+                        </p>
                       </div>
                     </div>
-                  </button>
-                );
-              })}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* 하단 안내 */}
-          <div className="px-4 sm:px-6 pt-3 sm:pt-4 pb-4 sm:pb-6 border-t bg-muted/30">
-            <p className="text-[10px] sm:text-xs text-muted-foreground text-center leading-relaxed">
-              {t.settings.pointsUsageNote}
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+            {/* 포인트 구매 패키지 */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6">
+              <div className="space-y-3 sm:space-y-4">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-3 sm:mb-4">
+                  {t.settings.purchasePointsTitle}
+                </h3>
+                {pointPackages.map((pkg) => {
+                  const IconComponent = pkg.icon;
+                  return (
+                    <button
+                      key={pkg.amount}
+                      onClick={() => purchasePointsMutation.mutate(pkg.amount)}
+                      disabled={purchasePointsMutation.isPending}
+                      className={`w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br ${pkg.color} border-2 ${pkg.borderColor} hover:shadow-xl hover:scale-[1.02] hover:border-opacity-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg text-left relative overflow-hidden group`}
+                      data-testid={`button-purchase-${pkg.amount}`}
+                    >
+                      {/* 배경 장식 */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${pkg.bgColor} rounded-full blur-3xl`}></div>
+                        <div className={`absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br ${pkg.bgColor} rounded-full blur-2xl`}></div>
+                      </div>
+                      
+                      <div className="relative z-10 flex items-center justify-between gap-3 sm:gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                          <div className={`h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-gradient-to-br ${pkg.bgColor} border ${pkg.borderColor} shadow-md flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:shadow-lg transition-all duration-300`}>
+                            <IconComponent className={`h-7 w-7 sm:h-8 sm:w-8 ${pkg.iconColor}`} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap mb-1.5">
+                              <p className="font-bold text-lg sm:text-xl text-foreground">
+                                {pkg.amount.toLocaleString()} {t.settings.pointsPackage}
+                              </p>
+                              {pkg.label === "인기" && (
+                                <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold shrink-0 shadow-md">
+                                  {t.settings.popular}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              {t.settings.canCopyMemos.replace('{count}', (pkg.amount / 10).toLocaleString())}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-bold text-xl sm:text-2xl bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-0.5">
+                            {pkg.price}
+                          </p>
+                          {purchasePointsMutation.isPending && (
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">
+                              {language === 'ko' ? '처리 중...' : language === 'en' ? 'Processing...' : language === 'zh' ? '处理中...' : '処理中...'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 하단 안내 */}
+            <div className="px-4 sm:px-6 pt-3 sm:pt-4 pb-4 sm:pb-6 border-t bg-muted/30">
+              <p className="text-[10px] sm:text-xs text-muted-foreground text-center leading-relaxed">
+                {t.settings.pointsUsageNote}
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* 개인 설정 다이얼로그 */}
       <Dialog open={isPersonalSettingsDialogOpen} onOpenChange={setIsPersonalSettingsDialogOpen}>
@@ -890,6 +1008,428 @@ export function ProfileView({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 고객지원 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
+      {isMobile ? (
+        <Sheet open={isSupportDialogOpen} onOpenChange={setIsSupportDialogOpen}>
+          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
+            <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
+              <SheetTitle className="flex items-center gap-2 text-xl">
+                <HelpCircle className="h-6 w-6 text-blue-500 shrink-0" />
+                {t.settings.customerSupport}
+              </SheetTitle>
+              <SheetDescription className="text-sm mt-1.5">
+                {t.settings.customerSupportDesc}
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="flex-1 overflow-y-auto px-5 py-6">
+              <div className="space-y-3">
+                {/* FAQ */}
+                <button
+                  onClick={() => {
+                    toast({
+                      title: t.settings.supportFaq,
+                      description: language === 'ko' ? 'FAQ 페이지 준비 중입니다.' : language === 'en' ? 'FAQ page is coming soon.' : language === 'zh' ? '常见问题页面即将推出。' : 'FAQページは準備中です。',
+                    });
+                  }}
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-2 border-blue-200/60 hover:border-blue-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 border border-blue-200 flex items-center justify-center shrink-0">
+                      <MessageCircle className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground mb-0.5">
+                        {t.settings.supportFaq}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t.settings.supportFaqDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                  </div>
+                </button>
+
+                {/* 문의하기 */}
+                <button
+                  onClick={() => {
+                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '문의사항' : language === 'en' ? 'Inquiry' : language === 'zh' ? '咨询' : 'お問い合わせ')}`;
+                  }}
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 border-2 border-indigo-200/60 hover:border-indigo-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 border border-indigo-200 flex items-center justify-center shrink-0">
+                      <Mail className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground mb-0.5">
+                        {t.settings.supportInquiry}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t.settings.supportInquiryDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                  </div>
+                </button>
+
+                {/* 피드백 보내기 */}
+                <button
+                  onClick={() => {
+                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '피드백' : language === 'en' ? 'Feedback' : language === 'zh' ? '反馈' : 'フィードバック')}`;
+                  }}
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-2 border-emerald-200/60 hover:border-emerald-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200 flex items-center justify-center shrink-0">
+                      <MessageSquare className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground mb-0.5">
+                        {t.settings.supportFeedback}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t.settings.supportFeedbackDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                  </div>
+                </button>
+
+                {/* 버그 신고 */}
+                <button
+                  onClick={() => {
+                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '버그 신고' : language === 'en' ? 'Bug Report' : language === 'zh' ? '错误报告' : 'バグ報告')}`;
+                  }}
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-red-50/80 to-orange-50/80 border-2 border-red-200/60 hover:border-red-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-100 to-orange-100 border border-red-200 flex items-center justify-center shrink-0">
+                      <Bug className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground mb-0.5">
+                        {t.settings.supportBugReport}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t.settings.supportBugReportDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                  </div>
+                </button>
+
+                {/* 공지사항 */}
+                <button
+                  onClick={() => {
+                    toast({
+                      title: t.settings.supportNotice,
+                      description: language === 'ko' ? '공지사항 페이지 준비 중입니다.' : language === 'en' ? 'Announcements page is coming soon.' : language === 'zh' ? '公告页面即将推出。' : 'お知らせページは準備中です。',
+                    });
+                  }}
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-2 border-amber-200/60 hover:border-amber-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-100 to-yellow-100 border border-amber-200 flex items-center justify-center shrink-0">
+                      <Megaphone className="h-6 w-6 text-amber-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground mb-0.5">
+                        {t.settings.supportNotice}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t.settings.supportNoticeDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                  </div>
+                </button>
+
+                {/* 이용약관 */}
+                <button
+                  onClick={() => {
+                    toast({
+                      title: t.settings.supportTerms,
+                      description: language === 'ko' ? '이용약관 페이지 준비 중입니다.' : language === 'en' ? 'Terms of Service page is coming soon.' : language === 'zh' ? '服务条款页面即将推出。' : '利用規約ページは準備中です。',
+                    });
+                  }}
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-slate-50/80 to-gray-50/80 border-2 border-slate-200/60 hover:border-slate-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-100 to-gray-100 border border-slate-200 flex items-center justify-center shrink-0">
+                      <FileTextIcon className="h-6 w-6 text-slate-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground mb-0.5">
+                        {t.settings.supportTerms}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t.settings.supportTermsDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                  </div>
+                </button>
+
+                {/* 개인정보처리방침 */}
+                <button
+                  onClick={() => {
+                    toast({
+                      title: t.settings.supportPrivacy,
+                      description: language === 'ko' ? '개인정보처리방침 페이지 준비 중입니다.' : language === 'en' ? 'Privacy Policy page is coming soon.' : language === 'zh' ? '隐私政策页面即将推出。' : 'プライバシーポリシーページは準備中です。',
+                    });
+                  }}
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-2 border-violet-200/60 hover:border-violet-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 border border-violet-200 flex items-center justify-center shrink-0">
+                      <Shield className="h-6 w-6 text-violet-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground mb-0.5">
+                        {t.settings.supportPrivacy}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t.settings.supportPrivacyDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                  </div>
+                </button>
+
+                {/* 이메일 지원 */}
+                <div className="pt-2">
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/50 to-cyan-50/30 border border-blue-200/50">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Mail className="h-5 w-5 text-blue-600 shrink-0" />
+                      <p className="font-semibold text-sm text-foreground">
+                        {t.settings.supportEmail}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t.settings.supportEmailDesc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isSupportDialogOpen} onOpenChange={setIsSupportDialogOpen}>
+          <DialogContent className="sm:max-w-lg w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
+              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
+                <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 shrink-0" />
+                {t.settings.customerSupport}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm mt-1">
+                {t.settings.customerSupportDesc}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+              <div className="space-y-3 sm:space-y-4">
+                {/* FAQ */}
+                <button
+                  onClick={() => {
+                    toast({
+                      title: t.settings.supportFaq,
+                      description: language === 'ko' ? 'FAQ 페이지 준비 중입니다.' : language === 'en' ? 'FAQ page is coming soon.' : language === 'zh' ? '常见问题页面即将推出。' : 'FAQページは準備中です。',
+                    });
+                  }}
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-2 border-blue-200/60 hover:border-blue-300 hover:shadow-lg transition-all duration-300 text-left group"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 border border-blue-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
+                        {t.settings.supportFaq}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {t.settings.supportFaqDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+
+                {/* 문의하기 */}
+                <button
+                  onClick={() => {
+                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '문의사항' : language === 'en' ? 'Inquiry' : language === 'zh' ? '咨询' : 'お問い合わせ')}`;
+                  }}
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 border-2 border-indigo-200/60 hover:border-indigo-300 hover:shadow-lg transition-all duration-300 text-left group"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 border border-indigo-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Mail className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
+                        {t.settings.supportInquiry}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {t.settings.supportInquiryDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+
+                {/* 피드백 보내기 */}
+                <button
+                  onClick={() => {
+                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '피드백' : language === 'en' ? 'Feedback' : language === 'zh' ? '反馈' : 'フィードバック')}`;
+                  }}
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-2 border-emerald-200/60 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 text-left group"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <MessageSquare className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
+                        {t.settings.supportFeedback}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {t.settings.supportFeedbackDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+
+                {/* 버그 신고 */}
+                <button
+                  onClick={() => {
+                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '버그 신고' : language === 'en' ? 'Bug Report' : language === 'zh' ? '错误报告' : 'バグ報告')}`;
+                  }}
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-red-50/80 to-orange-50/80 border-2 border-red-200/60 hover:border-red-300 hover:shadow-lg transition-all duration-300 text-left group"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-100 to-orange-100 border border-red-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Bug className="h-6 w-6 sm:h-7 sm:w-7 text-red-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
+                        {t.settings.supportBugReport}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {t.settings.supportBugReportDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+
+                {/* 공지사항 */}
+                <button
+                  onClick={() => {
+                    toast({
+                      title: t.settings.supportNotice,
+                      description: language === 'ko' ? '공지사항 페이지 준비 중입니다.' : language === 'en' ? 'Announcements page is coming soon.' : language === 'zh' ? '公告页面即将推出。' : 'お知らせページは準備中です。',
+                    });
+                  }}
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-2 border-amber-200/60 hover:border-amber-300 hover:shadow-lg transition-all duration-300 text-left group"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-100 to-yellow-100 border border-amber-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Megaphone className="h-6 w-6 sm:h-7 sm:w-7 text-amber-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
+                        {t.settings.supportNotice}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {t.settings.supportNoticeDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+
+                {/* 이용약관 */}
+                <button
+                  onClick={() => {
+                    toast({
+                      title: t.settings.supportTerms,
+                      description: language === 'ko' ? '이용약관 페이지 준비 중입니다.' : language === 'en' ? 'Terms of Service page is coming soon.' : language === 'zh' ? '服务条款页面即将推出。' : '利用規約ページは準備中です。',
+                    });
+                  }}
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-50/80 to-gray-50/80 border-2 border-slate-200/60 hover:border-slate-300 hover:shadow-lg transition-all duration-300 text-left group"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-slate-100 to-gray-100 border border-slate-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <FileTextIcon className="h-6 w-6 sm:h-7 sm:w-7 text-slate-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
+                        {t.settings.supportTerms}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {t.settings.supportTermsDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+
+                {/* 개인정보처리방침 */}
+                <button
+                  onClick={() => {
+                    toast({
+                      title: t.settings.supportPrivacy,
+                      description: language === 'ko' ? '개인정보처리방침 페이지 준비 중입니다.' : language === 'en' ? 'Privacy Policy page is coming soon.' : language === 'zh' ? '隐私政策页面即将推出。' : 'プライバシーポリシーページは準備中です。',
+                    });
+                  }}
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-2 border-violet-200/60 hover:border-violet-300 hover:shadow-lg transition-all duration-300 text-left group"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 border border-violet-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Shield className="h-6 w-6 sm:h-7 sm:w-7 text-violet-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
+                        {t.settings.supportPrivacy}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {t.settings.supportPrivacyDesc}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+
+                {/* 이메일 지원 */}
+                <div className="pt-2">
+                  <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/50 to-cyan-50/30 border border-blue-200/50">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 shrink-0" />
+                      <p className="font-semibold text-sm sm:text-base text-foreground">
+                        {t.settings.supportEmail}
+                      </p>
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      {t.settings.supportEmailDesc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
