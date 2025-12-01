@@ -1105,14 +1105,25 @@ export function ProfileView({
                 {/* 버그 신고 */}
                 <button
                   onClick={() => {
-                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '버그 신고' : language === 'en' ? 'Bug Report' : language === 'zh' ? '错误报告' : 'バグ報告')}`;
+                    const email = 'storybuild@naver.com';
+                    const category = '[버그신고]';
+                    const subject = language === 'ko' ? '버그신고' : language === 'en' ? 'Bug Report' : language === 'zh' ? '错误报告' : 'バグ報告';
+                    const body = language === 'ko' 
+                      ? `버그 신고 내용을 작성해주세요:\n\n1. 발생한 문제:\n\n2. 재현 방법:\n\n3. 예상 결과:\n\n4. 실제 결과:\n\n5. 기기 정보 (선택사항):\n\n6. 스크린샷 (선택사항):`
+                      : language === 'en'
+                      ? `Please describe the bug:\n\n1. Issue:\n\n2. Steps to reproduce:\n\n3. Expected result:\n\n4. Actual result:\n\n5. Device information (optional):\n\n6. Screenshot (optional):`
+                      : language === 'zh'
+                      ? `请描述错误：\n\n1. 问题：\n\n2. 重现步骤：\n\n3. 预期结果：\n\n4. 实际结果：\n\n5. 设备信息（可选）：\n\n6. 截图（可选）：`
+                      : `バグの内容を記入してください：\n\n1. 発生した問題：\n\n2. 再現方法：\n\n3. 期待される結果：\n\n4. 実際の結果：\n\n5. デバイス情報（任意）：\n\n6. スクリーンショット（任意）：`;
+                    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-red-50/80 to-orange-50/80 border-2 border-red-200/60 hover:border-red-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-red-50/80 to-orange-50/80 dark:from-red-950/30 dark:to-orange-950/30 border-2 border-red-200/60 dark:border-red-800/40 hover:border-red-300 dark:hover:border-red-700 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation shadow-sm hover:shadow-md"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-100 to-orange-100 border border-red-200 flex items-center justify-center shrink-0">
-                      <Bug className="h-6 w-6 text-red-600" />
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/40 dark:to-orange-900/40 border border-red-200 dark:border-red-800/50 flex items-center justify-center shrink-0 shadow-sm">
+                      <Bug className="h-6 w-6 text-red-600 dark:text-red-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base text-foreground mb-0.5">
@@ -1296,13 +1307,24 @@ export function ProfileView({
                 {/* 버그 신고 */}
                 <button
                   onClick={() => {
-                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '버그 신고' : language === 'en' ? 'Bug Report' : language === 'zh' ? '错误报告' : 'バグ報告')}`;
+                    const email = 'storybuild@naver.com';
+                    const category = '[버그신고]';
+                    const subject = language === 'ko' ? '버그신고' : language === 'en' ? 'Bug Report' : language === 'zh' ? '错误报告' : 'バグ報告';
+                    const body = language === 'ko' 
+                      ? `버그 신고 내용을 작성해주세요:\n\n1. 발생한 문제:\n\n2. 재현 방법:\n\n3. 예상 결과:\n\n4. 실제 결과:\n\n5. 기기 정보 (선택사항):\n\n6. 스크린샷 (선택사항):`
+                      : language === 'en'
+                      ? `Please describe the bug:\n\n1. Issue:\n\n2. Steps to reproduce:\n\n3. Expected result:\n\n4. Actual result:\n\n5. Device information (optional):\n\n6. Screenshot (optional):`
+                      : language === 'zh'
+                      ? `请描述错误：\n\n1. 问题：\n\n2. 重现步骤：\n\n3. 预期结果：\n\n4. 实际结果：\n\n5. 设备信息（可选）：\n\n6. 截图（可选）：`
+                      : `バグの内容を記入してください：\n\n1. 発生した問題：\n\n2. 再現方法：\n\n3. 期待される結果：\n\n4. 実際の結果：\n\n5. デバイス情報（任意）：\n\n6. スクリーンショット（任意）：`;
+                    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-red-50/80 to-orange-50/80 border-2 border-red-200/60 hover:border-red-300 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-red-50/80 to-orange-50/80 dark:from-red-950/30 dark:to-orange-950/30 border-2 border-red-200/60 dark:border-red-800/40 hover:border-red-300 dark:hover:border-red-700 hover:shadow-lg transition-all duration-300 text-left group"
                 >
                   <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-100 to-orange-100 border border-red-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <Bug className="h-6 w-6 sm:h-7 sm:w-7 text-red-600" />
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/40 dark:to-orange-900/40 border border-red-200 dark:border-red-800/50 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm">
+                      <Bug className="h-6 w-6 sm:h-7 sm:w-7 text-red-600 dark:text-red-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
