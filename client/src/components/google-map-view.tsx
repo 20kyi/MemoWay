@@ -85,6 +85,7 @@ function GoogleMapViewComponent({
   const [isGroupFilterOpen, setIsGroupFilterOpen] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const errorToastShownRef = useRef(false); // 토스트 중복 표시 방지
+  const isDraggingRef = useRef(false); // 드래그 상태 추적
   const { toast } = useToast();
   const { t } = useLanguage();
   const { layoutTheme } = useLayoutTheme();
@@ -155,11 +156,19 @@ function GoogleMapViewComponent({
         }
       });
 
-      // Disable location lock on drag
+      // Disable location lock on drag and track drag state
       mapInstance.addListener("dragstart", () => {
+        isDraggingRef.current = true;
         if (isLocationLocked) {
           setIsLocationLocked(false);
         }
+      });
+
+      mapInstance.addListener("dragend", () => {
+        // 드래그 종료 후 약간의 지연을 두어 클릭 이벤트와 구분
+        setTimeout(() => {
+          isDraggingRef.current = false;
+        }, 100);
       });
 
       // Disable location lock on zoom
@@ -421,6 +430,10 @@ function GoogleMapViewComponent({
           // Re-add click listener (always update this to ensure correct callback)
           google.maps.event.clearInstanceListeners(existingMarker);
           existingMarker.addListener('click', () => {
+            // 드래그 중이면 클릭 이벤트 무시
+            if (isDraggingRef.current) {
+              return;
+            }
             if (count > 1 && onClusterClick) {
               onClusterClick(clusterMemos.map(m => m.id));
             } else {
@@ -461,6 +474,10 @@ function GoogleMapViewComponent({
           });
 
           marker.addListener('click', () => {
+            // 드래그 중이면 클릭 이벤트 무시
+            if (isDraggingRef.current) {
+              return;
+            }
             if (count > 1 && onClusterClick) {
               onClusterClick(clusterMemos.map(m => m.id));
             } else {

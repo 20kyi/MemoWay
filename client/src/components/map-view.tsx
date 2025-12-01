@@ -942,8 +942,8 @@ function MapViewComponent({
       
       // 마커 클릭 핸들러
       const handleMarkerClick = (e: MouseEvent) => {
-        // 드래그인 경우 클릭 처리하지 않음
-        if (isDragging) {
+        // 드래그인 경우 클릭 처리하지 않음 (로컬 드래그 상태 또는 지도 드래그 상태)
+        if (isDragging || isDraggingRef.current) {
           return;
         }
         
