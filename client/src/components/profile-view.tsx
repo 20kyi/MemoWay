@@ -2387,6 +2387,381 @@ export function ProfileView({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* 개인정보처리방침 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
+      {isMobile ? (
+        <Sheet open={isPrivacyDialogOpen} onOpenChange={setIsPrivacyDialogOpen}>
+          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
+            <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-violet-50/50 to-purple-50/30">
+              <SheetTitle className="flex items-center gap-2 text-xl">
+                <Shield className="h-6 w-6 text-violet-600 shrink-0" />
+                개인정보처리방침
+              </SheetTitle>
+              <SheetDescription className="text-sm mt-1.5">
+                MemoWay 개인정보처리방침
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="flex-1 overflow-y-auto px-5 py-6">
+              <div className="space-y-6 text-sm leading-relaxed">
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제1조 (개인정보의 처리 목적)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    MemoWay(이하 "회사")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 개인정보보호법 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>서비스 제공: 위치 기반 메모 작성, 그룹 생성 및 관리, 메모 공유 등 서비스 제공</li>
+                    <li>회원 관리: 회원 가입, 본인 확인, 계정 관리, 서비스 이용에 따른 본인확인</li>
+                    <li>위치 정보 처리: 사용자의 현재 위치 수집 및 저장, 위치 기반 메모 표시</li>
+                    <li>결제 및 포인트 관리: 포인트 구매 및 사용 내역 관리</li>
+                    <li>고객 지원: 문의사항 응대, 불만 처리, 공지사항 전달</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제2조 (개인정보의 처리 및 보유기간)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 법령에 따른 개인정보 보유·이용기간 또는 정보주체로부터 개인정보를 수집 시에 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다.
+                  </p>
+                  <p className="text-muted-foreground mb-2">
+                    2. 각각의 개인정보 처리 및 보유 기간은 다음과 같습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>회원 정보: 회원 탈퇴 시까지 (단, 관계 법령 위반에 따른 수사·조사 등이 진행중인 경우에는 해당 수사·조사 종료 시까지)</li>
+                    <li>위치 정보: 서비스 이용 중 위치 정보 수집, 서비스 종료 시 즉시 삭제 (단, 메모에 저장된 위치 정보는 해당 메모 삭제 시까지 보유)</li>
+                    <li>결제 정보: 전자상거래법에 따라 5년간 보관</li>
+                    <li>로그 정보: 서비스 이용 기록은 1년간 보관</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제3조 (처리하는 개인정보의 항목)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    회사는 다음의 개인정보 항목을 처리하고 있습니다:
+                  </p>
+                  <p className="text-muted-foreground mb-2 font-semibold">
+                    1. 필수 항목:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                    <li>이메일 주소, 이름 (소셜 로그인 시 제공되는 정보)</li>
+                    <li>위치 정보 (GPS, Wi-Fi, 기지국 정보 등)</li>
+                    <li>서비스 이용 기록 (메모 작성, 그룹 참여 등)</li>
+                    <li>기기 정보 (기기 고유번호, OS 버전 등)</li>
+                  </ul>
+                  <p className="text-muted-foreground mb-2 font-semibold">
+                    2. 선택 항목:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>프로필 사진</li>
+                    <li>알림 설정 정보</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제4조 (개인정보의 제3자 제공)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 정보주체의 개인정보를 제1조(개인정보의 처리 목적)에서 명시한 범위 내에서만 처리하며, 정보주체의 동의, 법률의 특별한 규정 등 개인정보보호법 제17조 및 제18조에 해당하는 경우에만 개인정보를 제3자에게 제공합니다.
+                  </p>
+                  <p className="text-muted-foreground mb-2">
+                    2. 회사는 다음과 같이 개인정보를 제3자에게 제공할 수 있습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>지도 서비스 제공업체 (카카오맵, 구글맵): 위치 정보를 통한 지도 표시 및 주소 검색</li>
+                    <li>결제 서비스 제공업체: 포인트 구매 시 결제 처리</li>
+                  </ul>
+                  <p className="text-muted-foreground mt-2">
+                    3. 회사는 정보주체의 동의 없이 개인정보를 제3자에게 제공하지 않습니다.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제5조 (개인정보처리의 위탁)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 원활한 개인정보 업무처리를 위하여 다음과 같이 개인정보 처리업무를 위탁하고 있습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                    <li>클라우드 서비스 제공업체: 서버 운영 및 데이터 저장</li>
+                    <li>이메일 발송 서비스: 고객 지원 및 공지사항 발송</li>
+                  </ul>
+                  <p className="text-muted-foreground">
+                    2. 회사는 위탁계약 체결 시 개인정보보호법 제26조에 따라 위탁업무 수행목적 외 개인정보 처리금지, 기술적·관리적 보호조치, 재위탁 제한, 수탁자에 대한 관리·감독, 손해배상 등에 관한 사항을 계약서 등 문서에 명시하고, 수탁자가 개인정보를 안전하게 처리하는지를 감독하고 있습니다.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제6조 (정보주체의 권리·의무 및 행사방법)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 정보주체는 회사에 대해 언제든지 다음 각 호의 개인정보 보호 관련 권리를 행사할 수 있습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                    <li>개인정보 처리정지 요구</li>
+                    <li>개인정보 열람 요구</li>
+                    <li>개인정보 정정·삭제 요구</li>
+                  </ul>
+                  <p className="text-muted-foreground mb-2">
+                    2. 제1항에 따른 권리 행사는 회사에 대해 서면, 전자우편, 모사전송(FAX) 등을 통하여 하실 수 있으며 회사는 이에 대해 지체 없이 조치하겠습니다.
+                  </p>
+                  <p className="text-muted-foreground">
+                    3. 정보주체가 개인정보의 오류 등에 대한 정정 또는 삭제를 요구한 경우에는 회사는 정정 또는 삭제를 완료할 때까지 당해 개인정보를 이용하거나 제공하지 않습니다.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제7조 (개인정보의 파기)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체없이 해당 개인정보를 파기합니다.
+                  </p>
+                  <p className="text-muted-foreground mb-2">
+                    2. 개인정보 파기의 절차 및 방법은 다음과 같습니다:
+                  </p>
+                  <p className="text-muted-foreground mb-2 font-semibold">
+                    가. 파기절차
+                  </p>
+                  <p className="text-muted-foreground mb-2 ml-2">
+                    회사는 파기 사유가 발생한 개인정보를 선정하고, 회사의 개인정보 보호책임자의 승인을 받아 개인정보를 파기합니다.
+                  </p>
+                  <p className="text-muted-foreground mb-2 font-semibold">
+                    나. 파기방법
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>전자적 파일 형태: 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제</li>
+                    <li>기록물, 인쇄물, 서면 등: 분쇄하거나 소각하여 파기</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제8조 (개인정보 보호책임자)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.
+                  </p>
+                  <div className="bg-muted/50 p-3 rounded-lg mt-2">
+                    <p className="text-muted-foreground mb-1">
+                      <span className="font-semibold">개인정보 보호책임자</span>
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      이메일: support@memoway.com
+                    </p>
+                    <p className="text-muted-foreground">
+                      정보주체께서는 회사의 서비스를 이용하시면서 발생한 모든 개인정보 보호 관련 문의, 불만처리, 피해구제 등에 관한 사항을 개인정보 보호책임자에게 문의하실 수 있습니다.
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제9조 (개인정보의 안전성 확보조치)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    회사는 개인정보의 안전성 확보를 위해 다음과 같은 조치를 취하고 있습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>관리적 조치: 내부관리계획 수립·시행, 정기적 직원 교육 등</li>
+                    <li>기술적 조치: 개인정보처리시스템 등의 접근권한 관리, 접근통제시스템 설치, 고유식별정보 등의 암호화, 보안프로그램 설치</li>
+                    <li>물리적 조치: 전산실, 자료보관실 등의 접근통제</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base mb-2 text-foreground">제10조 (개인정보처리방침 변경)</h3>
+                  <p className="text-muted-foreground">
+                    이 개인정보처리방침은 2024년 1월 1일부터 적용되며, 법령 및 방침에 따른 변경내용의 추가, 삭제 및 정정이 있는 경우에는 변경사항의 시행 7일 전부터 공지사항을 통하여 고지할 것입니다.
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    본 개인정보처리방침은 2024년 1월 1일부터 시행됩니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isPrivacyDialogOpen} onOpenChange={setIsPrivacyDialogOpen}>
+          <DialogContent className="sm:max-w-2xl w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-violet-50/50 to-purple-50/30">
+              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-violet-600 shrink-0" />
+                개인정보처리방침
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm mt-1">
+                MemoWay 개인정보처리방침
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+              <div className="space-y-6 text-sm sm:text-base leading-relaxed">
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제1조 (개인정보의 처리 목적)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    MemoWay(이하 "회사")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 개인정보보호법 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>서비스 제공: 위치 기반 메모 작성, 그룹 생성 및 관리, 메모 공유 등 서비스 제공</li>
+                    <li>회원 관리: 회원 가입, 본인 확인, 계정 관리, 서비스 이용에 따른 본인확인</li>
+                    <li>위치 정보 처리: 사용자의 현재 위치 수집 및 저장, 위치 기반 메모 표시</li>
+                    <li>결제 및 포인트 관리: 포인트 구매 및 사용 내역 관리</li>
+                    <li>고객 지원: 문의사항 응대, 불만 처리, 공지사항 전달</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제2조 (개인정보의 처리 및 보유기간)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 법령에 따른 개인정보 보유·이용기간 또는 정보주체로부터 개인정보를 수집 시에 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다.
+                  </p>
+                  <p className="text-muted-foreground mb-2">
+                    2. 각각의 개인정보 처리 및 보유 기간은 다음과 같습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>회원 정보: 회원 탈퇴 시까지 (단, 관계 법령 위반에 따른 수사·조사 등이 진행중인 경우에는 해당 수사·조사 종료 시까지)</li>
+                    <li>위치 정보: 서비스 이용 중 위치 정보 수집, 서비스 종료 시 즉시 삭제 (단, 메모에 저장된 위치 정보는 해당 메모 삭제 시까지 보유)</li>
+                    <li>결제 정보: 전자상거래법에 따라 5년간 보관</li>
+                    <li>로그 정보: 서비스 이용 기록은 1년간 보관</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제3조 (처리하는 개인정보의 항목)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    회사는 다음의 개인정보 항목을 처리하고 있습니다:
+                  </p>
+                  <p className="text-muted-foreground mb-2 font-semibold">
+                    1. 필수 항목:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                    <li>이메일 주소, 이름 (소셜 로그인 시 제공되는 정보)</li>
+                    <li>위치 정보 (GPS, Wi-Fi, 기지국 정보 등)</li>
+                    <li>서비스 이용 기록 (메모 작성, 그룹 참여 등)</li>
+                    <li>기기 정보 (기기 고유번호, OS 버전 등)</li>
+                  </ul>
+                  <p className="text-muted-foreground mb-2 font-semibold">
+                    2. 선택 항목:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>프로필 사진</li>
+                    <li>알림 설정 정보</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제4조 (개인정보의 제3자 제공)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 정보주체의 개인정보를 제1조(개인정보의 처리 목적)에서 명시한 범위 내에서만 처리하며, 정보주체의 동의, 법률의 특별한 규정 등 개인정보보호법 제17조 및 제18조에 해당하는 경우에만 개인정보를 제3자에게 제공합니다.
+                  </p>
+                  <p className="text-muted-foreground mb-2">
+                    2. 회사는 다음과 같이 개인정보를 제3자에게 제공할 수 있습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>지도 서비스 제공업체 (카카오맵, 구글맵): 위치 정보를 통한 지도 표시 및 주소 검색</li>
+                    <li>결제 서비스 제공업체: 포인트 구매 시 결제 처리</li>
+                  </ul>
+                  <p className="text-muted-foreground mt-2">
+                    3. 회사는 정보주체의 동의 없이 개인정보를 제3자에게 제공하지 않습니다.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제5조 (개인정보처리의 위탁)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 원활한 개인정보 업무처리를 위하여 다음과 같이 개인정보 처리업무를 위탁하고 있습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                    <li>클라우드 서비스 제공업체: 서버 운영 및 데이터 저장</li>
+                    <li>이메일 발송 서비스: 고객 지원 및 공지사항 발송</li>
+                  </ul>
+                  <p className="text-muted-foreground">
+                    2. 회사는 위탁계약 체결 시 개인정보보호법 제26조에 따라 위탁업무 수행목적 외 개인정보 처리금지, 기술적·관리적 보호조치, 재위탁 제한, 수탁자에 대한 관리·감독, 손해배상 등에 관한 사항을 계약서 등 문서에 명시하고, 수탁자가 개인정보를 안전하게 처리하는지를 감독하고 있습니다.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제6조 (정보주체의 권리·의무 및 행사방법)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 정보주체는 회사에 대해 언제든지 다음 각 호의 개인정보 보호 관련 권리를 행사할 수 있습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                    <li>개인정보 처리정지 요구</li>
+                    <li>개인정보 열람 요구</li>
+                    <li>개인정보 정정·삭제 요구</li>
+                  </ul>
+                  <p className="text-muted-foreground mb-2">
+                    2. 제1항에 따른 권리 행사는 회사에 대해 서면, 전자우편, 모사전송(FAX) 등을 통하여 하실 수 있으며 회사는 이에 대해 지체 없이 조치하겠습니다.
+                  </p>
+                  <p className="text-muted-foreground">
+                    3. 정보주체가 개인정보의 오류 등에 대한 정정 또는 삭제를 요구한 경우에는 회사는 정정 또는 삭제를 완료할 때까지 당해 개인정보를 이용하거나 제공하지 않습니다.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제7조 (개인정보의 파기)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체없이 해당 개인정보를 파기합니다.
+                  </p>
+                  <p className="text-muted-foreground mb-2">
+                    2. 개인정보 파기의 절차 및 방법은 다음과 같습니다:
+                  </p>
+                  <p className="text-muted-foreground mb-2 font-semibold">
+                    가. 파기절차
+                  </p>
+                  <p className="text-muted-foreground mb-2 ml-2">
+                    회사는 파기 사유가 발생한 개인정보를 선정하고, 회사의 개인정보 보호책임자의 승인을 받아 개인정보를 파기합니다.
+                  </p>
+                  <p className="text-muted-foreground mb-2 font-semibold">
+                    나. 파기방법
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>전자적 파일 형태: 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제</li>
+                    <li>기록물, 인쇄물, 서면 등: 분쇄하거나 소각하여 파기</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제8조 (개인정보 보호책임자)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    1. 회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.
+                  </p>
+                  <div className="bg-muted/50 p-3 sm:p-4 rounded-lg mt-2">
+                    <p className="text-muted-foreground mb-1">
+                      <span className="font-semibold">개인정보 보호책임자</span>
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      이메일: support@memoway.com
+                    </p>
+                    <p className="text-muted-foreground">
+                      정보주체께서는 회사의 서비스를 이용하시면서 발생한 모든 개인정보 보호 관련 문의, 불만처리, 피해구제 등에 관한 사항을 개인정보 보호책임자에게 문의하실 수 있습니다.
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제9조 (개인정보의 안전성 확보조치)</h3>
+                  <p className="text-muted-foreground mb-2">
+                    회사는 개인정보의 안전성 확보를 위해 다음과 같은 조치를 취하고 있습니다:
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                    <li>관리적 조치: 내부관리계획 수립·시행, 정기적 직원 교육 등</li>
+                    <li>기술적 조치: 개인정보처리시스템 등의 접근권한 관리, 접근통제시스템 설치, 고유식별정보 등의 암호화, 보안프로그램 설치</li>
+                    <li>물리적 조치: 전산실, 자료보관실 등의 접근통제</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">제10조 (개인정보처리방침 변경)</h3>
+                  <p className="text-muted-foreground">
+                    이 개인정보처리방침은 2024년 1월 1일부터 적용되며, 법령 및 방침에 따른 변경내용의 추가, 삭제 및 정정이 있는 경우에는 변경사항의 시행 7일 전부터 공지사항을 통하여 고지할 것입니다.
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    본 개인정보처리방침은 2024년 1월 1일부터 시행됩니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
