@@ -978,6 +978,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 성능 모니터링 API (개발 모드에서만)
+  if (app.get("env") === "development") {
+    app.get("/api/performance/stats", async (req, res) => {
+      const { performanceMonitor } = await import("./utils/performance-monitor");
+      try {
+        const stats = performanceMonitor.getStatsByPath();
+        const slowRequests = performanceMonitor.getSlowRequests(20);
+        
+        res.json({
+          stats,
+          slowRequests: slowRequests.map(req => ({
+            method: req.method,
+            path: req.path,
+            duration: req.duration,
+            statusCode: req.statusCode,
+            timestamp: req.timestamp.toISOString(),
+          })),
+          overallAverage: performanceMonitor.getAverageResponseTime(),
+        });
+      } catch (error: any) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    app.post("/api/performance/clear", async (req, res) => {
+      try {
+        const { performanceMonitor } = await import("./utils/performance-monitor");
+        performanceMonitor.clear();
+        res.json({ success: true, message: "성능 로그가 초기화되었습니다." });
+      } catch (error: any) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+  }
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time memo updates

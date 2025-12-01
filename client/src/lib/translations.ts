@@ -200,6 +200,9 @@ export const translations = {
       authExpiredDesc: "세션이 만료되었습니다. 페이지를 새로고침하여 다시 로그인해주세요.",
       pointsChargeFailed: "포인트 충전 실패",
       pointsChargeFailedDesc: "포인트 충전 중 오류가 발생했습니다. 다시 시도해주세요.",
+      community: "커뮤니티",
+      communityDesc: "다른 사용자들과 메모를 공유하고 소통할 수 있는 공간입니다. 특별한 장소의 추억과 정보를 함께 나눠보세요.",
+      visitCommunity: "커뮤니티 방문하기",
     },
     // Toast messages
     toast: {
@@ -502,6 +505,9 @@ export const translations = {
       authExpiredDesc: "Session expired. Please refresh the page to log in again.",
       pointsChargeFailed: "Points Purchase Failed",
       pointsChargeFailedDesc: "An error occurred while purchasing points. Please try again.",
+      community: "Community",
+      communityDesc: "A space where you can share memos and communicate with other users. Share memories and information about special places together.",
+      visitCommunity: "Visit Community",
     },
     // Toast messages
     toast: {
@@ -804,6 +810,9 @@ export const translations = {
       authExpiredDesc: "会话已过期。请刷新页面重新登录。",
       pointsChargeFailed: "积分购买失败",
       pointsChargeFailedDesc: "购买积分时出错。请重试。",
+      community: "社区",
+      communityDesc: "与其他用户分享备忘录和交流的空间。一起分享特殊地点的回忆和信息。",
+      visitCommunity: "访问社区",
     },
     // Toast messages
     toast: {
@@ -1106,6 +1115,9 @@ export const translations = {
       authExpiredDesc: "セッションが期限切れになりました。ページを更新して再度ログインしてください。",
       pointsChargeFailed: "ポイント購入失敗",
       pointsChargeFailedDesc: "ポイント購入中にエラーが発生しました。もう一度お試しください。",
+      community: "コミュニティ",
+      communityDesc: "他のユーザーとメモを共有し、交流できるスペースです。特別な場所の思い出や情報を一緒に共有しましょう。",
+      visitCommunity: "コミュニティを訪問",
     },
     // Toast messages
     toast: {
@@ -1393,6 +1405,9 @@ type Translation = {
     authExpiredDesc: string;
     pointsChargeFailed: string;
     pointsChargeFailedDesc: string;
+    community: string;
+    communityDesc: string;
+    visitCommunity: string;
   };
   toast: {
     newMemo: string;

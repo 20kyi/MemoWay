@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun, Map, Coins, Plus, Sparkles } from "lucide-react";
+import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun, Map, Coins, Plus, Sparkles, Users, ExternalLink } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily } from "@/lib/font-context";
 import { useLayoutTheme, type LayoutTheme } from "@/lib/layout-theme-context";
@@ -387,6 +387,31 @@ export function SettingsView({
           </Card>
         ) : null
       }
+
+      {/* 3. 커뮤니티 */}
+      <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/50 via-white to-emerald-50/30 backdrop-blur-sm border border-emerald-200/50 shadow-lg hover:shadow-xl transition-all">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600 shrink-0" />
+            {t.settings.community}
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm mt-0.5">
+            {t.settings.communityDesc}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0 pb-4 sm:pb-6">
+          <Button
+            onClick={() => {
+              window.open('https://cafe.naver.com/memoway', '_blank', 'noopener,noreferrer');
+            }}
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold shadow-md text-sm sm:text-base h-9 sm:h-10"
+            data-testid="button-visit-community"
+          >
+            <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+            {t.settings.visitCommunity}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* 4. 지도 프로바이더 */}
       <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">

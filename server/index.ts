@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { performanceMonitor, startPerformanceMonitoring } from "./utils/performance-monitor";
 
 const app = express();
 
@@ -31,6 +32,9 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
+      // 성능 모니터에 로그 추가
+      performanceMonitor.log(req.method, path, duration, res.statusCode);
+      
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
@@ -78,6 +82,12 @@ app.use((req, res, next) => {
     reusePort: true,
   }, async () => {
     log(`serving on port ${port}`);
+    
+    // 성능 모니터링 시작 (개발 모드에서만)
+    if (app.get("env") === "development") {
+      startPerformanceMonitoring(10); // 10분마다 리포트
+      log("성능 모니터링이 활성화되었습니다. 10분마다 리포트가 출력됩니다.");
+    }
     
     // Auto-open browser in development mode
     if (app.get("env") === "development") {

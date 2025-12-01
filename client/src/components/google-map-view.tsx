@@ -1,5 +1,5 @@
 /// <reference types="@types/google.maps" />
-import { useEffect, useRef, useState, memo } from "react";
+import { useEffect, useRef, useState, memo, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -326,19 +326,18 @@ function GoogleMapViewComponent({
     };
   }, [map, currentUserLocation, isLocationLocked]);
 
-  // Update markers based on memos
-  useEffect(() => {
-    if (!map) return;
-
-    // Filter memos
-    const filteredMemos = memos.filter(memo => {
+  // 필터링된 메모 목록을 useMemo로 최적화
+  const filteredMemos = useMemo(() => {
+    return memos.filter(memo => {
       const iconMatch = selectedMarkerIcons.includes("all") || selectedMarkerIcons.includes(memo.markerIcon);
       const groupMatch = selectedGroupIds.includes("all") || 
                         (memo.groupId ? selectedGroupIds.includes(memo.groupId) : selectedGroupIds.includes("personal"));
       return iconMatch && groupMatch;
     });
+  }, [memos, selectedMarkerIcons, selectedGroupIds]);
 
-    // Group memos by location
+  // 위치별로 그룹화된 메모를 useMemo로 최적화
+  const groupedMemos = useMemo(() => {
     const grouped = new Map<string, MemoWithDetails[]>();
     filteredMemos.forEach(memo => {
       const key = `${memo.latitude.toFixed(6)},${memo.longitude.toFixed(6)}`;
@@ -347,6 +346,14 @@ function GoogleMapViewComponent({
       }
       grouped.get(key)!.push(memo);
     });
+    return grouped;
+  }, [filteredMemos]);
+
+  // Update markers based on memos
+  useEffect(() => {
+    if (!map) return;
+
+    const grouped = groupedMemos;
 
     loadGoogleMaps().then((google) => {
       const currentMarkers = markersRef.current;
@@ -486,7 +493,7 @@ function GoogleMapViewComponent({
       });
       markersRef.current.clear();
     };
-  }, [map, memos, groups, selectedMarkerIcons, selectedGroupIds, onMarkerClick, onClusterClick]);
+  }, [map, groupedMemos, groups, onMarkerClick, onClusterClick]);
 
   // Address search
   const handleSearch = async () => {
