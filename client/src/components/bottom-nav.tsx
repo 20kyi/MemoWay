@@ -26,7 +26,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
     <nav className={`fixed left-0 right-0 flex items-center justify-around z-50 ${
       isCoupleTheme 
         ? "bottom-nav-couple-theme px-2" 
-        : "bottom-0 bg-card/95 backdrop-blur-md border-t-2 border-primary/20 min-h-16 gap-2 px-4 shadow-lg bottom-nav-romantic pb-[max(1rem,env(safe-area-inset-bottom))]"
+        : "bottom-0 bg-card/95 dark:bg-card dark:backdrop-blur-md backdrop-blur-md border-t-2 border-primary/20 dark:border-primary/30 min-h-[64px] sm:min-h-16 gap-2 px-4 shadow-lg bottom-nav-romantic pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 sm:pt-0"
     }`}>
       {tabs.map(tab => {
         const Icon = tab.icon;
@@ -36,10 +36,10 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`relative flex items-center justify-center transition-all ${
+            className={`relative flex items-center justify-center transition-all touch-manipulation ${
               isCoupleTheme
                 ? "min-h-14 min-w-14 p-2"
-                : "flex-col min-h-12 min-w-14 gap-1"
+                : "flex-col min-h-12 min-w-14 gap-1 py-1"
             } ${
               isActive 
                 ? "text-primary" 
@@ -65,7 +65,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               )}
             </div>
             {!isCoupleTheme && (
-              <span className={`text-xs font-medium ${isActive ? "font-bold" : ""}`}>{tab.label}</span>
+              <span className={`text-[10px] sm:text-xs font-medium leading-tight ${isActive ? "font-bold" : ""}`}>{tab.label}</span>
             )}
           </button>
         );

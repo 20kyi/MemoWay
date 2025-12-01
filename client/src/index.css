@@ -708,6 +708,56 @@
   contain: layout style paint;
 }
 
+/* 다크모드에서 하단 네비게이션바 스타일 개선 */
+.dark nav.bottom-nav-romantic,
+.dark nav[class*="fixed"][class*="bottom-0"]:not(.bottom-nav-couple-theme) {
+  background: hsl(var(--card)) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 2px solid hsl(var(--border)) !important;
+  box-shadow: 
+    0 -4px 16px rgba(0, 0, 0, 0.3),
+    0 -2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  min-height: 64px !important;
+  height: auto !important;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+  padding-top: 0.5rem !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+/* 모바일에서 하단 네비게이션바 안전 영역 확보 */
+@media (max-width: 640px) {
+  nav.bottom-nav-romantic,
+  nav[class*="fixed"][class*="bottom-0"]:not(.bottom-nav-couple-theme) {
+    min-height: calc(64px + env(safe-area-inset-bottom)) !important;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+  }
+  
+  .dark nav.bottom-nav-romantic,
+  .dark nav[class*="fixed"][class*="bottom-0"]:not(.bottom-nav-couple-theme) {
+    min-height: calc(64px + env(safe-area-inset-bottom)) !important;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* 다크모드에서 하단 네비게이션바 텍스트 가독성 개선 */
+.dark nav.bottom-nav-romantic button span,
+.dark nav[class*="fixed"][class*="bottom-0"]:not(.bottom-nav-couple-theme) button span {
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark nav.bottom-nav-romantic button[class*="text-muted-foreground"] span,
+.dark nav[class*="fixed"][class*="bottom-0"]:not(.bottom-nav-couple-theme) button[class*="text-muted-foreground"] span {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.dark nav.bottom-nav-romantic button[class*="text-primary"] span,
+.dark nav[class*="fixed"][class*="bottom-0"]:not(.bottom-nav-couple-theme) button[class*="text-primary"] span {
+  color: hsl(var(--primary)) !important;
+}
+
 .layout-romantic-love nav.bottom-nav-romantic button,
 .layout-romantic-love nav[class*="fixed"][class*="bottom-0"] button {
   transition: transform 0.2s ease;
