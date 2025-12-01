@@ -224,7 +224,7 @@ export function MemoDetailSheet({
                         });
                         onOpenChange(false);
                       }}
-                      className="h-11 sm:h-12 text-sm sm:text-base font-medium bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white flex-1 sm:flex-initial shadow-md hover:shadow-lg transition-all"
+                      className="h-11 sm:h-12 text-sm sm:text-base font-medium bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 flex-1 sm:flex-initial shadow-sm hover:shadow-md transition-all"
                       data-testid="button-add-memo"
                     >
                       <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -256,7 +256,7 @@ export function MemoDetailSheet({
                           onOpenChange(false);
                         }
                       }}
-                      className="h-11 sm:h-12 text-sm sm:text-base font-medium flex-1 sm:flex-initial shadow-sm hover:shadow-md transition-all"
+                      className="h-11 sm:h-12 text-sm sm:text-base font-medium bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 flex-1 sm:flex-initial shadow-sm hover:shadow-md transition-all"
                       data-testid="button-delete-memo"
                     >
                       <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />

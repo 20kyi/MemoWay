@@ -411,12 +411,16 @@ export function MemoFormSheet({
                               key={type}
                               type="button"
                               variant={isSelected ? "default" : "outline"}
-                              className="h-auto py-2 sm:py-2.5 flex flex-col items-center gap-0.5 sm:gap-1"
+                              className={`h-auto py-2 sm:py-2.5 flex flex-col items-center gap-0.5 sm:gap-1 ${
+                                isSelected 
+                                  ? 'bg-gradient-to-br from-primary-200 to-primary-300 hover:from-primary-300 hover:to-primary-400 border-2 border-primary-300/60 text-primary-700' 
+                                  : ''
+                              }`}
                               onClick={() => field.onChange(type)}
                               data-testid={`button-marker-${type}`}
                             >
-                              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                              <span className="text-[10px] sm:text-xs">{t.categories[type]}</span>
+                              <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${isSelected ? 'text-primary-700' : ''}`} />
+                              <span className={`text-[10px] sm:text-xs ${isSelected ? 'text-primary-700 font-medium' : ''}`}>{t.categories[type]}</span>
                             </Button>
                           );
                         })}
@@ -529,7 +533,7 @@ export function MemoFormSheet({
               <Button 
                 type="submit" 
                 size="lg"
-                className="flex-1 h-11 text-sm font-medium bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white"
+                className="flex-1 h-11 text-sm font-medium bg-gradient-to-br from-sky-200 to-sky-300 hover:from-sky-300 hover:to-sky-400 border-2 border-sky-300/60 text-sky-700 shadow-sm"
                 disabled={isLoading || (!isPersonalMemberReady && !currentMemberId)}
                 data-testid="button-save-memo"
               >

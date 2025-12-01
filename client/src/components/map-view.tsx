@@ -1898,7 +1898,7 @@ function MapViewComponent({
                 <Button
                   size="icon"
                   onClick={toggleMapLock}
-                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-2xl ${
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-xl ${
                     isMapLocked 
                       ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
                       : 'bg-primary hover:bg-primary/90 border-2 border-primary'
@@ -1948,9 +1948,9 @@ function MapViewComponent({
                         : t.toast.locationLockDisabledDesc,
                     });
                   }}
-                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-2xl relative ${
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-xl relative ${
                     isLocationLocked 
-                      ? 'bg-blue-500 hover:bg-blue-600 border-2 border-blue-500' 
+                      ? 'bg-primary hover:bg-primary/90 border-2 border-primary' 
                       : 'bg-muted hover:bg-muted/80 border-2 border-border'
                   }`}
                   style={isCoupleTheme ? {
@@ -1965,7 +1965,7 @@ function MapViewComponent({
                   data-testid="button-location-lock"
                 >
                   {isLocationLocked ? (
-                    <Lock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-white'}`} />
+                    <Lock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-primary-foreground'}`} />
                   ) : (
                     <Unlock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-[#EE88A1]' : 'text-muted-foreground'}`} />
                   )}
@@ -1990,7 +1990,7 @@ function MapViewComponent({
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
-                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative overflow-visible transition-all hover:shadow-2xl ${
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative overflow-visible transition-all hover:shadow-xl ${
                     selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
                   }`}
                   onClick={() => setGroupFilterOpen(true)}
@@ -2072,7 +2072,7 @@ function MapViewComponent({
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
-                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative hover:shadow-2xl transition-all bg-primary hover:bg-primary/90 border-2 border-primary`}
+                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative hover:shadow-xl transition-all bg-primary hover:bg-primary/90 border-2 border-primary`}
                   style={isCoupleTheme ? {
                     backgroundColor: '#EE88A1',
                     borderColor: '#EE88A1',

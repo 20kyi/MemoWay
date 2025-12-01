@@ -238,7 +238,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
             onClick={() => setActiveTab("leader")}
             className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
               activeTab === "leader"
-                ? "bg-amber-500 text-white shadow-sm"
+                ? "bg-gradient-to-br from-amber-200 to-amber-300 hover:from-amber-300 hover:to-amber-400 border-2 border-amber-300/60 text-amber-700 shadow-sm"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
             data-testid="tab-leader"
@@ -250,7 +250,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 variant="secondary" 
                 className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
                   activeTab === "leader" 
-                    ? "bg-white/20 text-white" 
+                    ? "bg-amber-100/80 text-amber-700 border-amber-300/60" 
                     : "bg-muted"
                 }`}
               >
@@ -651,7 +651,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                         <Button
                           variant="destructive"
                           size="sm"
-                          className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
+                          className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 shadow-sm"
                           onClick={() => onLeaveGroup(group.id, myMember.id)}
                           data-testid={`button-leave-${group.id}`}
                         >
@@ -778,17 +778,17 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                             <button
                               key={type}
                               type="button"
-                              className={`flex flex-col items-center gap-0.5 sm:gap-1 p-2 sm:p-2.5 rounded-md sm:rounded-lg border transition-all ${
+                              className={`h-auto py-2 sm:py-2.5 flex flex-col items-center gap-0.5 sm:gap-1 ${
                                 field.value === type 
-                                  ? 'border-primary bg-accent' 
-                                  : 'border-border hover:border-foreground/50 hover:bg-accent/50'
+                                  ? 'bg-gradient-to-br from-primary-200 to-primary-300 hover:from-primary-300 hover:to-primary-400 border-2 border-primary-300/60 text-primary-700' 
+                                  : 'border-2 border-border hover:border-foreground/50 hover:bg-accent/50'
                               }`}
                               onClick={() => field.onChange(type)}
                               data-testid={`edit-marker-icon-${type}`}
                               aria-label={t.categories[type]}
                             >
-                              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                              <span className="text-[10px] sm:text-xs font-medium">{t.categories[type]}</span>
+                              <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${field.value === type ? 'text-primary-700' : ''}`} />
+                              <span className={`text-[10px] sm:text-xs ${field.value === type ? 'text-primary-700 font-medium' : ''}`}>{t.categories[type]}</span>
                             </button>
                           );
                         })}
@@ -814,7 +814,12 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                 >
                   {t.common.cancel}
                 </Button>
-                <Button type="submit" size="sm" className="flex-1 w-full sm:w-auto text-sm" data-testid="button-submit-edit-group">
+                <Button 
+                  type="submit" 
+                  size="sm" 
+                  className="flex-1 w-full sm:w-auto text-sm bg-gradient-to-br from-sky-200 to-sky-300 hover:from-sky-300 hover:to-sky-400 border-2 border-sky-300/60 text-sky-700 shadow-sm" 
+                  data-testid="button-submit-edit-group"
+                >
                   {t.common.edit}
                 </Button>
               </div>
