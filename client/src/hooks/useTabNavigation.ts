@@ -5,7 +5,7 @@ export function useTabNavigation() {
   // Get initial tab from URL hash or default to "map"
   const getInitialTab = (): TabType => {
     const hash = window.location.hash.slice(1); // Remove '#'
-    if (hash === "map" || hash === "memos" || hash === "groups" || hash === "settings") {
+    if (hash === "map" || hash === "memos" || hash === "groups" || hash === "profile") {
       return hash;
     }
     return "map";
@@ -34,7 +34,7 @@ export function useTabNavigation() {
         return;
       }
 
-      if (hash === "map" || hash === "memos" || hash === "groups" || hash === "settings") {
+      if (hash === "map" || hash === "memos" || hash === "groups" || hash === "profile") {
         setActiveTab(hash);
       } else if (!hash) {
         // If no hash, we're trying to navigate away from the app

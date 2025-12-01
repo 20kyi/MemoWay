@@ -7,6 +7,7 @@ export const translations = {
       map: "지도",
       memos: "메모",
       groups: "그룹",
+      profile: "마이페이지",
       settings: "설정",
     },
     // Common
@@ -205,6 +206,14 @@ export const translations = {
       community: "커뮤니티",
       communityDesc: "다른 사용자들과 메모를 공유하고 소통할 수 있는 공간입니다. 특별한 장소의 추억과 정보를 함께 나눠보세요.",
       visitCommunity: "커뮤니티 방문하기",
+      personalSettings: "개인 설정",
+      personalSettingsDesc: "앱의 언어, 폰트, 테마 등을 설정합니다",
+      store: "상점",
+      storeDesc: "포인트를 구매하고 다양한 기능을 이용하세요",
+      customerSupport: "고객지원",
+      customerSupportDesc: "문의사항이나 도움이 필요하신가요?",
+      appInfo: "앱 정보",
+      appInfoDesc: "앱 버전 및 개발자 정보를 확인하세요",
     },
     // Toast messages
     toast: {
@@ -314,6 +323,7 @@ export const translations = {
       map: "Map",
       memos: "Memos",
       groups: "Groups",
+      profile: "Profile",
       settings: "Settings",
     },
     // Common
@@ -512,6 +522,14 @@ export const translations = {
       community: "Community",
       communityDesc: "A space where you can share memos and communicate with other users. Share memories and information about special places together.",
       visitCommunity: "Visit Community",
+      personalSettings: "Personal Settings",
+      personalSettingsDesc: "Configure language, font, theme, and more",
+      store: "Store",
+      storeDesc: "Purchase points and access various features",
+      customerSupport: "Customer Support",
+      customerSupportDesc: "Need help or have questions?",
+      appInfo: "App Information",
+      appInfoDesc: "View app version and developer information",
     },
     // Toast messages
     toast: {
@@ -621,6 +639,7 @@ export const translations = {
       map: "地图",
       memos: "备忘录",
       groups: "群组",
+      profile: "我的",
       settings: "设置",
     },
     // Common
@@ -819,6 +838,14 @@ export const translations = {
       community: "社区",
       communityDesc: "与其他用户分享备忘录和交流的空间。一起分享特殊地点的回忆和信息。",
       visitCommunity: "访问社区",
+      personalSettings: "个人设置",
+      personalSettingsDesc: "配置语言、字体、主题等",
+      store: "商店",
+      storeDesc: "购买积分并访问各种功能",
+      customerSupport: "客户支持",
+      customerSupportDesc: "需要帮助或有疑问？",
+      appInfo: "应用信息",
+      appInfoDesc: "查看应用版本和开发者信息",
     },
     // Toast messages
     toast: {
@@ -928,6 +955,7 @@ export const translations = {
       map: "地図",
       memos: "メモ",
       groups: "グループ",
+      profile: "マイページ",
       settings: "設定",
     },
     // Common
@@ -1126,6 +1154,14 @@ export const translations = {
       community: "コミュニティ",
       communityDesc: "他のユーザーとメモを共有し、交流できるスペースです。特別な場所の思い出や情報を一緒に共有しましょう。",
       visitCommunity: "コミュニティを訪問",
+      personalSettings: "個人設定",
+      personalSettingsDesc: "言語、フォント、テーマなどを設定します",
+      store: "ショップ",
+      storeDesc: "ポイントを購入して様々な機能を利用できます",
+      customerSupport: "カスタマーサポート",
+      customerSupportDesc: "お問い合わせやサポートが必要ですか？",
+      appInfo: "アプリ情報",
+      appInfoDesc: "アプリバージョンと開発者情報を確認できます",
     },
     // Toast messages
     toast: {
@@ -1236,6 +1272,7 @@ type Translation = {
     map: string;
     memos: string;
     groups: string;
+    profile: string;
     settings: string;
   };
   common: {
@@ -1418,6 +1455,14 @@ type Translation = {
     community: string;
     communityDesc: string;
     visitCommunity: string;
+    personalSettings: string;
+    personalSettingsDesc: string;
+    store: string;
+    storeDesc: string;
+    customerSupport: string;
+    customerSupportDesc: string;
+    appInfo: string;
+    appInfoDesc: string;
   };
   toast: {
     newMemo: string;

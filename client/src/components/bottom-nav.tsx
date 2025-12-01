@@ -1,14 +1,13 @@
-import { Map, List, Users, Settings, Heart } from "lucide-react";
+import { Map, List, Users, Heart, User } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { useLayoutTheme } from "@/lib/layout-theme-context";
 import { CustomMapPin } from "./icons/custom-map-pin";
 import { CustomMemoIcon } from "./icons/custom-memo-icon";
 import { CustomGroupIcon } from "./icons/custom-group-icon";
-import { CustomSettingsIcon } from "./icons/custom-settings-icon";
 
 interface BottomNavProps {
-  activeTab: "map" | "memos" | "groups" | "settings";
-  onTabChange: (tab: "map" | "memos" | "groups" | "settings") => void;
+  activeTab: "map" | "memos" | "groups" | "profile";
+  onTabChange: (tab: "map" | "memos" | "groups" | "profile") => void;
 }
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
@@ -20,7 +19,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
     { id: "map" as const, label: t.nav.map, icon: Map },
     { id: "memos" as const, label: t.nav.memos, icon: List },
     { id: "groups" as const, label: t.nav.groups, icon: Users },
-    { id: "settings" as const, label: t.nav.settings, icon: Settings },
+    { id: "profile" as const, label: t.nav.profile, icon: User },
   ];
 
   return (
@@ -64,8 +63,6 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                 <CustomMemoIcon size={42} isActive={isActive} color="#EB8FA6" />
               ) : isCoupleTheme && tab.id === "groups" ? (
                 <CustomGroupIcon size={63} isActive={isActive} color="#8E66D5" />
-              ) : isCoupleTheme && tab.id === "settings" ? (
-                <CustomSettingsIcon size={42} isActive={isActive} />
               ) : (
                 <Icon className="h-6 w-6" />
               )}

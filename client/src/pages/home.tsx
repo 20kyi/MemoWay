@@ -29,7 +29,7 @@ import { MemoDetailSheet } from "@/components/memo-detail-sheet";
 import { MemoClusterSheet } from "@/components/memo-cluster-sheet";
 import { MemoList } from "@/components/memo-list";
 import { GroupManagement } from "@/components/group-management";
-import { SettingsView } from "@/components/settings-view";
+import { ProfileView } from "@/components/profile-view";
 
 export default function Home() {
   const { t } = useLanguage();
@@ -510,15 +510,13 @@ export default function Home() {
               isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}
             />
         )}
-        {activeTab === "settings" && (
-          <SettingsView
-              notificationsEnabled={notificationsEnabled}
-              onNotificationsChange={handleNotificationsChange}
-              locationEnabled={locationEnabled}
-              onLocationChange={handleLocationChange}
-              proximityRadius={proximityRadius}
-              onProximityRadiusChange={setProximityRadius}
-            />
+        {activeTab === "profile" && (
+          <ProfileView 
+            notificationsEnabled={notificationsEnabled}
+            onNotificationsChange={handleNotificationsChange}
+            proximityRadius={proximityRadius}
+            onProximityRadiusChange={setProximityRadius}
+          />
         )}
       </div>
 

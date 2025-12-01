@@ -1,6 +1,6 @@
 import type { MemoWithDetails } from "@shared/schema";
 
-export type TabType = "map" | "memos" | "groups" | "settings";
+export type TabType = "map" | "memos" | "groups" | "profile";
 
 export interface SelectedLocation {
   lat: number;
