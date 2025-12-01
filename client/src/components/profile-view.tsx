@@ -1202,21 +1202,6 @@ export function ProfileView({
                     <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                   </div>
                 </button>
-
-                {/* 이메일 지원 */}
-                <div className="pt-2">
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/50 to-cyan-50/30 border border-blue-200/50">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Mail className="h-5 w-5 text-blue-600 shrink-0" />
-                      <p className="font-semibold text-sm text-foreground">
-                        {t.settings.supportEmail}
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t.settings.supportEmailDesc}
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           </SheetContent>
@@ -1404,21 +1389,6 @@ export function ProfileView({
                     <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </button>
-
-                {/* 이메일 지원 */}
-                <div className="pt-2">
-                  <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/50 to-cyan-50/30 border border-blue-200/50">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 shrink-0" />
-                      <p className="font-semibold text-sm sm:text-base text-foreground">
-                        {t.settings.supportEmail}
-                      </p>
-                    </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      {t.settings.supportEmailDesc}
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           </DialogContent>
