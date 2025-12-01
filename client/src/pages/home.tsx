@@ -276,6 +276,11 @@ export default function Home() {
 
   const handleNotificationsChange = useCallback(async (enabled: boolean) => {
     if (enabled) {
+      // 메모 알림을 켤 때 위치 추적도 자동으로 켜기 (알림 기능이 작동하려면 위치 추적이 필요함)
+      if (!locationEnabled) {
+        setLocationEnabled(true);
+      }
+
       // Capacitor 네이티브 플랫폼 감지
       const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
       
@@ -323,7 +328,7 @@ export default function Home() {
       }
     }
     setNotificationsEnabled(enabled);
-  }, [t, toast]);
+  }, [locationEnabled, setLocationEnabled, t, toast]);
 
   const handleLocationChange = useCallback((enabled: boolean) => {
     if (enabled && !navigator.geolocation) {

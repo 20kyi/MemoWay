@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -50,6 +50,16 @@ export function SettingsView({
   const { user } = useAuth();
   const { toast } = useToast();
   const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
+  
+  // 알림 기능 (토스트 알림 제어)
+  const [toastNotificationsEnabled, setToastNotificationsEnabled] = useState(() => {
+    const saved = localStorage.getItem('toastNotificationsEnabled');
+    return saved !== null ? saved === 'true' : true; // 기본값은 true
+  });
+
+  useEffect(() => {
+    localStorage.setItem('toastNotificationsEnabled', toastNotificationsEnabled.toString());
+  }, [toastNotificationsEnabled]);
 
   const handleLogout = async () => {
     if (Capacitor.isNativePlatform()) {
@@ -509,16 +519,40 @@ export function SettingsView({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-5 pt-0 pb-4 sm:pb-6">
-          {/* 알림 섹션 */}
+          {/* 알림 기능 (토스트 알림 제어) */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />
+              <div className="flex-1">
+                <Label htmlFor="toast-notifications" className="cursor-pointer text-sm sm:text-base font-medium">
+                  {t.settings.notifications}
+                </Label>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  {t.settings.notificationsDesc}
+                </p>
+              </div>
+              <Switch
+                id="toast-notifications"
+                checked={toastNotificationsEnabled}
+                onCheckedChange={setToastNotificationsEnabled}
+                data-testid="switch-toast-notifications"
+              />
+            </div>
+          </div>
+
+          {/* 구분선 */}
+          <div className="border-t border-border/50"></div>
+
+          {/* 메모 알림 섹션 */}
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />
               <div className="flex-1">
                 <Label htmlFor="notifications" className="cursor-pointer text-sm sm:text-base font-medium">
-                  {t.settings.notifications}
+                  {t.settings.memoNotifications}
                 </Label>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  {t.settings.notificationsDesc}
+                  {t.settings.memoNotificationsDesc}
                 </p>
               </div>
               <Switch
@@ -547,30 +581,6 @@ export function SettingsView({
                 </Select>
               </div>
             )}
-          </div>
-
-          {/* 구분선 */}
-          <div className="border-t border-border/50"></div>
-
-          {/* 위치 섹션 */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-muted-foreground" />
-              <div className="flex-1">
-                <Label htmlFor="location" className="cursor-pointer text-sm sm:text-base font-medium">
-                  {t.settings.location}
-                </Label>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  {t.settings.locationDesc}
-                </p>
-              </div>
-              <Switch
-                id="location"
-                checked={locationEnabled}
-                onCheckedChange={onLocationChange}
-                data-testid="switch-location"
-              />
-            </div>
           </div>
         </CardContent>
       </Card>

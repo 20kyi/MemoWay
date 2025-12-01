@@ -160,8 +160,10 @@ export const translations = {
       fontSizeMedium: "보통",
       fontSizeLarge: "크게",
       notifications: "알림",
-      notificationsDesc: "근처 메모가 있을 때 알림을 받습니다",
+      notificationsDesc: "앱 내 모든 토스트 알림을 켜거나 끕니다",
       notificationsEnable: "알림 활성화",
+      memoNotifications: "메모 알림",
+      memoNotificationsDesc: "근처 메모가 있을 때 알림을 받습니다",
       proximityRadius: "알림 반경",
       proximityRadiusDesc: "이 거리 이내의 메모가 있으면 알림을 받습니다",
       radius50m: "50미터",
@@ -465,8 +467,10 @@ export const translations = {
       fontSizeMedium: "Medium",
       fontSizeLarge: "Large",
       notifications: "Notifications",
-      notificationsDesc: "Receive notifications when there are nearby memos",
+      notificationsDesc: "Enable or disable all toast notifications in the app",
       notificationsEnable: "Enable Notifications",
+      memoNotifications: "Memo Notifications",
+      memoNotificationsDesc: "Receive notifications when there are nearby memos",
       proximityRadius: "Notification Radius",
       proximityRadiusDesc: "Get notified when memos are within this distance",
       radius50m: "50 meters",
@@ -770,8 +774,10 @@ export const translations = {
       fontSizeMedium: "中",
       fontSizeLarge: "大",
       notifications: "通知",
-      notificationsDesc: "当附近有备忘录时接收通知",
+      notificationsDesc: "启用或禁用应用中的所有 toast 通知",
       notificationsEnable: "启用通知",
+      memoNotifications: "备忘录通知",
+      memoNotificationsDesc: "当附近有备忘录时接收通知",
       proximityRadius: "通知半径",
       proximityRadiusDesc: "当备忘录在此距离内时接收通知",
       radius50m: "50米",
@@ -1075,8 +1081,10 @@ export const translations = {
       fontSizeMedium: "中",
       fontSizeLarge: "大",
       notifications: "通知",
-      notificationsDesc: "近くにメモがあるときに通知を受け取ります",
+      notificationsDesc: "アプリ内のすべてのトースト通知を有効または無効にします",
       notificationsEnable: "通知を有効にする",
+      memoNotifications: "メモ通知",
+      memoNotificationsDesc: "近くにメモがあるときに通知を受け取ります",
       proximityRadius: "通知半径",
       proximityRadiusDesc: "この距離内のメモがあるときに通知を受け取ります",
       radius50m: "50メートル",
@@ -1367,6 +1375,8 @@ type Translation = {
     notifications: string;
     notificationsDesc: string;
     notificationsEnable: string;
+    memoNotifications: string;
+    memoNotificationsDesc: string;
     proximityRadius: string;
     proximityRadiusDesc: string;
     radius50m: string;

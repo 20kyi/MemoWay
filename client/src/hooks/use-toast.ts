@@ -140,6 +140,18 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
+  // 알림 기능이 꺼져있으면 토스트를 표시하지 않음
+  const toastNotificationsEnabled = localStorage.getItem('toastNotificationsEnabled');
+  if (toastNotificationsEnabled === 'false') {
+    // 알림이 꺼져있어도 dismiss 함수는 반환 (에러 방지)
+    const id = genId();
+    return {
+      id: id,
+      dismiss: () => {},
+      update: () => {},
+    };
+  }
+
   const id = genId()
 
   const update = (props: ToasterToast) =>
