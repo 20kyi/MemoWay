@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check, FileText, Calendar } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
@@ -89,13 +89,72 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
     if (!hideFilters && searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(memo => {
-        return (
+        // 기본 필드 검색
+        const basicMatch = (
           memo.content.toLowerCase().includes(query) ||
           memo.buildingName.toLowerCase().includes(query) ||
           memo.address.toLowerCase().includes(query) ||
           memo.member.name.toLowerCase().includes(query) ||
           (memo.group && memo.group.name.toLowerCase().includes(query))
         );
+        
+        // 날짜 검색
+        if (memo.createdAt) {
+          const createdAt = new Date(memo.createdAt);
+          const dateFormats = [
+            // 기본 형식
+            format(createdAt, 'yyyy-MM-dd', { locale: dateLocale }),
+            format(createdAt, 'yyyy/MM/dd', { locale: dateLocale }),
+            format(createdAt, 'yyyy.MM.dd', { locale: dateLocale }),
+            format(createdAt, 'MM-dd', { locale: dateLocale }),
+            format(createdAt, 'MM/dd', { locale: dateLocale }),
+            format(createdAt, 'MM.dd', { locale: dateLocale }),
+            format(createdAt, 'yyyy', { locale: dateLocale }),
+            format(createdAt, 'MM', { locale: dateLocale }),
+            format(createdAt, 'dd', { locale: dateLocale }),
+          ];
+          
+          // 언어별 날짜 형식 추가
+          if (language === 'ko') {
+            dateFormats.push(
+              format(createdAt, 'yyyy년 MM월 dd일', { locale: dateLocale }),
+              format(createdAt, 'yyyy년 MM월', { locale: dateLocale }),
+              format(createdAt, 'MM월 dd일', { locale: dateLocale }),
+              format(createdAt, 'MM월', { locale: dateLocale })
+            );
+          } else if (language === 'en') {
+            dateFormats.push(
+              format(createdAt, 'MMMM d, yyyy', { locale: dateLocale }),
+              format(createdAt, 'MMM d, yyyy', { locale: dateLocale }),
+              format(createdAt, 'MMMM d', { locale: dateLocale }),
+              format(createdAt, 'MMM d', { locale: dateLocale }),
+              format(createdAt, 'MMMM', { locale: dateLocale }),
+              format(createdAt, 'MMM', { locale: dateLocale })
+            );
+          } else if (language === 'zh') {
+            dateFormats.push(
+              format(createdAt, 'yyyy年MM月dd日', { locale: dateLocale }),
+              format(createdAt, 'yyyy年MM月', { locale: dateLocale }),
+              format(createdAt, 'MM月dd日', { locale: dateLocale }),
+              format(createdAt, 'MM月', { locale: dateLocale })
+            );
+          } else if (language === 'ja') {
+            dateFormats.push(
+              format(createdAt, 'yyyy年MM月dd日', { locale: dateLocale }),
+              format(createdAt, 'yyyy年MM月', { locale: dateLocale }),
+              format(createdAt, 'MM月dd日', { locale: dateLocale }),
+              format(createdAt, 'MM月', { locale: dateLocale })
+            );
+          }
+          
+          const dateMatch = dateFormats.some(dateStr => 
+            dateStr.toLowerCase().includes(query)
+          );
+          
+          return basicMatch || dateMatch;
+        }
+        
+        return basicMatch;
       });
     }
     
@@ -370,7 +429,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="메모 내용, 장소, 주소, 작성자 검색..."
+                    placeholder="메모 내용, 장소, 주소, 작성자, 날짜 검색..."
                     className="pl-10 pr-10 border-0 focus-visible:ring-0 bg-transparent"
                     data-testid="input-memo-search"
                   />
