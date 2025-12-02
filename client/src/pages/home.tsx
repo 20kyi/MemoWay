@@ -389,6 +389,19 @@ export default function Home() {
     handleTabChange("map");
   }, [handleTabChange]);
 
+  // 지도 저장하기 핸들러
+  const handleSaveMap = useCallback(() => {
+    if (selectedMemoIdsForMap && selectedMemoIdsForMap.size > 0) {
+      // TODO: 지도 저장 기능 구현
+      toast({
+        title: "지도 저장",
+        description: `${selectedMemoIdsForMap.size}개의 메모가 포함된 지도를 저장했습니다.`,
+      });
+      // 저장 후 필터 해제 (선택사항)
+      // setSelectedMemoIdsForMap(null);
+    }
+  }, [selectedMemoIdsForMap, toast]);
+
   // 지도 탭에서 다른 탭으로 이동할 때 필터 해제
   useEffect(() => {
     if (activeTab !== "map" && selectedMemoIdsForMap) {
@@ -467,6 +480,8 @@ export default function Home() {
                   onEditMemo={handleEditMemo}
                   onDeleteMemo={handleDeleteMemo}
                   onAddNewMemo={handleAddNewMemo}
+                  selectedMemoIdsForMap={selectedMemoIdsForMap}
+                  onSaveMap={handleSaveMap}
                 />
               ) : (
                 <GoogleMapView
@@ -488,6 +503,8 @@ export default function Home() {
                   onEditMemo={handleEditMemo}
                   onDeleteMemo={handleDeleteMemo}
                   onAddNewMemo={handleAddNewMemo}
+                  selectedMemoIdsForMap={selectedMemoIdsForMap}
+                  onSaveMap={handleSaveMap}
                 />
               )}
           </div>
