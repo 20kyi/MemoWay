@@ -93,6 +93,8 @@ function GoogleMapViewComponent({
   const lastDragEndTimeRef = useRef<number>(0); // 드래그 종료 시간 추적
   const isZoomingRef = useRef(false); // 줌 상태 추적
   const lastZoomEndTimeRef = useRef<number>(0); // 줌 종료 시간 추적
+  const isMapInteractingRef = useRef(false); // 지도 조작 중 여부 (터치, 드래그, 핀치 줌 등)
+  const touchHandlersRef = useRef<{ start: (() => void) | null; move: (() => void) | null; end: (() => void) | null }>({ start: null, move: null, end: null });
   const { toast } = useToast();
   const { t } = useLanguage();
   const { layoutTheme } = useLayoutTheme();
@@ -126,17 +128,63 @@ function GoogleMapViewComponent({
         // 줌 시작/종료 이벤트 감지 (핀치 줌 감지용)
         mapInstance.addListener('zoom_changed', () => {
           isZoomingRef.current = true;
+          isMapInteractingRef.current = true; // 지도 조작 중 플래그 설정
           lastZoomEndTimeRef.current = Date.now();
           // 줌 변경 후 짧은 시간 후에 줌 상태 해제
           setTimeout(() => {
             isZoomingRef.current = false;
-          }, 100);
+            isMapInteractingRef.current = false;
+          }, 200);
         });
-
+        
+        // 드래그 시작/종료 이벤트 감지
+        mapInstance.addListener('dragstart', () => {
+          isDraggingRef.current = true;
+          isMapInteractingRef.current = true; // 지도 조작 중 플래그 설정
+        });
+        
+        mapInstance.addListener('dragend', () => {
+          lastDragEndTimeRef.current = Date.now();
+          setTimeout(() => {
+            isDraggingRef.current = false;
+            isMapInteractingRef.current = false;
+          }, 150);
+        });
+        
         setMap(mapInstance);
 
         if (onMapReady) {
           onMapReady(mapInstance);
+        }
+        
+        // 터치 이벤트 감지 (모바일 핀치 줌용)
+        const mapContainer = mapRef.current;
+        
+        if (mapContainer) {
+          const touchStartHandler = () => {
+            isMapInteractingRef.current = true;
+          };
+          
+          const touchMoveHandler = () => {
+            isMapInteractingRef.current = true;
+          };
+          
+          const touchEndHandler = () => {
+            setTimeout(() => {
+              isMapInteractingRef.current = false;
+            }, 200);
+          };
+          
+          // 핸들러를 ref에 저장 (cleanup용)
+          touchHandlersRef.current = {
+            start: touchStartHandler,
+            move: touchMoveHandler,
+            end: touchEndHandler
+          };
+          
+          mapContainer.addEventListener('touchstart', touchStartHandler, { passive: true });
+          mapContainer.addEventListener('touchmove', touchMoveHandler, { passive: true });
+          mapContainer.addEventListener('touchend', touchEndHandler, { passive: true });
         }
 
       // Map click handler
@@ -236,6 +284,17 @@ function GoogleMapViewComponent({
         });
       }
     });
+    
+    // Cleanup function for touch event listeners
+    return () => {
+      const mapContainer = mapRef.current;
+      if (mapContainer && touchHandlersRef.current.start && touchHandlersRef.current.move && touchHandlersRef.current.end) {
+        mapContainer.removeEventListener('touchstart', touchHandlersRef.current.start);
+        mapContainer.removeEventListener('touchmove', touchHandlersRef.current.move);
+        mapContainer.removeEventListener('touchend', touchHandlersRef.current.end);
+        touchHandlersRef.current = { start: null, move: null, end: null };
+      }
+    };
   }, [toast]);
 
   // Watch user location
@@ -498,6 +557,12 @@ function GoogleMapViewComponent({
           });
 
           marker.addListener('click', () => {
+            // 지도 조작 중이면 마커 클릭 무시
+            if (isMapInteractingRef.current) {
+              console.log("지도 조작 중이므로 마커 클릭 무시");
+              return;
+            }
+            
             // 드래그 중이거나 줌 중이면 클릭 이벤트 무시
             const timeSinceZoomEnd = Date.now() - lastZoomEndTimeRef.current;
             if (isDraggingRef.current || isZoomingRef.current || timeSinceZoomEnd < 300) {

@@ -639,12 +639,14 @@ function MapViewComponent({
   // Detect user dragging the map and disable location lock
   const isDraggingRef = useRef(false);
   const lastDragEndTimeRef = useRef<number>(0); // 드래그 종료 시간 추적
+  const isMapInteractingRef = useRef(false); // 지도 조작 중 여부 (터치, 드래그, 핀치 줌 등)
   
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
 
     const handleDragStart = () => {
       isDraggingRef.current = true; // 드래그 시작 플래그 설정
+      isMapInteractingRef.current = true; // 지도 조작 중 플래그 설정
       if (isLocationLocked) {
         setIsLocationLocked(false);
       }
@@ -656,17 +658,24 @@ function MapViewComponent({
       // 드래그 종료 후 약간의 지연을 두고 플래그 해제 (클릭 이벤트와 충돌 방지)
       setTimeout(() => {
         isDraggingRef.current = false;
-      }, 100);
+        isMapInteractingRef.current = false;
+      }, 150);
     };
 
     const handleZoomStart = () => {
+      isMapInteractingRef.current = true; // 지도 조작 중 플래그 설정
       if (isLocationLocked) {
         setIsLocationLocked(false);
       }
     };
 
     const handleZoomChanged = () => {
-      // 줌 변경 처리 (필요시 추가)
+      // 줌 변경 중에는 지도 조작 중으로 유지
+      isMapInteractingRef.current = true;
+      // 줌 변경 종료 후 딜레이를 두고 플래그 해제
+      setTimeout(() => {
+        isMapInteractingRef.current = false;
+      }, 200);
     };
 
     window.kakao.maps.event.addListener(map, 'dragstart', handleDragStart);
@@ -1022,6 +1031,9 @@ function MapViewComponent({
       
       // 터치 이벤트 핸들러 (모바일 지원)
       const touchStartHandler = (event: TouchEvent) => {
+        // 터치 시작 시 지도 조작 중 플래그 설정
+        isMapInteractingRef.current = true;
+        
         if (event.touches.length === 1) {
           touchStartX = event.touches[0].clientX;
           touchStartY = event.touches[0].clientY;
@@ -1036,6 +1048,9 @@ function MapViewComponent({
       };
       
       const touchMoveHandler = (event: TouchEvent) => {
+        // 터치 이동 중에는 지도 조작 중으로 유지
+        isMapInteractingRef.current = true;
+        
         // 성능 최적화: throttle 적용
         const now = Date.now();
         if (now - lastMoveTime < MOVE_THROTTLE) {
@@ -1066,6 +1081,18 @@ function MapViewComponent({
           isPinching = false;
         }
         
+        // 터치 종료 후 딜레이를 두고 지도 조작 플래그 해제
+        setTimeout(() => {
+          isMapInteractingRef.current = false;
+        }, 200);
+        
+        // 지도 조작 중이면 마커 클릭 무시
+        if (isMapInteractingRef.current) {
+          console.log("지도 조작 중이므로 마커 클릭 무시");
+          isDragging = false;
+          return;
+        }
+        
         // 드래그가 아니고, 핀치 줌 후 쿨다운 시간이 지났으며, 단일 터치인 경우에만 클릭 처리
         const timeSincePinch = Date.now() - pinchEndTime;
         if (!isDragging && !isPinching && timeSincePinch > PINCH_COOLDOWN && event.changedTouches.length === 1) {
@@ -1079,6 +1106,13 @@ function MapViewComponent({
       };
       
       const clickHandler = (event: MouseEvent) => {
+        // 지도 조작 중이면 마커 클릭 무시
+        if (isMapInteractingRef.current) {
+          console.log("지도 조작 중이므로 마커 클릭 무시");
+          isDragging = false;
+          return;
+        }
+        
         // 드래그가 아닌 경우에만 클릭 처리
         if (!isDragging) {
           console.log('🖱️ 마커 클릭 이벤트 발생', event);
