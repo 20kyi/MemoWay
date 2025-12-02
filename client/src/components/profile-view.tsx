@@ -45,6 +45,48 @@ type NoticeItem = {
   important?: boolean;
 };
 
+// FAQ 데이터 타입 정의
+type FAQItem = {
+  question: string;
+  answer: string;
+};
+
+// FAQ 데이터 (한글만)
+const faqData: FAQItem[] = [
+  {
+    question: "MemoWay는 무엇인가요?",
+    answer: "MemoWay는 위치 기반 메모 서비스입니다. 특별한 장소의 추억을 기록하고, 그룹과 공유할 수 있습니다. 지도에서 위치를 선택하여 메모를 추가하고, 사진을 첨부할 수 있습니다."
+  },
+  {
+    question: "그룹은 어떻게 만들고 참여하나요?",
+    answer: "그룹 탭에서 '그룹 만들기' 버튼을 눌러 새 그룹을 만들 수 있습니다. 다른 사람의 그룹에 참여하려면 그룹 리더에게 초대 코드를 요청하고, '그룹 참여하기'에서 초대 코드를 입력하세요."
+  },
+  {
+    question: "포인트는 무엇인가요?",
+    answer: "포인트는 그룹 메모를 개인 그룹으로 복사할 때 사용됩니다. 메모 1개당 10포인트가 필요합니다. 설정에서 포인트를 구매할 수 있습니다."
+  },
+  {
+    question: "위치 기반 알림은 어떻게 작동하나요?",
+    answer: "설정에서 위치 추적을 활성화하고 알림 반경을 설정하면, 해당 반경 내에 메모가 있을 때 알림을 받을 수 있습니다. 지도 탭에서 위치 고정 모드를 활성화하면 더 정확한 알림을 받을 수 있습니다."
+  },
+  {
+    question: "메모를 삭제할 수 있나요?",
+    answer: "네, 메모 상세 화면에서 삭제 버튼을 눌러 메모를 삭제할 수 있습니다. 그룹 메모의 경우, 그룹 리더이거나 메모 작성자만 삭제할 수 있습니다."
+  },
+  {
+    question: "언어를 변경할 수 있나요?",
+    answer: "설정에서 언어를 변경할 수 있습니다. 한국어, 영어, 중국어, 일본어를 지원합니다."
+  },
+  {
+    question: "그룹 메모를 개인 메모로 복사할 수 있나요?",
+    answer: "네, 그룹 관리 화면에서 '그룹 메모 복사' 기능을 사용할 수 있습니다. 메모 1개당 10포인트가 필요하며, 복사된 메모는 개인 그룹에 저장됩니다."
+  },
+  {
+    question: "앱이 위치를 찾지 못해요",
+    answer: "브라우저나 앱의 위치 권한을 확인해주세요. 설정에서 위치 서비스 권한을 허용했는지 확인하고, GPS가 켜져 있는지 확인하세요. 지도 탭에서 위치 고정 모드를 활성화하면 더 정확한 위치를 찾을 수 있습니다."
+  }
+];
+
 // 공지사항 데이터 (컴포넌트 외부로 이동하여 재생성 방지)
 const noticeData: Record<Language, NoticeItem[]> = {
   ko: [
@@ -158,6 +200,7 @@ export function ProfileView({
   const [isAppInfoDialogOpen, setIsAppInfoDialogOpen] = useState(false);
   const [isPersonalSettingsDialogOpen, setIsPersonalSettingsDialogOpen] = useState(false);
   const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
+  const [isFaqDialogOpen, setIsFaqDialogOpen] = useState(false);
   const [isNoticeDialogOpen, setIsNoticeDialogOpen] = useState(false);
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
   const [isPrivacyDialogOpen, setIsPrivacyDialogOpen] = useState(false);
@@ -1135,10 +1178,7 @@ export function ProfileView({
                 {/* FAQ */}
                 <button
                   onClick={() => {
-                    toast({
-                      title: t.settings.supportFaq,
-                      description: language === 'ko' ? 'FAQ 페이지 준비 중입니다.' : language === 'en' ? 'FAQ page is coming soon.' : language === 'zh' ? '常见问题页面即将推出。' : 'FAQページは準備中です。',
-                    });
+                    setIsFaqDialogOpen(true);
                   }}
                   className="w-full p-4 rounded-2xl bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-2 border-blue-200/60 hover:border-blue-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -1360,10 +1400,7 @@ export function ProfileView({
                 {/* FAQ */}
                 <button
                   onClick={() => {
-                    toast({
-                      title: t.settings.supportFaq,
-                      description: language === 'ko' ? 'FAQ 페이지 준비 중입니다.' : language === 'en' ? 'FAQ page is coming soon.' : language === 'zh' ? '常见问题页面即将推出。' : 'FAQページは準備中です。',
-                    });
+                    setIsFaqDialogOpen(true);
                   }}
                   className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-2 border-blue-200/60 hover:border-blue-300 hover:shadow-lg transition-all duration-300 text-left group"
                 >
@@ -3610,6 +3647,89 @@ export function ProfileView({
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* FAQ 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
+      {isMobile ? (
+        <Sheet open={isFaqDialogOpen} onOpenChange={(open) => {
+          setIsFaqDialogOpen(open);
+          if (!open) {
+            setTimeout(() => setIsSupportDialogOpen(true), 300);
+          }
+        }}>
+          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
+            <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
+              <SheetTitle className="flex items-center gap-2 text-xl">
+                <MessageCircle className="h-6 w-6 text-blue-600 shrink-0" />
+                {t.settings.supportFaq}
+              </SheetTitle>
+              <SheetDescription className="text-sm mt-1.5">
+                {t.settings.supportFaqDesc}
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="flex-1 overflow-y-auto px-5 py-6">
+              <div className="space-y-4">
+                {faqData.map((faq, index) => (
+                  <div
+                    key={index}
+                    className="p-4 rounded-2xl border-2 bg-gradient-to-br from-blue-50/60 to-cyan-50/60 border-blue-200/60"
+                  >
+                    <h3 className="font-semibold text-base text-foreground mb-3 flex items-start gap-2">
+                      <span className="text-blue-600 shrink-0">Q{index + 1}.</span>
+                      <span className="flex-1">{faq.question}</span>
+                    </h3>
+                    <div className="ml-6 pl-4 border-l-2 border-blue-200">
+                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isFaqDialogOpen} onOpenChange={(open) => {
+          setIsFaqDialogOpen(open);
+          if (!open) {
+            setTimeout(() => setIsSupportDialogOpen(true), 300);
+          }
+        }}>
+          <DialogContent className="sm:max-w-2xl w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
+              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
+                <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 shrink-0" />
+                {t.settings.supportFaq}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm mt-1">
+                {t.settings.supportFaqDesc}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+              <div className="space-y-4 sm:space-y-5">
+                {faqData.map((faq, index) => (
+                  <div
+                    key={index}
+                    className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 bg-gradient-to-br from-blue-50/60 to-cyan-50/60 border-blue-200/60 hover:shadow-md transition-all"
+                  >
+                    <h3 className="font-semibold text-sm sm:text-base text-foreground mb-3 flex items-start gap-2">
+                      <span className="text-blue-600 shrink-0">Q{index + 1}.</span>
+                      <span className="flex-1">{faq.question}</span>
+                    </h3>
+                    <div className="ml-6 pl-4 border-l-2 border-blue-200">
+                      <p className="text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </DialogContent>
