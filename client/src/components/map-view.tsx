@@ -1730,12 +1730,12 @@ function MapViewComponent({
           
           {/* 위치 고정 모드 상태 배너 */}
           {isLocationLocked && (
-            <div className={`absolute ${isCoupleTheme ? 'top-[12.1rem] sm:top-[13.1rem]' : 'top-20'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
+            <div className={`absolute ${isCoupleTheme ? 'top-[calc(12.1rem+1rem)] sm:top-[calc(13.1rem+1rem)]' : 'top-[calc(5rem+1rem)]'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
               <div 
                 className={`relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden ${
                   isCoupleTheme 
-                    ? 'px-6 py-4 sm:px-8 sm:py-5 gap-4 sm:gap-5' 
-                    : 'px-3 py-2 sm:px-4 sm:py-2.5 gap-2 sm:gap-2.5'
+                    ? 'px-7 py-5 sm:px-10 sm:py-6 gap-5 sm:gap-6' 
+                    : 'px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3'
                 }`}
                 style={{
                   background: isCoupleTheme ? '#779EF3' : '#8fa0d8',
@@ -1772,8 +1772,8 @@ function MapViewComponent({
                 <Lock 
                   className={`flex-shrink-0 relative z-10 ${
                     isCoupleTheme 
-                      ? 'h-7 w-7 sm:h-8 sm:w-8' 
-                      : 'h-3.5 w-3.5 sm:h-4 sm:w-4'
+                      ? 'h-8.5 w-8.5 sm:h-10 sm:w-10' 
+                      : 'h-4 w-4 sm:h-5 sm:w-5'
                   }`}
                   style={{ 
                     filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25))',
@@ -1782,8 +1782,8 @@ function MapViewComponent({
                 <span 
                   className={`font-medium leading-tight relative z-10 ${
                     isCoupleTheme 
-                      ? 'text-[20px] sm:text-2xl md:text-2xl' 
-                      : 'text-[10px] sm:text-xs md:text-sm'
+                      ? 'text-[24px] sm:text-[24px] md:text-[24px]' 
+                      : 'text-[12px] sm:text-[13px] md:text-[14px]'
                   }`}
                   style={{ 
                     textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
@@ -1891,7 +1891,7 @@ function MapViewComponent({
           </div>
 
           {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
-          <div className={`${isCoupleTheme ? 'absolute bottom-[8rem] right-4' : 'fixed bottom-[calc(5rem+1rem)] right-4'} flex flex-col ${isCoupleTheme ? 'gap-3' : 'gap-2'} z-50`}>
+          <div className={`${isCoupleTheme ? 'absolute bottom-[calc(8rem-1rem)] right-4' : 'fixed bottom-[calc(5rem+1rem-1rem)] right-4'} flex flex-col ${isCoupleTheme ? 'gap-3' : 'gap-2'} z-50`}>
             {/* 지도 확대/축소 잠금 버튼 */}
             <Tooltip>
               <TooltipTrigger asChild>

@@ -708,9 +708,9 @@ function GoogleMapViewComponent({
       
       {/* 위치 고정 모드 상태 배너 */}
       {isLocationLocked && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
+        <div className="absolute top-[calc(5rem+1rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
           <div 
-            className="relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5 gap-2 sm:gap-2.5"
+            className="relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3"
             style={{
               background: '#8fa0d8',
               boxShadow: `
@@ -744,13 +744,13 @@ function GoogleMapViewComponent({
               }}
             />
             <Lock 
-              className="flex-shrink-0 relative z-10 h-3.5 w-3.5 sm:h-4 sm:w-4"
+              className="flex-shrink-0 relative z-10 h-4 w-4 sm:h-5 sm:w-5"
               style={{ 
                 filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25))',
               }} 
             />
             <span 
-              className="font-medium leading-tight relative z-10 text-[10px] sm:text-xs md:text-sm"
+              className="font-medium leading-tight relative z-10 text-[12px] sm:text-[13px] md:text-[14px]"
               style={{ 
                 textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
                 letterSpacing: '0.01em',
@@ -938,7 +938,7 @@ function GoogleMapViewComponent({
       </Dialog>
 
         {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
-        <div className={`${isCoupleTheme ? 'absolute bottom-[8rem] right-4' : 'fixed bottom-[calc(5rem+1rem)] right-4'} flex flex-col ${isCoupleTheme ? 'gap-3' : 'gap-2'} z-50`}>
+        <div className={`${isCoupleTheme ? 'absolute bottom-[calc(8rem-1rem)] right-4' : 'fixed bottom-[calc(5rem+1rem-1rem)] right-4'} flex flex-col ${isCoupleTheme ? 'gap-3' : 'gap-2'} z-50`}>
             {/* 지도 확대/축소 잠금 버튼 */}
             <Tooltip>
               <TooltipTrigger asChild>
