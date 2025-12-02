@@ -1463,7 +1463,12 @@ export function ProfileView({
 
       {/* 이용약관 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
       {isMobile ? (
-        <Sheet open={isTermsDialogOpen} onOpenChange={setIsTermsDialogOpen}>
+        <Sheet open={isTermsDialogOpen} onOpenChange={(open) => {
+          setIsTermsDialogOpen(open);
+          if (!open) {
+            setTimeout(() => setIsSupportDialogOpen(true), 300);
+          }
+        }}>
           <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
             <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-slate-50/50 to-gray-50/30">
               <SheetTitle className="flex items-center gap-2 text-xl">
@@ -1943,7 +1948,12 @@ export function ProfileView({
           </SheetContent>
         </Sheet>
       ) : (
-        <Dialog open={isTermsDialogOpen} onOpenChange={setIsTermsDialogOpen}>
+        <Dialog open={isTermsDialogOpen} onOpenChange={(open) => {
+          setIsTermsDialogOpen(open);
+          if (!open) {
+            setTimeout(() => setIsSupportDialogOpen(true), 300);
+          }
+        }}>
           <DialogContent className="sm:max-w-2xl w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
             <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-slate-50/50 to-gray-50/30">
               <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
@@ -2426,7 +2436,12 @@ export function ProfileView({
 
       {/* 개인정보처리방침 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
       {isMobile ? (
-        <Sheet open={isPrivacyDialogOpen} onOpenChange={setIsPrivacyDialogOpen}>
+        <Sheet open={isPrivacyDialogOpen} onOpenChange={(open) => {
+          setIsPrivacyDialogOpen(open);
+          if (!open) {
+            setTimeout(() => setIsSupportDialogOpen(true), 300);
+          }
+        }}>
           <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
             <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-violet-50/50 to-purple-50/30">
               <SheetTitle className="flex items-center gap-2 text-xl">
@@ -2964,7 +2979,12 @@ export function ProfileView({
           </SheetContent>
         </Sheet>
       ) : (
-        <Dialog open={isPrivacyDialogOpen} onOpenChange={setIsPrivacyDialogOpen}>
+        <Dialog open={isPrivacyDialogOpen} onOpenChange={(open) => {
+          setIsPrivacyDialogOpen(open);
+          if (!open) {
+            setTimeout(() => setIsSupportDialogOpen(true), 300);
+          }
+        }}>
           <DialogContent className="sm:max-w-2xl w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
             <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-violet-50/50 to-purple-50/30">
               <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
