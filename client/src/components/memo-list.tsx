@@ -21,6 +21,8 @@ interface Group {
 type SavedMap = {
   id: string;
   name: string;
+  category: string;
+  color: string;
   memoIds: string[];
   createdAt: Date;
 };
@@ -440,7 +442,17 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
               return (
                 <Card
                   key={savedMap.id}
-                  className="hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg cursor-pointer border-2 border-purple-400/60 hover:border-purple-400/80 bg-gradient-to-br from-purple-50/30 to-card/90"
+                  className="hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg cursor-pointer border-2"
+                  style={{
+                    borderColor: `${savedMap.color}60`,
+                    background: `linear-gradient(to bottom right, ${savedMap.color}30, rgba(var(--card), 0.9))`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = `${savedMap.color}80`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = `${savedMap.color}60`;
+                  }}
                   onClick={() => {
                     if (onShowOnMap && savedMap.memoIds.length > 0) {
                       onShowOnMap(savedMap.memoIds);
@@ -452,9 +464,16 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <div 
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-sm border relative bg-purple-100 border-purple-300"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-sm border relative"
+                          style={{ 
+                            backgroundColor: `${savedMap.color}30`,
+                            borderColor: `${savedMap.color}60`
+                          }}
                         >
-                          <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                          {(() => {
+                            const IconComponent = categoryIcons[savedMap.category as MarkerIconType] || MapPin;
+                            return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: savedMap.color }} />;
+                          })()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
@@ -486,7 +505,12 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                       </div>
                       <Badge 
                         variant="secondary" 
-                        className="flex-shrink-0 text-xs px-2 py-0.5 bg-purple-100 text-purple-700 border-purple-300"
+                        className="flex-shrink-0 text-xs px-2 py-0.5"
+                        style={{
+                          backgroundColor: `${savedMap.color}30`,
+                          color: savedMap.color,
+                          borderColor: `${savedMap.color}60`,
+                        }}
                       >
                         <MapPin className="h-3 w-3 mr-1" />
                         {memoCount}개
@@ -497,7 +521,18 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8 text-xs sm:text-sm px-2 sm:px-3 w-full bg-gradient-to-br from-purple-200 to-indigo-200 hover:from-purple-300 hover:to-indigo-300 border-2 border-purple-300/60 text-purple-700 shadow-sm"
+                      className="h-8 text-xs sm:text-sm px-2 sm:px-3 w-full border-2 shadow-sm"
+                      style={{
+                        background: `linear-gradient(to bottom right, ${savedMap.color}40, ${savedMap.color}60)`,
+                        borderColor: `${savedMap.color}60`,
+                        color: savedMap.color,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = `linear-gradient(to bottom right, ${savedMap.color}50, ${savedMap.color}70)`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = `linear-gradient(to bottom right, ${savedMap.color}40, ${savedMap.color}60)`;
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (onShowOnMap && savedMap.memoIds.length > 0) {
