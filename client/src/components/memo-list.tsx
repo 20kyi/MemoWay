@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User } from "lucide-react";
+import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
+import { Input } from "@/components/ui/input";
 
 interface Group {
   id: string;
@@ -46,6 +47,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
   const [authorTab, setAuthorTab] = useState<"mine" | "others">("mine");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMemoIds, setSelectedMemoIds] = useState<Set<string>>(new Set());
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -66,6 +68,20 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
       }
     }
     
+    // 검색어 필터링 (hideFilters가 false일 때만 - 메모 탭에서 사용)
+    if (!hideFilters && searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(memo => {
+        return (
+          memo.content.toLowerCase().includes(query) ||
+          memo.buildingName.toLowerCase().includes(query) ||
+          memo.address.toLowerCase().includes(query) ||
+          memo.member.name.toLowerCase().includes(query) ||
+          (memo.group && memo.group.name.toLowerCase().includes(query))
+        );
+      });
+    }
+    
     if (selectedCategory !== "all") {
       filtered = filtered.filter(memo => memo.markerIcon === selectedCategory);
     }
@@ -79,7 +95,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
     }
     
     return filtered;
-  }, [memos, selectedCategory, selectedGroup, showAuthorTab, authorTab, currentUserId]);
+  }, [memos, selectedCategory, selectedGroup, showAuthorTab, authorTab, currentUserId, hideFilters, searchQuery]);
 
   // Group memos by location to determine if main memo button should be shown
   const memosByLocation = useMemo(() => {
@@ -282,120 +298,33 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
               </div>
             </div>
           )}
-          {/* Category and Group Filter Dropdowns */}
+          {/* 검색 바 (메모 탭에서만 표시) */}
           {!hideFilters && (
-            <div className="px-4 pt-4 pb-2 grid grid-cols-2 gap-2 flex-shrink-0">
-          {/* Category Filter */}
-          <Select
-            value={selectedCategory}
-            onValueChange={(value) => setSelectedCategory(value as MarkerIconType | "all")}
-          >
-            <SelectTrigger className="w-full" data-testid="category-select-trigger">
-              <div className="flex items-center gap-1 w-full">
-                <CurrentIcon className="w-4 h-4" />
-                <span className="flex-1 text-left truncate">{currentCategory.label}</span>
-                <Badge variant="secondary" className="px-1.5 h-5 text-xs">
-                  {currentCategory.count}
-                </Badge>
+            <div className="px-4 pt-4 pb-2 flex-shrink-0">
+              <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="메모 내용, 장소, 주소, 작성자 검색..."
+                    className="pl-10 pr-10 border-0 focus-visible:ring-0 bg-transparent"
+                    data-testid="input-memo-search"
+                  />
+                  {searchQuery && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() => setSearchQuery("")}
+                      data-testid="button-clear-search"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
               </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" data-testid="filter-all">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>{t.categories.all}</span>
-                  <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
-                    {memos.length}
-                  </Badge>
-                </div>
-              </SelectItem>
-              {(Object.keys(categoryIcons) as MarkerIconType[])
-                .filter((key) => key !== "default")
-                .map((key) => {
-                  const Icon = categoryIcons[key];
-                  const count = memos.filter(m => m.markerIcon === key).length;
-                  if (count === 0) return null;
-                  
-                  return (
-                    <SelectItem key={key} value={key} data-testid={`filter-${key}`}>
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4" />
-                        <span>{t.categories[key]}</span>
-                        <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
-                          {count}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-            </SelectContent>
-          </Select>
-
-          {/* Group Filter */}
-          <Select
-            value={selectedGroup}
-            onValueChange={(value) => setSelectedGroup(value)}
-          >
-            <SelectTrigger className="w-full" data-testid="group-select-trigger">
-              <div className="flex items-center gap-1 w-full">
-                <Users className="w-4 h-4" />
-                <span className="flex-1 text-left truncate">
-                  {selectedGroup === "all" 
-                    ? t.common.allGroups 
-                    : selectedGroup === "personal"
-                    ? "개인 메모"
-                    : groups.find(g => g.id === selectedGroup)?.name || "그룹"}
-                </span>
-                <Badge variant="secondary" className="px-1.5 h-5 text-xs">
-                  {selectedGroup === "all" 
-                    ? memos.length
-                    : selectedGroup === "personal"
-                    ? memos.filter(m => !m.group || m.group.name === "개인 메모").length
-                    : memos.filter(m => m.group?.id === selectedGroup).length}
-                </Badge>
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" data-testid="filter-group-all">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  <span>{t.common.allGroups}</span>
-                  <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
-                    {memos.length}
-                  </Badge>
-                </div>
-              </SelectItem>
-              <SelectItem value="personal" data-testid="filter-group-personal">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
-                  <span>개인 메모</span>
-                  <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
-                    {memos.filter(m => !m.group || m.group.name === "개인 메모").length}
-                  </Badge>
-                </div>
-              </SelectItem>
-              {groups.map((group) => {
-                const count = memos.filter(m => m.group?.id === group.id).length;
-                if (count === 0) return null;
-                
-                return (
-                  <SelectItem key={group.id} value={group.id} data-testid={`filter-group-${group.id}`}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: group.color }}
-                      />
-                      <span>{group.name}</span>
-                      <Badge variant="secondary" className="ml-auto px-2 h-5 text-xs">
-                        {count}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
+            </div>
           )}
         </>
       )}

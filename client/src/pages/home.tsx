@@ -437,8 +437,8 @@ export default function Home() {
         {activeTab === "memos" && (
           <MemoList
               memos={memos.filter(memo => {
-                // 자신이 작성한 메모만 표시 (member.userId가 현재 사용자와 일치)
-                return memo.member.userId === (user as any)?.id;
+                // 자신이 작성한 개인 메모만 표시 (그룹에 속하지 않은 메모)
+                return memo.member.userId === (user as any)?.id && !memo.groupId;
               })}
               groups={filteredGroupsWithoutPersonal}
               onEdit={handleEditMemo}
