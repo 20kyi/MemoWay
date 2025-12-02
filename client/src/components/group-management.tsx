@@ -321,49 +321,45 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
             onClick={() => setActiveTab("leader")}
             className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
               activeTab === "leader"
-                ? "bg-gradient-to-br from-amber-200 to-amber-300 hover:from-amber-300 hover:to-amber-400 border-2 border-amber-300/60 text-amber-700 shadow-sm"
+                ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
             data-testid="tab-leader"
           >
             <Crown className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" fill={activeTab === "leader" ? "currentColor" : "none"} />
             <span className="truncate">내가 초대한 그룹</span>
-            {groupCounts.leader > 0 && (
-              <Badge 
-                variant="secondary" 
-                className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
-                  activeTab === "leader" 
-                    ? "bg-amber-100/80 text-amber-700 border-amber-300/60" 
-                    : "bg-muted"
-                }`}
-              >
-                {groupCounts.leader}
-              </Badge>
-            )}
+            <Badge 
+              variant="secondary" 
+              className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
+                activeTab === "leader" 
+                  ? "bg-sky-100/80 text-sky-700 border-sky-300/60" 
+                  : "bg-muted"
+              } ${groupCounts.leader === 0 ? "opacity-0" : ""}`}
+            >
+              {groupCounts.leader}
+            </Badge>
           </button>
           <button
             onClick={() => setActiveTab("member")}
             className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
               activeTab === "member"
-                ? "bg-primary/80 text-primary-foreground shadow-sm"
+                ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
             data-testid="tab-member"
           >
             <Users className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" />
             <span className="truncate">나를 초대한 그룹</span>
-            {groupCounts.member > 0 && (
-              <Badge 
-                variant="secondary" 
-                className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
-                  activeTab === "member" 
-                    ? "bg-primary-foreground/20 text-primary-foreground" 
-                    : "bg-muted"
-                }`}
-              >
-                {groupCounts.member}
-              </Badge>
-            )}
+            <Badge 
+              variant="secondary" 
+              className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
+                activeTab === "member" 
+                  ? "bg-sky-100/80 text-sky-700 border-sky-300/60" 
+                  : "bg-muted"
+              } ${groupCounts.member === 0 ? "opacity-0" : ""}`}
+            >
+              {groupCounts.member}
+            </Badge>
           </button>
         </div>
 
@@ -1093,27 +1089,27 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
       </AlertDialog>
 
       {/* 플로팅 액션 버튼 */}
-      <div className="fixed bottom-[calc(4rem+max(1rem,env(safe-area-inset-bottom))+0.5rem)] sm:bottom-[calc(4rem+max(1rem,env(safe-area-inset-bottom))+1rem)] right-3 sm:right-4 flex flex-col gap-2 z-50">
+      <div className="fixed bottom-[7rem] right-4 flex flex-col gap-2 z-50">
         {/* 그룹 참여하기 버튼 */}
         <Button
           size="icon"
           onClick={() => setJoinDialogOpen(true)}
-          className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg shadow-md transition-all hover:shadow-lg bg-primary hover:bg-primary/90 border border-primary"
+          className="h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-xl bg-primary hover:bg-primary/90 border-2 border-primary"
           data-testid="button-join-group-fab"
           title={t.groups.joinGroup}
         >
-          <DoorOpen className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
+          <DoorOpen className="h-5 w-5 text-primary-foreground" />
         </Button>
 
         {/* 그룹 만들기 버튼 */}
         <Button
           size="icon"
           onClick={() => setCreateDialogOpen(true)}
-          className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg shadow-md transition-all hover:shadow-lg bg-primary hover:bg-primary/90 border border-primary"
+          className="h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-xl bg-primary hover:bg-primary/90 border-2 border-primary"
           data-testid="button-create-group-fab"
           title={t.groups.createGroup}
         >
-          <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
+          <Plus className="h-5 w-5 text-primary-foreground" />
         </Button>
       </div>
     </div>
