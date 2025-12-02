@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { BottomNav } from "@/components/bottom-nav";
 import { ExitDialog } from "@/components/exit-dialog";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -9,6 +12,12 @@ import { useLanguage } from "@/lib/language-context";
 import { useMapProvider } from "@/lib/map-provider-context";
 import { useLayoutTheme } from "@/lib/layout-theme-context";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase } from "lucide-react";
+import { markerIconTypes, type MarkerIconType } from "@shared/schema";
 import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 import type { SelectedLocation } from "@/types/home";
 
@@ -85,6 +94,76 @@ export default function Home() {
   });
   const [selectedMarkerIcons, setSelectedMarkerIcons] = useState<string[]>(["all"]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(["all"]);
+  const [selectedMemoIdsForMap, setSelectedMemoIdsForMap] = useState<Set<string> | null>(null);
+  const [saveMapDialogOpen, setSaveMapDialogOpen] = useState(false);
+  
+  // 저장된 지도 데이터 타입
+  type SavedMap = {
+    id: string;
+    name: string;
+    category: MarkerIconType;
+    color: string;
+    memoIds: string[];
+    createdAt: Date;
+  };
+  
+  const PRESET_COLORS = [
+    { key: 'rose', value: '#ffb3d9' },
+    { key: 'pink', value: '#ffc0e8' },
+    { key: 'lavender', value: '#d4b5ff' },
+    { key: 'peach', value: '#ffd4b3' },
+    { key: 'mint', value: '#b3f5d9' },
+    { key: 'sky', value: '#b3e5ff' },
+    { key: 'lilac', value: '#e8d4ff' },
+    { key: 'coral', value: '#ffccb3' },
+  ] as const;
+  
+  const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
+    default: MapPin,
+    travel: Plane,
+    love: Heart,
+    food: Utensils,
+    cafe: Coffee,
+    shopping: ShoppingBag,
+    sport: Trophy,
+    work: Briefcase,
+  };
+  
+  const saveMapFormSchema = z.object({
+    name: z.string().min(1, "제목을 입력해주세요").max(50, "제목은 50자 이하여야 합니다"),
+    category: z.enum(markerIconTypes).default('default'),
+    color: z.string().default('#a78bfa'),
+  });
+  
+  type SaveMapFormValues = z.infer<typeof saveMapFormSchema>;
+  
+  const saveMapForm = useForm<SaveMapFormValues>({
+    resolver: zodResolver(saveMapFormSchema),
+    defaultValues: {
+      name: `저장된 지도 ${new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}`,
+      category: 'default',
+      color: '#a78bfa',
+    },
+  });
+  
+  // 저장된 지도 목록 (localStorage에서 로드)
+  const [savedMaps, setSavedMaps] = useState<SavedMap[]>(() => {
+    const saved = localStorage.getItem("savedMaps");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map((map: any) => ({
+          ...map,
+          category: map.category || 'default',
+          color: map.color || '#a78bfa',
+          createdAt: new Date(map.createdAt),
+        }));
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
 
   // Data queries - 병렬 로딩 보장 (user가 있을 때만 실행)
   const { data: memos = [], error: memosError } = useQuery<MemoWithDetails[]>({
@@ -382,6 +461,69 @@ export default function Home() {
     setMainMemoMutation.mutate(memoId);
   }, [setMainMemoMutation]);
 
+  // 선택된 메모들을 지도에 표시하는 핸들러
+  const handleShowOnMap = useCallback((memoIds: string[]) => {
+    setSelectedMemoIdsForMap(new Set(memoIds));
+    handleTabChange("map");
+  }, [handleTabChange]);
+
+  // 지도 저장하기 버튼 클릭 핸들러 (다이얼로그 열기)
+  const handleSaveMapClick = useCallback(() => {
+    if (selectedMemoIdsForMap && selectedMemoIdsForMap.size > 0) {
+      saveMapForm.reset({
+        name: `저장된 지도 ${new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}`,
+        category: 'default',
+        color: '#a78bfa',
+      });
+      setSaveMapDialogOpen(true);
+    }
+  }, [selectedMemoIdsForMap, saveMapForm]);
+  
+  // 지도 저장하기 핸들러 (실제 저장)
+  const handleSaveMap = useCallback((data: SaveMapFormValues) => {
+    if (selectedMemoIdsForMap && selectedMemoIdsForMap.size > 0) {
+      const newSavedMap: SavedMap = {
+        id: `saved-map-${Date.now()}`,
+        name: data.name,
+        category: data.category,
+        color: data.color,
+        memoIds: Array.from(selectedMemoIdsForMap),
+        createdAt: new Date(),
+      };
+      
+      const updatedSavedMaps = [...savedMaps, newSavedMap];
+      setSavedMaps(updatedSavedMaps);
+      localStorage.setItem("savedMaps", JSON.stringify(updatedSavedMaps));
+      
+      toast({
+        title: "지도 저장 완료",
+        description: `${selectedMemoIdsForMap.size}개의 메모가 포함된 지도를 저장했습니다.`,
+      });
+      
+      // 저장 후 필터 해제 및 다이얼로그 닫기
+      setSelectedMemoIdsForMap(null);
+      setSaveMapDialogOpen(false);
+    }
+  }, [selectedMemoIdsForMap, savedMaps, toast]);
+  
+  // 저장된 지도 삭제 핸들러
+  const handleDeleteSavedMap = useCallback((mapId: string) => {
+    const updatedSavedMaps = savedMaps.filter(map => map.id !== mapId);
+    setSavedMaps(updatedSavedMaps);
+    localStorage.setItem("savedMaps", JSON.stringify(updatedSavedMaps));
+    toast({
+      title: "지도 삭제 완료",
+      description: "저장된 지도가 삭제되었습니다.",
+    });
+  }, [savedMaps, toast]);
+
+  // 지도 탭에서 다른 탭으로 이동할 때 필터 해제
+  useEffect(() => {
+    if (activeTab !== "map" && selectedMemoIdsForMap) {
+      setSelectedMemoIdsForMap(null);
+    }
+  }, [activeTab, selectedMemoIdsForMap]);
+
   // 그룹으로 이동 핸들러 (메모이제이션)
   const handleMoveToGroup = useCallback(async (memoIds: string[], groupId: string) => {
     try {
@@ -436,7 +578,7 @@ export default function Home() {
             {mapProvider === "kakao" ? (
               <MapView
                   onLocationSelect={handleLocationSelect}
-                  memos={memos}
+                  memos={selectedMemoIdsForMap ? memos.filter(m => selectedMemoIdsForMap.has(m.id)) : memos}
                   onMarkerClick={handleMarkerClick}
                   onClusterClick={handleClusterClick}
                   userLocation={userLocation}
@@ -453,11 +595,13 @@ export default function Home() {
                   onEditMemo={handleEditMemo}
                   onDeleteMemo={handleDeleteMemo}
                   onAddNewMemo={handleAddNewMemo}
+                  selectedMemoIdsForMap={selectedMemoIdsForMap}
+                  onSaveMap={handleSaveMapClick}
                 />
               ) : (
                 <GoogleMapView
                   onLocationSelect={handleLocationSelect}
-                  memos={memos}
+                  memos={selectedMemoIdsForMap ? memos.filter(m => selectedMemoIdsForMap.has(m.id)) : memos}
                   onMarkerClick={handleMarkerClick}
                   onClusterClick={handleClusterClick}
                   userLocation={userLocation}
@@ -474,6 +618,8 @@ export default function Home() {
                   onEditMemo={handleEditMemo}
                   onDeleteMemo={handleDeleteMemo}
                   onAddNewMemo={handleAddNewMemo}
+                  selectedMemoIdsForMap={selectedMemoIdsForMap}
+                  onSaveMap={handleSaveMapClick}
                 />
               )}
           </div>
@@ -485,6 +631,7 @@ export default function Home() {
                 return memo.member.userId === (user as any)?.id && !memo.groupId;
               })}
               groups={filteredGroupsWithoutPersonal}
+              savedMaps={savedMaps}
               onEdit={handleEditMemo}
               onDelete={(memoId) => {
                 if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
@@ -515,6 +662,8 @@ export default function Home() {
               onMemoClick={handleMarkerClick}
               onSetMainMemo={handleSetMainMemo}
               onMoveToGroup={handleMoveToGroup}
+              onShowOnMap={handleShowOnMap}
+              onDeleteSavedMap={handleDeleteSavedMap}
             />
         )}
         {activeTab === "groups" && (
@@ -666,6 +815,126 @@ export default function Home() {
       />
 
       <ExitDialog open={showExitDialog} onOpenChange={setShowExitDialog} />
+      
+      {/* 지도 저장 다이얼로그 */}
+      <Dialog open={saveMapDialogOpen} onOpenChange={setSaveMapDialogOpen}>
+        <DialogContent className="sm:max-w-md w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-[calc(100%-2rem)] mx-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-xl sm:rounded-2xl p-4 sm:p-6">
+          <DialogHeader className="flex-shrink-0 pb-2 sm:pb-3">
+            <DialogTitle className="text-lg sm:text-xl">지도 저장하기</DialogTitle>
+          </DialogHeader>
+          <Form {...saveMapForm}>
+            <form onSubmit={saveMapForm.handleSubmit(handleSaveMap)} className="flex flex-col flex-1 overflow-hidden">
+              <div className="space-y-3 sm:space-y-4 overflow-y-auto flex-1 pr-1 sm:pr-2">
+                <FormField
+                  control={saveMapForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">제목</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="지도 제목을 입력하세요" className="text-sm" data-testid="input-save-map-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={saveMapForm.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">카테고리</FormLabel>
+                      <FormControl>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2" data-testid="category-picker">
+                          {(Object.keys(MARKER_ICON_COMPONENTS) as MarkerIconType[]).map((type) => {
+                            const Icon = MARKER_ICON_COMPONENTS[type];
+                            return (
+                              <button
+                                key={type}
+                                type="button"
+                                className={`flex flex-col items-center gap-0.5 sm:gap-1 p-2 sm:p-2.5 rounded-md sm:rounded-lg border transition-all ${
+                                  field.value === type 
+                                    ? 'border-primary bg-accent' 
+                                    : 'border-border hover:border-foreground/50 hover:bg-accent/50'
+                                }`}
+                                onClick={() => field.onChange(type)}
+                                data-testid={`category-${type}`}
+                              >
+                                <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                                <span className="text-[10px] sm:text-xs font-medium">{t.categories[type]}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={saveMapForm.control}
+                  name="color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">색상</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2 sm:space-y-3">
+                          <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 sm:gap-2" data-testid="color-picker">
+                            {PRESET_COLORS.map((color) => (
+                              <button
+                                key={color.value}
+                                type="button"
+                                className={`h-7 w-7 sm:h-8 sm:w-8 rounded-md border transition-all ${
+                                  field.value.toLowerCase() === color.value.toLowerCase()
+                                    ? 'border-foreground ring-2 ring-primary ring-offset-1' 
+                                    : 'border-border hover:border-foreground/50'
+                                }`}
+                                style={{ backgroundColor: color.value }}
+                                onClick={() => {
+                                  field.onChange(color.value);
+                                }}
+                                data-testid={`color-option-${color.value}`}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <label className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">커스텀 색상:</label>
+                            <Input
+                              type="color"
+                              value={field.value}
+                              onChange={(e) => {
+                                const newColor = e.target.value.toUpperCase();
+                                field.onChange(newColor);
+                              }}
+                              className="h-8 w-16 sm:h-9 sm:w-20"
+                              data-testid="color-custom-picker"
+                            />
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex-shrink-0 pt-3 sm:pt-4 border-t mt-3 sm:mt-4 flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 text-sm" 
+                  onClick={() => setSaveMapDialogOpen(false)}
+                >
+                  취소
+                </Button>
+                <Button type="submit" size="sm" className="flex-1 text-sm" data-testid="button-submit-save-map">
+                  저장
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check } from "lucide-react";
+import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check, FileText, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
@@ -18,15 +18,27 @@ interface Group {
   color: string;
 }
 
+type SavedMap = {
+  id: string;
+  name: string;
+  category: string;
+  color: string;
+  memoIds: string[];
+  createdAt: Date;
+};
+
 interface MemoListProps {
   memos: MemoWithDetails[];
   groups?: Group[];
+  savedMaps?: SavedMap[];
   onEdit: (memoId: string) => void;
   onDelete: (memoId: string) => void;
   onBulkDelete?: (memoIds: string[]) => void;
   onMemoClick: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
   onMoveToGroup?: (memoIds: string[], groupId: string) => void;
+  onShowOnMap?: (memoIds: string[]) => void;
+  onDeleteSavedMap?: (mapId: string) => void;
   hideHeader?: boolean;
   hideFilters?: boolean;
   showAuthorTab?: boolean;
@@ -44,7 +56,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
+export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, onShowOnMap, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -52,6 +64,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
   const [searchQuery, setSearchQuery] = useState("");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMemoIds, setSelectedMemoIds] = useState<Set<string>>(new Set());
+  const [memoViewTab, setMemoViewTab] = useState<"myMemos" | "myMap">("myMemos");
   const [moveToGroupDialogOpen, setMoveToGroupDialogOpen] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -250,6 +263,25 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
             </Button>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            {onShowOnMap && (
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => {
+                  if (onShowOnMap && selectedMemoIds.size > 0) {
+                    onShowOnMap(Array.from(selectedMemoIds));
+                    setIsSelectionMode(false);
+                    setSelectedMemoIds(new Set());
+                  }
+                }}
+                disabled={selectedMemoIds.size === 0}
+                className="flex-1 sm:flex-initial bg-gradient-to-br from-emerald-200 to-teal-200 hover:from-emerald-300 hover:to-teal-300 border-2 border-emerald-300/60 text-emerald-700 shadow-sm hover:shadow-md transition-all"
+                data-testid="button-show-on-map"
+              >
+                <MapPin className="h-4 w-4 mr-1" />
+                지도에 표시
+              </Button>
+            )}
             {onMoveToGroup && groups.length > 0 && (
               <Button
                 size="sm"
@@ -357,12 +389,168 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
               </div>
             </div>
           )}
+          {/* 탭 전환 버튼 (메모 탭에서만 표시) */}
+          {!hideFilters && (
+            <div className="px-4 pb-2 flex-shrink-0">
+              <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5 sm:p-2">
+                <button
+                  onClick={() => setMemoViewTab("myMemos")}
+                  className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                    memoViewTab === "myMemos"
+                      ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                  data-testid="tab-my-memos"
+                >
+                  <FileText className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" />
+                  <span className="truncate">내 메모</span>
+                </button>
+                <button
+                  onClick={() => setMemoViewTab("myMap")}
+                  className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                    memoViewTab === "myMap"
+                      ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                  data-testid="tab-my-map"
+                >
+                  <MapPin className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" />
+                  <span className="truncate">내 지도</span>
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
       {/* Memo List */}
       <div className="px-4 py-2 space-y-4 overflow-y-auto flex-1">
-      {filteredMemos.length === 0 ? (
+      {!hideFilters && memoViewTab === "myMap" ? (
+        // 내 지도 탭: 저장된 지도 목록을 그룹 형태로 표시
+        savedMaps.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+            <MapPin className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
+            <p className="text-muted-foreground text-lg mb-2">저장된 지도가 없습니다</p>
+            <p className="text-muted-foreground text-sm">메모를 선택하고 지도에 표시한 후 저장하세요</p>
+          </div>
+        ) : (
+          <div className="space-y-2.5 sm:space-y-3">
+            {savedMaps.map(savedMap => {
+              const savedMemos = memos.filter(m => savedMap.memoIds.includes(m.id));
+              const memoCount = savedMemos.length;
+              
+              return (
+                <Card
+                  key={savedMap.id}
+                  className="hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg cursor-pointer border-2"
+                  style={{
+                    borderColor: `${savedMap.color}60`,
+                    background: `linear-gradient(to bottom right, ${savedMap.color}30, rgba(var(--card), 0.9))`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = `${savedMap.color}80`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = `${savedMap.color}60`;
+                  }}
+                  onClick={() => {
+                    if (onShowOnMap && savedMap.memoIds.length > 0) {
+                      onShowOnMap(savedMap.memoIds);
+                    }
+                  }}
+                  data-testid={`card-saved-map-${savedMap.id}`}
+                >
+                  <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div 
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-sm border relative"
+                          style={{ 
+                            backgroundColor: `${savedMap.color}30`,
+                            borderColor: `${savedMap.color}60`
+                          }}
+                        >
+                          {(() => {
+                            const IconComponent = categoryIcons[savedMap.category as MarkerIconType] || MapPin;
+                            return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: savedMap.color }} />;
+                          })()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="text-base sm:text-lg font-semibold truncate leading-tight">{savedMap.name}</h3>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            <p className="text-xs text-muted-foreground">
+                              {savedMap.createdAt.toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </p>
+                          </div>
+                        </div>
+                        {onDeleteSavedMap && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm("정말로 이 저장된 지도를 삭제하시겠습니까?")) {
+                                onDeleteSavedMap(savedMap.id);
+                              }
+                            }}
+                            data-testid={`button-delete-saved-map-${savedMap.id}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                      <Badge 
+                        variant="secondary" 
+                        className="flex-shrink-0 text-xs px-2 py-0.5"
+                        style={{
+                          backgroundColor: `${savedMap.color}30`,
+                          color: savedMap.color,
+                          borderColor: `${savedMap.color}60`,
+                        }}
+                      >
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {memoCount}개
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardFooter className="pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs sm:text-sm px-2 sm:px-3 w-full border-2 shadow-sm"
+                      style={{
+                        background: `linear-gradient(to bottom right, ${savedMap.color}40, ${savedMap.color}60)`,
+                        borderColor: `${savedMap.color}60`,
+                        color: savedMap.color,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = `linear-gradient(to bottom right, ${savedMap.color}50, ${savedMap.color}70)`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = `linear-gradient(to bottom right, ${savedMap.color}40, ${savedMap.color}60)`;
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onShowOnMap && savedMap.memoIds.length > 0) {
+                          onShowOnMap(savedMap.memoIds);
+                        }
+                      }}
+                      data-testid={`button-show-saved-map-${savedMap.id}`}
+                    >
+                      <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5" />
+                      지도에서 보기
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        )
+      ) : filteredMemos.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full p-8 text-center">
           <p className="text-muted-foreground text-lg mb-2">
             {t.memoList.noCategoryMemos}
