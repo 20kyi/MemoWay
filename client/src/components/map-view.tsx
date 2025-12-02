@@ -1891,7 +1891,7 @@ function MapViewComponent({
           </div>
 
           {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
-          <div className={`${isCoupleTheme ? 'absolute bottom-[calc(8rem-1rem)] right-4' : 'fixed bottom-[calc(5rem+1rem-1rem)] right-4'} flex flex-col ${isCoupleTheme ? 'gap-3' : 'gap-2'} z-50`}>
+          <div className={`${isCoupleTheme ? 'absolute bottom-[10rem] right-4' : 'fixed bottom-[7rem] right-4'} flex flex-col ${isCoupleTheme ? 'gap-3' : 'gap-2'} z-50`}>
             {/* 지도 확대/축소 잠금 버튼 */}
             <Tooltip>
               <TooltipTrigger asChild>
