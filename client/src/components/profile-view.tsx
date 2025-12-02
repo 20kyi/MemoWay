@@ -1057,14 +1057,25 @@ export function ProfileView({
                 {/* 문의하기 */}
                 <button
                   onClick={() => {
-                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '문의사항' : language === 'en' ? 'Inquiry' : language === 'zh' ? '咨询' : 'お問い合わせ')}`;
+                    const email = 'storybuild@naver.com';
+                    const category = '[문의하기]';
+                    const subject = language === 'ko' ? '문의하기' : language === 'en' ? 'Inquiry' : language === 'zh' ? '咨询' : 'お問い合わせ';
+                    const body = language === 'ko' 
+                      ? `문의 내용을 작성해주세요:\n\n1. 문의 유형:\n\n2. 문의 내용:\n\n3. 연락처 (선택사항):\n\n4. 기타 사항:`
+                      : language === 'en'
+                      ? `Please describe your inquiry:\n\n1. Inquiry type:\n\n2. Inquiry details:\n\n3. Contact information (optional):\n\n4. Additional information:`
+                      : language === 'zh'
+                      ? `请描述您的咨询：\n\n1. 咨询类型：\n\n2. 咨询内容：\n\n3. 联系方式（可选）：\n\n4. 其他事项：`
+                      : `お問い合わせ内容を記入してください：\n\n1. お問い合わせ種類：\n\n2. お問い合わせ内容：\n\n3. 連絡先（任意）：\n\n4. その他：`;
+                    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 border-2 border-indigo-200/60 hover:border-indigo-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/30 dark:to-purple-950/30 border-2 border-indigo-200/60 dark:border-indigo-800/40 hover:border-indigo-300 dark:hover:border-indigo-700 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation shadow-sm hover:shadow-md"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 border border-indigo-200 flex items-center justify-center shrink-0">
-                      <Mail className="h-6 w-6 text-indigo-600" />
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-center shrink-0 shadow-sm">
+                      <Mail className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base text-foreground mb-0.5">
@@ -1081,14 +1092,25 @@ export function ProfileView({
                 {/* 피드백 보내기 */}
                 <button
                   onClick={() => {
-                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '피드백' : language === 'en' ? 'Feedback' : language === 'zh' ? '反馈' : 'フィードバック')}`;
+                    const email = 'storybuild@naver.com';
+                    const category = '[피드백보내기]';
+                    const subject = language === 'ko' ? '피드백보내기' : language === 'en' ? 'Feedback' : language === 'zh' ? '反馈' : 'フィードバック';
+                    const body = language === 'ko' 
+                      ? `피드백 내용을 작성해주세요:\n\n1. 피드백 유형:\n\n2. 피드백 내용:\n\n3. 개선 제안 (선택사항):\n\n4. 기타 의견:`
+                      : language === 'en'
+                      ? `Please provide your feedback:\n\n1. Feedback type:\n\n2. Feedback details:\n\n3. Improvement suggestions (optional):\n\n4. Additional comments:`
+                      : language === 'zh'
+                      ? `请提供您的反馈：\n\n1. 反馈类型：\n\n2. 反馈内容：\n\n3. 改进建议（可选）：\n\n4. 其他意见：`
+                      : `フィードバック内容を記入してください：\n\n1. フィードバック種類：\n\n2. フィードバック内容：\n\n3. 改善提案（任意）：\n\n4. その他の意見：`;
+                    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-2 border-emerald-200/60 hover:border-emerald-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-300 dark:hover:border-emerald-700 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation shadow-sm hover:shadow-md"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200 flex items-center justify-center shrink-0">
-                      <MessageSquare className="h-6 w-6 text-emerald-600" />
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center shrink-0 shadow-sm">
+                      <MessageSquare className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base text-foreground mb-0.5">
@@ -1261,13 +1283,24 @@ export function ProfileView({
                 {/* 문의하기 */}
                 <button
                   onClick={() => {
-                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '문의사항' : language === 'en' ? 'Inquiry' : language === 'zh' ? '咨询' : 'お問い合わせ')}`;
+                    const email = 'storybuild@naver.com';
+                    const category = '[문의하기]';
+                    const subject = language === 'ko' ? '문의하기' : language === 'en' ? 'Inquiry' : language === 'zh' ? '咨询' : 'お問い合わせ';
+                    const body = language === 'ko' 
+                      ? `문의 내용을 작성해주세요:\n\n1. 문의 유형:\n\n2. 문의 내용:\n\n3. 연락처 (선택사항):\n\n4. 기타 사항:`
+                      : language === 'en'
+                      ? `Please describe your inquiry:\n\n1. Inquiry type:\n\n2. Inquiry details:\n\n3. Contact information (optional):\n\n4. Additional information:`
+                      : language === 'zh'
+                      ? `请描述您的咨询：\n\n1. 咨询类型：\n\n2. 咨询内容：\n\n3. 联系方式（可选）：\n\n4. 其他事项：`
+                      : `お問い合わせ内容を記入してください：\n\n1. お問い合わせ種類：\n\n2. お問い合わせ内容：\n\n3. 連絡先（任意）：\n\n4. その他：`;
+                    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 border-2 border-indigo-200/60 hover:border-indigo-300 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/30 dark:to-purple-950/30 border-2 border-indigo-200/60 dark:border-indigo-800/40 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-lg transition-all duration-300 text-left group"
                 >
                   <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 border border-indigo-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <Mail className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm">
+                      <Mail className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
@@ -1284,13 +1317,24 @@ export function ProfileView({
                 {/* 피드백 보내기 */}
                 <button
                   onClick={() => {
-                    window.location.href = `mailto:support@memoway.com?subject=${encodeURIComponent(language === 'ko' ? '피드백' : language === 'en' ? 'Feedback' : language === 'zh' ? '反馈' : 'フィードバック')}`;
+                    const email = 'storybuild@naver.com';
+                    const category = '[피드백보내기]';
+                    const subject = language === 'ko' ? '피드백보내기' : language === 'en' ? 'Feedback' : language === 'zh' ? '反馈' : 'フィードバック';
+                    const body = language === 'ko' 
+                      ? `피드백 내용을 작성해주세요:\n\n1. 피드백 유형:\n\n2. 피드백 내용:\n\n3. 개선 제안 (선택사항):\n\n4. 기타 의견:`
+                      : language === 'en'
+                      ? `Please provide your feedback:\n\n1. Feedback type:\n\n2. Feedback details:\n\n3. Improvement suggestions (optional):\n\n4. Additional comments:`
+                      : language === 'zh'
+                      ? `请提供您的反馈：\n\n1. 反馈类型：\n\n2. 反馈内容：\n\n3. 改进建议（可选）：\n\n4. 其他意见：`
+                      : `フィードバック内容を記入してください：\n\n1. フィードバック種類：\n\n2. フィードバック内容：\n\n3. 改善提案（任意）：\n\n4. その他の意見：`;
+                    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-2 border-emerald-200/60 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-lg transition-all duration-300 text-left group"
                 >
                   <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <MessageSquare className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-600" />
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm">
+                      <MessageSquare className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
