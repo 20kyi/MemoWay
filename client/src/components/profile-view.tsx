@@ -1140,23 +1140,23 @@ export function ProfileView({
       {/* 앱 정보 다이얼로그 */}
       {isMobile ? (
         <Sheet open={isAppInfoDialogOpen} onOpenChange={setIsAppInfoDialogOpen}>
-          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
-            <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-green-50/50 to-emerald-50/30">
-              <SheetTitle className="flex items-center gap-2 text-xl">
-                <Info className="h-6 w-6 text-green-500 shrink-0" />
+          <SheetContent side="bottom" className="max-h-[85vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
+            <SheetHeader className="px-4 pt-4 pb-3 border-b bg-gradient-to-br from-green-50/50 to-emerald-50/30">
+              <SheetTitle className="flex items-center gap-2 text-lg">
+                <Info className="h-5 w-5 text-green-500 shrink-0" />
                 {t.settings.appInfo}
               </SheetTitle>
             </SheetHeader>
-            <div className="flex-1 overflow-y-auto px-5 py-6">
-              <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-green-50/60 to-emerald-50/60 border-2 border-green-200/60">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm text-muted-foreground">{t.settings.version}</span>
-                    <span className="text-base font-semibold">1.0.0</span>
+            <div className="overflow-y-auto px-4 py-4">
+              <div className="space-y-3">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-green-50/60 to-emerald-50/60 border-2 border-green-200/60">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs text-muted-foreground">{t.settings.version}</span>
+                    <span className="text-sm font-semibold">1.0.0</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{t.settings.developer}</span>
-                    <span className="text-base font-semibold truncate ml-2">{t.settings.developerName}</span>
+                    <span className="text-xs text-muted-foreground">{t.settings.developer}</span>
+                    <span className="text-sm font-semibold truncate ml-2">{t.settings.developerName}</span>
                   </div>
                 </div>
 
@@ -1166,22 +1166,22 @@ export function ProfileView({
                     setIsAppInfoDialogOpen(false);
                     setTimeout(() => setIsTermsDialogOpen(true), 300);
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-slate-50/80 to-gray-50/80 border-2 border-slate-200/60 hover:border-slate-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  className="w-full p-3 rounded-xl bg-gradient-to-br from-slate-50/80 to-gray-50/80 border-2 border-slate-200/60 hover:border-slate-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-100 to-gray-100 border border-slate-200 flex items-center justify-center shrink-0">
-                      <FileTextIcon className="h-6 w-6 text-slate-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-slate-100 to-gray-100 border border-slate-200 flex items-center justify-center shrink-0">
+                      <FileTextIcon className="h-5 w-5 text-slate-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base text-foreground mb-0.5">
+                      <p className="font-semibold text-sm text-foreground mb-0.5">
                         {t.settings.supportTerms}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {t.settings.supportTermsDesc}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                 </button>
 
@@ -1191,22 +1191,22 @@ export function ProfileView({
                     setIsAppInfoDialogOpen(false);
                     setTimeout(() => setIsPrivacyDialogOpen(true), 300);
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-2 border-violet-200/60 hover:border-violet-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  className="w-full p-3 rounded-xl bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-2 border-violet-200/60 hover:border-violet-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 border border-violet-200 flex items-center justify-center shrink-0">
-                      <Shield className="h-6 w-6 text-violet-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-100 to-purple-100 border border-violet-200 flex items-center justify-center shrink-0">
+                      <Shield className="h-5 w-5 text-violet-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base text-foreground mb-0.5">
+                      <p className="font-semibold text-sm text-foreground mb-0.5">
                         {t.settings.supportPrivacy}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {t.settings.supportPrivacyDesc}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                 </button>
               </div>
@@ -1215,22 +1215,22 @@ export function ProfileView({
         </Sheet>
       ) : (
         <Dialog open={isAppInfoDialogOpen} onOpenChange={setIsAppInfoDialogOpen}>
-          <DialogContent className="sm:max-w-md w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
-            <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-green-50/50 to-emerald-50/30">
-              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
+          <DialogContent className="sm:max-w-md w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[85vh] flex flex-col overflow-hidden">
+            <DialogHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b bg-gradient-to-br from-green-50/50 to-emerald-50/30">
+              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
                 <Info className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" />
                 {t.settings.appInfo}
               </DialogTitle>
             </DialogHeader>
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
-              <div className="space-y-4 sm:space-y-5">
-                <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-green-50/60 to-emerald-50/60 border-2 border-green-200/60">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm sm:text-base text-muted-foreground">{t.settings.version}</span>
+            <div className="overflow-y-auto px-4 sm:px-5 py-4 sm:py-5">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-green-50/60 to-emerald-50/60 border-2 border-green-200/60">
+                  <div className="flex justify-between items-center mb-2 sm:mb-3">
+                    <span className="text-xs sm:text-sm text-muted-foreground">{t.settings.version}</span>
                     <span className="text-sm sm:text-base font-semibold">1.0.0</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm sm:text-base text-muted-foreground">{t.settings.developer}</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground">{t.settings.developer}</span>
                     <span className="text-sm sm:text-base font-semibold truncate ml-2">{t.settings.developerName}</span>
                   </div>
                 </div>
@@ -1241,11 +1241,11 @@ export function ProfileView({
                     setIsAppInfoDialogOpen(false);
                     setTimeout(() => setIsTermsDialogOpen(true), 300);
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-50/80 to-gray-50/80 border-2 border-slate-200/60 hover:border-slate-300 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-slate-50/80 to-gray-50/80 border-2 border-slate-200/60 hover:border-slate-300 hover:shadow-md transition-all duration-200 text-left group"
                 >
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-slate-100 to-gray-100 border border-slate-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <FileTextIcon className="h-6 w-6 sm:h-7 sm:w-7 text-slate-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-slate-100 to-gray-100 border border-slate-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <FileTextIcon className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
@@ -1265,11 +1265,11 @@ export function ProfileView({
                     setIsAppInfoDialogOpen(false);
                     setTimeout(() => setIsPrivacyDialogOpen(true), 300);
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-2 border-violet-200/60 hover:border-violet-300 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-2 border-violet-200/60 hover:border-violet-300 hover:shadow-md transition-all duration-200 text-left group"
                 >
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 border border-violet-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <Shield className="h-6 w-6 sm:h-7 sm:w-7 text-violet-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 border border-violet-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-violet-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
@@ -1291,40 +1291,40 @@ export function ProfileView({
       {/* 고객지원 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
       {isMobile ? (
         <Sheet open={isSupportDialogOpen} onOpenChange={setIsSupportDialogOpen}>
-          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
-            <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
-              <SheetTitle className="flex items-center gap-2 text-xl">
-                <HelpCircle className="h-6 w-6 text-blue-500 shrink-0" />
+          <SheetContent side="bottom" className="max-h-[85vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
+            <SheetHeader className="px-4 pt-4 pb-3 border-b bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
+              <SheetTitle className="flex items-center gap-2 text-lg">
+                <HelpCircle className="h-5 w-5 text-blue-500 shrink-0" />
                 {t.settings.customerSupport}
               </SheetTitle>
-              <SheetDescription className="text-sm mt-1.5">
+              <SheetDescription className="text-xs mt-1">
                 {t.settings.customerSupportDesc}
               </SheetDescription>
             </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto px-5 py-6">
+            <div className="overflow-y-auto px-4 py-4">
               <div className="space-y-3">
                 {/* FAQ */}
                 <button
                   onClick={() => {
                     setIsFaqDialogOpen(true);
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-2 border-blue-200/60 hover:border-blue-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  className="w-full p-3 rounded-xl bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-2 border-blue-200/60 hover:border-blue-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 border border-blue-200 flex items-center justify-center shrink-0">
-                      <MessageCircle className="h-6 w-6 text-blue-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-100 to-cyan-100 border border-blue-200 flex items-center justify-center shrink-0">
+                      <MessageCircle className="h-5 w-5 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base text-foreground mb-0.5">
+                      <p className="font-semibold text-sm text-foreground mb-0.5">
                         {t.settings.supportFaq}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {t.settings.supportFaqDesc}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                 </button>
 
