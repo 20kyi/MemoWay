@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search } from "lucide-react";
+import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Group {
   id: string;
@@ -25,6 +26,7 @@ interface MemoListProps {
   onBulkDelete?: (memoIds: string[]) => void;
   onMemoClick: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
+  onMoveToGroup?: (memoIds: string[], groupId: string) => void;
   hideHeader?: boolean;
   hideFilters?: boolean;
   showAuthorTab?: boolean;
@@ -42,7 +44,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
+export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -50,6 +52,8 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
   const [searchQuery, setSearchQuery] = useState("");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMemoIds, setSelectedMemoIds] = useState<Set<string>>(new Set());
+  const [moveToGroupDialogOpen, setMoveToGroupDialogOpen] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pressStartTimeRef = useRef<number>(0);
   const justEnteredSelectionModeRef = useRef<boolean>(false);
@@ -175,6 +179,17 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
     setSelectedMemoIds(new Set(filteredMemos.map(m => m.id)));
   };
 
+  const handleMoveToGroup = () => {
+    if (selectedMemoIds.size === 0 || !selectedGroupId) return;
+    if (onMoveToGroup) {
+      onMoveToGroup(Array.from(selectedMemoIds), selectedGroupId);
+      setIsSelectionMode(false);
+      setSelectedMemoIds(new Set());
+      setMoveToGroupDialogOpen(false);
+      setSelectedGroupId("");
+    }
+  };
+
   if (memos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full pt-6 sm:pt-4 px-4 pb-8 text-center">
@@ -210,21 +225,21 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
 
       {/* Selection Mode Header */}
       {isSelectionMode ? (
-        <div className="px-4 pt-4 pb-3 bg-muted/50 border-b flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={handleCancelSelection}
-              data-testid="button-cancel-selection"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-            <span className="text-sm font-medium">
-              {selectedMemoIds.size}개 선택됨
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
+        <div className="px-4 pt-4 pb-3 bg-muted/50 border-b flex flex-col gap-3 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={handleCancelSelection}
+                data-testid="button-cancel-selection"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              <span className="text-sm font-medium">
+                {selectedMemoIds.size}개 선택됨
+              </span>
+            </div>
             <Button
               size="sm"
               variant="outline"
@@ -233,11 +248,27 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
             >
               전체 선택
             </Button>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {onMoveToGroup && groups.length > 0 && (
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => setMoveToGroupDialogOpen(true)}
+                disabled={selectedMemoIds.size === 0}
+                className="flex-1 sm:flex-initial"
+                data-testid="button-move-to-group"
+              >
+                <ArrowRight className="h-4 w-4 mr-1" />
+                그룹으로 이동
+              </Button>
+            )}
             <Button
               size="sm"
               variant="destructive"
               onClick={handleBulkDelete}
               disabled={selectedMemoIds.size === 0}
+              className="flex-1 sm:flex-initial"
               data-testid="button-bulk-delete"
             >
               <Trash2 className="h-4 w-4 mr-1" />
@@ -479,6 +510,86 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
         })
       )}
       </div>
+
+      {/* 그룹으로 이동 다이얼로그 */}
+      {onMoveToGroup && (
+        <Dialog open={moveToGroupDialogOpen} onOpenChange={setMoveToGroupDialogOpen}>
+          <DialogContent className="sm:max-w-md w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-[calc(100%-2rem)] mx-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-xl sm:rounded-2xl p-4 sm:p-6">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="text-lg sm:text-xl">그룹으로 이동</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col flex-1 overflow-hidden space-y-4">
+              <p className="text-sm text-muted-foreground">
+                선택한 {selectedMemoIds.size}개의 메모를 이동할 그룹을 선택하세요.
+              </p>
+              <div className="space-y-2 overflow-y-auto flex-1 pr-1 sm:pr-2">
+                {groups.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    이동할 수 있는 그룹이 없습니다.
+                  </p>
+                ) : (
+                  groups.map((group) => (
+                    <button
+                      key={group.id}
+                      onClick={() => setSelectedGroupId(group.id)}
+                      className={`w-full p-3 rounded-lg border-2 transition-all text-left ${
+                        selectedGroupId === group.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/50 hover:bg-muted/50"
+                      }`}
+                      data-testid={`group-option-${group.id}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center border"
+                          style={{
+                            backgroundColor: `${group.color}30`,
+                            borderColor: `${group.color}60`
+                          }}
+                        >
+                          <Users className="h-4 w-4" style={{ color: group.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{group.name}</p>
+                        </div>
+                        {selectedGroupId === group.id && (
+                          <div className="flex-shrink-0">
+                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                              <Check className="h-3 w-3 text-primary-foreground" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-2 flex-shrink-0 pt-3 border-t">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setMoveToGroupDialogOpen(false);
+                    setSelectedGroupId("");
+                  }}
+                  data-testid="button-cancel-move"
+                >
+                  취소
+                </Button>
+                <Button
+                  variant="default"
+                  className="flex-1"
+                  onClick={handleMoveToGroup}
+                  disabled={!selectedGroupId}
+                  data-testid="button-confirm-move"
+                >
+                  이동
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

@@ -382,6 +382,50 @@ export default function Home() {
     setMainMemoMutation.mutate(memoId);
   }, [setMainMemoMutation]);
 
+  // 그룹으로 이동 핸들러 (메모이제이션)
+  const handleMoveToGroup = useCallback(async (memoIds: string[], groupId: string) => {
+    try {
+      // 선택한 모든 메모를 그룹으로 이동
+      const results = await Promise.allSettled(
+        memoIds.map((memoId) => {
+          const memo = memos.find((m) => m.id === memoId);
+          if (!memo) {
+            throw new Error(`메모를 찾을 수 없습니다: ${memoId}`);
+          }
+          return updateMemoMutation.mutateAsync({
+            memoId,
+            data: {
+              buildingName: memo.buildingName,
+              address: memo.address,
+              content: memo.content,
+              markerIcon: memo.markerIcon,
+              groupIds: [groupId],
+            },
+          });
+        })
+      );
+
+      const successCount = results.filter((r) => r.status === "fulfilled").length;
+      const failCount = results.filter((r) => r.status === "rejected").length;
+
+      if (successCount > 0) {
+        queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+        toast({
+          title: t.toast.memoEditSuccess || "성공",
+          description: `${successCount}개의 메모를 그룹으로 이동했습니다.${failCount > 0 ? ` (${failCount}개 실패)` : ""}`,
+        });
+      } else {
+        throw new Error("모든 메모 이동에 실패했습니다.");
+      }
+    } catch (error: any) {
+      toast({
+        title: t.toast.memoEditError || "오류 발생",
+        description: error.message || "메모 이동에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  }, [updateMemoMutation, memos, toast, t, queryClient]);
+
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden pt-[env(safe-area-inset-top)]">
       <div className={`overflow-hidden relative z-10 ${
@@ -470,6 +514,7 @@ export default function Home() {
               }}
               onMemoClick={handleMarkerClick}
               onSetMainMemo={handleSetMainMemo}
+              onMoveToGroup={handleMoveToGroup}
             />
         )}
         {activeTab === "groups" && (
