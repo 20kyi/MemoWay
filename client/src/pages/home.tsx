@@ -86,6 +86,31 @@ export default function Home() {
   const [selectedMarkerIcons, setSelectedMarkerIcons] = useState<string[]>(["all"]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(["all"]);
   const [selectedMemoIdsForMap, setSelectedMemoIdsForMap] = useState<Set<string> | null>(null);
+  
+  // 저장된 지도 데이터 타입
+  type SavedMap = {
+    id: string;
+    name: string;
+    memoIds: string[];
+    createdAt: Date;
+  };
+  
+  // 저장된 지도 목록 (localStorage에서 로드)
+  const [savedMaps, setSavedMaps] = useState<SavedMap[]>(() => {
+    const saved = localStorage.getItem("savedMaps");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map((map: any) => ({
+          ...map,
+          createdAt: new Date(map.createdAt),
+        }));
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
 
   // Data queries - 병렬 로딩 보장 (user가 있을 때만 실행)
   const { data: memos = [], error: memosError } = useQuery<MemoWithDetails[]>({
@@ -392,15 +417,37 @@ export default function Home() {
   // 지도 저장하기 핸들러
   const handleSaveMap = useCallback(() => {
     if (selectedMemoIdsForMap && selectedMemoIdsForMap.size > 0) {
-      // TODO: 지도 저장 기능 구현
+      const newSavedMap: SavedMap = {
+        id: `saved-map-${Date.now()}`,
+        name: `저장된 지도 ${new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}`,
+        memoIds: Array.from(selectedMemoIdsForMap),
+        createdAt: new Date(),
+      };
+      
+      const updatedSavedMaps = [...savedMaps, newSavedMap];
+      setSavedMaps(updatedSavedMaps);
+      localStorage.setItem("savedMaps", JSON.stringify(updatedSavedMaps));
+      
       toast({
-        title: "지도 저장",
+        title: "지도 저장 완료",
         description: `${selectedMemoIdsForMap.size}개의 메모가 포함된 지도를 저장했습니다.`,
       });
-      // 저장 후 필터 해제 (선택사항)
-      // setSelectedMemoIdsForMap(null);
+      
+      // 저장 후 필터 해제
+      setSelectedMemoIdsForMap(null);
     }
-  }, [selectedMemoIdsForMap, toast]);
+  }, [selectedMemoIdsForMap, savedMaps, toast]);
+  
+  // 저장된 지도 삭제 핸들러
+  const handleDeleteSavedMap = useCallback((mapId: string) => {
+    const updatedSavedMaps = savedMaps.filter(map => map.id !== mapId);
+    setSavedMaps(updatedSavedMaps);
+    localStorage.setItem("savedMaps", JSON.stringify(updatedSavedMaps));
+    toast({
+      title: "지도 삭제 완료",
+      description: "저장된 지도가 삭제되었습니다.",
+    });
+  }, [savedMaps, toast]);
 
   // 지도 탭에서 다른 탭으로 이동할 때 필터 해제
   useEffect(() => {
@@ -516,6 +563,7 @@ export default function Home() {
                 return memo.member.userId === (user as any)?.id && !memo.groupId;
               })}
               groups={filteredGroupsWithoutPersonal}
+              savedMaps={savedMaps}
               onEdit={handleEditMemo}
               onDelete={(memoId) => {
                 if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
@@ -547,6 +595,7 @@ export default function Home() {
               onSetMainMemo={handleSetMainMemo}
               onMoveToGroup={handleMoveToGroup}
               onShowOnMap={handleShowOnMap}
+              onDeleteSavedMap={handleDeleteSavedMap}
             />
         )}
         {activeTab === "groups" && (
