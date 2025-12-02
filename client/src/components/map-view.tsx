@@ -1015,6 +1015,11 @@ function MapViewComponent({
         }
       };
       
+      // 핀치 줌 감지용 변수
+      let isPinching = false;
+      let pinchEndTime = 0;
+      const PINCH_COOLDOWN = 300; // 핀치 줌 후 클릭 무시 시간 (ms)
+      
       // 터치 이벤트 핸들러 (모바일 지원)
       const touchStartHandler = (event: TouchEvent) => {
         if (event.touches.length === 1) {
@@ -1022,9 +1027,11 @@ function MapViewComponent({
           touchStartY = event.touches[0].clientY;
           isDragging = false;
           lastMoveTime = Date.now();
-        } else {
-          // 멀티터치(핀치 줌 등)는 지도로 전파
+          isPinching = false;
+        } else if (event.touches.length >= 2) {
+          // 멀티터치(핀치 줌 등) 감지
           isDragging = true;
+          isPinching = true;
         }
       };
       
@@ -1044,15 +1051,24 @@ function MapViewComponent({
             // 드래그 중이면 이벤트 전파하여 지도가 드래그되도록 함
             event.stopPropagation();
           }
-        } else {
-          // 멀티터치는 지도로 전파
+        } else if (event.touches.length >= 2) {
+          // 멀티터치(핀치 줌) 감지
           isDragging = true;
+          isPinching = true;
         }
       };
       
       const touchEndHandler = (event: TouchEvent) => {
-        // 드래그가 아닌 경우에만 클릭 처리
-        if (!isDragging && event.changedTouches.length === 1) {
+        // 핀치 줌이 끝났는지 확인
+        if (isPinching && event.touches.length < 2) {
+          // 핀치 줌이 끝난 시간 기록
+          pinchEndTime = Date.now();
+          isPinching = false;
+        }
+        
+        // 드래그가 아니고, 핀치 줌 후 쿨다운 시간이 지났으며, 단일 터치인 경우에만 클릭 처리
+        const timeSincePinch = Date.now() - pinchEndTime;
+        if (!isDragging && !isPinching && timeSincePinch > PINCH_COOLDOWN && event.changedTouches.length === 1) {
           console.log('👆 마커 터치 클릭 이벤트 발생', event);
           event.stopPropagation();
           event.preventDefault();

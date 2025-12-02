@@ -91,6 +91,8 @@ function GoogleMapViewComponent({
   const errorToastShownRef = useRef(false); // 토스트 중복 표시 방지
   const isDraggingRef = useRef(false); // 드래그 상태 추적
   const lastDragEndTimeRef = useRef<number>(0); // 드래그 종료 시간 추적
+  const isZoomingRef = useRef(false); // 줌 상태 추적
+  const lastZoomEndTimeRef = useRef<number>(0); // 줌 종료 시간 추적
   const { toast } = useToast();
   const { t } = useLanguage();
   const { layoutTheme } = useLayoutTheme();
@@ -119,6 +121,16 @@ function GoogleMapViewComponent({
           streetViewControl: false,
           fullscreenControl: false,
           gestureHandling: 'greedy',
+        });
+
+        // 줌 시작/종료 이벤트 감지 (핀치 줌 감지용)
+        mapInstance.addListener('zoom_changed', () => {
+          isZoomingRef.current = true;
+          lastZoomEndTimeRef.current = Date.now();
+          // 줌 변경 후 짧은 시간 후에 줌 상태 해제
+          setTimeout(() => {
+            isZoomingRef.current = false;
+          }, 100);
         });
 
         setMap(mapInstance);
@@ -441,8 +453,9 @@ function GoogleMapViewComponent({
           // Re-add click listener (always update this to ensure correct callback)
           google.maps.event.clearInstanceListeners(existingMarker);
           existingMarker.addListener('click', () => {
-            // 드래그 중이면 클릭 이벤트 무시
-            if (isDraggingRef.current) {
+            // 드래그 중이거나 줌 중이면 클릭 이벤트 무시
+            const timeSinceZoomEnd = Date.now() - lastZoomEndTimeRef.current;
+            if (isDraggingRef.current || isZoomingRef.current || timeSinceZoomEnd < 300) {
               return;
             }
             if (count > 1 && onClusterClick) {
@@ -485,8 +498,9 @@ function GoogleMapViewComponent({
           });
 
           marker.addListener('click', () => {
-            // 드래그 중이면 클릭 이벤트 무시
-            if (isDraggingRef.current) {
+            // 드래그 중이거나 줌 중이면 클릭 이벤트 무시
+            const timeSinceZoomEnd = Date.now() - lastZoomEndTimeRef.current;
+            if (isDraggingRef.current || isZoomingRef.current || timeSinceZoomEnd < 300) {
               return;
             }
             if (count > 1 && onClusterClick) {
