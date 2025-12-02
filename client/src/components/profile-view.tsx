@@ -1344,22 +1344,22 @@ export function ProfileView({
                     const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
                     window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/30 dark:to-purple-950/30 border-2 border-indigo-200/60 dark:border-indigo-800/40 hover:border-indigo-300 dark:hover:border-indigo-700 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation shadow-sm hover:shadow-md"
+                  className="w-full p-3 rounded-xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/30 dark:to-purple-950/30 border-2 border-indigo-200/60 dark:border-indigo-800/40 hover:border-indigo-300 dark:hover:border-indigo-700 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation shadow-sm hover:shadow-md"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-center shrink-0 shadow-sm">
-                      <Mail className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-center shrink-0 shadow-sm">
+                      <Mail className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base text-foreground mb-0.5">
+                      <p className="font-semibold text-sm text-foreground mb-0.5">
                         {t.settings.supportInquiry}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {t.settings.supportInquiryDesc}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                 </button>
 
@@ -1379,22 +1379,22 @@ export function ProfileView({
                     const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
                     window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-300 dark:hover:border-emerald-700 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation shadow-sm hover:shadow-md"
+                  className="w-full p-3 rounded-xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-300 dark:hover:border-emerald-700 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation shadow-sm hover:shadow-md"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center shrink-0 shadow-sm">
-                      <MessageSquare className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center shrink-0 shadow-sm">
+                      <MessageSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base text-foreground mb-0.5">
+                      <p className="font-semibold text-sm text-foreground mb-0.5">
                         {t.settings.supportFeedback}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {t.settings.supportFeedbackDesc}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                 </button>
 
@@ -1414,22 +1414,22 @@ export function ProfileView({
                     const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
                     window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-red-50/80 to-orange-50/80 dark:from-red-950/30 dark:to-orange-950/30 border-2 border-red-200/60 dark:border-red-800/40 hover:border-red-300 dark:hover:border-red-700 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation shadow-sm hover:shadow-md"
+                  className="w-full p-3 rounded-xl bg-gradient-to-br from-red-50/80 to-orange-50/80 dark:from-red-950/30 dark:to-orange-950/30 border-2 border-red-200/60 dark:border-red-800/40 hover:border-red-300 dark:hover:border-red-700 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation shadow-sm hover:shadow-md"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/40 dark:to-orange-900/40 border border-red-200 dark:border-red-800/50 flex items-center justify-center shrink-0 shadow-sm">
-                      <Bug className="h-6 w-6 text-red-600 dark:text-red-400" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/40 dark:to-orange-900/40 border border-red-200 dark:border-red-800/50 flex items-center justify-center shrink-0 shadow-sm">
+                      <Bug className="h-5 w-5 text-red-600 dark:text-red-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base text-foreground mb-0.5">
+                      <p className="font-semibold text-sm text-foreground mb-0.5">
                         {t.settings.supportBugReport}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {t.settings.supportBugReportDesc}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                 </button>
 
@@ -1439,22 +1439,22 @@ export function ProfileView({
                     setIsSupportDialogOpen(false);
                     setTimeout(() => setIsNoticeDialogOpen(true), 300);
                   }}
-                  className="w-full p-4 rounded-2xl bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-2 border-amber-200/60 hover:border-amber-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
+                  className="w-full p-3 rounded-xl bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-2 border-amber-200/60 hover:border-amber-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-100 to-yellow-100 border border-amber-200 flex items-center justify-center shrink-0">
-                      <Megaphone className="h-6 w-6 text-amber-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-100 to-yellow-100 border border-amber-200 flex items-center justify-center shrink-0">
+                      <Megaphone className="h-5 w-5 text-amber-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base text-foreground mb-0.5">
+                      <p className="font-semibold text-sm text-foreground mb-0.5">
                         {t.settings.supportNotice}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {t.settings.supportNoticeDesc}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                 </button>
 
@@ -1464,10 +1464,10 @@ export function ProfileView({
         </Sheet>
       ) : (
         <Dialog open={isSupportDialogOpen} onOpenChange={setIsSupportDialogOpen}>
-          <DialogContent className="sm:max-w-lg w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
-            <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
-              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
-                <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 shrink-0" />
+          <DialogContent className="sm:max-w-lg w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[85vh] flex flex-col overflow-hidden">
+            <DialogHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
+              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
+                <HelpCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 shrink-0" />
                 {t.settings.customerSupport}
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm mt-1">
@@ -1475,18 +1475,18 @@ export function ProfileView({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+            <div className="overflow-y-auto px-4 sm:px-5 py-4 sm:py-5">
               <div className="space-y-3 sm:space-y-4">
                 {/* FAQ */}
                 <button
                   onClick={() => {
                     setIsFaqDialogOpen(true);
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-2 border-blue-200/60 hover:border-blue-300 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-2 border-blue-200/60 hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left group"
                 >
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 border border-blue-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 border border-blue-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
@@ -1516,11 +1516,11 @@ export function ProfileView({
                     const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
                     window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/30 dark:to-purple-950/30 border-2 border-indigo-200/60 dark:border-indigo-800/40 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/30 dark:to-purple-950/30 border-2 border-indigo-200/60 dark:border-indigo-800/40 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all duration-200 text-left group"
                 >
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm">
-                      <Mail className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600 dark:text-indigo-400" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-sm">
+                      <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
@@ -1550,11 +1550,11 @@ export function ProfileView({
                     const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
                     window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all duration-200 text-left group"
                 >
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm">
-                      <MessageSquare className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-600 dark:text-emerald-400" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-sm">
+                      <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
@@ -1584,11 +1584,11 @@ export function ProfileView({
                     const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(`${category} ${subject}`)}&body=${encodeURIComponent(body)}`;
                     window.location.href = mailtoLink;
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-red-50/80 to-orange-50/80 dark:from-red-950/30 dark:to-orange-950/30 border-2 border-red-200/60 dark:border-red-800/40 hover:border-red-300 dark:hover:border-red-700 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-50/80 to-orange-50/80 dark:from-red-950/30 dark:to-orange-950/30 border-2 border-red-200/60 dark:border-red-800/40 hover:border-red-300 dark:hover:border-red-700 hover:shadow-md transition-all duration-200 text-left group"
                 >
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/40 dark:to-orange-900/40 border border-red-200 dark:border-red-800/50 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm">
-                      <Bug className="h-6 w-6 sm:h-7 sm:w-7 text-red-600 dark:text-red-400" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/40 dark:to-orange-900/40 border border-red-200 dark:border-red-800/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-sm">
+                      <Bug className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 dark:text-red-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
@@ -1608,11 +1608,11 @@ export function ProfileView({
                     setIsSupportDialogOpen(false);
                     setTimeout(() => setIsNoticeDialogOpen(true), 300);
                   }}
-                  className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-2 border-amber-200/60 hover:border-amber-300 hover:shadow-lg transition-all duration-300 text-left group"
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-2 border-amber-200/60 hover:border-amber-300 hover:shadow-md transition-all duration-200 text-left group"
                 >
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-100 to-yellow-100 border border-amber-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <Megaphone className="h-6 w-6 sm:h-7 sm:w-7 text-amber-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-100 to-yellow-100 border border-amber-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Megaphone className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
