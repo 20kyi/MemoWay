@@ -256,7 +256,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
                 variant="default"
                 onClick={() => setMoveToGroupDialogOpen(true)}
                 disabled={selectedMemoIds.size === 0}
-                className="flex-1 sm:flex-initial"
+                className="flex-1 sm:flex-initial bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md transition-all"
                 data-testid="button-move-to-group"
               >
                 <ArrowRight className="h-4 w-4 mr-1" />
@@ -268,7 +268,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
               variant="destructive"
               onClick={handleBulkDelete}
               disabled={selectedMemoIds.size === 0}
-              className="flex-1 sm:flex-initial"
+              className="flex-1 sm:flex-initial bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 shadow-sm hover:shadow-md transition-all"
               data-testid="button-bulk-delete"
             >
               <Trash2 className="h-4 w-4 mr-1" />
