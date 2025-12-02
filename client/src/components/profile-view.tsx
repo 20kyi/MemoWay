@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { User, Coins, FileText, Users, LogOut, Settings, ShoppingBag, HelpCircle, Info, ExternalLink, ChevronRight, Bell, Map, Languages, Type, Sparkles, Plus, Gem, Star, Mail, MessageSquare, Bug, FileText as FileTextIcon, Shield, Megaphone, MessageCircle } from "lucide-react";
+import { User, Coins, FileText, Users, LogOut, Settings, ShoppingBag, HelpCircle, Info, ExternalLink, ChevronRight, Bell, Map, Languages, Type, Sparkles, Plus, Gem, Star, Mail, MessageSquare, Bug, FileText as FileTextIcon, Shield, Megaphone, MessageCircle, Database, Trash2, HardDrive, UserX } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily } from "@/lib/font-context";
 import { useLayoutTheme, type LayoutTheme } from "@/lib/layout-theme-context";
@@ -204,6 +204,187 @@ export function ProfileView({
   const [isNoticeDialogOpen, setIsNoticeDialogOpen] = useState(false);
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
   const [isPrivacyDialogOpen, setIsPrivacyDialogOpen] = useState(false);
+  const [isDataManagementDialogOpen, setIsDataManagementDialogOpen] = useState(false);
+  const [isAccountManagementDialogOpen, setIsAccountManagementDialogOpen] = useState(false);
+  const [storageUsage, setStorageUsage] = useState<{ used: number; total: number; cache: number } | null>(null);
+
+  // 저장공간 사용량 계산
+  const calculateStorageUsage = async () => {
+    try {
+      // IndexedDB 크기 계산
+      let indexedDBSize = 0;
+      if ('storage' in navigator && 'estimate' in navigator.storage) {
+        const estimate = await navigator.storage.estimate();
+        indexedDBSize = estimate.usage || 0;
+      }
+
+      // LocalStorage 크기 계산
+      let localStorageSize = 0;
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          localStorageSize += localStorage[key].length + key.length;
+        }
+      }
+
+      // SessionStorage 크기 계산
+      let sessionStorageSize = 0;
+      for (let key in sessionStorage) {
+        if (sessionStorage.hasOwnProperty(key)) {
+          sessionStorageSize += sessionStorage[key].length + key.length;
+        }
+      }
+
+      // 캐시 크기 계산 (Service Worker 캐시)
+      let cacheSize = 0;
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          const cache = await caches.open(cacheName);
+          const keys = await cache.keys();
+          for (const request of keys) {
+            const response = await cache.match(request);
+            if (response) {
+              const blob = await response.blob();
+              cacheSize += blob.size;
+            }
+          }
+        }
+      }
+
+      const totalUsed = indexedDBSize + (localStorageSize * 2) + (sessionStorageSize * 2) + cacheSize;
+      const total = navigator.storage?.estimate ? (await navigator.storage.estimate()).quota || 0 : 0;
+
+      setStorageUsage({
+        used: totalUsed,
+        total: total,
+        cache: cacheSize,
+      });
+    } catch (error) {
+      console.error('Storage calculation error:', error);
+      setStorageUsage({
+        used: 0,
+        total: 0,
+        cache: 0,
+      });
+    }
+  };
+
+  // 저장공간 사용량 포맷팅
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  // 캐시 삭제
+  const clearCache = async () => {
+    try {
+      // Service Worker 캐시 삭제
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+
+      // LocalStorage 캐시 관련 항목 삭제 (쿼리 캐시 등)
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('react-query') || key.startsWith('tanstack-query') || key.startsWith('cache'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+
+      // QueryClient 캐시 무효화
+      await queryClient.clear();
+
+      // 저장공간 사용량 재계산
+      await calculateStorageUsage();
+
+      toast({
+        title: language === 'ko' ? '캐시 삭제 완료' : language === 'en' ? 'Cache Cleared' : language === 'zh' ? '缓存已清除' : 'キャッシュをクリアしました',
+        description: language === 'ko' 
+          ? '캐시가 성공적으로 삭제되었습니다.'
+          : language === 'en'
+          ? 'Cache has been successfully cleared.'
+          : language === 'zh'
+          ? '缓存已成功清除。'
+          : 'キャッシュが正常にクリアされました。',
+      });
+    } catch (error) {
+      console.error('Cache clear error:', error);
+      toast({
+        title: language === 'ko' ? '캐시 삭제 실패' : language === 'en' ? 'Cache Clear Failed' : language === 'zh' ? '缓存清除失败' : 'キャッシュクリアに失敗しました',
+        description: language === 'ko'
+          ? '캐시 삭제 중 오류가 발생했습니다.'
+          : language === 'en'
+          ? 'An error occurred while clearing cache.'
+          : language === 'zh'
+          ? '清除缓存时发生错误。'
+          : 'キャッシュをクリア中にエラーが発生しました。',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // 계정 삭제
+  const deleteAccount = async () => {
+    if (!confirm(
+      language === 'ko'
+        ? '정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
+        : language === 'en'
+        ? 'Are you sure you want to delete your account? This action cannot be undone.'
+        : language === 'zh'
+        ? '您确定要删除您的账户吗？此操作无法撤销。'
+        : 'アカウントを削除してもよろしいですか？この操作は元に戻せません。'
+    )) {
+      return;
+    }
+
+    try {
+      const response = await apiRequest('DELETE', '/api/users/me');
+      if (response.ok) {
+        toast({
+          title: language === 'ko' ? '계정 삭제 완료' : language === 'en' ? 'Account Deleted' : language === 'zh' ? '账户已删除' : 'アカウントを削除しました',
+          description: language === 'ko'
+            ? '계정이 성공적으로 삭제되었습니다.'
+            : language === 'en'
+            ? 'Your account has been successfully deleted.'
+            : language === 'zh'
+            ? '您的账户已成功删除。'
+            : 'アカウントが正常に削除されました。',
+        });
+        // 로그아웃 및 홈으로 이동
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+      } else {
+        throw new Error('Account deletion failed');
+      }
+    } catch (error: any) {
+      console.error('Account deletion error:', error);
+      toast({
+        title: language === 'ko' ? '계정 삭제 실패' : language === 'en' ? 'Account Deletion Failed' : language === 'zh' ? '账户删除失败' : 'アカウント削除に失敗しました',
+        description: error.message || (language === 'ko'
+          ? '계정 삭제 중 오류가 발생했습니다.'
+          : language === 'en'
+          ? 'An error occurred while deleting your account.'
+          : language === 'zh'
+          ? '删除账户时发生错误。'
+          : 'アカウントを削除中にエラーが発生しました。'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // 데이터 관리 다이얼로그 열 때 저장공간 사용량 계산
+  useEffect(() => {
+    if (isDataManagementDialogOpen) {
+      calculateStorageUsage();
+    }
+  }, [isDataManagementDialogOpen]);
   
   // 알림 기능 (토스트 알림 제어)
   const [toastNotificationsEnabled, setToastNotificationsEnabled] = useState(() => {
@@ -214,6 +395,13 @@ export function ProfileView({
   useEffect(() => {
     localStorage.setItem('toastNotificationsEnabled', toastNotificationsEnabled.toString());
   }, [toastNotificationsEnabled]);
+
+  // 데이터 관리 다이얼로그 열 때 저장공간 사용량 계산
+  useEffect(() => {
+    if (isDataManagementDialogOpen) {
+      calculateStorageUsage();
+    }
+  }, [isDataManagementDialogOpen]);
 
   const fontOptions: { value: FontFamily; label: string }[] = [
     { value: "default", label: t.settings.fontDefault },
@@ -598,12 +786,15 @@ export function ProfileView({
             {/* 포인트 및 프리미엄 구독 */}
             <div className="pt-4 sm:pt-6 border-t border-indigo-200/50">
               <div className="flex items-center gap-2 sm:gap-4">
-                {/* 포인트 표시 */}
-                <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 p-2.5 sm:p-5 rounded-lg sm:rounded-2xl bg-gradient-to-br from-amber-50/50 to-orange-50/30 border border-amber-200/50">
-                  <div className="h-8 w-8 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md">
+                {/* 포인트 표시 - 클릭 시 상점 열기 */}
+                <button
+                  onClick={() => setIsStoreDialogOpen(true)}
+                  className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 p-2.5 sm:p-5 rounded-lg sm:rounded-2xl bg-gradient-to-br from-amber-50/50 to-orange-50/30 border border-amber-200/50 hover:shadow-md active:scale-[0.98] transition-all cursor-pointer group"
+                >
+                  <div className="h-8 w-8 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform">
                     <Sparkles className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 text-left">
                     <p className="text-[10px] sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 font-medium leading-tight">
                       {language === 'ko' ? '보유 포인트' : language === 'en' ? 'Current Points' : language === 'zh' ? '当前积分' : '保有ポイント'}
                     </p>
@@ -612,7 +803,8 @@ export function ProfileView({
                       <span className="text-[10px] sm:text-base text-muted-foreground ml-0.5 sm:ml-1">P</span>
                     </p>
                   </div>
-                </div>
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform opacity-0 group-hover:opacity-100" />
+                </button>
                 
                 {/* 프리미엄 구독 버튼 */}
                 <button className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 p-2.5 sm:p-5 rounded-lg sm:rounded-2xl bg-gradient-to-br from-purple-50/50 to-pink-50/30 border border-purple-200/50 hover:shadow-md active:scale-[0.98] transition-all group">
@@ -671,120 +863,7 @@ export function ProfileView({
         </CardContent>
       </Card>
 
-      {/* 상점 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
-      {isMobile ? (
-        <Sheet open={isStoreDialogOpen} onOpenChange={setIsStoreDialogOpen}>
-          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
-            <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-amber-50/50 to-orange-50/30">
-              <SheetTitle className="flex items-center gap-2 text-xl">
-                <ShoppingBag className="h-6 w-6 text-amber-500 shrink-0" />
-                {language === 'ko' ? '상점' : language === 'en' ? 'Store' : language === 'zh' ? '商店' : 'ショップ'}
-              </SheetTitle>
-              <SheetDescription className="text-sm mt-1.5">
-                {t.settings.purchasePointsDesc}
-              </SheetDescription>
-            </SheetHeader>
-
-            {/* 보유 포인트 표시 */}
-            <div className="px-5 pt-5 pb-4">
-              <div className="relative rounded-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 border-2 border-purple-200/50 shadow-lg overflow-hidden">
-                {/* 배경 패턴 */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-purple-400 rounded-full blur-3xl"></div>
-                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-400 rounded-full blur-2xl"></div>
-                </div>
-                
-                <div className="relative p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg flex items-center justify-center shrink-0">
-                        <Sparkles className="h-8 w-8 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1 font-medium">
-                          {language === 'ko' ? '보유 포인트' : language === 'en' ? 'Current Points' : language === 'zh' ? '当前积分' : '保有ポイント'}
-                        </p>
-                        <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent" data-testid="text-user-points-store">
-                          {userPoints.toLocaleString()}
-                          <span className="text-lg text-muted-foreground ml-1">P</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 포인트 구매 패키지 */}
-            <div className="flex-1 overflow-y-auto px-5 pb-6">
-              <div className="space-y-4">
-                <h3 className="text-base font-semibold text-foreground mb-4">
-                  {t.settings.purchasePointsTitle}
-                </h3>
-                {pointPackages.map((pkg) => {
-                  const IconComponent = pkg.icon;
-                  return (
-                    <button
-                      key={pkg.amount}
-                      onClick={() => purchasePointsMutation.mutate(pkg.amount)}
-                      disabled={purchasePointsMutation.isPending}
-                      className={`w-full p-5 rounded-3xl bg-gradient-to-br ${pkg.color} border-2 ${pkg.borderColor} active:scale-[0.98] active:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 text-left relative overflow-hidden touch-manipulation`}
-                      data-testid={`button-purchase-${pkg.amount}`}
-                      style={{ WebkitTapHighlightColor: 'transparent' }}
-                    >
-                      {/* 배경 장식 */}
-                      <div className="absolute inset-0 opacity-0 active:opacity-100 transition-opacity duration-200">
-                        <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${pkg.bgColor} rounded-full blur-3xl`}></div>
-                        <div className={`absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br ${pkg.bgColor} rounded-full blur-2xl`}></div>
-                      </div>
-                      
-                      <div className="relative z-10 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-4 min-w-0 flex-1">
-                          <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${pkg.bgColor} border ${pkg.borderColor} shadow-md flex items-center justify-center shrink-0`}>
-                            <IconComponent className={`h-8 w-8 ${pkg.iconColor}`} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-3 flex-wrap mb-1.5">
-                              <p className="font-bold text-xl text-foreground">
-                                {pkg.amount.toLocaleString()} {t.settings.pointsPackage}
-                              </p>
-                              {pkg.label === "인기" && (
-                                <span className="text-xs px-2.5 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold shrink-0 shadow-md">
-                                  {t.settings.popular}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {t.settings.canCopyMemos.replace('{count}', (pkg.amount / 10).toLocaleString())}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="font-bold text-2xl bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-0.5">
-                            {pkg.price}
-                          </p>
-                          {purchasePointsMutation.isPending && (
-                            <p className="text-xs text-muted-foreground">
-                              {language === 'ko' ? '처리 중...' : language === 'en' ? 'Processing...' : language === 'zh' ? '处理中...' : '処理中...'}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 하단 안내 */}
-            <div className="px-5 pt-4 pb-6 border-t bg-muted/30">
-              <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                {t.settings.pointsUsageNote}
-              </p>
-            </div>
-          </SheetContent>
-        </Sheet>
-      ) : (
+      {/* 상점 다이얼로그 - 팝업창으로 표시 */}
         <Dialog open={isStoreDialogOpen} onOpenChange={setIsStoreDialogOpen}>
           <DialogContent className="sm:max-w-lg w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
             <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-amber-50/50 to-orange-50/30">
@@ -895,7 +974,6 @@ export function ProfileView({
             </div>
           </DialogContent>
         </Dialog>
-      )}
 
       {/* 개인 설정 다이얼로그 */}
       <Dialog open={isPersonalSettingsDialogOpen} onOpenChange={setIsPersonalSettingsDialogOpen}>
@@ -1223,10 +1301,201 @@ export function ProfileView({
                     <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </button>
+
+                {/* 데이터 관리 */}
+                <button
+                  onClick={() => {
+                    setIsAppInfoDialogOpen(false);
+                    setTimeout(() => setIsDataManagementDialogOpen(true), 300);
+                  }}
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-2 border-blue-200/60 hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 border border-blue-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Database className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
+                        {language === 'ko' ? '데이터 관리' : language === 'en' ? 'Data Management' : language === 'zh' ? '数据管理' : 'データ管理'}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {language === 'ko' ? '저장공간 사용량 및 캐시 관리' : language === 'en' ? 'Storage usage and cache management' : language === 'zh' ? '存储使用量和缓存管理' : 'ストレージ使用量とキャッシュ管理'}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+
+                {/* 계정 관리 */}
+                <button
+                  onClick={() => {
+                    setIsAppInfoDialogOpen(false);
+                    setTimeout(() => setIsAccountManagementDialogOpen(true), 300);
+                  }}
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-50/80 to-orange-50/80 border-2 border-red-200/60 hover:border-red-300 hover:shadow-md transition-all duration-200 text-left group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-red-100 to-orange-100 border border-red-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <UserX className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-0.5">
+                        {language === 'ko' ? '계정 관리' : language === 'en' ? 'Account Management' : language === 'zh' ? '账户管理' : 'アカウント管理'}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {language === 'ko' ? '계정 삭제 및 관리' : language === 'en' ? 'Delete and manage account' : language === 'zh' ? '删除和管理账户' : 'アカウントの削除と管理'}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
+
+      {/* 데이터 관리 다이얼로그 */}
+      <Dialog open={isDataManagementDialogOpen} onOpenChange={setIsDataManagementDialogOpen}>
+        <DialogContent className="sm:max-w-md w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b bg-gradient-to-br from-blue-50/50 to-cyan-50/30">
+            <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
+              <Database className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 shrink-0" />
+              {language === 'ko' ? '데이터 관리' : language === 'en' ? 'Data Management' : language === 'zh' ? '数据管理' : 'データ管理'}
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm mt-1">
+              {language === 'ko' ? '저장공간 사용량 및 캐시 관리' : language === 'en' ? 'Storage usage and cache management' : language === 'zh' ? '存储使用量和缓存管理' : 'ストレージ使用量とキャッシュ管理'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="overflow-y-auto px-4 sm:px-5 py-4 sm:py-5">
+            <div className="space-y-4 sm:space-y-5">
+              {/* 저장공간 사용량 */}
+              <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50/60 to-cyan-50/60 border-2 border-blue-200/60">
+                <div className="flex items-center gap-2 mb-3">
+                  <HardDrive className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-sm sm:text-base">
+                    {language === 'ko' ? '저장공간 사용량' : language === 'en' ? 'Storage Usage' : language === 'zh' ? '存储使用量' : 'ストレージ使用量'}
+                  </h3>
+                </div>
+                {storageUsage ? (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs sm:text-sm text-muted-foreground">
+                        {language === 'ko' ? '사용 중' : language === 'en' ? 'Used' : language === 'zh' ? '已使用' : '使用中'}
+                      </span>
+                      <span className="text-sm sm:text-base font-semibold">{formatBytes(storageUsage.used)}</span>
+                    </div>
+                    {storageUsage.total > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
+                          {language === 'ko' ? '전체 용량' : language === 'en' ? 'Total' : language === 'zh' ? '总容量' : '総容量'}
+                        </span>
+                        <span className="text-sm sm:text-base font-semibold">{formatBytes(storageUsage.total)}</span>
+                      </div>
+                    )}
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all"
+                        style={{
+                          width: storageUsage.total > 0
+                            ? `${(storageUsage.used / storageUsage.total) * 100}%`
+                            : '0%',
+                        }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    {language === 'ko' ? '계산 중...' : language === 'en' ? 'Calculating...' : language === 'zh' ? '计算中...' : '計算中...'}
+                  </p>
+                )}
+              </div>
+
+              {/* 캐시 정보 */}
+              <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50/60 to-yellow-50/60 border-2 border-amber-200/60">
+                <div className="flex items-center gap-2 mb-3">
+                  <Database className="h-5 w-5 text-amber-600" />
+                  <h3 className="font-semibold text-sm sm:text-base">
+                    {language === 'ko' ? '캐시 크기' : language === 'en' ? 'Cache Size' : language === 'zh' ? '缓存大小' : 'キャッシュサイズ'}
+                  </h3>
+                </div>
+                {storageUsage ? (
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs sm:text-sm text-muted-foreground">
+                      {language === 'ko' ? '캐시 데이터' : language === 'en' ? 'Cache Data' : language === 'zh' ? '缓存数据' : 'キャッシュデータ'}
+                    </span>
+                    <span className="text-sm sm:text-base font-semibold">{formatBytes(storageUsage.cache)}</span>
+                  </div>
+                ) : (
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    {language === 'ko' ? '계산 중...' : language === 'en' ? 'Calculating...' : language === 'zh' ? '计算中...' : '計算中...'}
+                  </p>
+                )}
+              </div>
+
+              {/* 캐시 삭제 버튼 */}
+              <Button
+                onClick={clearCache}
+                className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-50/80 to-orange-50/80 border-2 border-red-200/60 hover:border-red-300 hover:shadow-md transition-all duration-200"
+                variant="outline"
+              >
+                <div className="flex items-center gap-3 w-full">
+                  <Trash2 className="h-5 w-5 text-red-600 shrink-0" />
+                  <span className="font-semibold text-sm sm:text-base">
+                    {language === 'ko' ? '캐시 삭제' : language === 'en' ? 'Clear Cache' : language === 'zh' ? '清除缓存' : 'キャッシュをクリア'}
+                  </span>
+                </div>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 계정 관리 다이얼로그 */}
+      <Dialog open={isAccountManagementDialogOpen} onOpenChange={setIsAccountManagementDialogOpen}>
+        <DialogContent className="sm:max-w-md w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b bg-gradient-to-br from-red-50/50 to-orange-50/30">
+            <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
+              <UserX className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 shrink-0" />
+              {language === 'ko' ? '계정 관리' : language === 'en' ? 'Account Management' : language === 'zh' ? '账户管理' : 'アカウント管理'}
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm mt-1">
+              {language === 'ko' ? '계정 삭제 및 관리' : language === 'en' ? 'Delete and manage account' : language === 'zh' ? '删除和管理账户' : 'アカウントの削除と管理'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="overflow-y-auto px-4 sm:px-5 py-4 sm:py-5">
+            <div className="space-y-4 sm:space-y-5">
+              <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-50/60 to-orange-50/60 border-2 border-red-200/60">
+                <h3 className="font-semibold text-sm sm:text-base mb-2">
+                  {language === 'ko' ? '위험한 작업' : language === 'en' ? 'Dangerous Actions' : language === 'zh' ? '危险操作' : '危険な操作'}
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-4">
+                  {language === 'ko'
+                    ? '계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.'
+                    : language === 'en'
+                    ? 'Deleting your account will permanently delete all data and cannot be recovered.'
+                    : language === 'zh'
+                    ? '删除账户将永久删除所有数据，无法恢复。'
+                    : 'アカウントを削除すると、すべてのデータが永続的に削除され、復元できません。'}
+                </p>
+                <Button
+                  onClick={deleteAccount}
+                  className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white border-0 hover:shadow-md transition-all duration-200"
+                  variant="destructive"
+                >
+                  <div className="flex items-center gap-3 w-full justify-center">
+                    <Trash2 className="h-5 w-5 shrink-0" />
+                    <span className="font-semibold text-sm sm:text-base">
+                      {language === 'ko' ? '계정 삭제' : language === 'en' ? 'Delete Account' : language === 'zh' ? '删除账户' : 'アカウントを削除'}
+                    </span>
+                  </div>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 고객지원 다이얼로그 - 팝업창으로 표시 */}
         <Dialog open={isSupportDialogOpen} onOpenChange={setIsSupportDialogOpen}>

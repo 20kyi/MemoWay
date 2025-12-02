@@ -933,6 +933,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/users/me", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.deleteUser(userId);
+      
+      // 세션 종료
+      req.logout((err: any) => {
+        if (err) {
+          console.error('Logout error during account deletion:', err);
+        }
+      });
+      
+      res.json({ success: true, message: "Account deleted successfully" });
+    } catch (error: any) {
+      console.error('Account deletion error:', error);
+      res.status(500).json({ error: error.message || "Failed to delete account" });
+    }
+  });
+
   app.post("/api/memos/:id/set-main", isAuthenticated, async (req, res) => {
     try {
       const updatedMemo = await storage.setMainMemo(req.params.id);

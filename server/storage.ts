@@ -28,6 +28,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByKakaoId(kakaoId: string): Promise<User | undefined>;
   addPoints(userId: string, amount: number): Promise<User>;
+  deleteUser(userId: string): Promise<void>;
   
   // Groups
   createGroup(group: InsertGroup): Promise<Group>;
@@ -122,6 +123,82 @@ export class DatabaseStorage implements IStorage {
     console.log(`[Points] Added ${amount} points to user ${userId}. New total: ${updatedUser.points}`);
     
     return updatedUser;
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    // 트랜잭션으로 모든 관련 데이터 삭제
+    await db.transaction(async (tx) => {
+      // 1. 사용자의 모든 메모의 사진 삭제
+      const userMemos = await tx
+        .select({ id: memos.id })
+        .from(memos)
+        .where(eq(memos.userId, userId));
+      
+      const memoIds = userMemos.map(m => m.id);
+      if (memoIds.length > 0) {
+        await tx.delete(photos).where(inArray(photos.memoId, memoIds));
+      }
+
+      // 2. 사용자의 모든 메모 삭제
+      await tx.delete(memos).where(eq(memos.userId, userId));
+
+      // 3. 사용자가 속한 모든 그룹의 멤버 삭제
+      const userMembers = await tx
+        .select({ groupId: members.groupId })
+        .from(members)
+        .where(eq(members.userId, userId));
+      
+      const groupIds = [...new Set(userMembers.map(m => m.groupId))];
+      
+      // 4. 사용자가 방장인 그룹 처리
+      for (const groupId of groupIds) {
+        const group = await tx
+          .select()
+          .from(groups)
+          .where(eq(groups.id, groupId))
+          .limit(1);
+        
+        if (group.length > 0) {
+          const groupMembers = await tx
+            .select()
+            .from(members)
+            .where(eq(members.groupId, groupId));
+          
+          const leaderMember = groupMembers.find(m => m.role === 'leader' && m.userId === userId);
+          
+          if (leaderMember) {
+            // 방장인 경우: 다른 멤버가 있으면 첫 번째 멤버에게 방장 권한 이전, 없으면 그룹 삭제
+            const otherMembers = groupMembers.filter(m => m.userId !== userId);
+            if (otherMembers.length > 0) {
+              // 첫 번째 멤버에게 방장 권한 이전
+              await tx
+                .update(members)
+                .set({ role: 'leader' })
+                .where(eq(members.id, otherMembers[0].id));
+            } else {
+              // 그룹에 다른 멤버가 없으면 그룹 삭제
+              const groupMemos = await tx
+                .select({ id: memos.id })
+                .from(memos)
+                .where(eq(memos.groupId, groupId));
+              
+              const groupMemoIds = groupMemos.map(m => m.id);
+              if (groupMemoIds.length > 0) {
+                await tx.delete(photos).where(inArray(photos.memoId, groupMemoIds));
+                await tx.delete(memos).where(eq(memos.groupId, groupId));
+              }
+              await tx.delete(groups).where(eq(groups.id, groupId));
+            }
+          }
+        }
+      }
+
+      // 5. 사용자의 멤버 레코드 삭제
+      await tx.delete(members).where(eq(members.userId, userId));
+
+      // 6. 사용자 삭제
+      await tx.delete(users).where(eq(users.id, userId));
+    });
   }
 
   // Groups
