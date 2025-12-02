@@ -634,6 +634,7 @@ function MapViewComponent({
 
   // Detect user dragging the map and disable location lock
   const isDraggingRef = useRef(false);
+  const lastDragEndTimeRef = useRef<number>(0); // 드래그 종료 시간 추적
   
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
@@ -646,6 +647,8 @@ function MapViewComponent({
     };
 
     const handleDragEnd = () => {
+      // 드래그 종료 시간 기록
+      lastDragEndTimeRef.current = Date.now();
       // 드래그 종료 후 약간의 지연을 두고 플래그 해제 (클릭 이벤트와 충돌 방지)
       setTimeout(() => {
         isDraggingRef.current = false;
@@ -1219,7 +1222,11 @@ function MapViewComponent({
         
         // If location is locked, center map on user location
         // pendingLocation이 있으면 자동 위치 이동을 막음
-        if (isLocationLocked && !pendingLocation) {
+        // 드래그 중이거나 드래그 종료 후 2초 이내일 때는 자동 위치 이동을 막음 (사용자가 지도를 이동 중일 때 방해하지 않음)
+        const timeSinceDragEnd = Date.now() - lastDragEndTimeRef.current;
+        const isRecentlyDragged = timeSinceDragEnd < 2000; // 2초 이내
+        
+        if (isLocationLocked && !pendingLocation && !isDraggingRef.current && !isRecentlyDragged) {
           const latlng = new window.kakao.maps.LatLng(lat, lng);
           map.panTo(latlng); // Smooth pan to location
         }

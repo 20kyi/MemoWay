@@ -86,6 +86,7 @@ function GoogleMapViewComponent({
   const [mapError, setMapError] = useState<string | null>(null);
   const errorToastShownRef = useRef(false); // 토스트 중복 표시 방지
   const isDraggingRef = useRef(false); // 드래그 상태 추적
+  const lastDragEndTimeRef = useRef<number>(0); // 드래그 종료 시간 추적
   const { toast } = useToast();
   const { t } = useLanguage();
   const { layoutTheme } = useLayoutTheme();
@@ -165,6 +166,8 @@ function GoogleMapViewComponent({
       });
 
       mapInstance.addListener("dragend", () => {
+        // 드래그 종료 시간 기록
+        lastDragEndTimeRef.current = Date.now();
         // 드래그 종료 후 약간의 지연을 두어 클릭 이벤트와 구분
         setTimeout(() => {
           isDraggingRef.current = false;
@@ -230,7 +233,11 @@ function GoogleMapViewComponent({
         setCurrentUserLocation({ lat, lng });
         
         // pendingLocation이 있으면 자동 위치 이동을 막음
-        if (isLocationLocked && !pendingLocation) {
+        // 드래그 중이거나 드래그 종료 후 2초 이내일 때는 자동 위치 이동을 막음 (사용자가 지도를 이동 중일 때 방해하지 않음)
+        const timeSinceDragEnd = Date.now() - lastDragEndTimeRef.current;
+        const isRecentlyDragged = timeSinceDragEnd < 2000; // 2초 이내
+        
+        if (isLocationLocked && !pendingLocation && !isDraggingRef.current && !isRecentlyDragged) {
           map.panTo({ lat, lng });
         }
         
