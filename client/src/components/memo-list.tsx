@@ -27,6 +27,7 @@ interface MemoListProps {
   onMemoClick: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
   onMoveToGroup?: (memoIds: string[], groupId: string) => void;
+  onShowOnMap?: (memoIds: string[]) => void;
   hideHeader?: boolean;
   hideFilters?: boolean;
   showAuthorTab?: boolean;
@@ -44,7 +45,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
+export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, onShowOnMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -250,6 +251,25 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
             </Button>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            {onShowOnMap && (
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => {
+                  if (onShowOnMap && selectedMemoIds.size > 0) {
+                    onShowOnMap(Array.from(selectedMemoIds));
+                    setIsSelectionMode(false);
+                    setSelectedMemoIds(new Set());
+                  }
+                }}
+                disabled={selectedMemoIds.size === 0}
+                className="flex-1 sm:flex-initial bg-gradient-to-br from-emerald-200 to-teal-200 hover:from-emerald-300 hover:to-teal-300 border-2 border-emerald-300/60 text-emerald-700 shadow-sm hover:shadow-md transition-all"
+                data-testid="button-show-on-map"
+              >
+                <MapPin className="h-4 w-4 mr-1" />
+                지도에 표시
+              </Button>
+            )}
             {onMoveToGroup && groups.length > 0 && (
               <Button
                 size="sm"

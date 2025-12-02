@@ -1161,6 +1161,31 @@ function MapViewComponent({
     }).filter((marker): marker is NonNullable<typeof marker> => marker !== null);
 
     setMarkers(newMarkers);
+    
+    // 선택된 메모들만 표시할 때 bounds 조정 (메모 개수가 적을 때만)
+    if (filteredMemos.length > 0 && filteredMemos.length <= 100) {
+      try {
+        const bounds = new window.kakao.maps.LatLngBounds();
+        let hasValidBounds = false;
+        
+        filteredMemos.forEach(memo => {
+          if (typeof memo.latitude === 'number' && typeof memo.longitude === 'number' &&
+              !isNaN(memo.latitude) && !isNaN(memo.longitude) &&
+              isFinite(memo.latitude) && isFinite(memo.longitude)) {
+            const position = new window.kakao.maps.LatLng(memo.latitude, memo.longitude);
+            bounds.extend(position);
+            hasValidBounds = true;
+          }
+        });
+        
+        if (hasValidBounds) {
+          // 약간의 여백을 추가하기 위해 padding 설정
+          map.setBounds(bounds, 50);
+        }
+      } catch (error) {
+        console.warn('Bounds 조정 실패:', error);
+      }
+    }
     }, 100); // 100ms 디바운스
 
     return () => {

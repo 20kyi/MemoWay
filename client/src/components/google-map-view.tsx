@@ -501,6 +501,30 @@ function GoogleMapViewComponent({
           currentMarkers.delete(key);
         }
       });
+
+      // 선택된 메모들만 표시할 때 bounds 조정 (메모 개수가 적을 때만)
+      if (filteredMemos.length > 0 && filteredMemos.length <= 100) {
+        try {
+          const bounds = new google.maps.LatLngBounds();
+          let hasValidBounds = false;
+          
+          filteredMemos.forEach(memo => {
+            if (typeof memo.latitude === 'number' && typeof memo.longitude === 'number' &&
+                !isNaN(memo.latitude) && !isNaN(memo.longitude) &&
+                isFinite(memo.latitude) && isFinite(memo.longitude)) {
+              bounds.extend({ lat: memo.latitude, lng: memo.longitude });
+              hasValidBounds = true;
+            }
+          });
+          
+          if (hasValidBounds) {
+            // 약간의 여백을 추가하기 위해 padding 설정
+            map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+          }
+        } catch (error) {
+          console.warn('Bounds 조정 실패:', error);
+        }
+      }
     });
 
     // Cleanup on unmount
@@ -510,7 +534,7 @@ function GoogleMapViewComponent({
       });
       markersRef.current.clear();
     };
-  }, [map, groupedMemos, groups, onMarkerClick, onClusterClick]);
+  }, [map, groupedMemos, groups, onMarkerClick, onClusterClick, filteredMemos]);
 
   // Address search
   const handleSearch = async () => {

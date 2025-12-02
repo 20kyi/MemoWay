@@ -85,6 +85,7 @@ export default function Home() {
   });
   const [selectedMarkerIcons, setSelectedMarkerIcons] = useState<string[]>(["all"]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(["all"]);
+  const [selectedMemoIdsForMap, setSelectedMemoIdsForMap] = useState<Set<string> | null>(null);
 
   // Data queries - 병렬 로딩 보장 (user가 있을 때만 실행)
   const { data: memos = [], error: memosError } = useQuery<MemoWithDetails[]>({
@@ -382,6 +383,19 @@ export default function Home() {
     setMainMemoMutation.mutate(memoId);
   }, [setMainMemoMutation]);
 
+  // 선택된 메모들을 지도에 표시하는 핸들러
+  const handleShowOnMap = useCallback((memoIds: string[]) => {
+    setSelectedMemoIdsForMap(new Set(memoIds));
+    handleTabChange("map");
+  }, [handleTabChange]);
+
+  // 지도 탭에서 다른 탭으로 이동할 때 필터 해제
+  useEffect(() => {
+    if (activeTab !== "map" && selectedMemoIdsForMap) {
+      setSelectedMemoIdsForMap(null);
+    }
+  }, [activeTab, selectedMemoIdsForMap]);
+
   // 그룹으로 이동 핸들러 (메모이제이션)
   const handleMoveToGroup = useCallback(async (memoIds: string[], groupId: string) => {
     try {
@@ -436,7 +450,7 @@ export default function Home() {
             {mapProvider === "kakao" ? (
               <MapView
                   onLocationSelect={handleLocationSelect}
-                  memos={memos}
+                  memos={selectedMemoIdsForMap ? memos.filter(m => selectedMemoIdsForMap.has(m.id)) : memos}
                   onMarkerClick={handleMarkerClick}
                   onClusterClick={handleClusterClick}
                   userLocation={userLocation}
@@ -457,7 +471,7 @@ export default function Home() {
               ) : (
                 <GoogleMapView
                   onLocationSelect={handleLocationSelect}
-                  memos={memos}
+                  memos={selectedMemoIdsForMap ? memos.filter(m => selectedMemoIdsForMap.has(m.id)) : memos}
                   onMarkerClick={handleMarkerClick}
                   onClusterClick={handleClusterClick}
                   userLocation={userLocation}
@@ -515,6 +529,7 @@ export default function Home() {
               onMemoClick={handleMarkerClick}
               onSetMainMemo={handleSetMainMemo}
               onMoveToGroup={handleMoveToGroup}
+              onShowOnMap={handleShowOnMap}
             />
         )}
         {activeTab === "groups" && (
