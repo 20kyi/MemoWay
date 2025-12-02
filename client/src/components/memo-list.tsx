@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users } from "lucide-react";
+import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
@@ -25,6 +25,9 @@ interface MemoListProps {
   onMemoClick: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
   hideHeader?: boolean;
+  hideFilters?: boolean;
+  showAuthorTab?: boolean;
+  currentUserId?: string;
 }
 
 const categoryIcons: Record<MarkerIconType, any> = {
@@ -38,10 +41,11 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, hideHeader = false }: MemoListProps) {
+export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
+  const [authorTab, setAuthorTab] = useState<"mine" | "others">("mine");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMemoIds, setSelectedMemoIds] = useState<Set<string>>(new Set());
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -52,6 +56,15 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
 
   const filteredMemos = useMemo(() => {
     let filtered = memos;
+    
+    // 작성자 탭 필터링
+    if (showAuthorTab && currentUserId) {
+      if (authorTab === "mine") {
+        filtered = filtered.filter(memo => memo.member.userId === currentUserId);
+      } else {
+        filtered = filtered.filter(memo => memo.member.userId !== currentUserId);
+      }
+    }
     
     if (selectedCategory !== "all") {
       filtered = filtered.filter(memo => memo.markerIcon === selectedCategory);
@@ -66,7 +79,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
     }
     
     return filtered;
-  }, [memos, selectedCategory, selectedGroup]);
+  }, [memos, selectedCategory, selectedGroup, showAuthorTab, authorTab, currentUserId]);
 
   // Group memos by location to determine if main memo button should be shown
   const memosByLocation = useMemo(() => {
@@ -217,8 +230,61 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
           </div>
         </div>
       ) : (
-        /* Category and Group Filter Dropdowns */
-        <div className="px-4 pt-4 pb-2 grid grid-cols-2 gap-2 flex-shrink-0">
+        <>
+          {/* 작성자 탭 (그룹 메모 뷰에서만 표시) */}
+          {showAuthorTab && currentUserId && (
+            <div className="px-4 pt-4 pb-2 flex-shrink-0">
+              <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5">
+                <button
+                  onClick={() => setAuthorTab("mine")}
+                  className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                    authorTab === "mine"
+                      ? "bg-primary/80 text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                  data-testid="tab-my-memos"
+                >
+                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate">내가 쓴 메모</span>
+                  <Badge 
+                    variant="secondary" 
+                    className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
+                      authorTab === "mine" 
+                        ? "bg-primary-foreground/20 text-primary-foreground" 
+                        : "bg-muted"
+                    }`}
+                  >
+                    {memos.filter(m => m.member.userId === currentUserId).length}
+                  </Badge>
+                </button>
+                <button
+                  onClick={() => setAuthorTab("others")}
+                  className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                    authorTab === "others"
+                      ? "bg-primary/80 text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                  data-testid="tab-others-memos"
+                >
+                  <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate">다른 사용자가 쓴 메모</span>
+                  <Badge 
+                    variant="secondary" 
+                    className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
+                      authorTab === "others" 
+                        ? "bg-primary-foreground/20 text-primary-foreground" 
+                        : "bg-muted"
+                    }`}
+                  >
+                    {memos.filter(m => m.member.userId !== currentUserId).length}
+                  </Badge>
+                </button>
+              </div>
+            </div>
+          )}
+          {/* Category and Group Filter Dropdowns */}
+          {!hideFilters && (
+            <div className="px-4 pt-4 pb-2 grid grid-cols-2 gap-2 flex-shrink-0">
           {/* Category Filter */}
           <Select
             value={selectedCategory}
@@ -330,6 +396,8 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
             </SelectContent>
           </Select>
         </div>
+          )}
+        </>
       )}
 
       {/* Memo List */}

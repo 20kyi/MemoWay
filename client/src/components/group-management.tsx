@@ -289,6 +289,9 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
               onMemoClick={onMemoClick}
               onSetMainMemo={onSetMainMemo}
               hideHeader={true}
+              hideFilters={true}
+              showAuthorTab={true}
+              currentUserId={userId}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full p-8 text-center">
