@@ -595,23 +595,40 @@ export function ProfileView({
               </div>
             </div>
             
-            {/* 포인트 표시 */}
+            {/* 포인트 및 프리미엄 구독 */}
             <div className="pt-4 sm:pt-6 border-t border-indigo-200/50">
-              <div className="flex items-center justify-between p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50/50 to-orange-50/30 border border-amber-200/50">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md">
-                    <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+              <div className="flex items-center gap-2 sm:gap-4">
+                {/* 포인트 표시 */}
+                <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 p-2.5 sm:p-5 rounded-lg sm:rounded-2xl bg-gradient-to-br from-amber-50/50 to-orange-50/30 border border-amber-200/50">
+                  <div className="h-8 w-8 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md">
+                    <Sparkles className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-1 font-medium">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 font-medium leading-tight">
                       {language === 'ko' ? '보유 포인트' : language === 'en' ? 'Current Points' : language === 'zh' ? '当前积分' : '保有ポイント'}
                     </p>
-                    <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent" data-testid="text-user-points">
+                    <p className="text-base sm:text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent leading-tight" data-testid="text-user-points">
                       {userPoints.toLocaleString()}
-                      <span className="text-base sm:text-lg text-muted-foreground ml-1">P</span>
+                      <span className="text-[10px] sm:text-base text-muted-foreground ml-0.5 sm:ml-1">P</span>
                     </p>
                   </div>
                 </div>
+                
+                {/* 프리미엄 구독 버튼 */}
+                <button className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 p-2.5 sm:p-5 rounded-lg sm:rounded-2xl bg-gradient-to-br from-purple-50/50 to-pink-50/30 border border-purple-200/50 hover:shadow-md active:scale-[0.98] transition-all group">
+                  <div className="h-8 w-8 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform">
+                    <Gem className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 font-medium leading-tight truncate">
+                      {language === 'ko' ? '프리미엄 구독' : language === 'en' ? 'Premium Subscription' : language === 'zh' ? '高级订阅' : 'プレミアム購読'}
+                    </p>
+                    <p className="text-xs sm:text-base font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight truncate">
+                      {language === 'ko' ? '구독하기' : language === 'en' ? 'Subscribe' : language === 'zh' ? '订阅' : '購読する'}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
+                </button>
               </div>
             </div>
           </CardContent>
