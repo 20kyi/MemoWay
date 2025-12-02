@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check } from "lucide-react";
+import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check, FileText } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
@@ -53,6 +53,7 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
   const [searchQuery, setSearchQuery] = useState("");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMemoIds, setSelectedMemoIds] = useState<Set<string>>(new Set());
+  const [memoViewTab, setMemoViewTab] = useState<"myMemos" | "myMap">("myMemos");
   const [moveToGroupDialogOpen, setMoveToGroupDialogOpen] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -374,6 +375,37 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
                     </Button>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+          {/* 탭 전환 버튼 (메모 탭에서만 표시) */}
+          {!hideFilters && (
+            <div className="px-4 pb-2 flex-shrink-0">
+              <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5 sm:p-2">
+                <button
+                  onClick={() => setMemoViewTab("myMemos")}
+                  className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                    memoViewTab === "myMemos"
+                      ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                  data-testid="tab-my-memos"
+                >
+                  <FileText className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" />
+                  <span className="truncate">내 메모</span>
+                </button>
+                <button
+                  onClick={() => setMemoViewTab("myMap")}
+                  className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                    memoViewTab === "myMap"
+                      ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                  data-testid="tab-my-map"
+                >
+                  <MapPin className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" />
+                  <span className="truncate">내 지도</span>
+                </button>
               </div>
             </div>
           )}
