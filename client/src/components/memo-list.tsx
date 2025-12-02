@@ -24,6 +24,7 @@ interface MemoListProps {
   onBulkDelete?: (memoIds: string[]) => void;
   onMemoClick: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
+  hideHeader?: boolean;
 }
 
 const categoryIcons: Record<MarkerIconType, any> = {
@@ -37,7 +38,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo }: MemoListProps) {
+export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, hideHeader = false }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -170,11 +171,13 @@ export function MemoList({ memos, groups = [], onEdit, onDelete, onBulkDelete, o
   return (
     <div className="flex flex-col h-full">
       {/* App Name Header */}
-      <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
-        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
-          MemoWay
-        </h1>
-      </div>
+      {!hideHeader && (
+        <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
+            MemoWay
+          </h1>
+        </div>
+      )}
 
       {/* Selection Mode Header */}
       {isSelectionMode ? (

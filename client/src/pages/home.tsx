@@ -472,6 +472,7 @@ export default function Home() {
         {activeTab === "groups" && (
           <GroupManagement
               groups={filteredGroupsWithoutPersonal}
+              memos={memos}
               myMemberIds={myMemberIds}
               personalMemberId={personalMemberId}
               userId={(user as any)?.id}
@@ -507,6 +508,10 @@ export default function Home() {
                   canEditGroupMemos,
                 })
               }
+              onEditMemo={handleEditMemo}
+              onDeleteMemo={handleDeleteMemo}
+              onMemoClick={handleMarkerClick}
+              onSetMainMemo={handleSetMainMemo}
               isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}
             />
         )}

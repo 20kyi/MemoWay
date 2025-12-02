@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit, Search, X, DoorOpen, Coins, AlertTriangle } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit, Search, X, DoorOpen, Coins, AlertTriangle, ArrowLeft, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { markerIconTypes, type MarkerIconType } from "@shared/schema";
+import { markerIconTypes, type MarkerIconType, type MemoWithDetails } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
+import { MemoList } from "@/components/memo-list";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -76,6 +77,7 @@ interface Group {
 
 interface GroupManagementProps {
   groups: Group[];
+  memos?: MemoWithDetails[];
   onCreateGroup: (data: { name: string; description?: string; memberName: string; color: string; markerIcon: string }) => void;
   onUpdateGroup?: (groupId: string, data: { name: string; description?: string; color: string; markerIcon: string }) => void;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
@@ -90,9 +92,13 @@ interface GroupManagementProps {
   userId?: string;
   userPoints?: number;
   isLoading?: boolean;
+  onEditMemo?: (memoId: string) => void;
+  onDeleteMemo?: (memoId: string) => void;
+  onMemoClick?: (memoId: string) => void;
+  onSetMainMemo?: (memoId: string) => void;
 }
 
-export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, onUpdateMemberPermissions, myMemberIds, personalMemberId, userId, userPoints = 0, isLoading = false }: GroupManagementProps) {
+export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, onUpdateMemberPermissions, myMemberIds, personalMemberId, userId, userPoints = 0, isLoading = false, onEditMemo, onDeleteMemo, onMemoClick, onSetMainMemo }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -102,6 +108,7 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
   const [searchQuery, setSearchQuery] = useState("");
   const [copyConfirmGroup, setCopyConfirmGroup] = useState<Group | null>(null);
   const [activeTab, setActiveTab] = useState<"leader" | "member">("leader");
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const groupFormSchema = z.object({
@@ -221,6 +228,79 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
       return !!member && member.role !== 'leader'; // 나를 초대한 그룹 = 멤버이지만 방장이 아닌 그룹
     }).length,
   };
+
+  // 선택된 그룹의 메모 필터링
+  const selectedGroup = selectedGroupId ? groups.find(g => g.id === selectedGroupId) : null;
+  const groupMemos = selectedGroupId 
+    ? memos.filter(memo => memo.group?.id === selectedGroupId)
+    : [];
+
+  // 그룹 메모 뷰 표시
+  if (selectedGroupId && selectedGroup) {
+    return (
+      <div className="flex flex-col h-full">
+        {/* 그룹 헤더 */}
+        <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+          <div className="flex items-center gap-3 mb-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedGroupId(null)}
+              className="h-8 w-8 rounded-full hover:bg-muted"
+              data-testid="button-back-to-groups"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div 
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-sm border relative" 
+                style={{ 
+                  backgroundColor: `${selectedGroup.color}30`,
+                  borderColor: `${selectedGroup.color}60`
+                }}
+              >
+                {(() => {
+                  const IconComponent = MARKER_ICON_COMPONENTS[selectedGroup.markerIcon as MarkerIconType] || MapPin;
+                  return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: selectedGroup.color }} />;
+                })()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-xl font-bold truncate">{selectedGroup.name}</h2>
+                {selectedGroup.description && (
+                  <p className="text-xs text-muted-foreground truncate">{selectedGroup.description}</p>
+                )}
+              </div>
+            </div>
+            <Badge variant="secondary" className="flex-shrink-0 text-xs px-2 py-1">
+              <FileText className="h-3 w-3 mr-1" />
+              {groupMemos.length}개
+            </Badge>
+          </div>
+        </div>
+
+        {/* 메모 목록 */}
+        <div className="flex-1 overflow-hidden">
+          {onEditMemo && onDeleteMemo && onMemoClick ? (
+            <MemoList
+              memos={groupMemos}
+              groups={[]}
+              onEdit={onEditMemo}
+              onDelete={onDeleteMemo}
+              onMemoClick={onMemoClick}
+              onSetMainMemo={onSetMainMemo}
+              hideHeader={true}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground text-lg mb-2">메모 목록을 표시할 수 없습니다</p>
+              <p className="text-muted-foreground text-sm">필요한 핸들러가 제공되지 않았습니다</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -541,11 +621,12 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
             return (
               <Card 
                 key={group.id} 
-                className={`hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg ${
+                className={`hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg cursor-pointer ${
                   isLeader 
                     ? 'border-2 border-amber-400/60 hover:border-amber-400/80 bg-gradient-to-br from-amber-50/30 to-card/90' 
                     : 'border border-primary/20 hover:border-primary/40'
                 }`} 
+                onClick={() => setSelectedGroupId(group.id)}
                 data-testid={`card-group-${group.id}`}
               >
                 <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
@@ -591,7 +672,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 flex-shrink-0"
-                          onClick={() => setCopyConfirmGroup(group)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCopyConfirmGroup(group);
+                          }}
                           data-testid={`button-copy-${group.id}`}
                           title="새 그룹으로 복사 (그룹 생성)"
                         >
@@ -614,7 +698,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                   variant="outline"
                   size="sm"
                   className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
-                  onClick={() => handleCopyInviteCode(group.inviteCode)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyInviteCode(group.inviteCode);
+                  }}
                   data-testid={`button-copy-code-${group.id}`}
                 >
                   <Copy className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5" />
@@ -628,7 +715,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           variant="outline"
                           size="sm"
                           className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
-                          onClick={() => handleOpenEditDialog(group)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEditDialog(group);
+                          }}
                           data-testid={`button-edit-${group.id}`}
                         >
                           <Edit className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5" />
@@ -640,7 +730,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           variant="outline"
                           size="sm"
                           className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial"
-                          onClick={() => setMemberDialogOpen(group.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMemberDialogOpen(group.id);
+                          }}
                           data-testid={`button-members-${group.id}`}
                         >
                           <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5" />
@@ -652,7 +745,10 @@ export function GroupManagement({ groups, onCreateGroup, onUpdateGroup, onJoinGr
                           variant="destructive"
                           size="sm"
                           className="h-8 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-initial bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 shadow-sm"
-                          onClick={() => onLeaveGroup(group.id, myMember.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onLeaveGroup(group.id, myMember.id);
+                          }}
                           data-testid={`button-leave-${group.id}`}
                         >
                           {t.common.leave}
