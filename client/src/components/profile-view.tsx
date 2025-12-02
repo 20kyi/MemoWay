@@ -37,6 +37,110 @@ const languageOptions: { value: Language; label: string; flag: string }[] = [
   { value: "ja", label: "日本語", flag: "🇯🇵" },
 ];
 
+// 공지사항 데이터 타입 정의
+type NoticeItem = {
+  title: string;
+  date: string;
+  content: string;
+  important?: boolean;
+};
+
+// 공지사항 데이터 (컴포넌트 외부로 이동하여 재생성 방지)
+const noticeData: Record<Language, NoticeItem[]> = {
+  ko: [
+    {
+      title: "MemoWay 서비스 오픈 안내",
+      date: "2024.01.01",
+      content: "안녕하세요. MemoWay를 이용해 주셔서 감사합니다. MemoWay는 위치 기반 메모 서비스로, 특별한 장소의 추억을 기록하고 공유할 수 있습니다. 앞으로도 더 나은 서비스를 제공하기 위해 노력하겠습니다.",
+      important: true
+    },
+    {
+      title: "그룹 기능 업데이트 안내",
+      date: "2024.01.15",
+      content: "그룹 기능이 업데이트되었습니다. 이제 그룹 메모를 더 쉽게 관리하고 공유할 수 있습니다. 그룹 리더는 그룹 메모 편집 권한을 설정할 수 있으며, 그룹 메모 복사 기능도 추가되었습니다."
+    },
+    {
+      title: "위치 기반 알림 기능 개선",
+      date: "2024.02.01",
+      content: "위치 기반 알림 기능이 개선되었습니다. 이제 더 정확한 위치 추적과 알림을 받을 수 있습니다. 지도 탭에서 위치 고정 모드를 활성화하면 더욱 정확한 알림을 받을 수 있습니다."
+    },
+    {
+      title: "다국어 지원 확대",
+      date: "2024.02.15",
+      content: "MemoWay는 이제 한국어, 영어, 중국어, 일본어를 지원합니다. 설정에서 원하는 언어로 변경할 수 있습니다."
+    }
+  ],
+  en: [
+    {
+      title: "MemoWay Service Launch Notice",
+      date: "2024.01.01",
+      content: "Thank you for using MemoWay. MemoWay is a location-based memo service that allows you to record and share memories of special places. We will continue to work hard to provide better services.",
+      important: true
+    },
+    {
+      title: "Group Feature Update Notice",
+      date: "2024.01.15",
+      content: "The group feature has been updated. You can now manage and share group memos more easily. Group leaders can set group memo editing permissions, and a group memo copy feature has also been added."
+    },
+    {
+      title: "Location-Based Notification Feature Improvement",
+      date: "2024.02.01",
+      content: "The location-based notification feature has been improved. You can now receive more accurate location tracking and notifications. Activate Location Lock Mode in the Map tab for even more accurate notifications."
+    },
+    {
+      title: "Multilingual Support Expansion",
+      date: "2024.02.15",
+      content: "MemoWay now supports Korean, English, Chinese, and Japanese. You can change the language in Settings."
+    }
+  ],
+  zh: [
+    {
+      title: "MemoWay 服务启动通知",
+      date: "2024.01.01",
+      content: "感谢您使用 MemoWay。MemoWay 是一个基于位置的备忘录服务，允许您记录和分享特殊地点的回忆。我们将继续努力提供更好的服务。",
+      important: true
+    },
+    {
+      title: "群组功能更新通知",
+      date: "2024.01.15",
+      content: "群组功能已更新。您现在可以更轻松地管理和共享群组备忘录。群组负责人可以设置群组备忘录编辑权限，还添加了群组备忘录复制功能。"
+    },
+    {
+      title: "基于位置的通知功能改进",
+      date: "2024.02.01",
+      content: "基于位置的通知功能已改进。您现在可以接收更准确的位置跟踪和通知。在地图标签页中激活位置锁定模式以获得更准确的通知。"
+    },
+    {
+      title: "多语言支持扩展",
+      date: "2024.02.15",
+      content: "MemoWay 现在支持韩语、英语、中文和日语。您可以在设置中更改语言。"
+    }
+  ],
+  ja: [
+    {
+      title: "MemoWay サービス開始のお知らせ",
+      date: "2024.01.01",
+      content: "MemoWayをご利用いただき、ありがとうございます。MemoWayは位置ベースのメモサービスで、特別な場所の思い出を記録し、共有することができます。今後もより良いサービスを提供するために努力してまいります。",
+      important: true
+    },
+    {
+      title: "グループ機能アップデートのお知らせ",
+      date: "2024.01.15",
+      content: "グループ機能がアップデートされました。これでグループメモをより簡単に管理し、共有できるようになりました。グループリーダーはグループメモの編集権限を設定でき、グループメモのコピー機能も追加されました。"
+    },
+    {
+      title: "位置ベースの通知機能の改善",
+      date: "2024.02.01",
+      content: "位置ベースの通知機能が改善されました。これでより正確な位置追跡と通知を受けることができます。地図タブで位置ロックモードを有効にすると、さらに正確な通知を受けることができます。"
+    },
+    {
+      title: "多言語サポートの拡大",
+      date: "2024.02.15",
+      content: "MemoWayは現在、韓国語、英語、中国語、日本語をサポートしています。設定で希望の言語に変更できます。"
+    }
+  ]
+};
+
 export function ProfileView({ 
   notificationsEnabled,
   onNotificationsChange,
@@ -54,6 +158,7 @@ export function ProfileView({
   const [isAppInfoDialogOpen, setIsAppInfoDialogOpen] = useState(false);
   const [isPersonalSettingsDialogOpen, setIsPersonalSettingsDialogOpen] = useState(false);
   const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
+  const [isNoticeDialogOpen, setIsNoticeDialogOpen] = useState(false);
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
   const [isPrivacyDialogOpen, setIsPrivacyDialogOpen] = useState(false);
   
@@ -1162,10 +1267,8 @@ export function ProfileView({
                 {/* 공지사항 */}
                 <button
                   onClick={() => {
-                    toast({
-                      title: t.settings.supportNotice,
-                      description: language === 'ko' ? '공지사항 페이지 준비 중입니다.' : language === 'en' ? 'Announcements page is coming soon.' : language === 'zh' ? '公告页面即将推出。' : 'お知らせページは準備中です。',
-                    });
+                    setIsSupportDialogOpen(false);
+                    setTimeout(() => setIsNoticeDialogOpen(true), 300);
                   }}
                   className="w-full p-4 rounded-2xl bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-2 border-amber-200/60 hover:border-amber-300 active:scale-[0.98] transition-all duration-200 text-left touch-manipulation"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -1385,10 +1488,8 @@ export function ProfileView({
                 {/* 공지사항 */}
                 <button
                   onClick={() => {
-                    toast({
-                      title: t.settings.supportNotice,
-                      description: language === 'ko' ? '공지사항 페이지 준비 중입니다.' : language === 'en' ? 'Announcements page is coming soon.' : language === 'zh' ? '公告页面即将推出。' : 'お知らせページは準備中です。',
-                    });
+                    setIsSupportDialogOpen(false);
+                    setTimeout(() => setIsNoticeDialogOpen(true), 300);
                   }}
                   className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-2 border-amber-200/60 hover:border-amber-300 hover:shadow-lg transition-all duration-300 text-left group"
                 >
@@ -3509,6 +3610,115 @@ export function ProfileView({
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* 공지사항 다이얼로그 - 모바일은 Sheet, 데스크톱은 Dialog */}
+      {isMobile ? (
+        <Sheet open={isNoticeDialogOpen} onOpenChange={(open) => {
+          setIsNoticeDialogOpen(open);
+          if (!open) {
+            setTimeout(() => setIsSupportDialogOpen(true), 300);
+          }
+        }}>
+          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden rounded-t-3xl">
+            <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-amber-50/50 to-yellow-50/30">
+              <SheetTitle className="flex items-center gap-2 text-xl">
+                <Megaphone className="h-6 w-6 text-amber-600 shrink-0" />
+                {t.settings.supportNotice}
+              </SheetTitle>
+              <SheetDescription className="text-sm mt-1.5">
+                {t.settings.supportNoticeDesc}
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="flex-1 overflow-y-auto px-5 py-6">
+              <div className="space-y-4">
+                {(noticeData[language] || noticeData.ko).map((notice, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 rounded-2xl border-2 ${
+                      notice.important
+                        ? 'bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-amber-300/60'
+                        : 'bg-gradient-to-br from-amber-50/60 to-yellow-50/60 border-amber-200/60'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h3 className={`font-semibold text-base flex-1 ${
+                        notice.important ? 'text-amber-900' : 'text-foreground'
+                      }`}>
+                        {notice.title}
+                      </h3>
+                      {notice.important && (
+                        <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-500 text-white shrink-0">
+                          중요
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {notice.date}
+                    </p>
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {notice.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isNoticeDialogOpen} onOpenChange={(open) => {
+          setIsNoticeDialogOpen(open);
+          if (!open) {
+            setTimeout(() => setIsSupportDialogOpen(true), 300);
+          }
+        }}>
+          <DialogContent className="sm:max-w-2xl w-[calc(100%-1.5rem)] mx-auto rounded-2xl sm:rounded-3xl p-0 max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-amber-50/50 to-yellow-50/30">
+              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
+                <Megaphone className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600 shrink-0" />
+                {t.settings.supportNotice}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm mt-1">
+                {t.settings.supportNoticeDesc}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+              <div className="space-y-4 sm:space-y-5">
+                {(noticeData[language] || noticeData.ko).map((notice, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 ${
+                      notice.important
+                        ? 'bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-amber-300/60 hover:shadow-lg'
+                        : 'bg-gradient-to-br from-amber-50/60 to-yellow-50/60 border-amber-200/60 hover:shadow-md'
+                    } transition-all`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h3 className={`font-semibold text-sm sm:text-base flex-1 ${
+                        notice.important ? 'text-amber-900' : 'text-foreground'
+                      }`}>
+                        {notice.title}
+                      </h3>
+                      {notice.important && (
+                        <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-500 text-white shrink-0">
+                          {language === 'ko' ? '중요' : language === 'en' ? 'Important' : language === 'zh' ? '重要' : '重要'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-3">
+                      {notice.date}
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {notice.content}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </DialogContent>
