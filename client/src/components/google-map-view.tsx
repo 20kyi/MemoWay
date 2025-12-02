@@ -691,8 +691,9 @@ function GoogleMapViewComponent({
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
+          // 적당한 줌 레벨로 설정 (줌 14: 시/군/구 단위, 줌 15: 동/면 단위)
+          map.setZoom(14);
           map.setCenter({ lat, lng });
-          map.setZoom(15);
           
           if (onMyLocationClick) {
             onMyLocationClick({ lat, lng });
@@ -1075,6 +1076,8 @@ function GoogleMapViewComponent({
                     setIsLocationLocked(newLockState);
                     
                     if (newLockState && map && currentUserLocation) {
+                      // 적당한 줌 레벨로 설정 (줌 14: 시/군/구 단위, 줌 15: 동/면 단위)
+                      map.setZoom(14);
                       map.panTo(currentUserLocation);
                     }
                     

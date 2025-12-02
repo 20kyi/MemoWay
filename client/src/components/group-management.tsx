@@ -359,7 +359,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
             data-testid="tab-leader"
           >
             <Crown className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" fill={activeTab === "leader" ? "currentColor" : "none"} />
-            <span className="truncate">내가 초대한 그룹</span>
+            <span className="truncate">{t.groups.myInvitedGroups}</span>
             <Badge 
               variant="secondary" 
               className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
@@ -381,7 +381,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
             data-testid="tab-member"
           >
             <Users className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" />
-            <span className="truncate">나를 초대한 그룹</span>
+            <span className="truncate">{t.groups.groupsInvitedMe}</span>
             <Badge 
               variant="secondary" 
               className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${

@@ -1348,6 +1348,8 @@ function MapViewComponent({
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           const latlng = new window.kakao.maps.LatLng(lat, lng);
+          // 적당한 줌 레벨로 설정 (레벨 3: 시/도 단위, 레벨 4: 시/군/구 단위)
+          map.setLevel(3);
           map.setCenter(latlng);
           // 내 위치 버튼 클릭 시 위치 고정 모드 활성화
           setIsLocationLocked(true);
@@ -2040,9 +2042,11 @@ function MapViewComponent({
                     const newLockState = !isLocationLocked;
                     setIsLocationLocked(newLockState);
                     
-                    // 위치 고정을 활성화할 때, 현재 위치로 지도 이동
+                    // 위치 고정을 활성화할 때, 현재 위치로 지도 이동 및 적절한 줌 레벨 설정
                     if (newLockState && map && currentUserLocation) {
                       const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
+                      // 적당한 줌 레벨로 설정 (레벨 3: 시/도 단위, 레벨 4: 시/군/구 단위)
+                      map.setLevel(3);
                       map.panTo(latlng);
                     }
                     

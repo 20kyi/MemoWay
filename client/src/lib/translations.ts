@@ -78,6 +78,8 @@ export const translations = {
       editor: "수정자",
       group: "그룹",
       created: "작성",
+      updated: "수정",
+      info: "정보",
       viewOnMap: "지도에서 위치 보기",
       addMemoHere: "새 메모 추가",
       confirmDelete: "정말 삭제하시겠습니까?",
@@ -88,6 +90,7 @@ export const translations = {
       noMemosDesc: "지도에서 위치를 선택하여 메모를 추가하세요",
       noCategoryMemos: "카테고리에 메모가 없습니다",
       noCategoryMemosDesc: "다른 카테고리를 선택하거나 새 메모를 추가하세요",
+      searchPlaceholder: "메모 내용, 장소, 주소, 작성자, 날짜 검색...",
     },
     // Group Management
     groups: {
@@ -138,6 +141,8 @@ export const translations = {
       insufficientPoints: "포인트가 부족합니다. 필요한 포인트:",
       confirmCopy: "복사하기",
       customColor: "사용자 정의",
+      myInvitedGroups: "내가 초대한 그룹",
+      groupsInvitedMe: "나를 초대한 그룹",
     },
     // Settings
     settings: {
@@ -410,6 +415,8 @@ export const translations = {
       editor: "Editor",
       group: "Group",
       created: "Created",
+      updated: "Updated",
+      info: "Info",
       viewOnMap: "View Location on Map",
       addMemoHere: "Add New Memo Here",
       confirmDelete: "Are you sure you want to delete?",
@@ -420,6 +427,7 @@ export const translations = {
       noMemosDesc: "Select a location on the map to add a memo",
       noCategoryMemos: "No memos in this category",
       noCategoryMemosDesc: "Select another category or add a new memo",
+      searchPlaceholder: "Search by memo content, place, address, author, date...",
     },
     // Group Management
     groups: {
@@ -470,6 +478,8 @@ export const translations = {
       insufficientPoints: "Insufficient points. Required:",
       confirmCopy: "Copy",
       customColor: "Custom",
+      myInvitedGroups: "Groups I Invited",
+      groupsInvitedMe: "Groups That Invited Me",
     },
     // Settings
     settings: {
@@ -742,6 +752,8 @@ export const translations = {
       editor: "编辑者",
       group: "群组",
       created: "创建",
+      updated: "更新",
+      info: "信息",
       viewOnMap: "在地图上查看位置",
       addMemoHere: "在此添加新备忘录",
       confirmDelete: "确定要删除吗？",
@@ -752,6 +764,7 @@ export const translations = {
       noMemosDesc: "在地图上选择位置以添加备忘录",
       noCategoryMemos: "此类别中没有备忘录",
       noCategoryMemosDesc: "选择其他类别或添加新备忘录",
+      searchPlaceholder: "搜索备忘录内容、地点、地址、作者、日期...",
     },
     // Group Management
     groups: {
@@ -802,6 +815,8 @@ export const translations = {
       insufficientPoints: "积分不足。所需积分：",
       confirmCopy: "复制",
       customColor: "自定义",
+      myInvitedGroups: "我邀请的群组",
+      groupsInvitedMe: "邀请我的群组",
     },
     // Settings
     settings: {
@@ -1074,6 +1089,8 @@ export const translations = {
       editor: "編集者",
       group: "グループ",
       created: "作成",
+      updated: "更新",
+      info: "情報",
       viewOnMap: "地図で位置を表示",
       addMemoHere: "ここに新しいメモを追加",
       confirmDelete: "本当に削除しますか？",
@@ -1084,6 +1101,7 @@ export const translations = {
       noMemosDesc: "地図上で場所を選択してメモを追加してください",
       noCategoryMemos: "このカテゴリにメモがありません",
       noCategoryMemosDesc: "別のカテゴリを選択するか、新しいメモを追加してください",
+      searchPlaceholder: "メモ内容、場所、住所、作成者、日付で検索...",
     },
     // Group Management
     groups: {
@@ -1134,6 +1152,8 @@ export const translations = {
       insufficientPoints: "ポイントが不足しています。必要なポイント：",
       confirmCopy: "コピー",
       customColor: "カスタム",
+      myInvitedGroups: "私が招待したグループ",
+      groupsInvitedMe: "私を招待したグループ",
     },
     // Settings
     settings: {
@@ -1402,6 +1422,8 @@ type Translation = {
     editor: string;
     group: string;
     created: string;
+    updated: string;
+    info: string;
     viewOnMap: string;
     addMemoHere: string;
     confirmDelete: string;
@@ -1411,6 +1433,7 @@ type Translation = {
     noMemosDesc: string;
     noCategoryMemos: string;
     noCategoryMemosDesc: string;
+    searchPlaceholder: string;
   };
   groups: {
     title: string;
@@ -1452,6 +1475,16 @@ type Translation = {
     noSearchResultsDesc: string;
     searchResultsCount: string;
     canEditGroupMemos: string;
+    copyGroup: string;
+    copyGroupDesc: string;
+    memoCount: string;
+    requiredPoints: string;
+    currentPoints: string;
+    insufficientPoints: string;
+    confirmCopy: string;
+    customColor: string;
+    myInvitedGroups: string;
+    groupsInvitedMe: string;
   };
   settings: {
     title: string;

@@ -139,7 +139,7 @@ export function MemoDetailSheet({
                 {/* 메타데이터 섹션 */}
                 <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-50/50 via-white to-slate-50/30 backdrop-blur-sm border border-slate-200/50 shadow-lg">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm sm:text-base">정보</CardTitle>
+                    <CardTitle className="text-sm sm:text-base">{t.memoDetail.info}</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 space-y-3">
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -196,7 +196,7 @@ export function MemoDetailSheet({
                           <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-violet-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm text-muted-foreground">{t.common.edit}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.updated}</p>
                           <p className="text-sm sm:text-base text-foreground truncate" data-testid="text-memo-updated">
                             {format(new Date(memo.updatedAt), "PPP p", { locale: dateLocale })}
                           </p>
