@@ -896,12 +896,12 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
                 )}
                 />
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0 pt-3 sm:pt-4">
+              <div className="flex flex-row gap-2 flex-shrink-0 pt-3 sm:pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
                   size="sm"
-                  className="flex-1 w-full sm:w-auto text-sm"
+                  className="flex-1 text-sm"
                   onClick={() => {
                     editForm.reset();
                     setEditDialogOpen(false);
@@ -914,7 +914,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
                 <Button 
                   type="submit" 
                   size="sm" 
-                  className="flex-1 w-full sm:w-auto text-sm bg-gradient-to-br from-sky-200 to-sky-300 hover:from-sky-300 hover:to-sky-400 border-2 border-sky-300/60 text-sky-700 shadow-sm" 
+                  className="flex-1 text-sm bg-gradient-to-br from-sky-200 to-sky-300 hover:from-sky-300 hover:to-sky-400 border-2 border-sky-300/60 text-sky-700 shadow-sm" 
                   data-testid="button-submit-edit-group"
                 >
                   {t.common.edit}
