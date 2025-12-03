@@ -712,6 +712,7 @@ function MapViewComponent({
       
       // 지도 클릭 처리
       // 마커 클릭 이벤트가 먼저 처리되도록 약간의 지연
+      // 딜레이를 줄여서 건물 클릭이 더 빠르게 반응하도록 함
       setTimeout(() => {
         // 마커 클릭이 처리되었으면 지도 클릭 무시
         if (markerClickHandledRef.current) {
@@ -850,7 +851,7 @@ function MapViewComponent({
           });
         }
       });
-      }, 50); // 마커 클릭 확인을 위한 딜레이
+      }, 30); // 마커 클릭 확인을 위한 딜레이 (건물 클릭 반응성 향상을 위해 단축)
     };
 
     window.kakao.maps.event.addListener(map, 'click', handleMapClick);
@@ -980,10 +981,11 @@ function MapViewComponent({
         });
         
         // 마커 클릭이 처리되었음을 표시 (지도 클릭 이벤트 방지)
+        // 짧은 시간만 유지하여 건물 클릭이 정상 작동하도록 함
         markerClickHandledRef.current = true;
         setTimeout(() => {
           markerClickHandledRef.current = false;
-        }, 100);
+        }, 60);
         
         e.stopPropagation();
         e.preventDefault();
