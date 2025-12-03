@@ -280,50 +280,168 @@ export function ProfileView({
 
   // 캐시 삭제
   const clearCache = async () => {
+    const errors: string[] = [];
+    
     try {
-      // Service Worker 캐시 삭제
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
-      }
-
-      // LocalStorage 캐시 관련 항목 삭제 (쿼리 캐시 등)
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('react-query') || key.startsWith('tanstack-query') || key.startsWith('cache'))) {
-          keysToRemove.push(key);
+      // 1. Service Worker 캐시 삭제
+      try {
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(async (name) => {
+              try {
+                await caches.delete(name);
+              } catch (err) {
+                console.warn(`Failed to delete cache: ${name}`, err);
+                errors.push(`Cache ${name} 삭제 실패`);
+              }
+            })
+          );
         }
+      } catch (error) {
+        console.error('Service Worker cache clear error:', error);
+        errors.push('Service Worker 캐시 삭제 실패');
       }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
 
-      // QueryClient 캐시 무효화
-      await queryClient.clear();
+      // 2. LocalStorage 캐시 관련 항목 삭제 (쿼리 캐시 등)
+      try {
+        const keysToRemove: string[] = [];
+        // localStorage.length는 변경될 수 있으므로 먼저 모든 키를 수집
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('react-query') || key.startsWith('tanstack-query') || key.startsWith('cache'))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+          } catch (err) {
+            console.warn(`Failed to remove localStorage key: ${key}`, err);
+            errors.push(`LocalStorage ${key} 삭제 실패`);
+          }
+        });
+      } catch (error) {
+        console.error('LocalStorage clear error:', error);
+        errors.push('LocalStorage 캐시 삭제 실패');
+      }
 
-      // 저장공간 사용량 재계산
-      await calculateStorageUsage();
+      // 3. SessionStorage 캐시 관련 항목 삭제
+      try {
+        const sessionKeysToRemove: string[] = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && (key.startsWith('react-query') || key.startsWith('tanstack-query') || key.startsWith('cache'))) {
+            sessionKeysToRemove.push(key);
+          }
+        }
+        sessionKeysToRemove.forEach(key => {
+          try {
+            sessionStorage.removeItem(key);
+          } catch (err) {
+            console.warn(`Failed to remove sessionStorage key: ${key}`, err);
+            errors.push(`SessionStorage ${key} 삭제 실패`);
+          }
+        });
+      } catch (error) {
+        console.error('SessionStorage clear error:', error);
+        errors.push('SessionStorage 캐시 삭제 실패');
+      }
 
-      toast({
-        title: language === 'ko' ? '캐시 삭제 완료' : language === 'en' ? 'Cache Cleared' : language === 'zh' ? '缓存已清除' : 'キャッシュをクリアしました',
-        description: language === 'ko' 
-          ? '캐시가 성공적으로 삭제되었습니다.'
-          : language === 'en'
-          ? 'Cache has been successfully cleared.'
-          : language === 'zh'
-          ? '缓存已成功清除。'
-          : 'キャッシュが正常にクリアされました。',
-      });
+      // 4. IndexedDB 삭제 (데이터베이스 목록 가져오기)
+      try {
+        if ('indexedDB' in window) {
+          // databases() 메서드가 지원되는 경우
+          if ('databases' in indexedDB && typeof indexedDB.databases === 'function') {
+            try {
+              const databases = await indexedDB.databases();
+              await Promise.all(
+                databases.map(async (db) => {
+                  if (db.name) {
+                    try {
+                      const deleteReq = indexedDB.deleteDatabase(db.name);
+                      await new Promise<void>((resolve, reject) => {
+                        deleteReq.onsuccess = () => resolve();
+                        deleteReq.onerror = () => reject(deleteReq.error);
+                        deleteReq.onblocked = () => {
+                          console.warn(`Database ${db.name} is blocked`);
+                          resolve(); // 블로킹은 에러로 처리하지 않음
+                        };
+                      });
+                    } catch (err) {
+                      console.warn(`Failed to delete IndexedDB: ${db.name}`, err);
+                      errors.push(`IndexedDB ${db.name} 삭제 실패`);
+                    }
+                  }
+                })
+              );
+            } catch (dbListError) {
+              console.warn('Failed to get IndexedDB databases list:', dbListError);
+              // databases()가 실패해도 계속 진행 (일부 브라우저에서 지원되지 않을 수 있음)
+            }
+          } else {
+            // databases() 메서드가 지원되지 않는 경우, 알려진 데이터베이스 이름들을 시도
+            // 주의: 이 방법은 모든 데이터베이스를 삭제하지 못할 수 있음
+            console.warn('indexedDB.databases() is not supported in this browser');
+          }
+        }
+      } catch (error) {
+        console.error('IndexedDB clear error:', error);
+        // IndexedDB 삭제 실패는 치명적이지 않으므로 에러 목록에 추가하지 않음
+      }
+
+      // 5. QueryClient 캐시 무효화
+      try {
+        queryClient.clear();
+      } catch (error) {
+        console.error('QueryClient clear error:', error);
+        errors.push('QueryClient 캐시 삭제 실패');
+      }
+
+      // 6. 저장공간 사용량 재계산 (에러가 있어도 시도)
+      try {
+        await calculateStorageUsage();
+      } catch (error) {
+        console.error('Storage usage calculation error:', error);
+        // 재계산 실패는 치명적이지 않으므로 에러 목록에 추가하지 않음
+      }
+
+      // 결과 메시지 표시
+      if (errors.length > 0) {
+        toast({
+          title: language === 'ko' ? '캐시 삭제 부분 완료' : language === 'en' ? 'Cache Partially Cleared' : language === 'zh' ? '缓存部分清除' : 'キャッシュ一部クリア',
+          description: language === 'ko'
+            ? `캐시가 대부분 삭제되었습니다. 일부 항목 삭제에 실패했습니다: ${errors.slice(0, 3).join(', ')}`
+            : language === 'en'
+            ? `Cache mostly cleared. Some items failed: ${errors.slice(0, 3).join(', ')}`
+            : language === 'zh'
+            ? `缓存大部分已清除。部分项目失败：${errors.slice(0, 3).join(', ')}`
+            : `キャッシュは大部分クリアされました。一部の項目が失敗しました：${errors.slice(0, 3).join(', ')}`,
+          variant: 'default',
+        });
+      } else {
+        toast({
+          title: language === 'ko' ? '캐시 삭제 완료' : language === 'en' ? 'Cache Cleared' : language === 'zh' ? '缓存已清除' : 'キャッシュをクリアしました',
+          description: language === 'ko' 
+            ? '캐시가 성공적으로 삭제되었습니다.'
+            : language === 'en'
+            ? 'Cache has been successfully cleared.'
+            : language === 'zh'
+            ? '缓存已成功清除。'
+            : 'キャッシュが正常にクリアされました。',
+        });
+      }
     } catch (error) {
       console.error('Cache clear error:', error);
       toast({
         title: language === 'ko' ? '캐시 삭제 실패' : language === 'en' ? 'Cache Clear Failed' : language === 'zh' ? '缓存清除失败' : 'キャッシュクリアに失敗しました',
         description: language === 'ko'
-          ? '캐시 삭제 중 오류가 발생했습니다.'
+          ? `캐시 삭제 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
           : language === 'en'
-          ? 'An error occurred while clearing cache.'
+          ? `An error occurred while clearing cache: ${error instanceof Error ? error.message : 'Unknown error'}`
           : language === 'zh'
-          ? '清除缓存时发生错误。'
-          : 'キャッシュをクリア中にエラーが発生しました。',
+          ? `清除缓存时发生错误：${error instanceof Error ? error.message : '未知错误'}`
+          : `キャッシュをクリア中にエラーが発生しました：${error instanceof Error ? error.message : '不明なエラー'}`,
         variant: 'destructive',
       });
     }
@@ -785,41 +903,41 @@ export function ProfileView({
             
             {/* 포인트 및 프리미엄 구독 */}
             <div className="pt-4 sm:pt-6 border-t border-indigo-200/50">
-              <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-1.5 sm:gap-4">
                 {/* 포인트 표시 - 클릭 시 상점 열기 */}
                 <button
                   onClick={() => setIsStoreDialogOpen(true)}
-                  className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 p-2.5 sm:p-5 rounded-lg sm:rounded-2xl bg-gradient-to-br from-amber-50/50 to-orange-50/30 border border-amber-200/50 hover:shadow-md active:scale-[0.98] transition-all cursor-pointer group"
+                  className="flex items-center gap-1.5 sm:gap-4 flex-1 min-w-0 p-2 sm:p-5 rounded-lg sm:rounded-2xl bg-gradient-to-br from-amber-50/50 to-orange-50/30 border border-amber-200/50 hover:shadow-md active:scale-[0.98] transition-all cursor-pointer group"
                 >
-                  <div className="h-8 w-8 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform">
-                    <Sparkles className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                  <div className="h-7 w-7 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform">
+                    <Sparkles className="h-3.5 w-3.5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[10px] sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 font-medium leading-tight">
+                    <p className="text-[9px] sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 font-medium leading-tight whitespace-nowrap">
                       {language === 'ko' ? '보유 포인트' : language === 'en' ? 'Current Points' : language === 'zh' ? '当前积分' : '保有ポイント'}
                     </p>
-                    <p className="text-base sm:text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent leading-tight" data-testid="text-user-points">
+                    <p className="text-sm sm:text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent leading-tight whitespace-nowrap" data-testid="text-user-points">
                       {userPoints.toLocaleString()}
-                      <span className="text-[10px] sm:text-base text-muted-foreground ml-0.5 sm:ml-1">P</span>
+                      <span className="text-[9px] sm:text-base text-muted-foreground ml-0.5 sm:ml-1">P</span>
                     </p>
                   </div>
-                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform opacity-0 group-hover:opacity-100" />
+                  <ChevronRight className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:translate-x-1 transition-transform opacity-0 group-hover:opacity-100" />
                 </button>
                 
                 {/* 프리미엄 구독 버튼 */}
-                <button className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 p-2.5 sm:p-5 rounded-lg sm:rounded-2xl bg-gradient-to-br from-purple-50/50 to-pink-50/30 border border-purple-200/50 hover:shadow-md active:scale-[0.98] transition-all group">
-                  <div className="h-8 w-8 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform">
-                    <Gem className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                <button className="flex items-center gap-1.5 sm:gap-4 flex-1 min-w-0 p-2 sm:p-5 rounded-lg sm:rounded-2xl bg-gradient-to-br from-purple-50/50 to-pink-50/30 border border-purple-200/50 hover:shadow-md active:scale-[0.98] transition-all group">
+                  <div className="h-7 w-7 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform">
+                    <Gem className="h-3.5 w-3.5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 font-medium leading-tight truncate">
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-[9px] sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 font-medium leading-tight whitespace-nowrap">
                       {language === 'ko' ? '프리미엄 구독' : language === 'en' ? 'Premium Subscription' : language === 'zh' ? '高级订阅' : 'プレミアム購読'}
                     </p>
-                    <p className="text-xs sm:text-base font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight truncate">
+                    <p className="text-sm sm:text-2xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight whitespace-nowrap">
                       {language === 'ko' ? '구독하기' : language === 'en' ? 'Subscribe' : language === 'zh' ? '订阅' : '購読する'}
                     </p>
                   </div>
-                  <ChevronRight className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
+                  <ChevronRight className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-muted-foreground shrink-0 group-hover:text-purple-600 group-hover:translate-x-1 transition-all opacity-0 group-hover:opacity-100" />
                 </button>
               </div>
             </div>
