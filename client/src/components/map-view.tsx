@@ -640,6 +640,7 @@ function MapViewComponent({
   const isDraggingRef = useRef(false);
   const lastDragEndTimeRef = useRef<number>(0); // 드래그 종료 시간 추적
   const isMapInteractingRef = useRef(false); // 지도 조작 중 여부 (터치, 드래그, 핀치 줌 등)
+  const markerClickHandledRef = useRef(false); // 마커 클릭이 처리되었는지 여부
   
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
@@ -712,6 +713,12 @@ function MapViewComponent({
       // 지도 클릭 처리
       // 마커 클릭 이벤트가 먼저 처리되도록 약간의 지연
       setTimeout(() => {
+        // 마커 클릭이 처리되었으면 지도 클릭 무시
+        if (markerClickHandledRef.current) {
+          console.log('마커 클릭이 처리되었으므로 지도 클릭 무시');
+          return;
+        }
+        
         // 드래그 중이면 클릭 처리 중단
         if (isDraggingRef.current) {
           return;
@@ -958,8 +965,10 @@ function MapViewComponent({
       
       // 마커 클릭 핸들러
       const handleMarkerClick = (e: MouseEvent) => {
-        // 드래그인 경우 클릭 처리하지 않음 (로컬 드래그 상태 또는 지도 드래그 상태)
-        if (isDragging || isDraggingRef.current) {
+        // 마커 자체의 드래그 상태만 확인 (지도 드래그는 확인하지 않음)
+        // 지도 드래그가 끝난 직후에도 마커 클릭은 허용해야 함
+        if (isDragging) {
+          console.log('마커 드래그 중이므로 클릭 무시');
           return;
         }
         
@@ -969,6 +978,12 @@ function MapViewComponent({
           hasOnMarkerClick: !!onMarkerClick,
           hasOnClusterClick: !!onClusterClick
         });
+        
+        // 마커 클릭이 처리되었음을 표시 (지도 클릭 이벤트 방지)
+        markerClickHandledRef.current = true;
+        setTimeout(() => {
+          markerClickHandledRef.current = false;
+        }, 100);
         
         e.stopPropagation();
         e.preventDefault();
@@ -1086,13 +1101,7 @@ function MapViewComponent({
           isMapInteractingRef.current = false;
         }, 200);
         
-        // 지도 조작 중이면 마커 클릭 무시
-        if (isMapInteractingRef.current) {
-          console.log("지도 조작 중이므로 마커 클릭 무시");
-          isDragging = false;
-          return;
-        }
-        
+        // 마커 자체의 드래그 상태만 확인 (지도 조작 상태는 확인하지 않음)
         // 드래그가 아니고, 핀치 줌 후 쿨다운 시간이 지났으며, 단일 터치인 경우에만 클릭 처리
         const timeSincePinch = Date.now() - pinchEndTime;
         if (!isDragging && !isPinching && timeSincePinch > PINCH_COOLDOWN && event.changedTouches.length === 1) {
@@ -1106,13 +1115,7 @@ function MapViewComponent({
       };
       
       const clickHandler = (event: MouseEvent) => {
-        // 지도 조작 중이면 마커 클릭 무시
-        if (isMapInteractingRef.current) {
-          console.log("지도 조작 중이므로 마커 클릭 무시");
-          isDragging = false;
-          return;
-        }
-        
+        // 마커 자체의 드래그 상태만 확인 (지도 조작 상태는 확인하지 않음)
         // 드래그가 아닌 경우에만 클릭 처리
         if (!isDragging) {
           console.log('🖱️ 마커 클릭 이벤트 발생', event);
