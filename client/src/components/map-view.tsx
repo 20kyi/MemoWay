@@ -642,6 +642,7 @@ function MapViewComponent({
   const isMapInteractingRef = useRef(false); // 지도 조작 중 여부 (터치, 드래그, 핀치 줌 등)
   const markerClickHandledRef = useRef(false); // 마커 클릭이 처리되었는지 여부
   const isAutoMovingRef = useRef(false); // 자동 지도 이동 중 여부 (위치 고정 모드에서 자동 이동)
+  const userHasInteractedRef = useRef(false); // 사용자가 지도를 조작했는지 여부 (한 번 조작하면 위치 고정 모드를 다시 켜지 않는 한 자동 이동 안 함)
   
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
@@ -652,6 +653,9 @@ function MapViewComponent({
         return;
       }
       
+      // 사용자가 지도를 조작했음을 표시 (이후 자동 이동 차단)
+      userHasInteractedRef.current = true;
+      
       isDraggingRef.current = true; // 드래그 시작 플래그 설정
       isMapInteractingRef.current = true; // 지도 조작 중 플래그 설정
       if (isLocationLocked) {
@@ -660,15 +664,18 @@ function MapViewComponent({
     };
 
     const handleDragEnd = () => {
+      // 사용자가 지도를 조작했음을 표시
+      userHasInteractedRef.current = true;
+      
       // 드래그 종료 시간 기록 (모바일에서 더 긴 시간 동안 자동 이동 방지)
       lastDragEndTimeRef.current = Date.now();
       // 드래그 종료 후 약간의 지연을 두고 플래그 해제 (클릭 이벤트와 충돌 방지)
       setTimeout(() => {
         isDraggingRef.current = false;
-        // 지도 조작 플래그는 더 오래 유지 (5초 후 해제)
+        // 지도 조작 플래그는 더 오래 유지 (10초 후 해제 - 모바일 대응)
         setTimeout(() => {
           isMapInteractingRef.current = false;
-        }, 5000 - 150); // 총 5초 동안 유지
+        }, 10000 - 150); // 총 10초 동안 유지
       }, 150);
     };
 
@@ -677,6 +684,9 @@ function MapViewComponent({
       if (isAutoMovingRef.current) {
         return;
       }
+      
+      // 사용자가 지도를 조작했음을 표시
+      userHasInteractedRef.current = true;
       
       // 줌 시작 시간 기록
       lastDragEndTimeRef.current = Date.now();
@@ -687,6 +697,9 @@ function MapViewComponent({
     };
 
     const handleZoomChanged = () => {
+      // 사용자가 지도를 조작했음을 표시
+      userHasInteractedRef.current = true;
+      
       // 줌 변경 중에는 지도 조작 중으로 유지
       isMapInteractingRef.current = true;
       // 줌 종료 시간 기록
@@ -694,7 +707,7 @@ function MapViewComponent({
       // 줌 변경 종료 후 딜레이를 두고 플래그 해제 (모바일에서 더 긴 시간 동안 자동 이동 방지)
       setTimeout(() => {
         isMapInteractingRef.current = false;
-      }, 5000); // 5초 동안 유지
+      }, 10000); // 10초 동안 유지 (모바일 대응)
     };
 
     window.kakao.maps.event.addListener(map, 'dragstart', handleDragStart);
@@ -975,8 +988,9 @@ function MapViewComponent({
       contentDiv.style.userSelect = 'none';
       contentDiv.style.zIndex = '10000';
       contentDiv.style.position = 'relative';
-      // 모바일 터치 이벤트: 마커 클릭만 처리하고 드래그는 지도로 전파
-      contentDiv.style.touchAction = 'manipulation'; // 터치 드래그는 지도로 전파
+      // 모바일 터치 이벤트: 드래그/줌은 지도로 전파되도록 설정
+      // pan-x, pan-y, pinch-zoom을 허용하여 지도 드래그/줌이 정상 작동하도록 함
+      contentDiv.style.touchAction = 'pan-x pan-y pinch-zoom'; // 지도 드래그/줌 허용
       
       // 드래그와 클릭 구분을 위한 변수
       let isDragging = false;
@@ -1076,10 +1090,11 @@ function MapViewComponent({
           lastMoveTime = Date.now();
           isPinching = false;
         } else if (event.touches.length >= 2) {
-          // 멀티터치(핀치 줌 등) 감지
+          // 멀티터치(핀치 줌 등) 감지 - 지도로 전파되도록 stopPropagation 호출하지 않음
           isDragging = true;
           isPinching = true;
         }
+        // 이벤트를 지도로 전파하여 드래그/줌이 정상 작동하도록 함
       };
       
       const touchMoveHandler = (event: TouchEvent) => {
@@ -1098,13 +1113,14 @@ function MapViewComponent({
           const deltaY = Math.abs(event.touches[0].clientY - touchStartY);
           if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
             isDragging = true;
-            // 드래그 중이면 이벤트 전파하여 지도가 드래그되도록 함
-            event.stopPropagation();
+            // 드래그 중이면 이벤트를 지도로 전파하여 지도가 드래그되도록 함
+            // stopPropagation을 호출하지 않아 지도로 이벤트가 전파됨
           }
         } else if (event.touches.length >= 2) {
           // 멀티터치(핀치 줌) 감지
           isDragging = true;
           isPinching = true;
+          // 핀치 줌도 지도로 전파되도록 stopPropagation 호출하지 않음
         }
       };
       
@@ -1126,9 +1142,13 @@ function MapViewComponent({
         const timeSincePinch = Date.now() - pinchEndTime;
         if (!isDragging && !isPinching && timeSincePinch > PINCH_COOLDOWN && event.changedTouches.length === 1) {
           console.log('👆 마커 터치 클릭 이벤트 발생', event);
+          // 클릭 이벤트만 처리하고, 드래그/줌은 지도로 전파되도록 함
           event.stopPropagation();
           event.preventDefault();
           handleMarkerClick(event as any);
+        } else {
+          // 드래그/줌인 경우 이벤트를 지도로 전파 (stopPropagation 호출하지 않음)
+          // 지도가 드래그/줌을 처리할 수 있도록 함
         }
         // 리셋
         isDragging = false;
@@ -1163,7 +1183,7 @@ function MapViewComponent({
         // 최상위 div에도 스타일 설정
         topDiv.style.cursor = 'pointer';
         topDiv.style.pointerEvents = 'auto';
-        topDiv.style.touchAction = 'manipulation';
+        topDiv.style.touchAction = 'pan-x pan-y pinch-zoom'; // 지도 드래그/줌 허용
       }
       
       // contentDiv에도 이벤트 등록
@@ -1189,7 +1209,7 @@ function MapViewComponent({
         clickArea.addEventListener('touchend', touchEndHandler, { passive: false });
         clickArea.style.pointerEvents = 'auto';
         clickArea.style.cursor = 'pointer';
-        clickArea.style.touchAction = 'manipulation';
+        clickArea.style.touchAction = 'pan-x pan-y pinch-zoom'; // 지도 드래그/줌 허용
       }
       
       const customOverlay = new window.kakao.maps.CustomOverlay({
@@ -1197,7 +1217,7 @@ function MapViewComponent({
         content: contentDiv,
         yAnchor: 1,
         zIndex: 10000,
-        clickable: true,
+        clickable: false, // DOM 이벤트로만 클릭 처리 (지도 드래그/줌 방해 방지)
       });
       
       // 마커 객체 생성
@@ -1243,7 +1263,8 @@ function MapViewComponent({
     setMarkers(newMarkers);
     
     // 선택된 메모들만 표시할 때 bounds 조정 (메모 개수가 적을 때만)
-    if (filteredMemos.length > 0 && filteredMemos.length <= 100) {
+    // 사용자가 지도를 조작하지 않았을 때만 자동으로 bounds 조정
+    if (filteredMemos.length > 0 && filteredMemos.length <= 100 && !userHasInteractedRef.current) {
       try {
         const bounds = new window.kakao.maps.LatLngBounds();
         let hasValidBounds = false;
@@ -1260,10 +1281,17 @@ function MapViewComponent({
         
         if (hasValidBounds) {
           // 약간의 여백을 추가하기 위해 padding 설정
+          // 자동 이동 플래그 설정하여 드래그 이벤트로 인한 위치 고정 모드 해제 방지
+          isAutoMovingRef.current = true;
           map.setBounds(bounds, 50);
+          // 자동 이동 완료 후 플래그 해제
+          setTimeout(() => {
+            isAutoMovingRef.current = false;
+          }, 300);
         }
       } catch (error) {
         console.warn('Bounds 조정 실패:', error);
+        isAutoMovingRef.current = false;
       }
     }
     }, 100); // 100ms 디바운스
@@ -1324,14 +1352,22 @@ function MapViewComponent({
         
         // If location is locked, center map on user location
         // pendingLocation이 있으면 자동 위치 이동을 막음
-        // 드래그 중이거나 드래그/줌 종료 후 5초 이내일 때는 자동 위치 이동을 막음 (사용자가 지도를 이동 중일 때 방해하지 않음)
+        // 드래그 중이거나 드래그/줌 종료 후 10초 이내일 때는 자동 위치 이동을 막음 (사용자가 지도를 이동 중일 때 방해하지 않음)
         // 모바일에서는 터치 이벤트가 지연될 수 있으므로 더 긴 시간 필요
         const timeSinceDragEnd = Date.now() - lastDragEndTimeRef.current;
-        const isRecentlyDragged = timeSinceDragEnd < 5000; // 5초 이내 (모바일 대응)
+        const isRecentlyDragged = timeSinceDragEnd < 10000; // 10초 이내 (모바일 대응)
         
-        // 지도 조작 중이거나 자동 이동 중이면 위치 이동하지 않음
-        // 위치 고정 모드가 활성화되어 있고, 사용자가 지도를 조작하지 않을 때만 자동 이동
-        if (isLocationLocked && !pendingLocation && !isDraggingRef.current && !isRecentlyDragged && !isMapInteractingRef.current && !isAutoMovingRef.current) {
+        // 위치 고정 모드가 활성화되어 있고, 사용자가 지도를 조작하지 않았을 때만 자동 이동
+        // 사용자가 한 번이라도 지도를 조작했다면, 위치 고정 모드를 다시 켜지 않는 한 자동 이동하지 않음
+        const shouldAutoMove = isLocationLocked && 
+                               !pendingLocation && 
+                               !isDraggingRef.current && 
+                               !isRecentlyDragged && 
+                               !isMapInteractingRef.current && 
+                               !isAutoMovingRef.current &&
+                               !userHasInteractedRef.current; // 사용자가 조작하지 않았을 때만
+        
+        if (shouldAutoMove) {
           const latlng = new window.kakao.maps.LatLng(lat, lng);
           // 자동 이동 플래그 설정 (드래그 이벤트로 인한 위치 고정 모드 해제 방지)
           isAutoMovingRef.current = true;
@@ -1449,9 +1485,14 @@ function MapViewComponent({
   useEffect(() => {
     if (!map || !isLocationLocked || !currentUserLocation || pendingLocation) return;
     
+    // 사용자가 지도를 조작했다면 자동 이동하지 않음
+    if (userHasInteractedRef.current) {
+      return;
+    }
+    
     // 지도 조작 중이거나 최근에 드래그/줌한 경우 자동 이동하지 않음
     const timeSinceDragEnd = Date.now() - lastDragEndTimeRef.current;
-    const isRecentlyDragged = timeSinceDragEnd < 5000; // 5초 이내
+    const isRecentlyDragged = timeSinceDragEnd < 10000; // 10초 이내 (모바일 대응)
     
     if (isDraggingRef.current || isRecentlyDragged || isMapInteractingRef.current) {
       return; // 사용자가 지도를 조작 중이면 자동 이동하지 않음
@@ -1499,8 +1540,9 @@ function MapViewComponent({
           }
           // 위치 상태 업데이트
           setCurrentUserLocation({ lat, lng });
-          // 내 위치 버튼 클릭 시 위치 고정 모드 활성화
+          // 내 위치 버튼 클릭 시 위치 고정 모드 활성화 및 사용자 조작 플래그 리셋
           setIsLocationLocked(true);
+          userHasInteractedRef.current = false; // 자동 추적 재개
           // 부모 컴포넌트에 위치 알림
           if (onMyLocationClick) {
             onMyLocationClick({ lat, lng });
@@ -2204,6 +2246,11 @@ function MapViewComponent({
                   onClick={() => {
                     const newLockState = !isLocationLocked;
                     setIsLocationLocked(newLockState);
+                    
+                    // 위치 고정 모드를 활성화할 때 사용자 조작 플래그 리셋 (자동 추적 재개)
+                    if (newLockState) {
+                      userHasInteractedRef.current = false;
+                    }
                     
                     // 위치 고정을 활성화할 때, 현재 위치로 지도 이동 및 적절한 줌 레벨 설정
                     if (newLockState && map) {
