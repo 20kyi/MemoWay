@@ -597,6 +597,7 @@ export default function Home() {
                   onAddNewMemo={handleAddNewMemo}
                   selectedMemoIdsForMap={selectedMemoIdsForMap}
                   onSaveMap={handleSaveMapClick}
+                  isActive={activeTab === "map"}
                 />
               ) : (
                 <GoogleMapView
@@ -620,6 +621,7 @@ export default function Home() {
                   onAddNewMemo={handleAddNewMemo}
                   selectedMemoIdsForMap={selectedMemoIdsForMap}
                   onSaveMap={handleSaveMapClick}
+                  isActive={activeTab === "map"}
                 />
               )}
           </div>

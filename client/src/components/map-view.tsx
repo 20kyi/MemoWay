@@ -49,6 +49,7 @@ interface MapViewProps {
   onAddNewMemo?: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
   selectedMemoIdsForMap?: Set<string> | null;
   onSaveMap?: () => void;
+  isActive?: boolean; // 지도 탭이 활성화되어 있는지 여부
 }
 
 const PERSONAL_MEMO_COLOR = '#9333ea';
@@ -391,6 +392,7 @@ function MapViewComponent({
   onAddNewMemo,
   selectedMemoIdsForMap = null,
   onSaveMap,
+  isActive = true, // 기본값은 true (항상 활성화된 것으로 간주)
 }: MapViewProps) {
   const { t } = useLanguage();
   const { layoutTheme } = useLayoutTheme();
@@ -643,6 +645,66 @@ function MapViewComponent({
   const markerClickHandledRef = useRef(false); // 마커 클릭이 처리되었는지 여부
   const isAutoMovingRef = useRef(false); // 자동 지도 이동 중 여부 (위치 고정 모드에서 자동 이동)
   const userHasInteractedRef = useRef(false); // 사용자가 지도를 조작했는지 여부 (한 번 조작하면 위치 고정 모드를 다시 켜지 않는 한 자동 이동 안 함)
+  const lastActiveStateRef = useRef<boolean | null>(null); // 이전 활성화 상태 추적
+  
+  // 지도 탭이 활성화될 때 내 위치로 이동
+  useEffect(() => {
+    // 지도 탭이 비활성화에서 활성화로 변경되었을 때만 실행
+    if (isActive && lastActiveStateRef.current === false && map && !pendingLocation) {
+      // 사용자가 지도를 조작하지 않았을 때만 내 위치로 이동
+      if (!userHasInteractedRef.current && currentUserLocation) {
+        const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
+        isAutoMovingRef.current = true;
+        try {
+          map.setCenter(latlng);
+          map.setLevel(3);
+          // 위치 고정 모드 활성화
+          setIsLocationLocked(true);
+          userHasInteractedRef.current = false; // 자동 추적 재개
+        } catch (error) {
+          console.warn('지도 탭 활성화 시 내 위치 이동 실패:', error);
+        }
+        setTimeout(() => {
+          isAutoMovingRef.current = false;
+        }, 300);
+      } else if (!userHasInteractedRef.current && navigator.geolocation) {
+        // currentUserLocation이 없으면 현재 위치 가져오기
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const latlng = new window.kakao.maps.LatLng(lat, lng);
+            isAutoMovingRef.current = true;
+            try {
+              map.setCenter(latlng);
+              map.setLevel(3);
+              setCurrentUserLocation({ lat, lng });
+              setIsLocationLocked(true);
+              userHasInteractedRef.current = false; // 자동 추적 재개
+              if (onMyLocationClick) {
+                onMyLocationClick({ lat, lng });
+              }
+            } catch (error) {
+              console.warn('지도 탭 활성화 시 내 위치 이동 실패:', error);
+            }
+            setTimeout(() => {
+              isAutoMovingRef.current = false;
+            }, 300);
+          },
+          (error) => {
+            console.warn('지도 탭 활성화 시 위치 가져오기 실패:', error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          }
+        );
+      }
+    }
+    // 활성화 상태 업데이트
+    lastActiveStateRef.current = isActive;
+  }, [isActive, map, currentUserLocation, pendingLocation, onMyLocationClick]);
   
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
@@ -1262,38 +1324,8 @@ function MapViewComponent({
 
     setMarkers(newMarkers);
     
-    // 선택된 메모들만 표시할 때 bounds 조정 (메모 개수가 적을 때만)
-    // 사용자가 지도를 조작하지 않았을 때만 자동으로 bounds 조정
-    if (filteredMemos.length > 0 && filteredMemos.length <= 100 && !userHasInteractedRef.current) {
-      try {
-        const bounds = new window.kakao.maps.LatLngBounds();
-        let hasValidBounds = false;
-        
-        filteredMemos.forEach(memo => {
-          if (typeof memo.latitude === 'number' && typeof memo.longitude === 'number' &&
-              !isNaN(memo.latitude) && !isNaN(memo.longitude) &&
-              isFinite(memo.latitude) && isFinite(memo.longitude)) {
-            const position = new window.kakao.maps.LatLng(memo.latitude, memo.longitude);
-            bounds.extend(position);
-            hasValidBounds = true;
-          }
-        });
-        
-        if (hasValidBounds) {
-          // 약간의 여백을 추가하기 위해 padding 설정
-          // 자동 이동 플래그 설정하여 드래그 이벤트로 인한 위치 고정 모드 해제 방지
-          isAutoMovingRef.current = true;
-          map.setBounds(bounds, 50);
-          // 자동 이동 완료 후 플래그 해제
-          setTimeout(() => {
-            isAutoMovingRef.current = false;
-          }, 300);
-        }
-      } catch (error) {
-        console.warn('Bounds 조정 실패:', error);
-        isAutoMovingRef.current = false;
-      }
-    }
+    // 마커 생성 후 bounds 조정 제거 - 사용자가 지도를 조작할 수 있도록 함
+    // 지도 탭이 활성화될 때는 내 위치로 이동하도록 별도 처리
     }, 100); // 100ms 디바운스
 
     return () => {
