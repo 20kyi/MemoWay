@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -153,6 +153,7 @@ export function MemoFormSheet({
   const { t } = useLanguage();
   const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
   const [deletedPhotoIds, setDeletedPhotoIds] = useState<string[]>([]);
+  const buildingNameInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -213,6 +214,22 @@ export function MemoFormSheet({
       setIsFormInitialized(false);
     }
   }, [open, isFormInitialized, initialData, form]);
+
+  // 모바일에서 새 메모 창이 열릴 때 건물명 입력 필드에 자동 포커스
+  useEffect(() => {
+    if (open && !editMode) {
+      // Sheet가 완전히 열린 후 포커스 설정 (모바일에서 딜레이 필요)
+      const focusTimer = setTimeout(() => {
+        if (buildingNameInputRef.current) {
+          buildingNameInputRef.current.focus();
+          // 모바일에서 키보드가 올라오도록 스크롤
+          buildingNameInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300); // Sheet 애니메이션 완료 후 포커스
+
+      return () => clearTimeout(focusTimer);
+    }
+  }, [open, editMode]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -314,7 +331,17 @@ export function MemoFormSheet({
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700 dark:text-white">{t.memoForm.buildingName}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t.memoForm.buildingNamePlaceholder} className="text-sm h-11 border-indigo-200 focus:border-sky-500 focus:ring-sky-500" data-testid="input-building-name" />
+                      <Input 
+                        {...field} 
+                        ref={(e) => {
+                          field.ref(e);
+                          buildingNameInputRef.current = e;
+                        }}
+                        placeholder={t.memoForm.buildingNamePlaceholder} 
+                        className="text-sm h-11 border-indigo-200 focus:border-sky-500 focus:ring-sky-500" 
+                        data-testid="input-building-name"
+                        autoFocus={!editMode}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

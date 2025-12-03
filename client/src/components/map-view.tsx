@@ -641,11 +641,17 @@ function MapViewComponent({
   const lastDragEndTimeRef = useRef<number>(0); // 드래그 종료 시간 추적
   const isMapInteractingRef = useRef(false); // 지도 조작 중 여부 (터치, 드래그, 핀치 줌 등)
   const markerClickHandledRef = useRef(false); // 마커 클릭이 처리되었는지 여부
+  const isAutoMovingRef = useRef(false); // 자동 지도 이동 중 여부 (위치 고정 모드에서 자동 이동)
   
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;
 
     const handleDragStart = () => {
+      // 자동 이동 중이면 사용자 조작이 아니므로 위치 고정 모드를 유지
+      if (isAutoMovingRef.current) {
+        return;
+      }
+      
       isDraggingRef.current = true; // 드래그 시작 플래그 설정
       isMapInteractingRef.current = true; // 지도 조작 중 플래그 설정
       if (isLocationLocked) {
@@ -654,16 +660,26 @@ function MapViewComponent({
     };
 
     const handleDragEnd = () => {
-      // 드래그 종료 시간 기록
+      // 드래그 종료 시간 기록 (모바일에서 더 긴 시간 동안 자동 이동 방지)
       lastDragEndTimeRef.current = Date.now();
       // 드래그 종료 후 약간의 지연을 두고 플래그 해제 (클릭 이벤트와 충돌 방지)
       setTimeout(() => {
         isDraggingRef.current = false;
-        isMapInteractingRef.current = false;
+        // 지도 조작 플래그는 더 오래 유지 (5초 후 해제)
+        setTimeout(() => {
+          isMapInteractingRef.current = false;
+        }, 5000 - 150); // 총 5초 동안 유지
       }, 150);
     };
 
     const handleZoomStart = () => {
+      // 자동 이동 중이면 사용자 조작이 아니므로 위치 고정 모드를 유지
+      if (isAutoMovingRef.current) {
+        return;
+      }
+      
+      // 줌 시작 시간 기록
+      lastDragEndTimeRef.current = Date.now();
       isMapInteractingRef.current = true; // 지도 조작 중 플래그 설정
       if (isLocationLocked) {
         setIsLocationLocked(false);
@@ -673,10 +689,12 @@ function MapViewComponent({
     const handleZoomChanged = () => {
       // 줌 변경 중에는 지도 조작 중으로 유지
       isMapInteractingRef.current = true;
-      // 줌 변경 종료 후 딜레이를 두고 플래그 해제
+      // 줌 종료 시간 기록
+      lastDragEndTimeRef.current = Date.now();
+      // 줌 변경 종료 후 딜레이를 두고 플래그 해제 (모바일에서 더 긴 시간 동안 자동 이동 방지)
       setTimeout(() => {
         isMapInteractingRef.current = false;
-      }, 200);
+      }, 5000); // 5초 동안 유지
     };
 
     window.kakao.maps.event.addListener(map, 'dragstart', handleDragStart);
@@ -1306,13 +1324,35 @@ function MapViewComponent({
         
         // If location is locked, center map on user location
         // pendingLocation이 있으면 자동 위치 이동을 막음
-        // 드래그 중이거나 드래그 종료 후 2초 이내일 때는 자동 위치 이동을 막음 (사용자가 지도를 이동 중일 때 방해하지 않음)
+        // 드래그 중이거나 드래그/줌 종료 후 5초 이내일 때는 자동 위치 이동을 막음 (사용자가 지도를 이동 중일 때 방해하지 않음)
+        // 모바일에서는 터치 이벤트가 지연될 수 있으므로 더 긴 시간 필요
         const timeSinceDragEnd = Date.now() - lastDragEndTimeRef.current;
-        const isRecentlyDragged = timeSinceDragEnd < 2000; // 2초 이내
+        const isRecentlyDragged = timeSinceDragEnd < 5000; // 5초 이내 (모바일 대응)
         
-        if (isLocationLocked && !pendingLocation && !isDraggingRef.current && !isRecentlyDragged) {
+        // 지도 조작 중이거나 자동 이동 중이면 위치 이동하지 않음
+        // 위치 고정 모드가 활성화되어 있고, 사용자가 지도를 조작하지 않을 때만 자동 이동
+        if (isLocationLocked && !pendingLocation && !isDraggingRef.current && !isRecentlyDragged && !isMapInteractingRef.current && !isAutoMovingRef.current) {
           const latlng = new window.kakao.maps.LatLng(lat, lng);
-          map.panTo(latlng); // Smooth pan to location
+          // 자동 이동 플래그 설정 (드래그 이벤트로 인한 위치 고정 모드 해제 방지)
+          isAutoMovingRef.current = true;
+          
+          // 모바일에서 더 확실하게 작동하도록 setCenter 사용 (panTo 대신)
+          try {
+            map.setCenter(latlng);
+          } catch (error) {
+            console.warn('지도 중심 이동 실패, panTo 시도:', error);
+            // setCenter가 실패하면 panTo 시도
+            try {
+              map.panTo(latlng);
+            } catch (panError) {
+              console.error('지도 이동 완전 실패:', panError);
+            }
+          }
+          
+          // 자동 이동 완료 후 플래그 해제 (짧은 딜레이로 드래그 이벤트와 구분)
+          setTimeout(() => {
+            isAutoMovingRef.current = false;
+          }, 300);
         }
         
         // Notify parent component (위치가 실제로 변경되었을 때만)
@@ -1321,15 +1361,24 @@ function MapViewComponent({
         }
       },
       (error) => {
-        console.log("실시간 위치 추적 오류:", error);
+        console.error("실시간 위치 추적 오류:", error);
+        // 모바일에서 위치 권한이 거부되었거나 오류가 발생한 경우 처리
+        if (error.code === error.PERMISSION_DENIED) {
+          console.warn("위치 권한이 거부되었습니다.");
+          setIsLocationLocked(false);
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          console.warn("위치 정보를 사용할 수 없습니다.");
+        } else if (error.code === error.TIMEOUT) {
+          console.warn("위치 정보 요청 시간 초과.");
+        }
       },
       {
         // 위치 고정 모드일 때만 고정밀도 사용 (배터리 절약)
         enableHighAccuracy: isLocationLocked,
-        // 타임아웃 증가로 재시도 빈도 감소
-        timeout: isLocationLocked ? 15000 : 10000,
-        // 캐시된 위치 정보 활용 (5초 이내 캐시 허용)
-        maximumAge: 5000,
+        // 타임아웃 증가로 재시도 빈도 감소 (모바일에서 더 긴 타임아웃)
+        timeout: isLocationLocked ? 20000 : 15000,
+        // 캐시된 위치 정보 활용 (위치 고정 모드일 때는 최신 위치 사용)
+        maximumAge: isLocationLocked ? 0 : 5000,
       }
     );
 
@@ -1396,8 +1445,45 @@ function MapViewComponent({
     };
   }, [map, currentUserLocation, isLocationLocked]);
 
+  // 위치 고정 모드가 활성화될 때 현재 위치로 지도 이동
+  useEffect(() => {
+    if (!map || !isLocationLocked || !currentUserLocation || pendingLocation) return;
+    
+    // 지도 조작 중이거나 최근에 드래그/줌한 경우 자동 이동하지 않음
+    const timeSinceDragEnd = Date.now() - lastDragEndTimeRef.current;
+    const isRecentlyDragged = timeSinceDragEnd < 5000; // 5초 이내
+    
+    if (isDraggingRef.current || isRecentlyDragged || isMapInteractingRef.current) {
+      return; // 사용자가 지도를 조작 중이면 자동 이동하지 않음
+    }
+    
+    // 자동 이동 플래그 설정 (드래그 이벤트로 인한 위치 고정 모드 해제 방지)
+    isAutoMovingRef.current = true;
+    
+    // 위치 고정 모드가 활성화되고 현재 위치가 있을 때 지도를 이동
+    const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
+    try {
+      map.setCenter(latlng);
+    } catch (error) {
+      console.warn('위치 고정 모드 활성화 시 지도 이동 실패, panTo 시도:', error);
+      try {
+        map.panTo(latlng);
+      } catch (panError) {
+        console.error('지도 이동 완전 실패:', panError);
+      }
+    }
+    
+    // 자동 이동 완료 후 플래그 해제
+    setTimeout(() => {
+      isAutoMovingRef.current = false;
+    }, 300);
+  }, [map, isLocationLocked, currentUserLocation, pendingLocation]);
+
   const handleMyLocation = () => {
     if (navigator.geolocation && map) {
+      // 자동 이동 플래그 설정 (드래그 이벤트로 인한 위치 고정 모드 해제 방지)
+      isAutoMovingRef.current = true;
+      
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
@@ -1405,17 +1491,39 @@ function MapViewComponent({
           const latlng = new window.kakao.maps.LatLng(lat, lng);
           // 적당한 줌 레벨로 설정 (레벨 3: 시/도 단위, 레벨 4: 시/군/구 단위)
           map.setLevel(3);
-          map.setCenter(latlng);
+          try {
+            map.setCenter(latlng);
+          } catch (error) {
+            console.warn('setCenter 실패, panTo 시도:', error);
+            map.panTo(latlng);
+          }
+          // 위치 상태 업데이트
+          setCurrentUserLocation({ lat, lng });
           // 내 위치 버튼 클릭 시 위치 고정 모드 활성화
           setIsLocationLocked(true);
+          // 부모 컴포넌트에 위치 알림
+          if (onMyLocationClick) {
+            onMyLocationClick({ lat, lng });
+          }
+          // 자동 이동 완료 후 플래그 해제
+          setTimeout(() => {
+            isAutoMovingRef.current = false;
+          }, 300);
         },
         (error) => {
-          console.log("현재 위치 가져오기 오류:", error);
+          console.error("현재 위치 가져오기 오류:", error);
+          // 에러 발생 시에도 플래그 해제
+          isAutoMovingRef.current = false;
+          toast({
+            title: t.toast.locationError || "위치 오류",
+            description: t.toast.locationErrorDesc || "위치 정보를 가져올 수 없습니다.",
+            variant: "destructive",
+          });
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 30000, // 30초 이내 캐시 허용
+          timeout: 15000, // 모바일에서 더 긴 타임아웃
+          maximumAge: 0, // 캐시 사용 안 함 (최신 위치 사용)
         }
       );
     }
@@ -2098,11 +2206,64 @@ function MapViewComponent({
                     setIsLocationLocked(newLockState);
                     
                     // 위치 고정을 활성화할 때, 현재 위치로 지도 이동 및 적절한 줌 레벨 설정
-                    if (newLockState && map && currentUserLocation) {
-                      const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
-                      // 적당한 줌 레벨로 설정 (레벨 3: 시/도 단위, 레벨 4: 시/군/구 단위)
-                      map.setLevel(3);
-                      map.panTo(latlng);
+                    if (newLockState && map) {
+                      // 자동 이동 플래그 설정 (드래그 이벤트로 인한 위치 고정 모드 해제 방지)
+                      isAutoMovingRef.current = true;
+                      
+                      // currentUserLocation이 있으면 사용, 없으면 geolocation으로 가져오기
+                      if (currentUserLocation) {
+                        const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
+                        // 적당한 줌 레벨로 설정 (레벨 3: 시/도 단위, 레벨 4: 시/군/구 단위)
+                        map.setLevel(3);
+                        try {
+                          map.setCenter(latlng);
+                        } catch (error) {
+                          console.warn('지도 중심 이동 실패, panTo 시도:', error);
+                          map.panTo(latlng);
+                        }
+                        // 자동 이동 완료 후 플래그 해제
+                        setTimeout(() => {
+                          isAutoMovingRef.current = false;
+                        }, 300);
+                      } else if (navigator.geolocation) {
+                        // currentUserLocation이 없으면 현재 위치 가져오기
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            const latlng = new window.kakao.maps.LatLng(lat, lng);
+                            map.setLevel(3);
+                            try {
+                              map.setCenter(latlng);
+                            } catch (error) {
+                              console.warn('지도 중심 이동 실패, panTo 시도:', error);
+                              map.panTo(latlng);
+                            }
+                            // 위치 상태 업데이트
+                            setCurrentUserLocation({ lat, lng });
+                            if (onMyLocationClick) {
+                              onMyLocationClick({ lat, lng });
+                            }
+                            // 자동 이동 완료 후 플래그 해제
+                            setTimeout(() => {
+                              isAutoMovingRef.current = false;
+                            }, 300);
+                          },
+                          (error) => {
+                            console.error('위치 가져오기 실패:', error);
+                            // 에러 발생 시에도 플래그 해제
+                            isAutoMovingRef.current = false;
+                          },
+                          {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0,
+                          }
+                        );
+                      } else {
+                        // geolocation이 없으면 플래그 해제
+                        isAutoMovingRef.current = false;
+                      }
                     }
                     
                     toast({
