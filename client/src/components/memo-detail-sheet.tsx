@@ -220,7 +220,7 @@ export function MemoDetailSheet({
             {/* 하단 고정 영역 - 액션 버튼들 */}
             {(onAddNewMemo || onEdit || onDelete) && (
               <div className="mt-auto flex-shrink-0 px-4 sm:px-5 py-4 border-t border-indigo-200/50 bg-gradient-to-br from-indigo-50/30 to-white">
-                <div className="flex flex-wrap gap-2 sm:gap-3">
+                <div className="flex flex-nowrap gap-1.5 sm:gap-3">
                   {onAddNewMemo && (
                     <Button
                       size="lg"
@@ -233,11 +233,12 @@ export function MemoDetailSheet({
                         });
                         onOpenChange(false);
                       }}
-                      className="h-11 sm:h-12 text-sm sm:text-base font-medium bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 flex-1 sm:flex-initial shadow-sm hover:shadow-md transition-all"
+                      className="h-11 sm:h-12 text-xs sm:text-base font-medium bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
                       data-testid="button-add-memo"
                     >
-                      <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      {t.memoDetail.addMemoHere}
+                      <Plus className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                      <span className="whitespace-nowrap hidden sm:inline">{t.memoDetail.addMemoHere}</span>
+                      <span className="whitespace-nowrap sm:hidden">추가</span>
                     </Button>
                   )}
                   {onEdit && (
@@ -248,11 +249,11 @@ export function MemoDetailSheet({
                         onEdit(memo.id);
                         onOpenChange(false);
                       }}
-                      className="h-11 sm:h-12 text-sm sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 flex-1 sm:flex-initial shadow-sm hover:shadow-md transition-all"
+                      className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
                       data-testid="button-edit-memo"
                     >
-                      <Edit className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      {t.common.edit}
+                      <Edit className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                      <span className="whitespace-nowrap">{t.common.edit}</span>
                     </Button>
                   )}
                   {onDelete && (
@@ -265,11 +266,11 @@ export function MemoDetailSheet({
                           onOpenChange(false);
                         }
                       }}
-                      className="h-11 sm:h-12 text-sm sm:text-base font-medium bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 flex-1 sm:flex-initial shadow-sm hover:shadow-md transition-all"
+                      className="h-11 sm:h-12 text-xs sm:text-base font-medium bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
                       data-testid="button-delete-memo"
                     >
-                      <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      {t.common.delete}
+                      <Trash2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                      <span className="whitespace-nowrap">{t.common.delete}</span>
                     </Button>
                   )}
                 </div>
