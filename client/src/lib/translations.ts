@@ -70,6 +70,7 @@ export const translations = {
       groupShare: "그룹 공유 (선택 안 하면 개인 메모)",
       selectGroup: "그룹 선택",
       groupsSelected: "{count}개 그룹 선택됨",
+      personalMemoPreparing: "개인 메모 준비 중...",
     },
     // Memo Detail
     memoDetail: {
@@ -418,6 +419,7 @@ export const translations = {
       groupShare: "Share with Group (Leave blank for personal memo)",
       selectGroup: "Select Group",
       groupsSelected: "{count} groups selected",
+      personalMemoPreparing: "Preparing personal memo...",
     },
     // Memo Detail
     memoDetail: {
@@ -766,6 +768,7 @@ export const translations = {
       groupShare: "与群组分享（不选则为个人备忘录）",
       selectGroup: "选择群组",
       groupsSelected: "已选择 {count} 个群组",
+      personalMemoPreparing: "正在准备个人备忘录...",
     },
     // Memo Detail
     memoDetail: {
@@ -1114,6 +1117,7 @@ export const translations = {
       groupShare: "グループと共有（選択しない場合は個人メモ）",
       selectGroup: "グループを選択",
       groupsSelected: "{count}個のグループが選択されました",
+      personalMemoPreparing: "個人メモを準備中...",
     },
     // Memo Detail
     memoDetail: {
@@ -1459,6 +1463,7 @@ type Translation = {
     groupShare: string;
     selectGroup: string;
     groupsSelected: string;
+    personalMemoPreparing: string;
   };
   memoDetail: {
     photos: string;

@@ -595,7 +595,7 @@ export function MemoFormSheet({
                                     ? field.value.length === 1
                                       ? groups.find(g => g.id === field.value[0])?.name || t.memoForm.selectGroup
                                       : t.memoForm.groupsSelected.replace('{count}', field.value.length.toString())
-                                    : "개인 메모"}
+                                    : t.common.personalMemo}
                                 </span>
                                 {field.value && field.value.length > 0 && (
                                   <Badge variant="secondary" className="px-1.5 h-5 text-xs flex-shrink-0">
@@ -630,7 +630,7 @@ export function MemoFormSheet({
                                   data-testid="checkbox-personal-memo"
                                 />
                                 <label className="flex-1 text-sm font-normal cursor-pointer font-medium">
-                                  개인 메모
+                                  {t.common.personalMemo}
                                 </label>
                               </div>
                               {/* 그룹 메모 옵션들 */}
@@ -677,7 +677,7 @@ export function MemoFormSheet({
 
               {!isPersonalMemberReady && !currentMemberId && (
                 <div className="p-2 sm:p-2.5 bg-muted rounded-lg">
-                  <p className="text-xs sm:text-sm text-muted-foreground">개인 메모 준비 중...</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{t.memoForm.personalMemoPreparing}</p>
                 </div>
               )}
             </div>
