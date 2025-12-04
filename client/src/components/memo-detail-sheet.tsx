@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus } from "lucide-react";
+import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus, ArrowLeft } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -47,7 +47,7 @@ export function MemoDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="min-h-[50vh] max-h-[90vh] h-auto rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col [&>button]:cursor-default bg-gradient-to-br from-blue-50/30 to-white">
+      <SheetContent side="bottom" className="min-h-[50vh] max-h-[90vh] h-auto rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col bg-gradient-to-br from-blue-50/30 to-white">
         <TooltipProvider delayDuration={300}>
           <div className="flex flex-col h-full min-h-[50vh] relative w-full">
             {/* 드래그 핸들 */}
@@ -57,6 +57,15 @@ export function MemoDetailSheet({
             <div className="px-4 sm:px-5 pt-2 pb-4 flex-shrink-0">
               <SheetHeader className="pr-12 sm:pr-14">
                 <div className="flex items-center gap-2 mb-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onOpenChange(false)}
+                    className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 text-sky-600 dark:text-sky-500 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/20 -ml-2"
+                    data-testid="button-back-memo-detail"
+                  >
+                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:w-5" />
+                  </Button>
                   <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-sky-600 dark:text-sky-500 truncate flex-1" data-testid="text-memo-title">
                     {memo.buildingName}
                   </SheetTitle>
