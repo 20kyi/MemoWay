@@ -231,3 +231,4 @@ if (Capacitor.getPlatform() === 'android') {
 
 
 
+

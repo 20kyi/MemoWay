@@ -1942,67 +1942,67 @@ function MapViewComponent({
         <>
           {/* 검색 결과 사이드바 (카카오맵 스타일) */}
           <Sheet open={isSearchSidebarOpen} onOpenChange={setIsSearchSidebarOpen}>
-            <SheetContent side="left" className="w-full sm:w-96 p-0 overflow-hidden">
-              <SheetHeader className="px-6 pt-6 pb-4 border-b">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <SheetTitle className="text-lg font-semibold">
-                      {currentSearchQuery ? `"${currentSearchQuery}" 검색 결과` : '검색 결과'}
+            <SheetContent side="left" className="w-[70%] sm:w-64 p-0 overflow-hidden">
+              <SheetHeader className="px-3 pt-4 pb-3 border-b">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <SheetTitle className="text-sm font-semibold truncate">
+                      {currentSearchQuery ? `"${currentSearchQuery}"` : '검색 결과'}
                     </SheetTitle>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      장소 {searchResults.length}개
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {searchResults.length}개
                     </div>
                   </div>
                   <Button
                     size="icon"
-                    className="h-8 w-8 bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md transition-all"
+                    className="h-7 w-7 flex-shrink-0 bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md transition-all"
                     onClick={handleClearSearch}
                     title="검색 취소"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </SheetHeader>
               <ScrollArea className="h-[calc(100vh-120px)]">
-                <div className="px-4 py-4 space-y-2">
+                <div className="px-2 py-2 space-y-1.5">
                   {searchResults.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>검색 결과가 없습니다</p>
+                    <div className="text-center py-6 text-muted-foreground">
+                      <p className="text-xs">검색 결과가 없습니다</p>
                     </div>
                   ) : (
                     searchResults.map((place: any, index: number) => (
                       <div
                         key={place.id || index}
                         onClick={() => handlePlaceClick(place)}
-                        className="p-4 rounded-lg border bg-card hover:bg-accent cursor-pointer transition-colors"
+                        className="p-2 rounded-md border bg-card hover:bg-accent cursor-pointer transition-colors"
                       >
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start justify-between gap-1.5">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">
                                 {String.fromCharCode(65 + index)}
                               </span>
-                              <h3 className="font-semibold text-base truncate">
+                              <h3 className="font-semibold text-xs truncate">
                                 {place.place_name || place.address_name}
                               </h3>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
+                            <p className="text-[10px] text-muted-foreground mb-1 line-clamp-1">
                               {place.road_address_name || place.address_name || ''}
                             </p>
                             {place.category_name && (
-                              <p className="text-xs text-muted-foreground mb-2">
+                              <p className="text-[10px] text-muted-foreground mb-1 line-clamp-1">
                                 {place.category_name.split('>').pop()?.trim()}
                               </p>
                             )}
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                               {place.distance !== undefined && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
+                                <span className="flex items-center gap-0.5">
+                                  <MapPin className="h-2.5 w-2.5" />
                                   {Math.round(place.distance)}m
                                 </span>
                               )}
                               {place.phone && (
-                                <span>{place.phone}</span>
+                                <span className="truncate">{place.phone}</span>
                               )}
                             </div>
                           </div>
