@@ -330,7 +330,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                 <X className="h-5 w-5" />
               </Button>
               <span className="text-sm font-medium">
-                {selectedMemoIds.size}개 선택됨
+                {t.memoList.selectedCount.replace('{count}', selectedMemoIds.size.toString())}
               </span>
             </div>
             <Button
@@ -339,7 +339,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
               onClick={selectAll}
               data-testid="button-select-all"
             >
-              전체 선택
+              {t.memoList.selectAll}
             </Button>
           </div>
           <div className="flex items-center gap-2 flex-nowrap">
@@ -356,7 +356,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                 data-testid="button-move-to-group"
               >
                 <ArrowRight className="h-4 w-4 mr-1" />
-                그룹으로 이동
+                {t.memoList.moveToGroup}
               </Button>
             )}
             <Button
@@ -368,7 +368,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
               data-testid="button-bulk-delete"
             >
               <Trash2 className="h-4 w-4 mr-1" />
-              삭제
+              {t.memoList.delete}
             </Button>
           </div>
         </div>
@@ -612,16 +612,16 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
         <Dialog open={moveToGroupDialogOpen} onOpenChange={setMoveToGroupDialogOpen}>
           <DialogContent className="sm:max-w-md w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-[calc(100%-2rem)] mx-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-xl sm:rounded-2xl p-4 sm:p-6">
             <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="text-lg sm:text-xl">그룹으로 이동</DialogTitle>
+              <DialogTitle className="text-lg sm:text-xl">{t.memoList.moveToGroupTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col flex-1 overflow-hidden space-y-4">
               <p className="text-sm text-muted-foreground">
-                선택한 {selectedMemoIds.size}개의 메모를 이동할 그룹을 선택하세요.
+                {t.memoList.moveToGroupDesc.replace('{count}', selectedMemoIds.size.toString())}
               </p>
               <div className="space-y-2 overflow-y-auto flex-1 pr-1 sm:pr-2">
                 {groups.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    이동할 수 있는 그룹이 없습니다.
+                    {t.memoList.noGroupsAvailable}
                   </p>
                 ) : (
                   groups.map((group) => (
@@ -670,7 +670,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                   }}
                   data-testid="button-cancel-move"
                 >
-                  취소
+                  {t.common.cancel}
                 </Button>
                 <Button
                   variant="default"
@@ -679,7 +679,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                   disabled={!selectedGroupId}
                   data-testid="button-confirm-move"
                 >
-                  이동
+                  {t.memoList.move}
                 </Button>
               </div>
             </div>

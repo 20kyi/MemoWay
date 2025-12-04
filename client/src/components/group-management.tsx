@@ -734,7 +734,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
                 >
                   <Copy className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1.5 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">{t.groups.copyInviteCode}</span>
-                  <span className="sm:hidden truncate">초대코드</span>
+                  <span className="sm:hidden truncate">{t.groups.inviteCodeShort}</span>
                 </Button>
                 {(() => {
                   return (
@@ -767,7 +767,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
                         >
                           <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1.5 flex-shrink-0" />
                           <span className="hidden sm:inline truncate">{t.groups.memberCount}</span>
-                          <span className="sm:hidden truncate">인원</span>
+                          <span className="sm:hidden truncate">{t.groups.memberCountShort}</span>
                         </Button>
                       )}
                       {myMember && (

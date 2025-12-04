@@ -91,6 +91,14 @@ export const translations = {
       noCategoryMemos: "카테고리에 메모가 없습니다",
       noCategoryMemosDesc: "다른 카테고리를 선택하거나 새 메모를 추가하세요",
       searchPlaceholder: "메모 내용, 장소, 주소, 작성자, 날짜 검색...",
+      selectedCount: "{count}개 선택됨",
+      selectAll: "전체 선택",
+      moveToGroup: "그룹으로 이동",
+      delete: "삭제",
+      moveToGroupTitle: "그룹으로 이동",
+      moveToGroupDesc: "선택한 {count}개의 메모를 이동할 그룹을 선택하세요.",
+      noGroupsAvailable: "이동할 수 있는 그룹이 없습니다.",
+      move: "이동",
     },
     // Group Management
     groups: {
@@ -116,7 +124,9 @@ export const translations = {
       noGroupsDesc: "새 그룹을 만들거나 초대 코드로 참여하세요",
       members: "명",
       memberCount: "참여인원",
+      memberCountShort: "인원",
       copyInviteCode: "초대 코드 복사",
+      inviteCodeShort: "초대코드",
       deleteGroup: "그룹 삭제",
       confirmDeleteGroup: "정말 이 그룹을 삭제하시겠습니까? 그룹의 모든 메모가 삭제됩니다.",
       leader: "방장",
@@ -428,6 +438,14 @@ export const translations = {
       noCategoryMemos: "No memos in this category",
       noCategoryMemosDesc: "Select another category or add a new memo",
       searchPlaceholder: "Search by memo content, place, address, author, date...",
+      selectedCount: "{count} selected",
+      selectAll: "Select All",
+      moveToGroup: "Move to Group",
+      delete: "Delete",
+      moveToGroupTitle: "Move to Group",
+      moveToGroupDesc: "Select a group to move {count} selected memos to.",
+      noGroupsAvailable: "No groups available to move to.",
+      move: "Move",
     },
     // Group Management
     groups: {
@@ -453,7 +471,9 @@ export const translations = {
       noGroupsDesc: "Create a new group or join with an invite code",
       members: " members",
       memberCount: "Members",
+      memberCountShort: "Members",
       copyInviteCode: "Copy Invite Code",
+      inviteCodeShort: "Invite",
       deleteGroup: "Delete Group",
       confirmDeleteGroup: "Are you sure you want to delete this group? All memos in the group will be deleted.",
       leader: "Leader",
@@ -765,6 +785,14 @@ export const translations = {
       noCategoryMemos: "此类别中没有备忘录",
       noCategoryMemosDesc: "选择其他类别或添加新备忘录",
       searchPlaceholder: "搜索备忘录内容、地点、地址、作者、日期...",
+      selectedCount: "已选择 {count} 个",
+      selectAll: "全选",
+      moveToGroup: "移动到群组",
+      delete: "删除",
+      moveToGroupTitle: "移动到群组",
+      moveToGroupDesc: "选择要将 {count} 个选定的备忘录移动到的群组。",
+      noGroupsAvailable: "没有可移动到的群组。",
+      move: "移动",
     },
     // Group Management
     groups: {
@@ -790,7 +818,9 @@ export const translations = {
       noGroupsDesc: "创建新群组或使用邀请码加入",
       members: "名成员",
       memberCount: "参与人员",
+      memberCountShort: "人员",
       copyInviteCode: "复制邀请码",
+      inviteCodeShort: "邀请码",
       deleteGroup: "删除群组",
       confirmDeleteGroup: "确定要删除此群组吗？群组中的所有备忘录将被删除。",
       leader: "群主",
@@ -1102,6 +1132,14 @@ export const translations = {
       noCategoryMemos: "このカテゴリにメモがありません",
       noCategoryMemosDesc: "別のカテゴリを選択するか、新しいメモを追加してください",
       searchPlaceholder: "メモ内容、場所、住所、作成者、日付で検索...",
+      selectedCount: "{count}個選択されました",
+      selectAll: "すべて選択",
+      moveToGroup: "グループに移動",
+      delete: "削除",
+      moveToGroupTitle: "グループに移動",
+      moveToGroupDesc: "選択した {count} 個のメモを移動するグループを選択してください。",
+      noGroupsAvailable: "移動できるグループがありません。",
+      move: "移動",
     },
     // Group Management
     groups: {
@@ -1127,7 +1165,9 @@ export const translations = {
       noGroupsDesc: "新しいグループを作成するか、招待コードで参加してください",
       members: "名のメンバー",
       memberCount: "参加人数",
+      memberCountShort: "人数",
       copyInviteCode: "招待コードをコピー",
+      inviteCodeShort: "招待コード",
       deleteGroup: "グループを削除",
       confirmDeleteGroup: "このグループを削除してもよろしいですか？グループ内のすべてのメモが削除されます。",
       leader: "リーダー",
@@ -1434,6 +1474,14 @@ type Translation = {
     noCategoryMemos: string;
     noCategoryMemosDesc: string;
     searchPlaceholder: string;
+    selectedCount: string;
+    selectAll: string;
+    moveToGroup: string;
+    delete: string;
+    moveToGroupTitle: string;
+    moveToGroupDesc: string;
+    noGroupsAvailable: string;
+    move: string;
   };
   groups: {
     title: string;
@@ -1458,7 +1506,9 @@ type Translation = {
     noGroupsDesc: string;
     members: string;
     memberCount: string;
+    memberCountShort: string;
     copyInviteCode: string;
+    inviteCodeShort: string;
     deleteGroup: string;
     confirmDeleteGroup: string;
     leader: string;
