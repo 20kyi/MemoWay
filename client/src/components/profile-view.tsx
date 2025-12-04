@@ -17,11 +17,13 @@ import { getQueryFn, queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
 import { getApiBaseUrl } from "@/lib/api-config";
+import { handleLogout as handleLogoutUtil } from "@/lib/authUtils";
 import type { MemoWithDetails, GroupWithMembers } from "@shared/schema";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 
 interface ProfileViewProps {
   notificationsEnabled: boolean;
@@ -300,6 +302,7 @@ export function ProfileView({
   const { layoutTheme, setLayoutTheme } = useLayoutTheme();
   const { mapProvider, setMapProvider } = useMapProvider();
   const isMobile = useIsMobile();
+  const [, setLocation] = useLocation();
   const [isStoreDialogOpen, setIsStoreDialogOpen] = useState(false);
   const [isAppInfoDialogOpen, setIsAppInfoDialogOpen] = useState(false);
   const [isPersonalSettingsDialogOpen, setIsPersonalSettingsDialogOpen] = useState(false);
@@ -818,140 +821,129 @@ export function ProfileView({
   ];
 
   const handleLogout = async () => {
-    if (Capacitor.isNativePlatform()) {
-      // 안드로이드 앱: fetch API를 사용하여 로그아웃 요청
+    try {
+      console.log('[LOGOUT] ========== Starting logout from ProfileView ==========');
+      
+      // 공통 로그아웃 함수 사용 (네트워크 실패해도 항상 성공으로 반환)
+      const logoutResult = await handleLogoutUtil();
+      console.log('[LOGOUT] Logout result:', logoutResult);
+      
+      // 요청 성공/실패와 상관없이 항상 클라이언트 상태 초기화
+      console.log('[LOGOUT] Clearing all user data...');
+      
+      // 1. 인증 관련 캐시 무효화 및 제거 (가장 먼저 실행)
       try {
-        const baseUrl = getApiBaseUrl();
-        if (!baseUrl) {
-          toast({
-            title: language === 'ko' ? "오류" : "Error",
-            description: language === 'ko' 
-              ? "서버 연결 설정이 없습니다. 앱을 다시 설치해주세요."
-              : "Server configuration missing. Please reinstall the app.",
-            variant: "destructive",
+        // 모든 쿼리 무효화
+        await queryClient.invalidateQueries();
+        
+        // 특히 /api/auth/user 쿼리를 명시적으로 무효화 및 제거
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
+        
+        // 인증 상태를 즉시 null로 설정 (auto-login 방지)
+        queryClient.setQueryData(['/api/auth/user'], null);
+        
+        console.log('[LOGOUT] Auth queries invalidated and removed');
+      } catch (e) {
+        console.error('[LOGOUT] Failed to invalidate auth queries:', e);
+        // 최소한 쿼리 데이터는 null로 설정
+        try {
+          queryClient.setQueryData(['/api/auth/user'], null);
+        } catch (e2) {
+          console.error('[LOGOUT] Failed to set query data to null:', e2);
+        }
+      }
+      
+      // 3. 모든 쿼리 캐시 무효화 및 제거 (memos, groups 등)
+      try {
+        queryClient.removeQueries();
+      } catch (e) {
+        console.error('[LOGOUT] Failed to remove queries:', e);
+      }
+      
+      // 4. 로컬 스토리지에서 사용자 관련 데이터 제거
+      localStorage.removeItem("currentMemberId");
+      localStorage.removeItem("personalMemberId");
+      localStorage.removeItem("myMemberIds");
+      localStorage.removeItem("notificationsEnabled");
+      localStorage.removeItem("locationEnabled");
+      localStorage.removeItem("proximityRadius");
+      localStorage.removeItem("toastNotificationsEnabled");
+      
+      // 5. 로그아웃 플래그 설정 (자동 인증 재확인 방지)
+      // 30초 동안 자동 인증 재확인 비활성화 (모바일 앱에서 자동 로그인 완전 차단)
+      localStorage.setItem("logoutTimestamp", Date.now().toString());
+      
+      // 6. 클라이언트 측에서도 쿠키 삭제 시도 (WebView에서 쿠키가 남아있을 수 있음)
+      try {
+        // 모든 가능한 도메인과 경로에서 쿠키 삭제 시도
+        const domains = [
+          window.location.hostname,
+          '.memoway-production.up.railway.app',
+          'memoway-production.up.railway.app',
+        ];
+        const paths = ['/', '/api'];
+        
+        domains.forEach(domain => {
+          paths.forEach(path => {
+            // connect.sid 쿠키 삭제 시도
+            document.cookie = `connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`;
+            document.cookie = `connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`;
           });
-          return;
-        }
-        
-        const logoutUrl = `${baseUrl}/api/logout`;
-        console.log('[LOGOUT] Sending logout request to:', logoutUrl);
-        
-        const response = await fetch(logoutUrl, {
-          method: 'GET',
-          credentials: 'include', // 쿠키 포함
-          redirect: 'manual', // 리다이렉트를 수동으로 처리 (CORS 오류 방지)
-          headers: {
-            'Accept': 'application/json',
-            'X-Platform': 'android', // 서버에서 안드로이드 앱임을 명확히 알 수 있도록
-          },
         });
-        
-        console.log('[LOGOUT] Response status:', response.status);
-        console.log('[LOGOUT] Response headers:', Object.fromEntries(response.headers.entries()));
-        
-        // 모든 응답 상태 코드 처리
-        if (response.status >= 200 && response.status < 300) {
-          // 성공 응답 (2xx)
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            try {
-              const data = await response.json();
-              console.log('[LOGOUT] Logout successful:', data);
-            } catch (e) {
-              console.log('[LOGOUT] Response is not JSON, but status is OK');
-            }
-          } else {
-            console.log('[LOGOUT] Response is not JSON, but status is OK');
-          }
-        } else if (response.status >= 300 && response.status < 400) {
-          // 리다이렉트 응답 (3xx) - 서버가 여전히 리다이렉트를 시도하는 경우
-          const location = response.headers.get('location');
-          console.log('[LOGOUT] Server redirected to:', location);
-          console.log('[LOGOUT] Ignoring redirect for native app');
-        } else {
-          // 에러 응답 (4xx, 5xx)
-          const errorText = await response.text().catch(() => 'Unknown error');
-          console.error('[LOGOUT] Logout failed:', response.status, errorText);
-          throw new Error(`Logout failed: ${response.status} ${errorText}`);
-        }
-        
-        // 쿼리 캐시 무효화
-        console.log('[LOGOUT] Invalidating queries...');
-        await queryClient.invalidateQueries();
-        
-        // 로그아웃 성공 메시지 표시
-        toast({
-          title: language === 'ko' ? "로그아웃 완료" : "Logged out",
-          description: language === 'ko' 
-            ? "로그아웃되었습니다."
-            : "You have been logged out.",
-        });
-        
-        // 로그아웃 성공 후 랜딩 페이지로 이동
-        console.log('[LOGOUT] Redirecting to landing page...');
-        setTimeout(() => {
-          window.location.href = '/?logout=true';
-        }, 500); // 토스트 메시지를 보여주기 위한 짧은 지연
-      } catch (error) {
-        console.error('Logout error:', error);
-        toast({
-          title: language === 'ko' ? "로그아웃 실패" : "Logout failed",
-          description: language === 'ko' 
-            ? "로그아웃 중 오류가 발생했습니다."
-            : "An error occurred during logout.",
-          variant: "destructive",
-        });
+        console.log('[LOGOUT] Client-side cookies cleared');
+      } catch (e) {
+        console.error('[LOGOUT] Failed to clear client-side cookies:', e);
       }
-    } else {
-      // 웹 브라우저: 로그아웃 처리
+      
+      // 로그아웃 메시지 표시
+      toast({
+        title: language === 'ko' ? "로그아웃 완료" : "Logged out",
+        description: language === 'ko' 
+          ? "로그아웃되었습니다."
+          : "You have been logged out.",
+      });
+      
+      // 로그아웃 후 즉시 랜딩 페이지로 강제 리다이렉트
+      // 인증 캐시가 무효화되었으므로 Home 컴포넌트의 보호 로직이 자동으로 리다이렉트할 것
+      // 추가 안전장치로 window.location.replace 사용
+      // logout 파라미터를 추가하여 자동 인증 재확인 방지
+      setTimeout(() => {
+        console.log('[LOGOUT] Force redirecting to landing page...');
+        
+        const isNativePlatform = Capacitor.isNativePlatform();
+        if (isNativePlatform) {
+          // 안드로이드 앱: 현재 origin을 유지하고 루트 경로로 이동 (logout 파라미터 추가)
+          window.location.replace(window.location.origin + '/?logout=true');
+        } else {
+          // 웹 브라우저: 상대 경로 사용 (logout 파라미터 추가)
+          window.location.replace('/?logout=true');
+        }
+      }, 300); // 토스트 메시지를 보여주기 위한 짧은 지연
+    } catch (error: any) {
+      // 예상치 못한 에러가 발생해도 상태 초기화 및 네비게이션은 수행
+      console.error('[LOGOUT] Unexpected error during logout:', error);
+      
+      // 에러가 발생해도 클라이언트 상태는 초기화 시도
       try {
-        // 먼저 쿼리 캐시 무효화
-        await queryClient.invalidateQueries();
-        
-        // 로그아웃 요청
-        const response = await fetch('/api/logout', {
-          method: 'GET',
-          credentials: 'include',
-          redirect: 'manual', // 리다이렉트를 수동으로 처리
-        });
-        
-        console.log('[LOGOUT] Response status:', response.status);
-        console.log('[LOGOUT] Response type:', response.type);
-        
-        // 성공 메시지 표시
-        toast({
-          title: language === 'ko' ? "로그아웃 완료" : "Logged out",
-          description: language === 'ko' 
-            ? "로그아웃되었습니다."
-            : "You have been logged out.",
-        });
-        
-        // 리다이렉트 응답이거나 성공 응답인 경우
-        if (response.status >= 200 && response.status < 400) {
-          // 랜딩 페이지로 이동
-          setTimeout(() => {
-            window.location.href = '/?logout=true';
-          }, 500); // 토스트 메시지를 보여주기 위한 짧은 지연
-        } else {
-          // 에러 응답인 경우에도 랜딩 페이지로 이동
-          setTimeout(() => {
-            window.location.href = '/?logout=true';
-          }, 500);
-        }
-      } catch (error) {
-        console.error('Logout error:', error);
-        // 에러가 발생해도 로그아웃 처리 시도
-        await queryClient.invalidateQueries();
-        toast({
-          title: language === 'ko' ? "로그아웃 완료" : "Logged out",
-          description: language === 'ko' 
-            ? "로그아웃되었습니다."
-            : "You have been logged out.",
-        });
-        setTimeout(() => {
-          window.location.href = '/?logout=true';
-        }, 500);
+        queryClient.setQueryData(['/api/auth/user'], null);
+        queryClient.removeQueries();
+        localStorage.removeItem("currentMemberId");
+        localStorage.removeItem("personalMemberId");
+        localStorage.removeItem("myMemberIds");
+      } catch (e) {
+        console.error('[LOGOUT] Failed to clear state after error:', e);
       }
+      
+      // 에러가 발생해도 랜딩 페이지로 이동 (logout 파라미터 추가)
+      setTimeout(() => {
+        const isNativePlatform = Capacitor.isNativePlatform();
+        if (isNativePlatform) {
+          window.location.replace(window.location.origin + '/?logout=true');
+        } else {
+          window.location.replace('/?logout=true');
+        }
+      }, 300);
     }
   };
 

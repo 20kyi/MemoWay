@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useLocation } from "wouter";
 import { BottomNav } from "@/components/bottom-nav";
 import { ExitDialog } from "@/components/exit-dialog";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -42,11 +43,28 @@ import { ProfileView } from "@/components/profile-view";
 
 export default function Home() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const { mapProvider } = useMapProvider();
   const { layoutTheme } = useLayoutTheme();
   const isCoupleTheme = layoutTheme === "couple-clay";
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  
+  // 인증 보호 로직: user가 없고 로딩이 완료되었으면 랜딩 페이지로 리다이렉트
+  useEffect(() => {
+    if (!isLoading && !user && !isAuthenticated) {
+      console.log('[HOME] User not authenticated, redirecting to landing page...');
+      // wouter의 setLocation은 replace 옵션을 지원하지 않으므로 window.history.replaceState 사용
+      window.history.replaceState(null, '', '/');
+      setLocation('/');
+    }
+  }, [isLoading, user, isAuthenticated, setLocation]);
+  
+  // 안전장치: user가 null이거나 인증되지 않았으면 아무것도 렌더링하지 않음
+  // 로딩 중이거나 user가 없으면 null 반환 (App.tsx의 라우팅 로직이 자동으로 Landing 페이지로 리다이렉트할 것)
+  if (isLoading || !user || !isAuthenticated) {
+    return null;
+  }
 
   // Tab navigation
   const { activeTab, handleTabChange, showExitDialog, setShowExitDialog } =

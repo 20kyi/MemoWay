@@ -133,14 +133,53 @@ function Router() {
   }, [isAuthenticated, user]);
 
   // 네이티브 앱에서 인증 상태 확인 개선 (세션 쿠키가 설정될 시간 확보)
+  // 단, 로그아웃 직후에는 절대 실행하지 않음 (자동 로그인 방지)
   useEffect(() => {
+    // 로그아웃 플래그 확인 (30초 이내 로그아웃한 경우 자동 인증 재확인 완전 비활성화)
+    const logoutTimestamp = localStorage.getItem("logoutTimestamp");
+    const isRecentLogout = logoutTimestamp && (Date.now() - parseInt(logoutTimestamp)) < 30000; // 30초로 증가
+    
+    if (isRecentLogout) {
+      console.log('[AUTH] Recent logout detected (within 30s), skipping automatic auth recheck completely');
+      // 로그아웃 플래그 제거 (30초 후 자동으로 만료되지만 명시적으로 제거)
+      if (Date.now() - parseInt(logoutTimestamp) > 30000) {
+        localStorage.removeItem("logoutTimestamp");
+      }
+      return; // 로그아웃 직후에는 절대 자동 인증 재확인을 하지 않음
+    }
+    
+    // 로그아웃 플래그가 없을 때만 자동 인증 재확인 실행
+    // 단, 로그인/회원가입 직후에만 실행 (랜딩 페이지에서 세션 쿠키가 설정될 시간 확보)
     if (Capacitor.isNativePlatform() && !isLoading && !isAuthenticated && !user) {
+      // 추가 안전장치: URL에 logout 파라미터가 있으면 실행하지 않음
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('logout') === 'true') {
+        console.log('[AUTH] Logout parameter detected, skipping automatic auth recheck');
+        return;
+      }
+      
       // 로그인/회원가입 직후 세션 쿠키가 아직 전달되지 않았을 수 있음
       // 추가 확인을 위해 짧은 지연 후 재확인 (최대 5번, 더 긴 대기 시간)
       let retryCount = 0;
       const maxRetries = 5;
       
       const checkAuthAgain = async () => {
+        // 재확인 중에도 로그아웃 플래그 확인 (매번 확인)
+        const currentLogoutTimestamp = localStorage.getItem("logoutTimestamp");
+        const isStillRecentLogout = currentLogoutTimestamp && (Date.now() - parseInt(currentLogoutTimestamp)) < 30000;
+        
+        if (isStillRecentLogout) {
+          console.log('[AUTH] Logout detected during recheck, stopping automatic auth recheck immediately');
+          return;
+        }
+        
+        // URL 파라미터도 다시 확인
+        const currentParams = new URLSearchParams(window.location.search);
+        if (currentParams.get('logout') === 'true') {
+          console.log('[AUTH] Logout parameter detected during recheck, stopping');
+          return;
+        }
+        
         if (retryCount >= maxRetries) {
           console.warn('인증 상태 재확인 최대 시도 횟수 초과');
           return;
@@ -155,7 +194,13 @@ function Router() {
           });
           
           if (authUser) {
-            // 인증 성공 - 강제로 홈으로 이동
+            // 인증 성공 - 하지만 로그아웃 플래그가 있으면 이동하지 않음
+            const finalLogoutCheck = localStorage.getItem("logoutTimestamp");
+            if (finalLogoutCheck && (Date.now() - parseInt(finalLogoutCheck)) < 30000) {
+              console.log('[AUTH] Logout detected after auth check, preventing auto-login');
+              return;
+            }
+            
             console.log('인증 상태 확인 성공, 홈으로 이동');
             window.location.href = "/";
             return;

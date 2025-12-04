@@ -37,92 +37,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupEmailAuth(app);
 
   // Logout route (common for all auth methods - register after Passport is initialized)
+  // 항상 JSON 응답만 반환하는 순수 API (절대 redirect 사용하지 않음)
   app.get('/api/logout', async (req, res) => {
-    console.log('[LOGOUT] === Logout request received ===');
+    console.log('[LOGOUT] === Logout API called ===');
     
-    // 안드로이드 앱인지 확인 (X-Platform 헤더 우선, User-Agent 확인)
-    // Accept 헤더만으로는 판단하지 않음 (웹 브라우저도 JSON을 요청할 수 있음)
-    const userAgent = req.get('User-Agent') || '';
-    const platformHeader = req.get('X-Platform') || '';
-    const isNativeApp = platformHeader === 'android' ||
-                        (userAgent.includes('Capacitor') && !userAgent.includes('Chrome')) ||
-                        (userAgent.includes('Android') && userAgent.includes('wv') && !userAgent.includes('Chrome'));
+    const isProd = process.env.NODE_ENV === "production";
     
-    // 사용자 정보 확인 (Replit Auth 사용자인지 확인)
-    let isReplitAuthUser = false;
-    let userProvider = null;
-    if (req.isAuthenticated() && req.user) {
-      const user = req.user as any;
-      // DB에서 사용자 정보 가져오기
-      try {
-        const userId = user.claims?.sub || user.id;
-        if (userId) {
-          const dbUser = await storage.getUser(userId);
-          if (dbUser) {
-            userProvider = dbUser.provider;
-            isReplitAuthUser = dbUser.provider === 'replit';
-          }
-        }
-      } catch (error) {
-        console.error('[LOGOUT] Error checking user provider:', error);
-      }
-    }
-    
-    console.log('[LOGOUT] Request details:', {
-      userAgent,
-      platformHeader,
-      isNativeApp,
-      userProvider,
-      isReplitAuthUser,
-      isAuthenticated: req.isAuthenticated(),
-      hasUser: !!req.user,
-    });
-    
-    // Helper function to safely redirect or send JSON
-    const safeRedirect = async () => {
-      try {
-        if (isNativeApp) {
-          // 안드로이드 앱: JSON 응답 반환 (Replit OIDC 로그아웃 건너뛰기)
-          console.log('[LOGOUT] Sending JSON response for native app');
-          res.status(200).json({ 
-            message: 'Logout successful',
-            success: true 
-          });
-        } else {
-          // 웹 브라우저: Replit Auth 사용자인 경우 Replit OIDC 로그아웃 URL로 리다이렉트
-          if (isReplitAuthUser && process.env.REPL_ID) {
-            try {
-              // Replit OIDC 설정 가져오기
-              const config = await oidcClient.discovery(
-                new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-                process.env.REPL_ID
-              );
-              const client = new oidcClient.Client({
-                client_id: process.env.REPL_ID!,
-              });
-              const logoutUrl = client.buildEndSessionUrl(config, {
-                client_id: process.env.REPL_ID!,
-                post_logout_redirect_uri: `${req.protocol}://${req.get('host')}`,
-              }).href;
-              console.log('[LOGOUT] Redirecting to Replit OIDC logout:', logoutUrl);
-              res.redirect(logoutUrl);
-              return;
-            } catch (oidcError) {
-              console.error('[LOGOUT] Replit OIDC logout error:', oidcError);
-              // Fallback to regular redirect
-            }
-          }
-          // 일반 로그아웃: 랜딩 페이지로 리다이렉트
-          console.log('[LOGOUT] Redirecting to /');
-          res.redirect('/?logout=true');
-        }
-      } catch (redirectErr: any) {
-        console.error('[LOGOUT] Redirect error:', redirectErr);
-        res.status(200).json({ message: 'Logout successful' });
-      }
+    // 쿠키 옵션 (로그인 시 사용한 옵션과 동일하게)
+    // replitAuth.ts의 getSession()에서 사용한 옵션과 일치해야 함
+    // domain 옵션은 명시하지 않음 (브라우저가 자동으로 설정)
+    // 하지만 안드로이드 WebView의 경우 명시적으로 설정해야 할 수 있음
+    const cookieOptions: {
+      httpOnly: boolean;
+      secure: boolean;
+      sameSite: 'none';
+      path: string;
+      domain?: string;
+    } = {
+      httpOnly: true,
+      secure: true, // 항상 true - HTTPS 필수 (Android WebView 지원)
+      sameSite: 'none' as const, // 항상 "none" - Android WebView cross-site 쿠키 지원
+      path: "/",
+      // domain은 명시하지 않음 (브라우저가 자동으로 설정)
+      // 안드로이드 WebView에서도 동작하도록 domain을 명시하지 않는 것이 안전
     };
-
-    // Step 1: Logout user from Passport
+    
+    // Step 1: Passport logout (있으면)
     const handlePassportLogout = (callback: () => void) => {
       if (typeof (req as any).logout === 'function') {
         console.log('[LOGOUT] Calling req.logout()');
@@ -130,7 +70,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (req as any).logout((err: any) => {
             if (err) {
               console.error('[LOGOUT] req.logout() error:', err);
-              console.error('[LOGOUT] Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
             } else {
               console.log('[LOGOUT] req.logout() completed successfully');
             }
@@ -138,7 +77,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } catch (logoutErr: any) {
           console.error('[LOGOUT] Exception in req.logout():', logoutErr);
-          console.error('[LOGOUT] Exception stack:', logoutErr?.stack);
           callback();
         }
       } else {
@@ -151,11 +89,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const handleSessionDestroy = (callback: () => void) => {
       if (req.session) {
         console.log('[LOGOUT] Destroying session, session ID:', req.sessionID);
+        
+        // 세션 데이터 명시적으로 제거
+        if (req.session.userId) {
+          console.log('[LOGOUT] Removing userId from session:', req.session.userId);
+          delete req.session.userId;
+        }
+        if (req.session.passport) {
+          console.log('[LOGOUT] Removing passport data from session');
+          delete req.session.passport;
+        }
+        
         try {
           req.session.destroy((destroyErr: any) => {
             if (destroyErr) {
               console.error('[LOGOUT] Session destroy error:', destroyErr);
-              console.error('[LOGOUT] Destroy error details:', JSON.stringify(destroyErr, Object.getOwnPropertyNames(destroyErr)));
             } else {
               console.log('[LOGOUT] Session destroyed successfully');
             }
@@ -163,7 +111,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } catch (destroyException: any) {
           console.error('[LOGOUT] Exception in session.destroy():', destroyException);
-          console.error('[LOGOUT] Exception stack:', destroyException?.stack);
           callback();
         }
       } else {
@@ -172,49 +119,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     };
 
-    // Step 3: Clear cookie
-    const handleClearCookie = async () => {
+    // Step 3: Clear cookie and send JSON response
+    const sendResponse = () => {
       try {
-        res.clearCookie('connect.sid');
-        console.log('[LOGOUT] Session cookie cleared');
+        console.log('[LOGOUT] Clearing session cookie with options:', cookieOptions);
+        res.clearCookie('connect.sid', cookieOptions);
+        console.log('[LOGOUT] Session destroyed and cookie cleared');
+        
+        // 항상 JSON 응답만 반환 (절대 redirect 사용하지 않음)
+        return res.status(200).json({ success: true });
       } catch (cookieErr: any) {
         console.error('[LOGOUT] Cookie clear error:', cookieErr);
+        // 에러가 발생해도 JSON 응답은 반환
+        return res.status(200).json({ success: true });
       }
-      await safeRedirect();
     };
 
     // Execute logout flow
     try {
       handlePassportLogout(() => {
         handleSessionDestroy(() => {
-          handleClearCookie();
+          sendResponse();
         });
       });
     } catch (error: any) {
       console.error('[LOGOUT] === Top-level exception ===');
       console.error('[LOGOUT] Error:', error);
       console.error('[LOGOUT] Error message:', error?.message);
-      console.error('[LOGOUT] Error stack:', error?.stack);
-      console.error('[LOGOUT] Error name:', error?.name);
       
       // Fallback: try to clean up anyway
       try {
         if (req.session) {
-          req.session.destroy(async () => {
-            res.clearCookie('connect.sid');
-            await safeRedirect();
+          // 세션 데이터 제거
+          if (req.session.userId) delete req.session.userId;
+          if (req.session.passport) delete req.session.passport;
+          
+          req.session.destroy(() => {
+            res.clearCookie('connect.sid', cookieOptions);
+            return res.status(200).json({ success: true });
           });
         } else {
-          res.clearCookie('connect.sid');
-          await safeRedirect();
+          res.clearCookie('connect.sid', cookieOptions);
+          return res.status(200).json({ success: true });
         }
       } catch (fallbackErr: any) {
         console.error('[LOGOUT] === Fallback cleanup failed ===');
         console.error('[LOGOUT] Fallback error:', fallbackErr);
-        res.status(500).json({ 
-          message: 'Logout failed', 
-          error: error?.message || 'Unknown error',
-          details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+        // 최종 fallback: 쿠키만 클리어하고 JSON 응답
+        try {
+          res.clearCookie('connect.sid', cookieOptions);
+        } catch (e) {
+          // 쿠키 클리어 실패해도 계속 진행
+        }
+        return res.status(200).json({ 
+          success: false, 
+          error: error?.message || 'Unknown error'
         });
       }
     }

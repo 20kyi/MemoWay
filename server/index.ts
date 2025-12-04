@@ -48,13 +48,46 @@ app.use((req, res, next) => {
   next();
 });
 
-// 3. CORS 설정 - 모든 origin 허용 (Android WebView 및 모든 클라이언트 지원)
+// 3. CORS 설정 - 허용할 origin 목록 (Android WebView 및 모든 클라이언트 지원)
+const allowedOrigins = [
+  "https://memoway-production.up.railway.app", // Railway 프로덕션 서버
+  "https://memoway.replit.app",
+  "http://localhost:5173",
+  "http://localhost:5000",
+  "http://localhost",
+  "https://localhost", // Android WebView Origin (Capacitor)
+  "capacitor://localhost",
+  "ionic://localhost",
+  "http://localhost:8080",
+  "http://localhost:3000",
+];
+
 const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // origin이 없을 때 (모바일 앱, Postman 등)도 허용
-    // origin이 있을 때는 요청의 origin을 그대로 사용 (Access-Control-Allow-Origin에 설정됨)
-    console.log(`[CORS] Request origin: ${origin || '(no origin - same-origin or mobile app)'}`);
-    callback(null, true);
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean | string) => void) => {
+    // origin이 없을 때 (같은 origin 요청, Postman 등) 허용
+    if (!origin) {
+      console.log(`[CORS] Request with no origin (same-origin or mobile app) - ALLOWED`);
+      callback(null, true);
+      return;
+    }
+    
+    // 허용 목록에 있는 origin은 명시적으로 허용 (origin 값 반환)
+    if (allowedOrigins.includes(origin)) {
+      console.log(`[CORS] Request origin: ${origin} - ALLOWED (in allowed list)`);
+      callback(null, origin); // 실제 origin 값을 반환하여 Access-Control-Allow-Origin에 설정
+      return;
+    }
+    
+    // 개발 환경에서는 모든 origin 허용 (디버깅용)
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[CORS] Request origin: ${origin} - ALLOWED (development mode)`);
+      callback(null, origin);
+      return;
+    }
+    
+    // 프로덕션 환경에서도 모든 origin 허용 (안드로이드 WebView 등 대응)
+    console.log(`[CORS] Request origin: ${origin} - ALLOWED (all origins allowed)`);
+    callback(null, origin); // 실제 origin 값을 반환하여 Access-Control-Allow-Origin에 설정
   },
   credentials: true, // 쿠키 포함 허용
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -66,9 +99,22 @@ app.use(cors(corsOptions));
 
 // 4. OPTIONS preflight 요청 전역 처리
 app.options("*", cors({
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    console.log(`[CORS] OPTIONS preflight request from origin: ${origin || '(no origin)'}`);
-    callback(null, true);
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean | string) => void) => {
+    if (!origin) {
+      console.log(`[CORS] OPTIONS preflight request - no origin - ALLOWED`);
+      callback(null, true);
+      return;
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      console.log(`[CORS] OPTIONS preflight request from origin: ${origin} - ALLOWED (in allowed list)`);
+      callback(null, origin);
+      return;
+    }
+    
+    // 모든 origin 허용
+    console.log(`[CORS] OPTIONS preflight request from origin: ${origin} - ALLOWED`);
+    callback(null, origin);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
