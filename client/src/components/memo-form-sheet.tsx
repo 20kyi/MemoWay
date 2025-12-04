@@ -61,7 +61,8 @@ type PhotoItem = {
 interface MemoFormSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: MemoFormValues & { photos: File[]; deletedPhotoIds?: string[]; mainPhotoId?: string; mainPhotoIndex?: number; photoOrders?: { id: string; order: number }[] }) => void;
+  onSubmit: (data: MemoFormValues & { photos: File[]; deletedPhotoIds?: string[]; mainPhotoId?: string; mainPhotoIndex?: number; photoOrders?: { id: string; order: number }[] }) => void | Promise<void>;
+  onSubmissionComplete?: () => void; // 제출 완료 시 호출 (성공/실패 관계없이)
   initialData?: {
     buildingName: string;
     address: string;
@@ -143,6 +144,7 @@ export function MemoFormSheet({
   open, 
   onOpenChange, 
   onSubmit, 
+  onSubmissionComplete,
   initialData, 
   groups,
   isLoading = false,
@@ -153,6 +155,7 @@ export function MemoFormSheet({
   const { t } = useLanguage();
   const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
   const [deletedPhotoIds, setDeletedPhotoIds] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false); // 저장 중 상태 관리
   const buildingNameInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
@@ -194,6 +197,8 @@ export function MemoFormSheet({
         groupIds: initialData.groupIds || [],
         markerIcon: (initialData.markerIcon as MarkerIconType) || 'default',
       });
+      // 폼이 열릴 때 저장 중 상태 초기화
+      setIsSubmitting(false);
       
       const existingPhotoItems: PhotoItem[] = (initialData.existingPhotos || [])
         .sort((a, b) => (a.order || 0) - (b.order || 0))
@@ -212,6 +217,7 @@ export function MemoFormSheet({
       setPhotoItems([]);
       setDeletedPhotoIds([]);
       setIsFormInitialized(false);
+      setIsSubmitting(false); // 폼이 닫힐 때 저장 중 상태 초기화
     }
   }, [open, isFormInitialized, initialData, form]);
 
@@ -282,32 +288,88 @@ export function MemoFormSheet({
     }
   };
 
-  const handleSubmit = (data: MemoFormValues) => {
-    const newPhotos = photoItems
-      .filter(p => !p.isExisting && p.file)
-      .sort((a, b) => a.order - b.order)
-      .map(p => p.file!);
+  const handleSubmit = async (data: MemoFormValues) => {
+    // 이미 저장 중이면 중복 실행 방지
+    if (isSubmitting) {
+      console.warn("[EDIT MEMO] Already submitting, ignoring duplicate submit");
+      return;
+    }
     
-    const mainPhotoId = photoItems.length > 0 && photoItems[0].isExisting 
-      ? photoItems[0].id 
-      : undefined;
-    
-    const mainPhotoIndex = photoItems.length > 0 && !photoItems[0].isExisting
-      ? 0
-      : undefined;
-
-    const photoOrders = photoItems
-      .filter(p => p.isExisting)
-      .map(p => ({ id: p.id, order: p.order }));
-
-    onSubmit({ 
-      ...data, 
-      photos: newPhotos, 
-      deletedPhotoIds, 
-      mainPhotoId,
-      mainPhotoIndex,
-      photoOrders
+    console.log("[EDIT MEMO] handleSubmit called", { 
+      editMode, 
+      data, 
+      photoItemsCount: photoItems.length,
+      deletedPhotoIdsCount: deletedPhotoIds.length 
     });
+    
+    setIsSubmitting(true); // 저장 시작
+    
+    try {
+      const newPhotos = photoItems
+        .filter(p => !p.isExisting && p.file)
+        .sort((a, b) => a.order - b.order)
+        .map(p => p.file!);
+      
+      const mainPhotoId = photoItems.length > 0 && photoItems[0].isExisting 
+        ? photoItems[0].id 
+        : undefined;
+      
+      const mainPhotoIndex = photoItems.length > 0 && !photoItems[0].isExisting
+        ? 0
+        : undefined;
+
+      const photoOrders = photoItems
+        .filter(p => p.isExisting)
+        .map(p => ({ id: p.id, order: p.order }));
+
+      const submitData = { 
+        ...data, 
+        photos: newPhotos, 
+        deletedPhotoIds, 
+        mainPhotoId,
+        mainPhotoIndex,
+        photoOrders
+      };
+      
+      console.log("[EDIT MEMO] calling onSubmit with data", submitData);
+      
+      if (!onSubmit) {
+        console.error("[EDIT MEMO] onSubmit handler is not provided!");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // onSubmit 호출 (Promise를 반환할 수도 있음)
+      const result = onSubmit(submitData);
+      
+      // Promise인 경우 await
+      if (result && typeof result === 'object' && 'then' in result) {
+        try {
+          await (result as Promise<void>);
+          console.log("[EDIT MEMO] onSubmit promise resolved successfully");
+          // 성공 시에는 폼이 닫히므로 isSubmitting은 자동으로 초기화됨
+          // 하지만 폼이 닫히지 않는 경우를 대비해 onSubmissionComplete 호출
+          onSubmissionComplete?.();
+        } catch (submitError: any) {
+          console.error("[EDIT MEMO] onSubmit promise rejected", submitError);
+          setIsSubmitting(false); // 에러 발생 시 상태 해제
+          onSubmissionComplete?.(); // 에러 발생 시에도 호출
+          throw submitError; // 에러를 다시 던져서 form이 처리할 수 있도록
+        }
+      } else {
+        console.log("[EDIT MEMO] onSubmit called (synchronous)");
+        // 동기 함수인 경우, 완료되었다고 가정
+        onSubmissionComplete?.();
+      }
+      
+      console.log("[EDIT MEMO] onSubmit called successfully");
+    } catch (error: any) {
+      console.error("[EDIT MEMO] handleSubmit error", error);
+      setIsSubmitting(false); // 에러 발생 시 상태 해제
+      onSubmissionComplete?.(); // 에러 발생 시에도 호출
+      // 에러를 다시 던져서 form의 onSubmit에서 처리할 수 있도록
+      throw error;
+    }
   };
 
   return (
@@ -322,7 +384,57 @@ export function MemoFormSheet({
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col flex-1 min-h-0">
+          <form 
+            onSubmit={async (e) => {
+              console.log("[EDIT MEMO] form onSubmit event triggered");
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // 이미 저장 중이면 무시
+              if (isSubmitting) {
+                console.warn("[EDIT MEMO] Already submitting, preventing form submit");
+                return;
+              }
+              
+              // 버튼이 disabled 상태인지 확인
+              const saveButton = e.currentTarget.querySelector('[data-testid="button-save-memo"]') as HTMLButtonElement;
+              if (saveButton && saveButton.disabled) {
+                console.warn("[EDIT MEMO] Save button is disabled, preventing submit");
+                return;
+              }
+              
+              try {
+                await form.handleSubmit(
+                  async (data) => {
+                    console.log("[EDIT MEMO] form validation passed, calling handleSubmit");
+                    try {
+                      await handleSubmit(data);
+                    } catch (submitError: any) {
+                      console.error("[EDIT MEMO] handleSubmit threw error", submitError);
+                      setIsSubmitting(false);
+                      // 에러는 여기서 처리하지 않고 상위로 전파
+                      throw submitError;
+                    }
+                  },
+                  (errors) => {
+                    console.error("[EDIT MEMO] form validation failed", errors);
+                    setIsSubmitting(false); // validation 실패 시 상태 해제
+                    // validation 실패 시 사용자에게 알림
+                    const firstError = Object.values(errors)[0];
+                    if (firstError && 'message' in firstError) {
+                      console.error("[EDIT MEMO] First validation error:", firstError.message);
+                    }
+                  }
+                )(e);
+              } catch (error: any) {
+                console.error("[EDIT MEMO] Form submit error:", error);
+                // 에러 발생 시 isSubmitting 상태 해제
+                setIsSubmitting(false);
+                // 에러를 다시 던지지 않음 (이미 로그에 기록됨)
+              }
+            }} 
+            className="flex flex-col flex-1 min-h-0"
+          >
             <div className="flex-1 overflow-y-auto px-4 sm:px-5 space-y-4 pb-4">
               <FormField
                 control={form.control}
@@ -335,7 +447,9 @@ export function MemoFormSheet({
                         {...field} 
                         ref={(e) => {
                           field.ref(e);
-                          buildingNameInputRef.current = e;
+                          if (buildingNameInputRef) {
+                            (buildingNameInputRef as React.MutableRefObject<HTMLInputElement | null>).current = e;
+                          }
                         }}
                         placeholder={t.memoForm.buildingNamePlaceholder} 
                         className="text-sm h-11 border-indigo-200 focus:border-sky-500 focus:ring-sky-500" 
@@ -458,8 +572,7 @@ export function MemoFormSheet({
                 )}
               />
 
-              {groups.filter(g => g.name !== "개인 메모").length > 0 && (
-                <FormField
+              <FormField
                   control={form.control}
                   name="groupIds"
                   render={({ field }) => (
@@ -482,7 +595,7 @@ export function MemoFormSheet({
                                     ? field.value.length === 1
                                       ? groups.find(g => g.id === field.value[0])?.name || t.memoForm.selectGroup
                                       : t.memoForm.groupsSelected.replace('{count}', field.value.length.toString())
-                                    : t.memoForm.selectGroup}
+                                    : "개인 메모"}
                                 </span>
                                 {field.value && field.value.length > 0 && (
                                   <Badge variant="secondary" className="px-1.5 h-5 text-xs flex-shrink-0">
@@ -497,6 +610,30 @@ export function MemoFormSheet({
                         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                           <div className="max-h-[300px] overflow-y-auto p-2">
                             <div className="space-y-1.5">
+                              {/* 개인 메모 옵션 (항상 맨 위에 표시) */}
+                              <div
+                                className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent cursor-pointer border-b border-border/50 pb-3 mb-2"
+                                onClick={() => {
+                                  // 개인 메모 선택 시: 모든 그룹 선택 해제
+                                  field.onChange([]);
+                                }}
+                                data-testid="option-personal-memo"
+                              >
+                                <Checkbox
+                                  checked={!field.value || field.value.length === 0}
+                                  onCheckedChange={(checked) => {
+                                    // 개인 메모 선택 시: 모든 그룹 선택 해제
+                                    if (checked) {
+                                      field.onChange([]);
+                                    }
+                                  }}
+                                  data-testid="checkbox-personal-memo"
+                                />
+                                <label className="flex-1 text-sm font-normal cursor-pointer font-medium">
+                                  개인 메모
+                                </label>
+                              </div>
+                              {/* 그룹 메모 옵션들 */}
                               {groups.filter(g => g.name !== "개인 메모").map(group => (
                                 <div
                                   key={group.id}
@@ -537,7 +674,6 @@ export function MemoFormSheet({
                     </FormItem>
                   )}
                 />
-              )}
 
               {!isPersonalMemberReady && !currentMemberId && (
                 <div className="p-2 sm:p-2.5 bg-muted rounded-lg">
@@ -560,11 +696,35 @@ export function MemoFormSheet({
               <Button 
                 type="submit" 
                 size="lg"
-                className="flex-1 h-11 text-sm font-medium bg-gradient-to-br from-sky-200 to-sky-300 hover:from-sky-300 hover:to-sky-400 border-2 border-sky-300/60 text-sky-700 shadow-sm"
-                disabled={isLoading || (!isPersonalMemberReady && !currentMemberId)}
+                className="flex-1 h-11 text-sm font-medium bg-gradient-to-br from-sky-200 to-sky-300 hover:from-sky-300 hover:to-sky-400 border-2 border-sky-300/60 text-sky-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading || isSubmitting || (!isPersonalMemberReady && !currentMemberId)}
+                onClick={(e) => {
+                  console.log("[EDIT MEMO] save button clicked", { 
+                    isLoading, 
+                    isSubmitting,
+                    isPersonalMemberReady, 
+                    currentMemberId,
+                    editMode,
+                    formState: form.formState,
+                    isValid: form.formState.isValid,
+                    errors: form.formState.errors
+                  });
+                  
+                  // 모바일에서 form submit이 제대로 작동하지 않을 수 있으므로
+                  // 버튼 클릭 시 직접 form submit 트리거
+                  if (!isLoading && !isSubmitting && (isPersonalMemberReady || currentMemberId)) {
+                    // form의 handleSubmit을 직접 호출
+                    const formElement = e.currentTarget.closest('form');
+                    if (formElement) {
+                      // form submit 이벤트를 트리거
+                      const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                      formElement.dispatchEvent(submitEvent);
+                    }
+                  }
+                }}
                 data-testid="button-save-memo"
               >
-                {isLoading ? `${t.common.save}...` : t.common.save}
+                {(isLoading || isSubmitting) ? `${t.common.save}...` : t.common.save}
               </Button>
             </div>
           </form>

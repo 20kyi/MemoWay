@@ -199,14 +199,46 @@ export function useGroups({
       color: string;
       markerIcon: string;
     }) => {
-      return apiRequest("PATCH", `/api/groups/${data.groupId}`, {
+      console.log("[UPDATE GROUP API] Starting API call", { 
+        groupId: data.groupId, 
         name: data.name,
         description: data.description,
         color: data.color,
         markerIcon: data.markerIcon,
       });
+      
+      // 데이터 검증
+      if (!data.groupId) {
+        throw new Error("그룹 ID가 없습니다.");
+      }
+      
+      if (!data.name || !data.name.trim()) {
+        throw new Error("그룹 이름을 입력해주세요.");
+      }
+      
+      try {
+        const result = await apiRequest("PATCH", `/api/groups/${data.groupId}`, {
+          name: data.name,
+          description: data.description,
+          color: data.color,
+          markerIcon: data.markerIcon,
+        });
+        
+        console.log("[UPDATE GROUP API] API call successful", result);
+        return result;
+      } catch (error: any) {
+        console.error("[UPDATE GROUP API] API call failed:", error);
+        console.error("[UPDATE GROUP API] Error details:", {
+          name: error.name,
+          message: error.message,
+          status: error.status,
+          error: error.error,
+        });
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log("[UPDATE GROUP API] onSuccess called");
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
       toast({
@@ -215,9 +247,14 @@ export function useGroups({
       });
     },
     onError: (error: any) => {
+      console.error("[UPDATE GROUP API] onError called:", error);
+      const errorMessage = error.error || 
+                           error.message || 
+                           error.response?.data?.message ||
+                           "그룹 수정에 실패했습니다.";
       toast({
         title: "그룹 수정 실패",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     },

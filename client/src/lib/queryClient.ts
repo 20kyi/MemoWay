@@ -29,8 +29,49 @@ class ApiError extends Error {
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new ApiError(res.status, text);
+    // 응답 본문을 읽기 전에 상태 코드 확인
+    const status = res.status;
+    const statusText = res.statusText;
+    
+    // 응답 본문 읽기 (한 번만 읽을 수 있으므로 주의)
+    let errorText = '';
+    try {
+      errorText = await res.text();
+    } catch (e) {
+      console.warn("[API REQUEST] Failed to read error response body:", e);
+      errorText = statusText;
+    }
+    
+    console.error(`[API REQUEST] HTTP Error ${status} ${statusText}`);
+    console.error(`[API REQUEST] Error response body:`, errorText);
+    
+    // 401 Unauthorized 에러인 경우 특별 처리
+    if (status === 401) {
+      console.error("[API REQUEST] ========== 401 UNAUTHORIZED ==========");
+      console.error("[API REQUEST] This usually means:");
+      console.error("[API REQUEST] 1. Session expired - user needs to re-login");
+      console.error("[API REQUEST] 2. Cookie not being sent - check credentials: 'include'");
+      console.error("[API REQUEST] 3. CORS issue - check server CORS settings");
+      console.error("[API REQUEST] Response text:", errorText);
+      console.error("[API REQUEST] ======================================");
+      
+      // 세션 만료 시 사용자에게 알림을 위해 특별한 에러 메시지
+      const errorMessage = errorText || "인증이 만료되었습니다. 다시 로그인해주세요.";
+      const apiError = new ApiError(status, errorMessage);
+      apiError.error = "세션이 만료되었습니다. 페이지를 새로고침하거나 다시 로그인해주세요.";
+      throw apiError;
+    }
+    
+    // 403 Forbidden 에러
+    if (status === 403) {
+      console.error("[API REQUEST] 403 Forbidden - Access denied");
+      const apiError = new ApiError(status, errorText || statusText);
+      apiError.error = "접근 권한이 없습니다.";
+      throw apiError;
+    }
+    
+    // 기타 에러
+    throw new ApiError(status, errorText || statusText);
   }
 }
 
@@ -41,24 +82,83 @@ export async function apiRequest(
 ): Promise<any> {
   const isFormData = data instanceof FormData;
   
+  // 베이스 URL 가져오기
+  const baseUrl = getApiBaseUrl();
+  
   // 절대 URL이 아니면 베이스 URL 추가
-  const fullUrl = url.startsWith('http') ? url : getApiBaseUrl() + url;
+  const fullUrl = url.startsWith('http') ? url : baseUrl + url;
   
-  const res = await fetch(fullUrl, {
-    method,
-    headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
-    body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
-    credentials: "include",
-  });
-
-  await throwIfResNotOk(res);
+  // 플랫폼 정보 확인
+  const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
   
-  const contentType = res.headers.get("content-type");
-  if (contentType && contentType.includes("application/json")) {
-    return await res.json();
+  console.log(`[API REQUEST] ========================================`);
+  console.log(`[API REQUEST] Method: ${method}`);
+  console.log(`[API REQUEST] Original URL: ${url}`);
+  console.log(`[API REQUEST] Base URL: ${baseUrl || '(empty - using relative path)'}`);
+  console.log(`[API REQUEST] Full URL: ${fullUrl}`);
+  console.log(`[API REQUEST] Platform: ${isNativePlatform ? 'Native (Capacitor)' : 'Web Browser'}`);
+  console.log(`[API REQUEST] Is FormData: ${isFormData}`);
+  console.log(`[API REQUEST] Has Data: ${!!data}`);
+  if (isFormData && data instanceof FormData) {
+    const formDataEntries: string[] = [];
+    for (const [key, value] of data.entries()) {
+      if (value instanceof File) {
+        formDataEntries.push(`${key}: File(${value.name}, ${value.size} bytes)`);
+      } else {
+        formDataEntries.push(`${key}: ${String(value).substring(0, 50)}`);
+      }
+    }
+    console.log(`[API REQUEST] FormData entries:`, formDataEntries);
+  } else if (data) {
+    console.log(`[API REQUEST] Data size: ${JSON.stringify(data).length} bytes`);
   }
+  console.log(`[API REQUEST] ========================================`);
   
-  return res;
+  try {
+    const res = await fetch(fullUrl, {
+      method,
+      headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+      credentials: "include", // 쿠키 포함
+    });
+
+    console.log(`[API REQUEST] Response status: ${res.status} ${res.statusText}`);
+    console.log(`[API REQUEST] Response headers:`, Object.fromEntries(res.headers.entries()));
+    
+    // 응답 본문을 읽기 전에 상태 확인
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[API REQUEST] Error response body:`, errorText);
+    }
+    
+    await throwIfResNotOk(res);
+    
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const jsonData = await res.json();
+      console.log(`[API REQUEST] Response data:`, jsonData);
+      return jsonData;
+    }
+    
+    console.log(`[API REQUEST] Response is not JSON, returning response object`);
+    return res;
+  } catch (error: any) {
+    console.error(`[API REQUEST] ========== REQUEST FAILED ==========`);
+    console.error(`[API REQUEST] Method: ${method}`);
+    console.error(`[API REQUEST] URL: ${fullUrl}`);
+    console.error(`[API REQUEST] Error name: ${error.name}`);
+    console.error(`[API REQUEST] Error message: ${error.message}`);
+    console.error(`[API REQUEST] Error status: ${error.status}`);
+    console.error(`[API REQUEST] Error error: ${error.error}`);
+    if (error.response) {
+      console.error(`[API REQUEST] Error response:`, error.response);
+    }
+    if (error.stack) {
+      console.error(`[API REQUEST] Error stack:`, error.stack);
+    }
+    console.error(`[API REQUEST] ====================================`);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

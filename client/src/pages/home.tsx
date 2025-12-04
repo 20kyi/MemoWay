@@ -461,12 +461,6 @@ export default function Home() {
     setMainMemoMutation.mutate(memoId);
   }, [setMainMemoMutation]);
 
-  // 선택된 메모들을 지도에 표시하는 핸들러
-  const handleShowOnMap = useCallback((memoIds: string[]) => {
-    setSelectedMemoIdsForMap(new Set(memoIds));
-    handleTabChange("map");
-  }, [handleTabChange]);
-
   // 지도 저장하기 버튼 클릭 핸들러 (다이얼로그 열기)
   const handleSaveMapClick = useCallback(() => {
     if (selectedMemoIdsForMap && selectedMemoIdsForMap.size > 0) {
@@ -526,42 +520,91 @@ export default function Home() {
 
   // 그룹으로 이동 핸들러 (메모이제이션)
   const handleMoveToGroup = useCallback(async (memoIds: string[], groupId: string) => {
+    if (!memoIds || memoIds.length === 0) {
+      toast({
+        title: "오류 발생",
+        description: "선택된 메모가 없습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!groupId) {
+      toast({
+        title: "오류 발생",
+        description: "그룹을 선택해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
+      console.log("그룹으로 이동 시작:", { memoIds, groupId, memosCount: memos.length });
+      
       // 선택한 모든 메모를 그룹으로 이동
       const results = await Promise.allSettled(
-        memoIds.map((memoId) => {
+        memoIds.map(async (memoId) => {
           const memo = memos.find((m) => m.id === memoId);
           if (!memo) {
+            console.error(`메모를 찾을 수 없습니다: ${memoId}`);
             throw new Error(`메모를 찾을 수 없습니다: ${memoId}`);
           }
-          return updateMemoMutation.mutateAsync({
-            memoId,
-            data: {
-              buildingName: memo.buildingName,
-              address: memo.address,
-              content: memo.content,
-              markerIcon: memo.markerIcon,
-              groupIds: [groupId],
-            },
-          });
+          
+          console.log(`메모 이동 중: ${memoId} -> 그룹 ${groupId}`);
+          
+          try {
+            const result = await updateMemoMutation.mutateAsync({
+              memoId,
+              data: {
+                buildingName: memo.buildingName || "",
+                address: memo.address || "",
+                content: memo.content || "",
+                markerIcon: (memo as any)?.markerIcon || (memo.group as any)?.markerIcon || "default",
+                groupIds: [groupId],
+                photos: [], // photos 필드 추가 (빈 배열)
+              },
+            });
+            console.log(`메모 이동 성공: ${memoId}`, result);
+            return result;
+          } catch (error: any) {
+            console.error(`메모 이동 실패: ${memoId}`, error);
+            throw error;
+          }
         })
       );
 
       const successCount = results.filter((r) => r.status === "fulfilled").length;
       const failCount = results.filter((r) => r.status === "rejected").length;
 
+      console.log("그룹으로 이동 결과:", { successCount, failCount, total: memoIds.length });
+
       if (successCount > 0) {
+        // updateMemoMutation의 onSuccess에서 이미 invalidateQueries를 호출하지만, 
+        // 여러 메모를 이동할 때는 여기서도 명시적으로 호출
         queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+        
         toast({
           title: t.toast.memoEditSuccess || "성공",
           description: `${successCount}개의 메모를 그룹으로 이동했습니다.${failCount > 0 ? ` (${failCount}개 실패)` : ""}`,
         });
       } else {
-        throw new Error("모든 메모 이동에 실패했습니다.");
+        const errors = results
+          .filter((r) => r.status === "rejected")
+          .map((r) => (r as PromiseRejectedResult).reason?.message || "알 수 없는 오류")
+          .join(", ");
+        
+        console.error("모든 메모 이동 실패:", errors);
+        toast({
+          title: "오류 발생",
+          description: `모든 메모 이동에 실패했습니다.${errors ? ` (${errors})` : ""}`,
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
+      console.error("그룹으로 이동 중 오류 발생:", error);
       toast({
-        title: t.toast.memoEditError || "오류 발생",
+        title: "오류 발생",
         description: error.message || "메모 이동에 실패했습니다.",
         variant: "destructive",
       });
@@ -664,7 +707,6 @@ export default function Home() {
               onMemoClick={handleMarkerClick}
               onSetMainMemo={handleSetMainMemo}
               onMoveToGroup={handleMoveToGroup}
-              onShowOnMap={handleShowOnMap}
               onDeleteSavedMap={handleDeleteSavedMap}
             />
         )}
@@ -677,9 +719,16 @@ export default function Home() {
               userId={(user as any)?.id}
               userPoints={(user as any)?.points ?? 0}
               onCreateGroup={(data) => createGroupMutation.mutate(data)}
-              onUpdateGroup={(groupId, data) =>
-                updateGroupMutation.mutate({ groupId, ...data })
-              }
+              onUpdateGroup={async (groupId, data) => {
+                console.log("[EDIT GROUP] onUpdateGroup called in home.tsx", { groupId, data });
+                try {
+                  await updateGroupMutation.mutateAsync({ groupId, ...data });
+                  console.log("[EDIT GROUP] Group update successful in home.tsx");
+                } catch (error: any) {
+                  console.error("[EDIT GROUP] Group update failed in home.tsx:", error);
+                  throw error; // 에러를 다시 던져서 group-management에서 처리할 수 있도록
+                }
+              }}
               onJoinGroup={(inviteCode, memberName) => {
                 joinGroupMutation.mutate({ inviteCode, memberName });
               }}
@@ -735,14 +784,154 @@ export default function Home() {
               setSelectedLocation(null);
             }
           }}
-          onSubmit={(data) => {
+          onSubmissionComplete={() => {
+            // 제출 완료 시 호출 (성공/실패 관계없이)
+            // memo-form-sheet에서 isSubmitting 상태를 해제하는데 사용
+            console.log("[EDIT MEMO] Submission completed (success or failure)");
+          }}
+          onSubmit={async (data) => {
+            console.log("[EDIT MEMO] onSubmit handler called in home.tsx", { 
+              hasEditingMemo: !!editingMemo, 
+              editingMemoId: editingMemo?.id,
+              dataKeys: Object.keys(data),
+              groupIds: data.groupIds 
+            });
+            
             if (editingMemo) {
-              updateMemoMutation.mutate({
-                memoId: editingMemo.id,
-                data,
+              if (!editingMemo.id) {
+                console.error("[EDIT MEMO] editingMemo.id is missing!");
+                toast({
+                  title: "오류 발생",
+                  description: "메모 ID가 없습니다.",
+                  variant: "destructive",
+                });
+                return;
+              }
+              
+              console.log("[EDIT MEMO] Starting memo update:", { 
+                memoId: editingMemo.id, 
+                data, 
+                groupIds: data.groupIds 
               });
+              
+              try {
+                console.log("[EDIT MEMO] ========== STARTING MEMO UPDATE ==========");
+                console.log("[EDIT MEMO] Platform:", (window as any).Capacitor?.isNativePlatform?.() ? 'Native (Capacitor)' : 'Web Browser');
+                console.log("[EDIT MEMO] Calling updateMemoMutation.mutateAsync");
+                console.log("[EDIT MEMO] Request data:", {
+                  memoId: editingMemo.id,
+                  buildingName: data.buildingName,
+                  address: data.address,
+                  content: data.content?.substring(0, 50) + "...",
+                  groupIds: data.groupIds,
+                  markerIcon: data.markerIcon,
+                  photosCount: data.photos?.length || 0,
+                });
+                
+                // API 호출 전 최종 검증
+                if (!editingMemo.id) {
+                  throw new Error("메모 ID가 없습니다.");
+                }
+                
+                if (!data.buildingName || !data.address || !data.content) {
+                  throw new Error("필수 필드(건물명, 주소, 내용)를 모두 입력해주세요.");
+                }
+                
+                console.log("[EDIT MEMO] About to call mutateAsync...");
+                const result = await updateMemoMutation.mutateAsync({
+                  memoId: editingMemo.id,
+                  data,
+                });
+                console.log("[EDIT MEMO] mutateAsync completed successfully");
+                
+                console.log("[EDIT MEMO] Memo update success", result);
+                
+                // React Query 캐시 무효화 (메모 목록 갱신)
+                // updateMemoMutation의 onSuccess에서 이미 invalidateQueries를 호출하지만,
+                // 확실하게 하기 위해 여기서도 호출
+                await Promise.all([
+                  queryClient.invalidateQueries({ queryKey: ["/api/memos"] }),
+                  queryClient.invalidateQueries({ queryKey: ["/api/groups"] }),
+                ]);
+                
+                console.log("[EDIT MEMO] Cache invalidated");
+                
+                // 성공 시 토스트 표시
+                toast({
+                  title: t.toast.memoUpdated || "메모 수정 완료",
+                  description: t.toast.memoUpdatedDesc || "메모가 수정되었습니다.",
+                });
+                
+                // 성공 시 폼 닫기 및 상태 초기화
+                console.log("[EDIT MEMO] Closing form and resetting state");
+                
+                // 상태 초기화를 먼저 하고 폼 닫기
+                setEditingMemo(null);
+                setSelectedLocation(null);
+                
+                // 폼 닫기 (토스트가 표시될 시간을 확보하기 위해 약간의 딜레이)
+                // 하지만 너무 길면 사용자 경험이 나빠지므로 짧게 설정
+                setTimeout(() => {
+                  setMemoFormOpen(false);
+                  console.log("[EDIT MEMO] Form closed");
+                }, 50);
+                
+                console.log("[EDIT MEMO] All post-save actions completed");
+              } catch (error: any) {
+                console.error("[EDIT MEMO] Memo update failed:", error);
+                console.error("[EDIT MEMO] Error details:", {
+                  name: error.name,
+                  message: error.message,
+                  status: error.status,
+                  error: error.error,
+                  stack: error.stack,
+                  response: error.response,
+                  data: error.response?.data,
+                });
+                
+                // 네트워크 에러 체크
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                  console.error("[EDIT MEMO] Network error detected");
+                  toast({
+                    title: "네트워크 오류",
+                    description: "인터넷 연결을 확인해주세요.",
+                    variant: "destructive",
+                  });
+                } else {
+                  // 에러 토스트 표시
+                  const errorMessage = error.error || 
+                                     error.message || 
+                                     error.response?.data?.message || 
+                                     error.response?.data?.error ||
+                                     "메모 수정에 실패했습니다.";
+                  
+                  toast({
+                    title: "오류 발생",
+                    description: errorMessage,
+                    variant: "destructive",
+                  });
+                }
+                
+                // 에러 발생 시에도 상태는 유지 (사용자가 다시 시도할 수 있도록)
+                // 폼은 닫지 않음
+                // isSubmitting 상태는 memo-form-sheet에서 해제해야 함
+              }
             } else {
-              createMemoMutation.mutate(data);
+              console.log("[EDIT MEMO] Creating new memo");
+              try {
+                await createMemoMutation.mutateAsync(data);
+                console.log("[EDIT MEMO] New memo created successfully");
+                // 성공 시 폼 닫기
+                setMemoFormOpen(false);
+                setSelectedLocation(null);
+              } catch (error: any) {
+                console.error("[EDIT MEMO] New memo creation failed:", error);
+                // 에러는 useMemos의 onError에서 처리됨
+                // 하지만 401 에러인 경우 추가 처리 가능
+                if (error.status === 401) {
+                  console.error("[EDIT MEMO] Authentication failed - session may have expired");
+                }
+              }
             }
           }}
           initialData={

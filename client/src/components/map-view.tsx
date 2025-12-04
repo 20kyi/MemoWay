@@ -647,64 +647,83 @@ function MapViewComponent({
   const userHasInteractedRef = useRef(false); // 사용자가 지도를 조작했는지 여부 (한 번 조작하면 위치 고정 모드를 다시 켜지 않는 한 자동 이동 안 함)
   const lastActiveStateRef = useRef<boolean | null>(null); // 이전 활성화 상태 추적
   
-  // 지도 탭이 활성화될 때 내 위치로 이동
+  // 지도 탭이 활성화될 때 내 위치로 이동 (최적화: 빠른 응답)
   useEffect(() => {
     // 지도 탭이 비활성화에서 활성화로 변경되었을 때만 실행
     if (isActive && lastActiveStateRef.current === false && map && !pendingLocation) {
       // 사용자가 지도를 조작하지 않았을 때만 내 위치로 이동
-      if (!userHasInteractedRef.current && currentUserLocation) {
-        const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
-        isAutoMovingRef.current = true;
-        try {
-          map.setCenter(latlng);
-          map.setLevel(3);
-          // 위치 고정 모드 활성화
-          setIsLocationLocked(true);
-          userHasInteractedRef.current = false; // 자동 추적 재개
-        } catch (error) {
-          console.warn('지도 탭 활성화 시 내 위치 이동 실패:', error);
+      if (!userHasInteractedRef.current) {
+        let targetLocation: { lat: number; lng: number } | null = null;
+        
+        // 1순위: currentUserLocation (가장 빠름 - 이미 있음)
+        if (currentUserLocation) {
+          targetLocation = currentUserLocation;
         }
-        setTimeout(() => {
-          isAutoMovingRef.current = false;
-        }, 300);
-      } else if (!userHasInteractedRef.current && navigator.geolocation) {
-        // currentUserLocation이 없으면 현재 위치 가져오기
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const latlng = new window.kakao.maps.LatLng(lat, lng);
-            isAutoMovingRef.current = true;
-            try {
-              map.setCenter(latlng);
-              map.setLevel(3);
-              setCurrentUserLocation({ lat, lng });
-              setIsLocationLocked(true);
-              userHasInteractedRef.current = false; // 자동 추적 재개
-              if (onMyLocationClick) {
-                onMyLocationClick({ lat, lng });
-              }
-            } catch (error) {
-              console.warn('지도 탭 활성화 시 내 위치 이동 실패:', error);
+        // 2순위: userLocation prop (빠름 - 부모에서 전달)
+        else if (userLocation) {
+          targetLocation = userLocation;
+        }
+        
+        // 위치가 있으면 즉시 이동
+        if (targetLocation) {
+          const latlng = new window.kakao.maps.LatLng(targetLocation.lat, targetLocation.lng);
+          isAutoMovingRef.current = true;
+          try {
+            map.setCenter(latlng);
+            map.setLevel(3);
+            // 위치 고정 모드 활성화
+            setIsLocationLocked(true);
+            userHasInteractedRef.current = false; // 자동 추적 재개
+            // currentUserLocation이 없었으면 업데이트
+            if (!currentUserLocation && userLocation) {
+              setCurrentUserLocation(targetLocation);
             }
-            setTimeout(() => {
-              isAutoMovingRef.current = false;
-            }, 300);
-          },
-          (error) => {
-            console.warn('지도 탭 활성화 시 위치 가져오기 실패:', error);
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0,
+          } catch (error) {
+            console.warn('지도 탭 활성화 시 내 위치 이동 실패:', error);
           }
-        );
+          setTimeout(() => {
+            isAutoMovingRef.current = false;
+          }, 300);
+        }
+        // 위치가 없으면 GPS로 가져오기 (최적화: 빠른 응답을 위해 설정 조정)
+        else if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
+              const latlng = new window.kakao.maps.LatLng(lat, lng);
+              isAutoMovingRef.current = true;
+              try {
+                map.setCenter(latlng);
+                map.setLevel(3);
+                setCurrentUserLocation({ lat, lng });
+                setIsLocationLocked(true);
+                userHasInteractedRef.current = false; // 자동 추적 재개
+                if (onMyLocationClick) {
+                  onMyLocationClick({ lat, lng });
+                }
+              } catch (error) {
+                console.warn('지도 탭 활성화 시 내 위치 이동 실패:', error);
+              }
+              setTimeout(() => {
+                isAutoMovingRef.current = false;
+              }, 300);
+            },
+            (error) => {
+              console.warn('지도 탭 활성화 시 위치 가져오기 실패:', error);
+            },
+            {
+              enableHighAccuracy: false, // 빠른 응답을 위해 false (정확도보다 속도 우선)
+              timeout: 3000, // 3초로 단축 (10초 -> 3초)
+              maximumAge: 5000, // 5초 이내 캐시된 위치 사용 (즉시 응답)
+            }
+          );
+        }
       }
     }
     // 활성화 상태 업데이트
     lastActiveStateRef.current = isActive;
-  }, [isActive, map, currentUserLocation, pendingLocation, onMyLocationClick]);
+  }, [isActive, map, currentUserLocation, userLocation, pendingLocation, onMyLocationClick]);
   
   useEffect(() => {
     if (!map || !window.kakao?.maps) return;

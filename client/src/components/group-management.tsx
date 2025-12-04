@@ -79,7 +79,7 @@ interface GroupManagementProps {
   groups: Group[];
   memos?: MemoWithDetails[];
   onCreateGroup: (data: { name: string; description?: string; memberName: string; color: string; markerIcon: string }) => void;
-  onUpdateGroup?: (groupId: string, data: { name: string; description?: string; color: string; markerIcon: string }) => void;
+  onUpdateGroup?: (groupId: string, data: { name: string; description?: string; color: string; markerIcon: string }) => void | Promise<void>;
   onJoinGroup: (inviteCode: string, memberName: string) => void;
   onLeaveGroup: (groupId: string, memberId: string) => void;
   onCopyGroup?: (groupId: string) => void;
@@ -175,12 +175,41 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
     setEditDialogOpen(true);
   };
 
-  const handleUpdateGroup = (data: EditGroupFormValues) => {
-    if (editingGroup && onUpdateGroup) {
-      onUpdateGroup(editingGroup.id, data);
+  const handleUpdateGroup = async (data: EditGroupFormValues) => {
+    console.log("[EDIT GROUP] handleUpdateGroup called", { 
+      editingGroupId: editingGroup?.id, 
+      data 
+    });
+    
+    if (!editingGroup) {
+      console.error("[EDIT GROUP] editingGroup is null");
+      return;
+    }
+    
+    if (!onUpdateGroup) {
+      console.error("[EDIT GROUP] onUpdateGroup handler is not provided");
+      return;
+    }
+    
+    try {
+      // onUpdateGroup이 Promise를 반환할 수 있으므로 await
+      const result = onUpdateGroup(editingGroup.id, data);
+      
+      // Promise인 경우 await
+      if (result && typeof result === 'object' && 'then' in result) {
+        await (result as Promise<void>);
+      }
+      
+      console.log("[EDIT GROUP] Group update successful");
+      
+      // 성공 시에만 폼 리셋 및 다이얼로그 닫기
       editForm.reset();
       setEditDialogOpen(false);
       setEditingGroup(null);
+    } catch (error: any) {
+      console.error("[EDIT GROUP] Group update failed:", error);
+      // 에러 발생 시 다이얼로그는 열어둠 (사용자가 다시 시도할 수 있도록)
+      // 에러 토스트는 useGroups의 onError에서 처리됨
     }
   };
 
@@ -773,7 +802,21 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
             <DialogTitle className="text-lg sm:text-xl">{t.groups.editGroup}</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(handleUpdateGroup)} className="flex flex-col flex-1 overflow-hidden">
+            <form 
+              onSubmit={async (e) => {
+                console.log("[EDIT GROUP] form onSubmit event triggered");
+                e.preventDefault();
+                e.stopPropagation();
+                
+                try {
+                  await editForm.handleSubmit(handleUpdateGroup)(e);
+                } catch (error: any) {
+                  console.error("[EDIT GROUP] Form submit error:", error);
+                  // 에러는 handleUpdateGroup에서 처리됨
+                }
+              }} 
+              className="flex flex-col flex-1 overflow-hidden"
+            >
               <div className="space-y-3 sm:space-y-4 overflow-y-auto flex-1 pr-1 sm:pr-2">
                 <FormField
                   control={editForm.control}

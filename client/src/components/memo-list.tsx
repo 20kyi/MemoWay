@@ -37,7 +37,6 @@ interface MemoListProps {
   onMemoClick: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
   onMoveToGroup?: (memoIds: string[], groupId: string) => void;
-  onShowOnMap?: (memoIds: string[]) => void;
   onDeleteSavedMap?: (mapId: string) => void;
   hideHeader?: boolean;
   hideFilters?: boolean;
@@ -56,7 +55,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, onShowOnMap, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
+export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -251,13 +250,36 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
   };
 
   const handleMoveToGroup = () => {
-    if (selectedMemoIds.size === 0 || !selectedGroupId) return;
-    if (onMoveToGroup) {
+    console.log("handleMoveToGroup 호출:", { 
+      selectedMemoIdsSize: selectedMemoIds.size, 
+      selectedGroupId,
+      hasOnMoveToGroup: !!onMoveToGroup 
+    });
+    
+    if (selectedMemoIds.size === 0) {
+      console.warn("선택된 메모가 없습니다.");
+      return;
+    }
+    
+    if (!selectedGroupId) {
+      console.warn("그룹이 선택되지 않았습니다.");
+      return;
+    }
+    
+    if (!onMoveToGroup) {
+      console.error("onMoveToGroup 핸들러가 없습니다.");
+      return;
+    }
+    
+    try {
       onMoveToGroup(Array.from(selectedMemoIds), selectedGroupId);
+      // 성공적으로 호출되면 UI 상태 업데이트
       setIsSelectionMode(false);
       setSelectedMemoIds(new Set());
       setMoveToGroupDialogOpen(false);
       setSelectedGroupId("");
+    } catch (error) {
+      console.error("그룹으로 이동 중 오류:", error);
     }
   };
 
@@ -320,33 +342,17 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
               전체 선택
             </Button>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {onShowOnMap && (
-              <Button
-                size="sm"
-                variant="default"
-                onClick={() => {
-                  if (onShowOnMap && selectedMemoIds.size > 0) {
-                    onShowOnMap(Array.from(selectedMemoIds));
-                    setIsSelectionMode(false);
-                    setSelectedMemoIds(new Set());
-                  }
-                }}
-                disabled={selectedMemoIds.size === 0}
-                className="flex-1 sm:flex-initial bg-gradient-to-br from-emerald-200 to-teal-200 hover:from-emerald-300 hover:to-teal-300 border-2 border-emerald-300/60 text-emerald-700 shadow-sm hover:shadow-md transition-all"
-                data-testid="button-show-on-map"
-              >
-                <MapPin className="h-4 w-4 mr-1" />
-                지도에 표시
-              </Button>
-            )}
+          <div className="flex items-center gap-2 flex-nowrap">
             {onMoveToGroup && groups.length > 0 && (
               <Button
                 size="sm"
                 variant="default"
-                onClick={() => setMoveToGroupDialogOpen(true)}
+                onClick={() => {
+                  setSelectedGroupId(""); // 다이얼로그 열 때 선택 초기화
+                  setMoveToGroupDialogOpen(true);
+                }}
                 disabled={selectedMemoIds.size === 0}
-                className="flex-1 sm:flex-initial bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md transition-all"
+                className="flex-1 bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md transition-all"
                 data-testid="button-move-to-group"
               >
                 <ArrowRight className="h-4 w-4 mr-1" />
@@ -358,7 +364,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
               variant="destructive"
               onClick={handleBulkDelete}
               disabled={selectedMemoIds.size === 0}
-              className="flex-1 sm:flex-initial bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 shadow-sm hover:shadow-md transition-all"
+              className="flex-1 bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 shadow-sm hover:shadow-md transition-all"
               data-testid="button-bulk-delete"
             >
               <Trash2 className="h-4 w-4 mr-1" />
