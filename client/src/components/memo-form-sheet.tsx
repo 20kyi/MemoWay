@@ -595,7 +595,7 @@ export function MemoFormSheet({
               <div>
                 <FormLabel className="text-sm font-medium text-gray-700 dark:text-white">{t.memoForm.photos}</FormLabel>
                 <p className="text-xs text-gray-500 dark:text-white/80 mt-1 mb-3">
-                  첫 번째 사진이 대표 사진으로 표시됩니다. 드래그하여 순서를 변경할 수 있습니다.
+                  {t.memoForm.photoOrderHint}
                 </p>
                 
                 <DndContext

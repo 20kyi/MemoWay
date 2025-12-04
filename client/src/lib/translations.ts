@@ -73,6 +73,7 @@ export const translations = {
       selectGroup: "그룹 선택",
       groupsSelected: "{count}개 그룹 선택됨",
       personalMemoPreparing: "개인 메모 준비 중...",
+      photoOrderHint: "첫 번째 사진이 대표 사진으로 표시됩니다. 드래그하여 순서를 변경할 수 있습니다.",
     },
     // Memo Detail
     memoDetail: {
@@ -424,6 +425,7 @@ export const translations = {
       selectGroup: "Select Group",
       groupsSelected: "{count} groups selected",
       personalMemoPreparing: "Preparing personal memo...",
+      photoOrderHint: "The first photo will be displayed as the representative photo. You can change the order by dragging.",
     },
     // Memo Detail
     memoDetail: {
@@ -775,6 +777,7 @@ export const translations = {
       selectGroup: "选择群组",
       groupsSelected: "已选择 {count} 个群组",
       personalMemoPreparing: "正在准备个人备忘录...",
+      photoOrderHint: "第一张照片将显示为代表照片。您可以通过拖拽来更改顺序。",
     },
     // Memo Detail
     memoDetail: {
@@ -1126,6 +1129,7 @@ export const translations = {
       selectGroup: "グループを選択",
       groupsSelected: "{count}個のグループが選択されました",
       personalMemoPreparing: "個人メモを準備中...",
+      photoOrderHint: "最初の写真が代表写真として表示されます。ドラッグして順序を変更できます。",
     },
     // Memo Detail
     memoDetail: {
@@ -1474,6 +1478,7 @@ type Translation = {
     selectGroup: string;
     groupsSelected: string;
     personalMemoPreparing: string;
+    photoOrderHint: string;
   };
   memoDetail: {
     photos: string;
