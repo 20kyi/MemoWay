@@ -1872,6 +1872,57 @@ function MapViewComponent({
     setAllSearchResults([]);
     setCurrentSearchQuery("");
     setIsSearchSidebarOpen(false);
+    
+    // 지도를 현재 위치로 이동
+    if (map && window.kakao?.maps) {
+      // currentUserLocation이 있으면 사용
+      if (currentUserLocation) {
+        const latlng = new window.kakao.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng);
+        map.setLevel(3);
+        try {
+          map.setCenter(latlng);
+        } catch (error) {
+          console.warn('setCenter 실패, panTo 시도:', error);
+          map.panTo(latlng);
+        }
+      } else if (userLocation) {
+        // userLocation prop이 있으면 사용
+        const latlng = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
+        map.setLevel(3);
+        try {
+          map.setCenter(latlng);
+        } catch (error) {
+          console.warn('setCenter 실패, panTo 시도:', error);
+          map.panTo(latlng);
+        }
+      } else if (navigator.geolocation) {
+        // geolocation API 사용
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const latlng = new window.kakao.maps.LatLng(lat, lng);
+            map.setLevel(3);
+            try {
+              map.setCenter(latlng);
+            } catch (error) {
+              console.warn('setCenter 실패, panTo 시도:', error);
+              map.panTo(latlng);
+            }
+            setCurrentUserLocation({ lat, lng });
+          },
+          (error) => {
+            console.error("현재 위치 가져오기 오류:", error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0,
+          }
+        );
+      }
+    }
+    
     // 검색 취소 시 메모 핀들이 자동으로 다시 표시됨 (useEffect에서 처리)
   };
 
