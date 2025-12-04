@@ -2101,7 +2101,7 @@ function MapViewComponent({
           {isLocationLocked && (
             <div className={`absolute ${isCoupleTheme ? 'top-[calc(12.1rem+1rem)] sm:top-[calc(13.1rem+1rem)]' : 'top-[calc(5rem+1rem)]'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
               <div 
-                className={`relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden ${
+                className={`relative text-white rounded-2xl flex items-center justify-center whitespace-nowrap overflow-hidden ${
                   isCoupleTheme 
                     ? 'px-7 py-5 sm:px-10 sm:py-6 gap-5 sm:gap-6' 
                     : 'px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3'
@@ -2115,6 +2115,7 @@ function MapViewComponent({
                     inset 0 -1px 3px rgba(90, 110, 180, 0.35)
                   `,
                   transform: 'translateY(-1px)',
+                  minWidth: isCoupleTheme ? '280px' : '200px',
                 }}
               >
                 {/* 볼록한 느낌을 위한 방사형 그라데이션 - 상단 중앙이 약간 밝음 (너무 밝지 않게) */}
@@ -2162,6 +2163,76 @@ function MapViewComponent({
                   {t.common.locationLockModeActive}
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* 검색 결과 취소 버튼 (검색 결과가 있을 때 표시) */}
+          {(searchMarker !== null || searchPlaceMarkers.length > 0) && (
+            <div className={`absolute ${isCoupleTheme ? 'top-[calc(12.1rem+1rem)] sm:top-[calc(13.1rem+1rem)]' : 'top-[calc(5rem+1rem)]'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
+              <button
+                onClick={handleClearSearch}
+                className={`relative rounded-2xl flex items-center justify-center whitespace-nowrap overflow-hidden ${
+                  isCoupleTheme 
+                    ? 'px-7 py-5 sm:px-10 sm:py-6 gap-5 sm:gap-6' 
+                    : 'px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3'
+                } cursor-pointer hover:scale-105 active:scale-95 transition-transform pointer-events-auto bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700`}
+                style={{
+                  boxShadow: `
+                    0 6px 12px -3px rgba(56, 189, 248, 0.35),
+                    0 3px 6px -2px rgba(56, 189, 248, 0.25),
+                    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+                    inset 0 -1px 3px rgba(99, 102, 241, 0.35)
+                  `,
+                  transform: 'translateY(-1px)',
+                  minWidth: isCoupleTheme ? '280px' : '200px',
+                }}
+                data-testid="button-cancel-search-results"
+              >
+                {/* 볼록한 느낌을 위한 방사형 그라데이션 */}
+                <div 
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: 'radial-gradient(ellipse 110% 70% at 50% 25%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 25%, transparent 55%)',
+                  }}
+                />
+                {/* 가장자리 어둡게 */}
+                <div 
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: 'radial-gradient(ellipse 130% 90% at 50% 50%, transparent 45%, rgba(99, 102, 241, 0.25) 75%, rgba(79, 70, 229, 0.4) 100%)',
+                  }}
+                />
+                {/* 하단 가장자리 더 어둡게 */}
+                <div 
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(79, 70, 229, 0.3) 0%, transparent 35%)',
+                  }}
+                />
+                <X 
+                  className={`flex-shrink-0 relative z-10 ${
+                    isCoupleTheme 
+                      ? 'h-8.5 w-8.5 sm:h-10 sm:w-10' 
+                      : 'h-4 w-4 sm:h-5 sm:w-5'
+                  }`}
+                  style={{ 
+                    filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25))',
+                  }} 
+                />
+                <span 
+                  className={`font-medium leading-tight relative z-10 ${
+                    isCoupleTheme 
+                      ? 'text-[24px] sm:text-[24px] md:text-[24px]' 
+                      : 'text-[12px] sm:text-[13px] md:text-[14px]'
+                  }`}
+                  style={{ 
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  검색 결과 취소
+                </span>
+              </button>
             </div>
           )}
           
@@ -2311,20 +2382,6 @@ function MapViewComponent({
                 </Button>
               </div>
 
-              {/* 검색 결과 취소 버튼 (검색 결과가 있을 때 표시) */}
-              {(searchMarker !== null || searchPlaceMarkers.length > 0) && (
-                <div className="flex justify-center">
-                  <Button
-                    onClick={handleClearSearch}
-                    variant="default"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg flex items-center gap-2"
-                    data-testid="button-cancel-search-results"
-                  >
-                    <X className="h-4 w-4" />
-                    <span>검색 결과 취소</span>
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
 
