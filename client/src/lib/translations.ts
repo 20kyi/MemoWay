@@ -250,7 +250,6 @@ export const translations = {
       supportNoticeDesc: "앱 관련 공지사항을 확인하세요",
       supportEmail: "이메일 문의",
       supportEmailDesc: "support@memoway.com으로 문의해주세요",
-      appInfo: "앱 정보",
       appInfoDesc: "앱 버전 및 개발자 정보를 확인하세요",
     },
     // Toast messages
@@ -604,7 +603,6 @@ export const translations = {
       supportNoticeDesc: "Check app-related announcements",
       supportEmail: "Email Support",
       supportEmailDesc: "Contact us at support@memoway.com",
-      appInfo: "App Information",
       appInfoDesc: "View app version and developer information",
     },
     // Toast messages
@@ -958,7 +956,6 @@ export const translations = {
       supportNoticeDesc: "查看应用相关公告",
       supportEmail: "邮件支持",
       supportEmailDesc: "通过 support@memoway.com 联系我们",
-      appInfo: "应用信息",
       appInfoDesc: "查看应用版本和开发者信息",
     },
     // Toast messages
@@ -1312,7 +1309,6 @@ export const translations = {
       supportNoticeDesc: "アプリ関連のお知らせを確認してください",
       supportEmail: "メールサポート",
       supportEmailDesc: "support@memoway.com までお問い合わせください",
-      appInfo: "アプリ情報",
       appInfoDesc: "アプリバージョンと開発者情報を確認できます",
     },
     // Toast messages

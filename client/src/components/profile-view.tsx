@@ -51,41 +51,145 @@ type FAQItem = {
   answer: string;
 };
 
-// FAQ 데이터 (한글만)
-const faqData: FAQItem[] = [
-  {
-    question: "MemoWay는 무엇인가요?",
-    answer: "MemoWay는 위치 기반 메모 서비스입니다. 특별한 장소의 추억을 기록하고, 그룹과 공유할 수 있습니다. 지도에서 위치를 선택하여 메모를 추가하고, 사진을 첨부할 수 있습니다."
-  },
-  {
-    question: "그룹은 어떻게 만들고 참여하나요?",
-    answer: "그룹 탭에서 '그룹 만들기' 버튼을 눌러 새 그룹을 만들 수 있습니다. 다른 사람의 그룹에 참여하려면 그룹 리더에게 초대 코드를 요청하고, '그룹 참여하기'에서 초대 코드를 입력하세요."
-  },
-  {
-    question: "포인트는 무엇인가요?",
-    answer: "포인트는 그룹 메모를 개인 그룹으로 복사할 때 사용됩니다. 메모 1개당 10포인트가 필요합니다. 설정에서 포인트를 구매할 수 있습니다."
-  },
-  {
-    question: "위치 기반 알림은 어떻게 작동하나요?",
-    answer: "설정에서 위치 추적을 활성화하고 알림 반경을 설정하면, 해당 반경 내에 메모가 있을 때 알림을 받을 수 있습니다. 지도 탭에서 위치 고정 모드를 활성화하면 더 정확한 알림을 받을 수 있습니다."
-  },
-  {
-    question: "메모를 삭제할 수 있나요?",
-    answer: "네, 메모 상세 화면에서 삭제 버튼을 눌러 메모를 삭제할 수 있습니다. 그룹 메모의 경우, 그룹 리더이거나 메모 작성자만 삭제할 수 있습니다."
-  },
-  {
-    question: "언어를 변경할 수 있나요?",
-    answer: "설정에서 언어를 변경할 수 있습니다. 한국어, 영어, 중국어, 일본어를 지원합니다."
-  },
-  {
-    question: "그룹 메모를 개인 메모로 복사할 수 있나요?",
-    answer: "네, 그룹 관리 화면에서 '그룹 메모 복사' 기능을 사용할 수 있습니다. 메모 1개당 10포인트가 필요하며, 복사된 메모는 개인 그룹에 저장됩니다."
-  },
-  {
-    question: "앱이 위치를 찾지 못해요",
-    answer: "브라우저나 앱의 위치 권한을 확인해주세요. 설정에서 위치 서비스 권한을 허용했는지 확인하고, GPS가 켜져 있는지 확인하세요. 지도 탭에서 위치 고정 모드를 활성화하면 더 정확한 위치를 찾을 수 있습니다."
-  }
-];
+// FAQ 데이터 (언어별)
+const faqData: Record<Language, FAQItem[]> = {
+  ko: [
+    {
+      question: "MemoWay는 무엇인가요?",
+      answer: "MemoWay는 위치 기반 메모 서비스입니다. 특별한 장소의 추억을 기록하고, 그룹과 공유할 수 있습니다. 지도에서 위치를 선택하여 메모를 추가하고, 사진을 첨부할 수 있습니다."
+    },
+    {
+      question: "그룹은 어떻게 만들고 참여하나요?",
+      answer: "그룹 탭에서 '그룹 만들기' 버튼을 눌러 새 그룹을 만들 수 있습니다. 다른 사람의 그룹에 참여하려면 그룹 리더에게 초대 코드를 요청하고, '그룹 참여하기'에서 초대 코드를 입력하세요."
+    },
+    {
+      question: "포인트는 무엇인가요?",
+      answer: "포인트는 그룹 메모를 개인 그룹으로 복사할 때 사용됩니다. 메모 1개당 10포인트가 필요합니다. 설정에서 포인트를 구매할 수 있습니다."
+    },
+    {
+      question: "위치 기반 알림은 어떻게 작동하나요?",
+      answer: "설정에서 위치 추적을 활성화하고 알림 반경을 설정하면, 해당 반경 내에 메모가 있을 때 알림을 받을 수 있습니다. 지도 탭에서 위치 고정 모드를 활성화하면 더 정확한 알림을 받을 수 있습니다."
+    },
+    {
+      question: "메모를 삭제할 수 있나요?",
+      answer: "네, 메모 상세 화면에서 삭제 버튼을 눌러 메모를 삭제할 수 있습니다. 그룹 메모의 경우, 그룹 리더이거나 메모 작성자만 삭제할 수 있습니다."
+    },
+    {
+      question: "언어를 변경할 수 있나요?",
+      answer: "설정에서 언어를 변경할 수 있습니다. 한국어, 영어, 중국어, 일본어를 지원합니다."
+    },
+    {
+      question: "그룹 메모를 개인 메모로 복사할 수 있나요?",
+      answer: "네, 그룹 관리 화면에서 '그룹 메모 복사' 기능을 사용할 수 있습니다. 메모 1개당 10포인트가 필요하며, 복사된 메모는 개인 그룹에 저장됩니다."
+    },
+    {
+      question: "앱이 위치를 찾지 못해요",
+      answer: "브라우저나 앱의 위치 권한을 확인해주세요. 설정에서 위치 서비스 권한을 허용했는지 확인하고, GPS가 켜져 있는지 확인하세요. 지도 탭에서 위치 고정 모드를 활성화하면 더 정확한 위치를 찾을 수 있습니다."
+    }
+  ],
+  en: [
+    {
+      question: "What is MemoWay?",
+      answer: "MemoWay is a location-based memo service. You can record memories of special places and share them with groups. You can select a location on the map to add a memo and attach photos."
+    },
+    {
+      question: "How do I create and join a group?",
+      answer: "You can create a new group by clicking the 'Create Group' button in the Groups tab. To join someone else's group, ask the group leader for an invite code and enter it in 'Join Group'."
+    },
+    {
+      question: "What are points?",
+      answer: "Points are used when copying group memos to your personal group. 10 points are required per memo. You can purchase points in Settings."
+    },
+    {
+      question: "How does location-based notification work?",
+      answer: "If you enable location tracking in Settings and set a notification radius, you will receive notifications when there are memos within that radius. You can get more accurate notifications by enabling Location Lock Mode in the Map tab."
+    },
+    {
+      question: "Can I delete a memo?",
+      answer: "Yes, you can delete a memo by clicking the delete button in the memo detail screen. For group memos, only the group leader or the memo author can delete them."
+    },
+    {
+      question: "Can I change the language?",
+      answer: "You can change the language in Settings. Korean, English, Chinese, and Japanese are supported."
+    },
+    {
+      question: "Can I copy group memos to personal memos?",
+      answer: "Yes, you can use the 'Copy Group Memos' feature in the group management screen. 10 points are required per memo, and copied memos are saved to your personal group."
+    },
+    {
+      question: "The app cannot find my location",
+      answer: "Please check the location permissions in your browser or app. Make sure location service permissions are allowed in Settings and that GPS is turned on. You can find a more accurate location by enabling Location Lock Mode in the Map tab."
+    }
+  ],
+  zh: [
+    {
+      question: "MemoWay是什么？",
+      answer: "MemoWay是一个基于位置的备忘录服务。您可以记录特殊地点的回忆，并与群组分享。您可以在地图上选择位置来添加备忘录并附加照片。"
+    },
+    {
+      question: "如何创建和加入群组？",
+      answer: "您可以在群组标签页中点击「创建群组」按钮来创建新群组。要加入其他人的群组，请向群组负责人索要邀请代码，然后在「加入群组」中输入邀请代码。"
+    },
+    {
+      question: "积分是什么？",
+      answer: "积分用于将群组备忘录复制到您的个人群组。每个备忘录需要10积分。您可以在设置中购买积分。"
+    },
+    {
+      question: "基于位置的通知如何工作？",
+      answer: "如果您在设置中启用位置跟踪并设置通知半径，当该半径内有备忘录时，您将收到通知。您可以通过在地图标签页中启用位置锁定模式来获得更准确的通知。"
+    },
+    {
+      question: "我可以删除备忘录吗？",
+      answer: "可以，您可以在备忘录详情屏幕中点击删除按钮来删除备忘录。对于群组备忘录，只有群组负责人或备忘录作者可以删除它们。"
+    },
+    {
+      question: "我可以更改语言吗？",
+      answer: "您可以在设置中更改语言。支持韩语、英语、中文和日语。"
+    },
+    {
+      question: "我可以将群组备忘录复制到个人备忘录吗？",
+      answer: "可以，您可以在群组管理屏幕中使用「复制群组备忘录」功能。每个备忘录需要10积分，复制的备忘录将保存到您的个人群组。"
+    },
+    {
+      question: "应用无法找到我的位置",
+      answer: "请检查浏览器或应用中的位置权限。确保在设置中允许位置服务权限，并且GPS已开启。您可以通过在地图标签页中启用位置锁定模式来找到更准确的位置。"
+    }
+  ],
+  ja: [
+    {
+      question: "MemoWayとは何ですか？",
+      answer: "MemoWayは位置ベースのメモサービスです。特別な場所の思い出を記録し、グループと共有できます。地図で位置を選択してメモを追加し、写真を添付できます。"
+    },
+    {
+      question: "グループの作成と参加方法は？",
+      answer: "グループタブで「グループ作成」ボタンをクリックして新しいグループを作成できます。他の人のグループに参加するには、グループリーダーに招待コードを依頼し、「グループ参加」で招待コードを入力してください。"
+    },
+    {
+      question: "ポイントとは何ですか？",
+      answer: "ポイントは、グループメモを個人グループにコピーする際に使用されます。メモ1つにつき10ポイントが必要です。設定でポイントを購入できます。"
+    },
+    {
+      question: "位置ベースの通知はどのように機能しますか？",
+      answer: "設定で位置追跡を有効にし、通知半径を設定すると、その半径内にメモがあるときに通知を受け取ることができます。地図タブで位置ロックモードを有効にすると、より正確な通知を受け取ることができます。"
+    },
+    {
+      question: "メモを削除できますか？",
+      answer: "はい、メモ詳細画面で削除ボタンをクリックしてメモを削除できます。グループメモの場合、グループリーダーまたはメモ作成者のみが削除できます。"
+    },
+    {
+      question: "言語を変更できますか？",
+      answer: "設定で言語を変更できます。韓国語、英語、中国語、日本語をサポートしています。"
+    },
+    {
+      question: "グループメモを個人メモにコピーできますか？",
+      answer: "はい、グループ管理画面で「グループメモコピー」機能を使用できます。メモ1つにつき10ポイントが必要で、コピーされたメモは個人グループに保存されます。"
+    },
+    {
+      question: "アプリが位置を見つけられません",
+      answer: "ブラウザまたはアプリの位置権限を確認してください。設定で位置サービス権限が許可されているか確認し、GPSがオンになっているか確認してください。地図タブで位置ロックモードを有効にすると、より正確な位置を見つけることができます。"
+    }
+  ]
+};
 
 // 공지사항 데이터 (컴포넌트 외부로 이동하여 재생성 방지)
 const noticeData: Record<Language, NoticeItem[]> = {
@@ -2769,10 +2873,10 @@ export function ProfileView({
             <SheetHeader className="px-5 pt-6 pb-4 border-b bg-gradient-to-br from-violet-50/50 to-purple-50/30">
               <SheetTitle className="flex items-center gap-2 text-xl">
                 <Shield className="h-6 w-6 text-violet-600 shrink-0" />
-                {language === 'ko' ? '개인정보처리방침' : language === 'en' ? 'Privacy Policy' : '개인정보처리방침'}
+                {language === 'ko' ? '개인정보처리방침' : language === 'en' ? 'Privacy Policy' : language === 'zh' ? '隐私政策' : language === 'ja' ? 'プライバシーポリシー' : '개인정보처리방침'}
               </SheetTitle>
               <SheetDescription className="text-sm mt-1.5">
-                {language === 'ko' ? 'MemoWay 개인정보처리방침' : language === 'en' ? 'MemoWay Privacy Policy' : 'MemoWay 개인정보처리방침'}
+                {language === 'ko' ? 'MemoWay 개인정보처리방침' : language === 'en' ? 'MemoWay Privacy Policy' : language === 'zh' ? 'MemoWay 隐私政策' : language === 'ja' ? 'MemoWay プライバシーポリシー' : 'MemoWay 개인정보처리방침'}
               </SheetDescription>
             </SheetHeader>
 
@@ -2807,6 +2911,38 @@ export function ProfileView({
                         <li>Location Information Processing: Collecting and storing user's current location, displaying location-based memos.</li>
                         <li>Payment and Point Management: Managing point purchases and usage history.</li>
                         <li>Customer Support: Responding to inquiries, handling complaints, and delivering announcements.</li>
+                      </ul>
+                    </div>
+                  </>
+                ) : language === 'zh' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第1条 (个人信息处理目的)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        MemoWay（以下简称"公司"）为以下目的处理个人信息。正在处理的个人信息不会用于指定目的以外的用途，如果使用目的发生变化，将根据《个人信息保护法》第18条采取必要措施，如获得单独同意。
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>服务提供：提供基于位置的备忘录创建、群组创建和管理、备忘录共享等服务</li>
+                        <li>会员管理：会员注册、身份验证、账户管理、服务使用时的身份验证</li>
+                        <li>位置信息处理：收集和存储用户的当前位置，显示基于位置的备忘录</li>
+                        <li>支付和积分管理：管理积分购买和使用记录</li>
+                        <li>客户支持：响应咨询、处理投诉、发送公告</li>
+                      </ul>
+                    </div>
+                  </>
+                ) : language === 'ja' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第1条 (個人情報の処理目的)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        MemoWay（以下「会社」という）は、以下の目的のために個人情報を処理します。処理している個人情報は、指定された目的以外の用途には使用されず、利用目的が変更される場合には、個人情報保護法第18条に従って、別途同意を得るなどの必要な措置を実施する予定です。
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>サービス提供：位置ベースのメモ作成、グループ作成および管理、メモ共有などのサービス提供</li>
+                        <li>会員管理：会員登録、本人確認、アカウント管理、サービス利用に伴う本人確認</li>
+                        <li>位置情報処理：ユーザーの現在位置の収集および保存、位置ベースのメモ表示</li>
+                        <li>決済およびポイント管理：ポイント購入および使用履歴の管理</li>
+                        <li>カスタマーサポート：お問い合わせ対応、苦情処理、お知らせ配信</li>
                       </ul>
                     </div>
                   </>
@@ -3140,6 +3276,318 @@ export function ProfileView({
                       </p>
                     </div>
                   </>
+                ) : language === 'zh' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第2条 (个人信息的处理及持有期间)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司根据法律法规规定的个人信息持有·使用期间，或在从信息主体收集个人信息时同意的个人信息持有·使用期间内处理·持有个人信息。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 各项个人信息的处理及持有期间如下：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>会员信息：至会员退会时（但，如因违反相关法律法规而进行调查·调查等正在进行中，则至该调查·调查结束时）</li>
+                        <li>位置信息：服务使用期间收集位置信息，服务终止时立即删除（但，存储在备忘录中的位置信息保留至该备忘录删除时）</li>
+                        <li>支付信息：根据《电子商务法》保存5年</li>
+                        <li>日志信息：服务使用记录保存1年</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第3条 (处理的个人信息项目)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        公司处理以下个人信息项目：
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        1. 必需项目：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>电子邮件地址、姓名（社交登录时提供的信息）</li>
+                        <li>位置信息（GPS、Wi-Fi、基站信息等）</li>
+                        <li>服务使用记录（备忘录创建、群组参与等）</li>
+                        <li>设备信息（设备唯一编号、OS版本等）</li>
+                      </ul>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        2. 可选项目：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>个人资料照片</li>
+                        <li>通知设置信息</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第4条 (向第三方提供个人信息)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司仅在第1条（个人信息的处理目的）中明确的范围內处理信息主体的个人信息，仅在符合《个人信息保护法》第17条及第18条的情况下（如信息主体同意、法律特别规定等）向第三方提供个人信息。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 公司可按以下方式向第三方提供个人信息：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>地图服务提供商（Kakao Map、Google Map）：通过位置信息显示地图及地址搜索</li>
+                        <li>支付服务提供商：积分购买时的支付处理</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        3. 公司未经信息主体同意不向第三方提供个人信息。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第5条 (个人信息处理的委托)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司为顺利处理个人信息业务，按以下方式委托个人信息处理业务：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>云服务提供商：服务器运营及数据存储</li>
+                        <li>电子邮件发送服务：客户支持及公告发送</li>
+                      </ul>
+                      <p className="text-muted-foreground">
+                        2. 公司在签订委托合同时，根据《个人信息保护法》第26条，在合同等文件中明确禁止委托业务执行目的外的个人信息处理、技术性·管理性保护措施、再委托限制、对受托人的管理·监督、损害赔偿等事项，并监督受托人是否安全处理个人信息。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第6条 (信息主体的权利·义务及行使方法)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 信息主体可随时对公司行使以下各项个人信息保护相关权利：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>要求停止处理个人信息</li>
+                        <li>要求查阅个人信息</li>
+                        <li>要求更正·删除个人信息</li>
+                      </ul>
+                      <p className="text-muted-foreground mb-2">
+                        2. 根据第1项的权利行使可通过书面、电子邮件、传真等方式向公司提出，公司将及时采取措施。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 信息主体要求更正或删除个人信息错误等时，公司在完成更正或删除之前不使用或提供该个人信息。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第7条 (个人信息的销毁)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 当个人信息因持有期间届满、处理目的达成等而不再需要时，公司将立即销毁该个人信息。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 个人信息销毁的程序及方法如下：
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        a. 销毁程序
+                      </p>
+                      <p className="text-muted-foreground mb-2 ml-2">
+                        公司选定发生销毁事由的个人信息，经公司个人信息保护负责人的批准后销毁个人信息。
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        b. 销毁方法
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>电子文件形式：使用无法恢复记录的技术方法删除</li>
+                        <li>记录物、印刷物、书面等：粉碎或焚烧销毁</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第8条 (个人信息保护负责人)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司负责统管个人信息处理相关业务，为处理与个人信息处理相关的信息主体投诉及提供救济，指定个人信息保护负责人如下：
+                      </p>
+                      <div className="bg-muted/50 p-3 rounded-lg mt-2">
+                        <p className="text-muted-foreground mb-1">
+                          <span className="font-semibold">个人信息保护负责人</span>
+                        </p>
+                        <p className="text-muted-foreground mb-1">
+                          电子邮件：support@memoway.com
+                        </p>
+                        <p className="text-muted-foreground">
+                          信息主体在使用公司服务时发生的所有个人信息保护相关咨询、投诉处理、救济等事项，可向个人信息保护负责人咨询。
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第9条 (个人信息安全措施)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        公司为确保个人信息安全采取以下措施：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>管理措施：制定·实施内部管理计划、定期员工培训等</li>
+                        <li>技术措施：管理个人信息处理系统等的访问权限、安装访问控制系统、加密唯一识别信息等、安装安全程序</li>
+                        <li>物理措施：控制计算机室、资料保管室等的访问</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第10条 (隐私政策变更)</h3>
+                      <p className="text-muted-foreground">
+                        本隐私政策自2024年1月1日起生效，如根据法律法规及政策对内容进行增删或更正，将在变更实施7天前通过公告通知。
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        本隐私政策自2024年1月1日起施行。
+                      </p>
+                    </div>
+                  </>
+                ) : language === 'ja' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第2条 (個人情報の処理および保有期間)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は、法令に基づく個人情報の保有·利用期間、または情報主体から個人情報を収集する際に同意を得た個人情報の保有·利用期間内で個人情報を処理·保有します。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 各個人情報の処理および保有期間は以下のとおりです：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>会員情報：会員退会時まで（ただし、関係法令違反に伴う捜査·調査等が進行中の場合は、当該捜査·調査終了時まで）</li>
+                        <li>位置情報：サービス利用中に位置情報を収集し、サービス終了時に即座に削除（ただし、メモに保存された位置情報は当該メモ削除時まで保有）</li>
+                        <li>決済情報：電子商取引法に基づき5年間保管</li>
+                        <li>ログ情報：サービス利用記録は1年間保管</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第3条 (処理する個人情報の項目)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        会社は以下の個人情報項目を処理しています：
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        1. 必須項目：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>メールアドレス、氏名（ソーシャルログイン時に提供される情報）</li>
+                        <li>位置情報（GPS、Wi-Fi、基地局情報等）</li>
+                        <li>サービス利用記録（メモ作成、グループ参加等）</li>
+                        <li>デバイス情報（デバイス固有番号、OSバージョン等）</li>
+                      </ul>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        2. 選択項目：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>プロフィール写真</li>
+                        <li>通知設定情報</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第4条 (個人情報の第三者提供)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は、情報主体の個人情報を第1条（個人情報の処理目的）で明示した範囲内でのみ処理し、情報主体の同意、法律の特別な規定など個人情報保護法第17条および第18条に該当する場合にのみ個人情報を第三者に提供します。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 会社は以下のように個人情報を第三者に提供することができます：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>地図サービス提供業者（Kakao Map、Google Map）：位置情報による地図表示および住所検索</li>
+                        <li>決済サービス提供業者：ポイント購入時の決済処理</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        3. 会社は情報主体の同意なく個人情報を第三者に提供しません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第5条 (個人情報処理の委託)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は、円滑な個人情報業務処理のために、以下のように個人情報処理業務を委託しています：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>クラウドサービス提供業者：サーバー運営およびデータ保存</li>
+                        <li>メール送信サービス：カスタマーサポートおよびお知らせ送信</li>
+                      </ul>
+                      <p className="text-muted-foreground">
+                        2. 会社は委託契約締結時に、個人情報保護法第26条に基づき、委託業務遂行目的外の個人情報処理禁止、技術的·管理的保護措置、再委託制限、受託者に対する管理·監督、損害賠償等に関する事項を契約書等の文書に明記し、受託者が個人情報を安全に処理しているかを監督しています。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第6条 (情報主体の権利·義務および行使方法)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 情報主体は、会社に対していつでも以下の各号の個人情報保護関連の権利を行使することができます：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>個人情報処理停止要求</li>
+                        <li>個人情報閲覧要求</li>
+                        <li>個人情報訂正·削除要求</li>
+                      </ul>
+                      <p className="text-muted-foreground mb-2">
+                        2. 第1項に基づく権利行使は、会社に対して書面、電子メール、ファクシミリ（FAX）等を通じて行うことができ、会社はこれに対して遅滞なく措置します。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 情報主体が個人情報の誤り等に対する訂正または削除を要求した場合、会社は訂正または削除を完了するまで当該個人情報を利用または提供しません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第7条 (個人情報の破棄)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は、個人情報の保有期間の経過、処理目的の達成などにより個人情報が不要になった場合、遅滞なく当該個人情報を破棄します。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 個人情報破棄の手順および方法は以下のとおりです：
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        a. 破棄手順
+                      </p>
+                      <p className="text-muted-foreground mb-2 ml-2">
+                        会社は破棄事由が発生した個人情報を選定し、会社の個人情報保護責任者の承認を得て個人情報を破棄します。
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        b. 破棄方法
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>電子ファイル形式：記録を再生できない技術的方法を使用して削除</li>
+                        <li>記録物、印刷物、書面等：粉砕または焼却して破棄</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第8条 (個人情報保護責任者)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は個人情報処理に関する業務を統括して責任を負い、個人情報処理に関連する情報主体の苦情処理および被害救済等のために、以下のように個人情報保護責任者を指定しています。
+                      </p>
+                      <div className="bg-muted/50 p-3 rounded-lg mt-2">
+                        <p className="text-muted-foreground mb-1">
+                          <span className="font-semibold">個人情報保護責任者</span>
+                        </p>
+                        <p className="text-muted-foreground mb-1">
+                          メール：support@memoway.com
+                        </p>
+                        <p className="text-muted-foreground">
+                          情報主体は、会社のサービスを利用する際に発生したすべての個人情報保護関連の問い合わせ、苦情処理、被害救済等に関する事項を個人情報保護責任者に問い合わせることができます。
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第9条 (個人情報の安全性確保措置)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        会社は個人情報の安全性確保のために以下のような措置を講じています：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>管理的措置：内部管理計画の策定·実施、定期的な従業員教育等</li>
+                        <li>技術的措置：個人情報処理システム等のアクセス権限管理、アクセス制御システムの設置、固有識別情報等の暗号化、セキュリティプログラムの設置</li>
+                        <li>物理的措置：コンピュータ室、資料保管室等のアクセス制御</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base mb-2 text-foreground">第10条 (プライバシーポリシー変更)</h3>
+                      <p className="text-muted-foreground">
+                        本プライバシーポリシーは2024年1月1日から適用され、法令および方針に基づく変更内容の追加、削除、訂正がある場合、変更事項の実施7日前からお知らせを通じて通知します。
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        本プライバシーポリシーは2024年1月1日から施行されます。
+                      </p>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <div>
@@ -3312,10 +3760,10 @@ export function ProfileView({
             <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-gradient-to-br from-violet-50/50 to-purple-50/30">
               <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-xl">
                 <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-violet-600 shrink-0" />
-                {language === 'ko' ? '개인정보처리방침' : language === 'en' ? 'Privacy Policy' : '개인정보처리방침'}
+                {language === 'ko' ? '개인정보처리방침' : language === 'en' ? 'Privacy Policy' : language === 'zh' ? '隐私政策' : language === 'ja' ? 'プライバシーポリシー' : '개인정보처리방침'}
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm mt-1">
-                {language === 'ko' ? 'MemoWay 개인정보처리방침' : language === 'en' ? 'MemoWay Privacy Policy' : 'MemoWay 개인정보처리방침'}
+                {language === 'ko' ? 'MemoWay 개인정보처리방침' : language === 'en' ? 'MemoWay Privacy Policy' : language === 'zh' ? 'MemoWay 隐私政策' : language === 'ja' ? 'MemoWay プライバシーポリシー' : 'MemoWay 개인정보처리방침'}
               </DialogDescription>
             </DialogHeader>
 
@@ -3661,6 +4109,346 @@ export function ProfileView({
                       </p>
                     </div>
                   </>
+                ) : language === 'zh' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第1条 (个人信息处理目的)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        MemoWay（以下简称"公司"）为以下目的处理个人信息。正在处理的个人信息不会用于指定目的以外的用途，如果使用目的发生变化，将根据《个人信息保护法》第18条采取必要措施，如获得单独同意。
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>服务提供：提供基于位置的备忘录创建、群组创建和管理、备忘录共享等服务</li>
+                        <li>会员管理：会员注册、身份验证、账户管理、服务使用时的身份验证</li>
+                        <li>位置信息处理：收集和存储用户的当前位置，显示基于位置的备忘录</li>
+                        <li>支付和积分管理：管理积分购买和使用记录</li>
+                        <li>客户支持：响应咨询、处理投诉、发送公告</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第2条 (个人信息的处理及持有期间)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司根据法律法规规定的个人信息持有·使用期间，或在从信息主体收集个人信息时同意的个人信息持有·使用期间内处理·持有个人信息。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 各项个人信息的处理及持有期间如下：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>会员信息：至会员退会时（但，如因违反相关法律法规而进行调查·调查等正在进行中，则至该调查·调查结束时）</li>
+                        <li>位置信息：服务使用期间收集位置信息，服务终止时立即删除（但，存储在备忘录中的位置信息保留至该备忘录删除时）</li>
+                        <li>支付信息：根据《电子商务法》保存5年</li>
+                        <li>日志信息：服务使用记录保存1年</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第3条 (处理的个人信息项目)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        公司处理以下个人信息项目：
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        1. 必需项目：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>电子邮件地址、姓名（社交登录时提供的信息）</li>
+                        <li>位置信息（GPS、Wi-Fi、基站信息等）</li>
+                        <li>服务使用记录（备忘录创建、群组参与等）</li>
+                        <li>设备信息（设备唯一编号、OS版本等）</li>
+                      </ul>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        2. 可选项目：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>个人资料照片</li>
+                        <li>通知设置信息</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第4条 (向第三方提供个人信息)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司仅在第1条（个人信息的处理目的）中明确的范围內处理信息主体的个人信息，仅在符合《个人信息保护法》第17条及第18条的情况下（如信息主体同意、法律特别规定等）向第三方提供个人信息。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 公司可按以下方式向第三方提供个人信息：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>地图服务提供商（Kakao Map、Google Map）：通过位置信息显示地图及地址搜索</li>
+                        <li>支付服务提供商：积分购买时的支付处理</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        3. 公司未经信息主体同意不向第三方提供个人信息。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第5条 (个人信息处理的委托)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司为顺利处理个人信息业务，按以下方式委托个人信息处理业务：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>云服务提供商：服务器运营及数据存储</li>
+                        <li>电子邮件发送服务：客户支持及公告发送</li>
+                      </ul>
+                      <p className="text-muted-foreground">
+                        2. 公司在签订委托合同时，根据《个人信息保护法》第26条，在合同等文件中明确禁止委托业务执行目的外的个人信息处理、技术性·管理性保护措施、再委托限制、对受托人的管理·监督、损害赔偿等事项，并监督受托人是否安全处理个人信息。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第6条 (信息主体的权利·义务及行使方法)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 信息主体可随时对公司行使以下各项个人信息保护相关权利：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>要求停止处理个人信息</li>
+                        <li>要求查阅个人信息</li>
+                        <li>要求更正·删除个人信息</li>
+                      </ul>
+                      <p className="text-muted-foreground mb-2">
+                        2. 根据第1项的权利行使可通过书面、电子邮件、传真等方式向公司提出，公司将及时采取措施。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 信息主体要求更正或删除个人信息错误等时，公司在完成更正或删除之前不使用或提供该个人信息。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第7条 (个人信息的销毁)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 当个人信息因持有期间届满、处理目的达成等而不再需要时，公司将立即销毁该个人信息。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 个人信息销毁的程序及方法如下：
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        a. 销毁程序
+                      </p>
+                      <p className="text-muted-foreground mb-2 ml-2">
+                        公司选定发生销毁事由的个人信息，经公司个人信息保护负责人的批准后销毁个人信息。
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        b. 销毁方法
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>电子文件形式：使用无法恢复记录的技术方法删除</li>
+                        <li>记录物、印刷物、书面等：粉碎或焚烧销毁</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第8条 (个人信息保护负责人)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 公司负责统管个人信息处理相关业务，为处理与个人信息处理相关的信息主体投诉及提供救济，指定个人信息保护负责人如下：
+                      </p>
+                      <div className="bg-muted/50 p-3 sm:p-4 rounded-lg mt-2">
+                        <p className="text-muted-foreground mb-1">
+                          <span className="font-semibold">个人信息保护负责人</span>
+                        </p>
+                        <p className="text-muted-foreground mb-1">
+                          电子邮件：support@memoway.com
+                        </p>
+                        <p className="text-muted-foreground">
+                          信息主体在使用公司服务时发生的所有个人信息保护相关咨询、投诉处理、救济等事项，可向个人信息保护负责人咨询。
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第9条 (个人信息安全措施)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        公司为确保个人信息安全采取以下措施：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>管理措施：制定·实施内部管理计划、定期员工培训等</li>
+                        <li>技术措施：管理个人信息处理系统等的访问权限、安装访问控制系统、加密唯一识别信息等、安装安全程序</li>
+                        <li>物理措施：控制计算机室、资料保管室等的访问</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第10条 (隐私政策变更)</h3>
+                      <p className="text-muted-foreground">
+                        本隐私政策自2024年1月1日起生效，如根据法律法规及政策对内容进行增删或更正，将在变更实施7天前通过公告通知。
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        本隐私政策自2024年1月1日起施行。
+                      </p>
+                    </div>
+                  </>
+                ) : language === 'ja' ? (
+                  <>
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第1条 (個人情報の処理目的)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        MemoWay（以下「会社」という）は、以下の目的のために個人情報を処理します。処理している個人情報は、指定された目的以外の用途には使用されず、利用目的が変更される場合には、個人情報保護法第18条に従って、別途同意を得るなどの必要な措置を実施する予定です。
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>サービス提供：位置ベースのメモ作成、グループ作成および管理、メモ共有などのサービス提供</li>
+                        <li>会員管理：会員登録、本人確認、アカウント管理、サービス利用に伴う本人確認</li>
+                        <li>位置情報処理：ユーザーの現在位置の収集および保存、位置ベースのメモ表示</li>
+                        <li>決済およびポイント管理：ポイント購入および使用履歴の管理</li>
+                        <li>カスタマーサポート：お問い合わせ対応、苦情処理、お知らせ配信</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第2条 (個人情報の処理および保有期間)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は、法令に基づく個人情報の保有·利用期間、または情報主体から個人情報を収集する際に同意を得た個人情報の保有·利用期間内で個人情報を処理·保有します。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 各個人情報の処理および保有期間は以下のとおりです：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>会員情報：会員退会時まで（ただし、関係法令違反に伴う捜査·調査等が進行中の場合は、当該捜査·調査終了時まで）</li>
+                        <li>位置情報：サービス利用中に位置情報を収集し、サービス終了時に即座に削除（ただし、メモに保存された位置情報は当該メモ削除時まで保有）</li>
+                        <li>決済情報：電子商取引法に基づき5年間保管</li>
+                        <li>ログ情報：サービス利用記録は1年間保管</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第3条 (処理する個人情報の項目)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        会社は以下の個人情報項目を処理しています：
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        1. 必須項目：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>メールアドレス、氏名（ソーシャルログイン時に提供される情報）</li>
+                        <li>位置情報（GPS、Wi-Fi、基地局情報等）</li>
+                        <li>サービス利用記録（メモ作成、グループ参加等）</li>
+                        <li>デバイス情報（デバイス固有番号、OSバージョン等）</li>
+                      </ul>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        2. 選択項目：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>プロフィール写真</li>
+                        <li>通知設定情報</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第4条 (個人情報の第三者提供)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は、情報主体の個人情報を第1条（個人情報の処理目的）で明示した範囲内でのみ処理し、情報主体の同意、法律の特別な規定など個人情報保護法第17条および第18条に該当する場合にのみ個人情報を第三者に提供します。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 会社は以下のように個人情報を第三者に提供することができます：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>地図サービス提供業者（Kakao Map、Google Map）：位置情報による地図表示および住所検索</li>
+                        <li>決済サービス提供業者：ポイント購入時の決済処理</li>
+                      </ul>
+                      <p className="text-muted-foreground mt-2">
+                        3. 会社は情報主体の同意なく個人情報を第三者に提供しません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第5条 (個人情報処理の委託)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は、円滑な個人情報業務処理のために、以下のように個人情報処理業務を委託しています：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>クラウドサービス提供業者：サーバー運営およびデータ保存</li>
+                        <li>メール送信サービス：カスタマーサポートおよびお知らせ送信</li>
+                      </ul>
+                      <p className="text-muted-foreground">
+                        2. 会社は委託契約締結時に、個人情報保護法第26条に基づき、委託業務遂行目的外の個人情報処理禁止、技術的·管理的保護措置、再委託制限、受託者に対する管理·監督、損害賠償等に関する事項を契約書等の文書に明記し、受託者が個人情報を安全に処理しているかを監督しています。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第6条 (情報主体の権利·義務および行使方法)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 情報主体は、会社に対していつでも以下の各号の個人情報保護関連の権利を行使することができます：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2 mb-2">
+                        <li>個人情報処理停止要求</li>
+                        <li>個人情報閲覧要求</li>
+                        <li>個人情報訂正·削除要求</li>
+                      </ul>
+                      <p className="text-muted-foreground mb-2">
+                        2. 第1項に基づく権利行使は、会社に対して書面、電子メール、ファクシミリ（FAX）等を通じて行うことができ、会社はこれに対して遅滞なく措置します。
+                      </p>
+                      <p className="text-muted-foreground">
+                        3. 情報主体が個人情報の誤り等に対する訂正または削除を要求した場合、会社は訂正または削除を完了するまで当該個人情報を利用または提供しません。
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第7条 (個人情報の破棄)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は、個人情報の保有期間の経過、処理目的の達成などにより個人情報が不要になった場合、遅滞なく当該個人情報を破棄します。
+                      </p>
+                      <p className="text-muted-foreground mb-2">
+                        2. 個人情報破棄の手順および方法は以下のとおりです：
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        a. 破棄手順
+                      </p>
+                      <p className="text-muted-foreground mb-2 ml-2">
+                        会社は破棄事由が発生した個人情報を選定し、会社の個人情報保護責任者の承認を得て個人情報を破棄します。
+                      </p>
+                      <p className="text-muted-foreground mb-2 font-semibold">
+                        b. 破棄方法
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>電子ファイル形式：記録を再生できない技術的方法を使用して削除</li>
+                        <li>記録物、印刷物、書面等：粉砕または焼却して破棄</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第8条 (個人情報保護責任者)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        1. 会社は個人情報処理に関する業務を統括して責任を負い、個人情報処理に関連する情報主体の苦情処理および被害救済等のために、以下のように個人情報保護責任者を指定しています。
+                      </p>
+                      <div className="bg-muted/50 p-3 sm:p-4 rounded-lg mt-2">
+                        <p className="text-muted-foreground mb-1">
+                          <span className="font-semibold">個人情報保護責任者</span>
+                        </p>
+                        <p className="text-muted-foreground mb-1">
+                          メール：support@memoway.com
+                        </p>
+                        <p className="text-muted-foreground">
+                          情報主体は、会社のサービスを利用する際に発生したすべての個人情報保護関連の問い合わせ、苦情処理、被害救済等に関する事項を個人情報保護責任者に問い合わせることができます。
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第9条 (個人情報の安全性確保措置)</h3>
+                      <p className="text-muted-foreground mb-2">
+                        会社は個人情報の安全性確保のために以下のような措置を講じています：
+                      </p>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-2">
+                        <li>管理的措置：内部管理計画の策定·実施、定期的な従業員教育等</li>
+                        <li>技術的措置：個人情報処理システム等のアクセス権限管理、アクセス制御システムの設置、固有識別情報等の暗号化、セキュリティプログラムの設置</li>
+                        <li>物理的措置：コンピュータ室、資料保管室等のアクセス制御</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg mb-2 text-foreground">第10条 (プライバシーポリシー変更)</h3>
+                      <p className="text-muted-foreground">
+                        本プライバシーポリシーは2024年1月1日から適用され、法令および方針に基づく変更内容の追加、削除、訂正がある場合、変更事項の実施7日前からお知らせを通じて通知します。
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        本プライバシーポリシーは2024年1月1日から施行されます。
+                      </p>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <div>
@@ -3859,7 +4647,7 @@ export function ProfileView({
 
             <div className="flex-1 overflow-y-auto px-5 py-6">
               <div className="space-y-4">
-                {faqData.map((faq, index) => (
+                {faqData[language].map((faq, index) => (
                   <div
                     key={index}
                     className="p-4 rounded-2xl border-2 bg-gradient-to-br from-blue-50/60 to-cyan-50/60 border-blue-200/60"
@@ -3899,7 +4687,7 @@ export function ProfileView({
 
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
               <div className="space-y-4 sm:space-y-5">
-                {faqData.map((faq, index) => (
+                {faqData[language].map((faq, index) => (
                   <div
                     key={index}
                     className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 bg-gradient-to-br from-blue-50/60 to-cyan-50/60 border-blue-200/60 hover:shadow-md transition-all"
