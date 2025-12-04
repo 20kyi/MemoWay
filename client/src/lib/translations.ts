@@ -24,6 +24,7 @@ export const translations = {
       yes: "예",
       no: "아니요",
       personal: "개인",
+      personalMemo: "개인 메모",
       addressSearchPlaceholder: "주소를 입력하세요 (예: 서울시 강남구 역삼동)",
       locationLockModeActive: "위치 고정 모드 활성화",
       markerFilter: "마커 필터",
@@ -371,6 +372,7 @@ export const translations = {
       yes: "Yes",
       no: "No",
       personal: "Personal",
+      personalMemo: "Personal Memo",
       addressSearchPlaceholder: "Enter address (e.g., Gangnam-gu, Seoul)",
       locationLockModeActive: "Location Lock Mode Active",
       markerFilter: "Marker Filter",
@@ -718,6 +720,7 @@ export const translations = {
       yes: "是",
       no: "否",
       personal: "个人",
+      personalMemo: "个人备忘录",
       addressSearchPlaceholder: "输入地址（例如：北京市朝阳区）",
       locationLockModeActive: "位置锁定模式已激活",
       markerFilter: "标记筛选",
@@ -1065,6 +1068,7 @@ export const translations = {
       yes: "はい",
       no: "いいえ",
       personal: "個人",
+      personalMemo: "個人メモ",
       addressSearchPlaceholder: "住所を入力してください（例：東京都渋谷区）",
       locationLockModeActive: "位置固定モード有効",
       markerFilter: "マーカーフィルター",
@@ -1412,6 +1416,7 @@ type Translation = {
     yes: string;
     no: string;
     personal: string;
+    personalMemo: string;
     addressSearchPlaceholder: string;
     locationLockModeActive: string;
     markerFilter: string;

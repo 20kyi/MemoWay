@@ -2603,7 +2603,7 @@ function MapViewComponent({
                     }}
                     data-testid="checkbox-group-personal"
                   />
-                  <span>개인 메모</span>
+                  <span>{t.common.personalMemo}</span>
                 </label>
                 {groups.filter(group => group.name !== "개인 메모").map((group) => (
                   <label key={group.id} className="flex items-center space-x-3 cursor-pointer">
