@@ -388,7 +388,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                   data-testid="tab-my-memos"
                 >
                   <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate">내가 쓴 메모</span>
+                  <span className="truncate">{t.memoList.myMemos}</span>
                   <Badge 
                     variant="secondary" 
                     className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
@@ -410,7 +410,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                   data-testid="tab-others-memos"
                 >
                   <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate">다른 사용자가 쓴 메모</span>
+                  <span className="truncate">{t.memoList.othersMemos}</span>
                   <Badge 
                     variant="secondary" 
                     className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${

@@ -104,6 +104,8 @@ export const translations = {
       moveToGroupDesc: "선택한 {count}개의 메모를 이동할 그룹을 선택하세요.",
       noGroupsAvailable: "이동할 수 있는 그룹이 없습니다.",
       move: "이동",
+      myMemos: "내가 쓴 메모",
+      othersMemos: "다른 사용자가 쓴 메모",
     },
     // Group Management
     groups: {
@@ -456,6 +458,8 @@ export const translations = {
       moveToGroupDesc: "Select a group to move {count} selected memos to.",
       noGroupsAvailable: "No groups available to move to.",
       move: "Move",
+      myMemos: "My Memos",
+      othersMemos: "Others' Memos",
     },
     // Group Management
     groups: {
@@ -808,6 +812,8 @@ export const translations = {
       moveToGroupDesc: "选择要将 {count} 个选定的备忘录移动到的群组。",
       noGroupsAvailable: "没有可移动到的群组。",
       move: "移动",
+      myMemos: "我写的备忘录",
+      othersMemos: "其他用户写的备忘录",
     },
     // Group Management
     groups: {
@@ -1160,6 +1166,8 @@ export const translations = {
       moveToGroupDesc: "選択した {count} 個のメモを移動するグループを選択してください。",
       noGroupsAvailable: "移動できるグループがありません。",
       move: "移動",
+      myMemos: "私が書いたメモ",
+      othersMemos: "他のユーザーが書いたメモ",
     },
     // Group Management
     groups: {
@@ -1507,6 +1515,8 @@ type Translation = {
     moveToGroupDesc: string;
     noGroupsAvailable: string;
     move: string;
+    myMemos: string;
+    othersMemos: string;
   };
   groups: {
     title: string;
