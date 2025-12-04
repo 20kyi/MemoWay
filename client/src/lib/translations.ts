@@ -31,6 +31,7 @@ export const translations = {
       markerFilter: "마커 필터",
       groupFilter: "그룹 필터",
       allGroups: "전체 그룹",
+      showAllResults: "검색결과 전체 보기",
     },
     // Categories
     categories: {
@@ -381,6 +382,7 @@ export const translations = {
       markerFilter: "Marker Filter",
       groupFilter: "Group Filter",
       allGroups: "All Groups",
+      showAllResults: "Show All Results",
     },
     // Categories
     categories: {
@@ -731,6 +733,7 @@ export const translations = {
       markerFilter: "标记筛选",
       groupFilter: "组筛选",
       allGroups: "所有组",
+      showAllResults: "显示所有结果",
     },
     // Categories
     categories: {
@@ -1081,6 +1084,7 @@ export const translations = {
       markerFilter: "マーカーフィルター",
       groupFilter: "グループフィルター",
       allGroups: "すべてのグループ",
+      showAllResults: "すべての結果を表示",
     },
     // Categories
     categories: {
@@ -1431,6 +1435,7 @@ type Translation = {
     markerFilter: string;
     groupFilter: string;
     allGroups: string;
+    showAllResults: string;
   };
   categories: {
     all: string;

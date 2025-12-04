@@ -402,6 +402,7 @@ function MapViewComponent({
   const [searchMarker, setSearchMarker] = useState<any>(null);
   const [searchPlaceMarkers, setSearchPlaceMarkers] = useState<Array<{ overlay: any; placeInfo: any }>>([]);
   const [searchResults, setSearchResults] = useState<Array<any>>([]);
+  const [allSearchResults, setAllSearchResults] = useState<Array<any>>([]); // 전체 검색 결과 저장
   const [isSearchSidebarOpen, setIsSearchSidebarOpen] = useState(false);
   const [currentSearchQuery, setCurrentSearchQuery] = useState(""); // 사이드바에 표시할 검색어
   const [mapError, setMapError] = useState<string | null>(null);
@@ -1811,6 +1812,7 @@ function MapViewComponent({
 
         setSearchPlaceMarkers(newPlaceMarkers);
         setSearchResults(top10Places); // 사이드바에 표시할 결과 저장
+        setAllSearchResults(placesWithDistance); // 전체 검색 결과 저장
         setCurrentSearchQuery(searchQuery); // 검색어 저장 (사이드바 헤더용)
         setIsSearchSidebarOpen(true); // 사이드바 열기
 
@@ -1867,9 +1869,72 @@ function MapViewComponent({
     });
     setSearchPlaceMarkers([]);
     setSearchResults([]);
+    setAllSearchResults([]);
     setCurrentSearchQuery("");
     setIsSearchSidebarOpen(false);
     // 검색 취소 시 메모 핀들이 자동으로 다시 표시됨 (useEffect에서 처리)
+  };
+
+  const handleShowAllResults = () => {
+    if (!map || !window.kakao?.maps || allSearchResults.length === 0) return;
+    
+    // 검색결과 슬라이드창 닫기
+    setIsSearchSidebarOpen(false);
+    
+    // 기존 마커들 제거
+    searchPlaceMarkers.forEach(marker => {
+      if (marker.overlay) {
+        marker.overlay.setMap(null);
+      }
+    });
+    
+    // 모든 검색 결과에 마커 표시
+    const newPlaceMarkers = allSearchResults.map((place: any, index: number) => {
+      const coords = new window.kakao.maps.LatLng(place.lat, place.lng);
+      const markerLabel = String.fromCharCode(65 + (index % 26)); // A-Z 반복
+      
+      // 마커에 라벨 포함
+      const markerContent = document.createElement('div');
+      markerContent.innerHTML = createPlaceMarkerContent(
+        place.place_name || place.address_name,
+        place.distance,
+        markerLabel
+      );
+      markerContent.style.cursor = 'pointer';
+      
+      const customOverlay = new window.kakao.maps.CustomOverlay({
+        position: coords,
+        content: markerContent,
+        yAnchor: 1,
+        zIndex: 10001, // 메모 마커보다 위에 표시
+      });
+      
+      // 마커 클릭 이벤트
+      const clickHandler = () => {
+        map.setCenter(coords);
+        map.setLevel(3);
+      };
+      
+      markerContent.addEventListener('click', clickHandler);
+      customOverlay.setMap(map);
+      
+      return {
+        overlay: customOverlay,
+        placeInfo: { ...place, markerLabel },
+      };
+    });
+    
+    setSearchPlaceMarkers(newPlaceMarkers);
+    
+    // 모든 마커가 보이도록 bounds 조정
+    if (allSearchResults.length > 0) {
+      const bounds = new window.kakao.maps.LatLngBounds();
+      allSearchResults.forEach((place: any) => {
+        const coords = new window.kakao.maps.LatLng(place.lat, place.lng);
+        bounds.extend(coords);
+      });
+      map.setBounds(bounds);
+    }
   };
 
   const handlePlaceClick = (place: any) => {
@@ -1970,7 +2035,17 @@ function MapViewComponent({
                       <p className="text-xs">검색 결과가 없습니다</p>
                     </div>
                   ) : (
-                    searchResults.map((place: any, index: number) => (
+                    <>
+                      {allSearchResults.length > searchResults.length && (
+                        <Button
+                          onClick={handleShowAllResults}
+                          className="w-full h-9 text-xs font-medium bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5 mb-1"
+                        >
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span>{t.common.showAllResults}</span>
+                        </Button>
+                      )}
+                      {searchResults.map((place: any, index: number) => (
                       <div
                         key={place.id || index}
                         onClick={() => handlePlaceClick(place)}
@@ -2008,7 +2083,8 @@ function MapViewComponent({
                           </div>
                         </div>
                       </div>
-                    ))
+                    ))}
+                    </>
                   )}
                 </div>
               </ScrollArea>
