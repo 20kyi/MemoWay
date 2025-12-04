@@ -1,8 +1,11 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { performanceMonitor, startPerformanceMonitoring } from "./utils/performance-monitor";
+import { getSession } from "./replitAuth";
 
 const app = express();
 
@@ -11,6 +14,70 @@ declare module 'http' {
     rawBody: unknown
   }
 }
+
+// ★ 중요: 미들웨어 순서
+// 0. trust proxy 설정 (세션 미들웨어보다 먼저 설정해야 함)
+app.set("trust proxy", 1);
+
+// 1. cookie-parser (쿠키 파싱)
+app.use(cookieParser());
+
+// 2. CORS 디버깅 로그 미들웨어 (응답 헤더 추적)
+app.use((req, res, next) => {
+  // CORS 응답 헤더를 추적하기 위해 setHeader 래핑
+  const originalSetHeader = res.setHeader.bind(res);
+  res.setHeader = function(name: string, value: string | string[] | number) {
+    originalSetHeader(name, value);
+    if (name.toLowerCase() === "access-control-allow-origin") {
+      console.log(`[CORS] Access-Control-Allow-Origin: ${value}`);
+    }
+    if (name.toLowerCase() === "access-control-allow-credentials") {
+      console.log(`[CORS] Access-Control-Allow-Credentials: ${value}`);
+    }
+  };
+  
+  // 응답 완료 후 최종 CORS 헤더 확인
+  res.on("finish", () => {
+    const corsOrigin = res.getHeader("access-control-allow-origin");
+    const corsCredentials = res.getHeader("access-control-allow-credentials");
+    if (corsOrigin || corsCredentials) {
+      console.log(`[CORS] Response headers - Origin: ${corsOrigin || 'not set'}, Credentials: ${corsCredentials || 'not set'}`);
+    }
+  });
+  
+  next();
+});
+
+// 3. CORS 설정 - 모든 origin 허용 (Android WebView 및 모든 클라이언트 지원)
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // origin이 없을 때 (모바일 앱, Postman 등)도 허용
+    // origin이 있을 때는 요청의 origin을 그대로 사용 (Access-Control-Allow-Origin에 설정됨)
+    console.log(`[CORS] Request origin: ${origin || '(no origin - same-origin or mobile app)'}`);
+    callback(null, true);
+  },
+  credentials: true, // 쿠키 포함 허용
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Cookie"],
+  exposedHeaders: ["Content-Type", "Set-Cookie"], // Set-Cookie 헤더 노출
+};
+
+app.use(cors(corsOptions));
+
+// 4. OPTIONS preflight 요청 전역 처리
+app.options("*", cors({
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    console.log(`[CORS] OPTIONS preflight request from origin: ${origin || '(no origin)'}`);
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Cookie"],
+}));
+
+// 5. 세션 미들웨어 (라우터보다 먼저 설정되어야 함)
+app.use(getSession());
+
 app.use(express.json({
   verify: (req, _res, buf) => {
     req.rawBody = buf;

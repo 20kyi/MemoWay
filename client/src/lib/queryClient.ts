@@ -82,20 +82,34 @@ export async function apiRequest(
 ): Promise<any> {
   const isFormData = data instanceof FormData;
   
+  // 플랫폼 정보 확인 (최우선)
+  const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
+  
   // 베이스 URL 가져오기
   const baseUrl = getApiBaseUrl();
   
   // 절대 URL이 아니면 베이스 URL 추가
   const fullUrl = url.startsWith('http') ? url : baseUrl + url;
   
-  // 플랫폼 정보 확인
-  const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
+  // Android 앱에서 디버깅 로그 추가
+  if (isNativePlatform) {
+    console.log(`[MOBILE LOGIN] ========================================`);
+    console.log(`[MOBILE LOGIN] Starting request from Android app`);
+    console.log(`[MOBILE LOGIN] Method: ${method}`);
+    console.log(`[MOBILE LOGIN] Original URL (input): ${url}`);
+    console.log(`[MOBILE LOGIN] Base URL: ${baseUrl}`);
+    console.log(`[MOBILE LOGIN] ========== FINAL URL ==========`);
+    console.log(`[MOBILE LOGIN] Final URL: ${fullUrl}`);
+    console.log(`[MOBILE LOGIN] ==============================`);
+  }
   
   console.log(`[API REQUEST] ========================================`);
   console.log(`[API REQUEST] Method: ${method}`);
-  console.log(`[API REQUEST] Original URL: ${url}`);
+  console.log(`[API REQUEST] Original URL (input): ${url}`);
   console.log(`[API REQUEST] Base URL: ${baseUrl || '(empty - using relative path)'}`);
-  console.log(`[API REQUEST] Full URL: ${fullUrl}`);
+  console.log(`[API REQUEST] ========== FINAL URL ==========`);
+  console.log(`[API REQUEST] Final URL: ${fullUrl}`);
+  console.log(`[API REQUEST] ==============================`);
   console.log(`[API REQUEST] Platform: ${isNativePlatform ? 'Native (Capacitor)' : 'Web Browser'}`);
   console.log(`[API REQUEST] Is FormData: ${isFormData}`);
   console.log(`[API REQUEST] Has Data: ${!!data}`);
@@ -114,40 +128,155 @@ export async function apiRequest(
   }
   console.log(`[API REQUEST] ========================================`);
   
-  try {
-    const res = await fetch(fullUrl, {
-      method,
-      headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
-      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
-      credentials: "include", // 쿠키 포함
+  // 요청 옵션 준비
+  const requestHeaders: Record<string, string> = {};
+  if (!isFormData && data) {
+    requestHeaders["Content-Type"] = "application/json";
+  }
+  requestHeaders["Accept"] = "application/json";
+  
+  const requestOptions: RequestInit = {
+    method,
+    headers: requestHeaders,
+    body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+    credentials: "include", // 쿠키 포함 - 필수!
+    redirect: "manual", // 리다이렉트를 수동으로 처리하여 쿠키 손실 방지
+  };
+  
+  if (isNativePlatform) {
+    console.log(`[MOBILE LOGIN] Request options:`, {
+      method: requestOptions.method,
+      headers: requestOptions.headers,
+      credentials: requestOptions.credentials,
+      redirect: requestOptions.redirect,
+      hasBody: !!requestOptions.body,
     });
+  }
+  
+  try {
+    console.log(`[API REQUEST] ========== STARTING REQUEST ==========`);
+    console.log(`[API REQUEST] Method: ${method}`);
+    console.log(`[API REQUEST] Final URL: ${fullUrl}`);
+    if (data && !isFormData) {
+      console.log(`[API REQUEST] Request body:`, JSON.stringify(data, null, 2));
+    }
+    
+    const res = await fetch(fullUrl, requestOptions);
 
-    console.log(`[API REQUEST] Response status: ${res.status} ${res.statusText}`);
+    console.log(`[API REQUEST] ========== RESPONSE RECEIVED ==========`);
+    console.log(`[API REQUEST] Status: ${res.status} ${res.statusText}`);
+    console.log(`[API REQUEST] OK: ${res.ok}`);
     console.log(`[API REQUEST] Response headers:`, Object.fromEntries(res.headers.entries()));
     
-    // 응답 본문을 읽기 전에 상태 확인
+    // Android 앱에서 응답 상세 로그
+    if (isNativePlatform) {
+      console.log(`[MOBILE LOGIN] ========== RESPONSE RECEIVED ==========`);
+      console.log(`[MOBILE LOGIN] Status code: ${res.status}`);
+      console.log(`[MOBILE LOGIN] Status text: ${res.statusText}`);
+      console.log(`[MOBILE LOGIN] Response OK: ${res.ok}`);
+      console.log(`[MOBILE LOGIN] Response headers:`, Object.fromEntries(res.headers.entries()));
+    }
+    
+    // Set-Cookie 헤더 확인
+    const setCookieHeader = res.headers.get("set-cookie");
+    if (setCookieHeader) {
+      console.log(`[API REQUEST] Set-Cookie header:`, setCookieHeader);
+      if (isNativePlatform) {
+        console.log(`[MOBILE LOGIN] ✓ Set-Cookie header found:`, setCookieHeader);
+      }
+    } else {
+      console.log(`[API REQUEST] No Set-Cookie header in response`);
+      if (isNativePlatform) {
+        console.warn(`[MOBILE LOGIN] ⚠️ No Set-Cookie header in response!`);
+      }
+    }
+    
+    // 응답 본문 읽기 (성공/실패 모두)
+    let responseBody: any = null;
+    const contentType = res.headers.get("content-type");
+    
+    try {
+      if (contentType && contentType.includes("application/json")) {
+        responseBody = await res.json();
+        console.log(`[API REQUEST] Response body (JSON):`, JSON.stringify(responseBody, null, 2));
+        if (isNativePlatform) {
+          console.log(`[MOBILE LOGIN] Response body (JSON):`, JSON.stringify(responseBody, null, 2));
+        }
+      } else {
+        const textBody = await res.text();
+        console.log(`[API REQUEST] Response body (text):`, textBody);
+        if (isNativePlatform) {
+          console.log(`[MOBILE LOGIN] Response body (text):`, textBody);
+        }
+        responseBody = textBody;
+      }
+    } catch (parseError) {
+      console.error(`[API REQUEST] Failed to parse response body:`, parseError);
+      if (isNativePlatform) {
+        console.error(`[MOBILE LOGIN] Failed to parse response body:`, parseError);
+      }
+    }
+    
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`[API REQUEST] Error response body:`, errorText);
+      console.error(`[API REQUEST] ========== ERROR RESPONSE ==========`);
+      console.error(`[API REQUEST] Status: ${res.status} ${res.statusText}`);
+      console.error(`[API REQUEST] Response body:`, responseBody);
     }
     
     await throwIfResNotOk(res);
     
-    const contentType = res.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const jsonData = await res.json();
-      console.log(`[API REQUEST] Response data:`, jsonData);
-      return jsonData;
-    }
-    
-    console.log(`[API REQUEST] Response is not JSON, returning response object`);
-    return res;
+    console.log(`[API REQUEST] ========== REQUEST SUCCESS ==========`);
+    return responseBody;
   } catch (error: any) {
     console.error(`[API REQUEST] ========== REQUEST FAILED ==========`);
     console.error(`[API REQUEST] Method: ${method}`);
-    console.error(`[API REQUEST] URL: ${fullUrl}`);
+    console.error(`[API REQUEST] Final URL: ${fullUrl}`);
     console.error(`[API REQUEST] Error name: ${error.name}`);
     console.error(`[API REQUEST] Error message: ${error.message}`);
+    console.error(`[API REQUEST] Error type: ${error.constructor.name}`);
+    
+    // Android 앱에서 네트워크/CORS 에러 상세 로그
+    if (isNativePlatform) {
+      console.error(`[MOBILE LOGIN] ========== REQUEST FAILED ==========`);
+      console.error(`[MOBILE LOGIN] Method: ${method}`);
+      console.error(`[MOBILE LOGIN] Final URL: ${fullUrl}`);
+      console.error(`[MOBILE LOGIN] Error name: ${error.name}`);
+      console.error(`[MOBILE LOGIN] Error message: ${error.message}`);
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error(`[MOBILE LOGIN] ========== NETWORK ERROR DETECTED ==========`);
+        console.error(`[MOBILE LOGIN] This is likely a network error (connection failed, DNS error, etc.)`);
+        console.error(`[MOBILE LOGIN] Current origin: ${window.location.origin}`);
+        console.error(`[MOBILE LOGIN] Request URL: ${fullUrl}`);
+        console.error(`[MOBILE LOGIN] Check if the server is reachable from the device`);
+        console.error(`[MOBILE LOGIN] ===========================================`);
+      }
+      
+      if (error.status) {
+        console.error(`[MOBILE LOGIN] HTTP Error Status: ${error.status}`);
+        if (error.status === 401) {
+          console.error(`[MOBILE LOGIN] 401 Unauthorized - Session cookie might not be set or expired`);
+        }
+      }
+      
+      if (error.error) {
+        console.error(`[MOBILE LOGIN] Error details: ${error.error}`);
+      }
+      
+      if (error.stack) {
+        console.error(`[MOBILE LOGIN] Error stack:`, error.stack);
+      }
+      console.error(`[MOBILE LOGIN] ====================================`);
+    }
+    
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error(`[API REQUEST] ========== FETCH ERROR DETECTED ==========`);
+      console.error(`[API REQUEST] This is likely a network/CORS error`);
+      console.error(`[API REQUEST] Check if the server allows requests from this origin`);
+      console.error(`[API REQUEST] Current origin: ${window.location.origin}`);
+      console.error(`[API REQUEST] Request URL: ${fullUrl}`);
+      console.error(`[API REQUEST] ===========================================`);
+    }
     console.error(`[API REQUEST] Error status: ${error.status}`);
     console.error(`[API REQUEST] Error error: ${error.error}`);
     if (error.response) {

@@ -42,6 +42,7 @@ interface MemoListProps {
   hideFilters?: boolean;
   showAuthorTab?: boolean;
   currentUserId?: string;
+  externalSearchQuery?: string; // 외부에서 전달받는 검색어 (그룹 메모 뷰용)
 }
 
 const categoryIcons: Record<MarkerIconType, any> = {
@@ -55,7 +56,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId }: MemoListProps) {
+export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -83,9 +84,10 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
       }
     }
     
-    // 검색어 필터링 (hideFilters가 false일 때만 - 메모 탭에서 사용)
-    if (!hideFilters && searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    // 검색어 필터링 (hideFilters가 false이거나 externalSearchQuery가 있을 때)
+    const activeSearchQuery = externalSearchQuery !== undefined ? externalSearchQuery : (!hideFilters ? searchQuery : "");
+    if (activeSearchQuery.trim()) {
+      const query = activeSearchQuery.toLowerCase();
       filtered = filtered.filter(memo => {
         // 기본 필드 검색
         const basicMatch = (
@@ -169,7 +171,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
     }
     
     return filtered;
-  }, [memos, selectedCategory, selectedGroup, showAuthorTab, authorTab, currentUserId, hideFilters, searchQuery]);
+  }, [memos, selectedCategory, selectedGroup, showAuthorTab, authorTab, currentUserId, hideFilters, searchQuery, externalSearchQuery]);
 
   // Group memos by location to determine if main memo button should be shown
   const memosByLocation = useMemo(() => {

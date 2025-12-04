@@ -34,26 +34,53 @@ export function getSession() {
   
   // Replit 환경 감지: Replit은 항상 HTTPS를 사용하므로 secure 쿠키 필요
   const isReplit = !!process.env.REPL_ID || !!process.env.REPL_SLUG;
-  const isHttps = isProduction || isReplit || process.env.ENABLE_SECURE_COOKIES === 'true';
+  // Railway 환경 감지: Railway는 항상 HTTPS를 사용
+  const isRailway = !!process.env.RAILWAY_ENVIRONMENT || !!process.env.RAILWAY_ENVIRONMENT_NAME || process.env.RAILWAY_ENVIRONMENT === "production";
+  // 프로덕션 환경 또는 HTTPS가 필요한 환경
+  // 로컬 개발 환경이 아닐 때만 HTTPS 사용
+  const isLocalhost = process.env.NODE_ENV === "development" && !isReplit && !isRailway;
+  const isHttps = !isLocalhost && (isProduction || isReplit || isRailway || process.env.ENABLE_SECURE_COOKIES === 'true');
   
-  // 네이티브 앱에서도 쿠키가 작동하도록 설정
-  // sameSite: 'none'은 secure: true와 함께 사용해야 함
-  // 네이티브 앱의 웹뷰에서는 cross-site 쿠키가 필요함
+  // 테스트용: saveUninitialized 설정 (환경 변수로 제어 가능)
+  // saveUninitialized: false는 세션에 변경이 없으면 쿠키가 생성되지 않을 수 있음
+  // 테스트를 위해 ENABLE_SAVE_UNINITIALIZED=true로 설정 가능
+  const saveUninitialized = process.env.ENABLE_SAVE_UNINITIALIZED === 'true';
+  
+  // Android WebView에서 쿠키 저장을 위해 SameSite=None + Secure=true 필수
+  // Railway HTTPS 환경에서 Android WebView cross-site 쿠키 지원을 위해
+  // 모든 환경에서 일관되게 SameSite=None + Secure=true 사용
+  const cookieSecure = true; // HTTPS 필수
+  const cookieSameSite: "none" = "none"; // Android WebView cross-site 쿠키 지원
+  
+  console.log('[SESSION CONFIG] ========== SESSION CONFIGURATION ==========');
+  console.log('[SESSION CONFIG] NODE_ENV:', process.env.NODE_ENV);
+  console.log('[SESSION CONFIG] isProduction:', isProduction);
+  console.log('[SESSION CONFIG] isReplit:', isReplit);
+  console.log('[SESSION CONFIG] isRailway:', isRailway);
+  console.log('[SESSION CONFIG] isLocalhost:', isLocalhost);
+  console.log('[SESSION CONFIG] isHttps:', isHttps);
+  console.log('[SESSION CONFIG] Cookie secure:', cookieSecure, '(강제: true - Android WebView 지원)');
+  console.log('[SESSION CONFIG] Cookie sameSite:', cookieSameSite, '(강제: none - Android WebView cross-site 쿠키)');
+  console.log('[SESSION CONFIG] saveUninitialized:', saveUninitialized, '(테스트용 플래그:', process.env.ENABLE_SAVE_UNINITIALIZED || 'not set', ')');
+  console.log('[SESSION CONFIG] ===========================================');
+  
+  // Android WebView에서 쿠키 저장을 위해 SameSite=None + Secure=true 필수
+  // Railway HTTPS 환경에서 Android WebView cross-site 쿠키 지원
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: saveUninitialized, // 환경 변수로 제어 가능
+    name: 'connect.sid', // 세션 쿠키 이름 명시
     cookie: {
       httpOnly: true,
-      // 네이티브 앱 지원: HTTPS 스킴 사용 시 secure 필요
-      // Replit 환경에서는 항상 HTTPS이므로 secure 필요
-      secure: isHttps,
+      secure: cookieSecure, // 항상 true - HTTPS 필수
       maxAge: sessionTtl,
-      // 네이티브 앱에서 웹뷰를 사용할 때 cross-site 쿠키가 필요함
-      // sameSite: 'none'은 secure: true와 함께 사용해야 함
-      sameSite: isHttps ? "none" : "lax",
+      sameSite: cookieSameSite, // 항상 "none" - Android WebView cross-site 쿠키 지원
+      path: "/", // 모든 경로에서 쿠키 사용
     },
+    // 세션이 변경되지 않아도 저장하도록 설정 (쿠키 갱신 보장)
+    rolling: true,
   });
 }
 
@@ -69,8 +96,9 @@ async function upsertUser(claims: any) {
 }
 
 export async function setupAuth(app: Express) {
-  app.set("trust proxy", 1);
-  app.use(getSession());
+  // trust proxy는 이미 server/index.ts에서 설정되어야 함 (세션 미들웨어 이전)
+  // 세션 미들웨어는 이미 server/index.ts에서 설정되었으므로 여기서는 제거
+  // app.use(getSession()); // 제거 - index.ts에서 이미 설정됨
   app.use(passport.initialize());
   app.use(passport.session());
 

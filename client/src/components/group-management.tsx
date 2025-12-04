@@ -109,6 +109,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
   const [copyConfirmGroup, setCopyConfirmGroup] = useState<Group | null>(null);
   const [activeTab, setActiveTab] = useState<"leader" | "member">("leader");
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [groupMemoSearchQuery, setGroupMemoSearchQuery] = useState("");
   const { toast } = useToast();
 
   const groupFormSchema = z.object({
@@ -274,7 +275,10 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setSelectedGroupId(null)}
+              onClick={() => {
+                setSelectedGroupId(null);
+                setGroupMemoSearchQuery("");
+              }}
               className="h-8 w-8 rounded-full hover:bg-muted"
               data-testid="button-back-to-groups"
             >
@@ -307,6 +311,33 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
           </div>
         </div>
 
+        {/* 검색 바 */}
+        <div className="px-4 pt-4 pb-2 flex-shrink-0 border-b">
+          <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={groupMemoSearchQuery}
+                onChange={(e) => setGroupMemoSearchQuery(e.target.value)}
+                placeholder={t.memoList.searchPlaceholder}
+                className="pl-10 pr-10 border-0 focus-visible:ring-0 bg-transparent"
+                data-testid="input-group-memo-search"
+              />
+              {groupMemoSearchQuery && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  onClick={() => setGroupMemoSearchQuery("")}
+                  data-testid="button-clear-group-memo-search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* 메모 목록 */}
         <div className="flex-1 overflow-hidden">
           {onEditMemo && onDeleteMemo && onMemoClick ? (
@@ -321,6 +352,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
               hideFilters={true}
               showAuthorTab={true}
               currentUserId={userId}
+              externalSearchQuery={groupMemoSearchQuery}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full p-8 text-center">

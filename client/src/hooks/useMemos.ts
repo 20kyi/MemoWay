@@ -178,10 +178,31 @@ export function useMemos({
 
         // FormData 내용 로깅 (디버깅용)
         console.log("[UPDATE MEMO API] FormData prepared, calling API");
-        console.log("[UPDATE MEMO API] API endpoint:", `/api/memos/${memoId}`);
         
-        // apiRequest가 자동으로 baseURL을 추가하므로 여기서는 상대 경로만 전달
-        const result = await apiRequest("PATCH", `/api/memos/${memoId}`, formData);
+        // 절대 URL 구성 (Android WebView에서 localhost 문제 해결)
+        // apiRequest가 내부에서 getApiBaseUrl()을 호출하지만, 
+        // Android WebView에서 확실하게 절대 URL을 사용하도록 여기서도 명시적으로 처리
+        const { getApiBaseUrl } = await import("@/lib/api-config");
+        const baseUrl = getApiBaseUrl();
+        const apiPath = `/api/memos/${memoId}`;
+        
+        // 절대 URL 구성: getApiBaseUrl()이 항상 값을 반환하므로 항상 절대 URL이 됨
+        // 프로덕션: https://memoway-production.up.railway.app/api/memos/${memoId}
+        // 개발: http://localhost:5000/api/memos/${memoId}
+        const fullUrl = `${baseUrl}${apiPath}`;
+        
+        const isNativePlatform = (window as any).Capacitor?.isNativePlatform?.() ?? false;
+        
+        console.log("[UPDATE MEMO API] ========== REQUEST URL INFO ==========");
+        console.log("[UPDATE MEMO API] Base URL:", baseUrl || "(empty - using relative path)");
+        console.log("[UPDATE MEMO API] API path:", apiPath);
+        console.log("[UPDATE MEMO API] Full URL:", fullUrl);
+        console.log("[UPDATE MEMO API] Platform:", isNativePlatform ? 'Native (Capacitor)' : 'Web Browser');
+        console.log("[UPDATE MEMO API] ======================================");
+        
+        // apiRequest에 전달 (apiRequest 내부에서도 baseUrl을 추가하지만, 
+        // 이미 절대 URL이면 추가하지 않으므로 안전)
+        const result = await apiRequest("PATCH", fullUrl, formData);
         
         console.log("[UPDATE MEMO API] ========== UPDATE SUCCESS ==========");
         console.log("[UPDATE MEMO API] Result:", result);

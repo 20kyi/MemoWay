@@ -76,9 +76,63 @@ export default function Landing() {
   // 이메일 로그인 mutation
   const loginMutation = useMutation({
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
-      return await apiRequest("POST", "/api/email/login", data);
+      const isNativePlatform = Capacitor.isNativePlatform();
+      
+      console.log("[LOGIN] ========== STARTING LOGIN ==========");
+      console.log("[LOGIN] Email:", data.email);
+      console.log("[LOGIN] Platform:", isNativePlatform ? "Android/Capacitor" : "Web Browser");
+      console.log("[LOGIN] Calling apiRequest with:", { method: "POST", url: "/api/email/login" });
+      
+      if (isNativePlatform) {
+        console.log("[MOBILE LOGIN] ========== STARTING LOGIN ==========");
+        console.log("[MOBILE LOGIN] Email:", data.email);
+        console.log("[MOBILE LOGIN] Platform: Android/Capacitor");
+        const baseUrl = getApiBaseUrl();
+        console.log("[MOBILE LOGIN] API Base URL:", baseUrl);
+        console.log("[MOBILE LOGIN] Final URL will be:", `${baseUrl}/api/email/login`);
+      }
+      
+      try {
+        const result = await apiRequest("POST", "/api/email/login", data);
+        console.log("[LOGIN] ========== LOGIN SUCCESS ==========");
+        console.log("[LOGIN] Response:", result);
+        
+        if (isNativePlatform) {
+          console.log("[MOBILE LOGIN] ========== LOGIN SUCCESS ==========");
+          console.log("[MOBILE LOGIN] Response:", result);
+          console.log("[MOBILE LOGIN] Session cookie should be set now");
+        }
+        
+        return result;
+      } catch (error: any) {
+        console.error("[LOGIN] ========== LOGIN ERROR ==========");
+        console.error("[LOGIN] Error name:", error?.name);
+        console.error("[LOGIN] Error message:", error?.message);
+        console.error("[LOGIN] Error status:", error?.status);
+        console.error("[LOGIN] Error error:", error?.error);
+        console.error("[LOGIN] Full error object:", error);
+        
+        if (isNativePlatform) {
+          console.error("[MOBILE LOGIN] ========== LOGIN ERROR ==========");
+          console.error("[MOBILE LOGIN] Error name:", error?.name);
+          console.error("[MOBILE LOGIN] Error message:", error?.message);
+          console.error("[MOBILE LOGIN] Error status:", error?.status);
+          console.error("[MOBILE LOGIN] Error error:", error?.error);
+          
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            console.error("[MOBILE LOGIN] Network error detected - check connection and server URL");
+          }
+          
+          if (error.status === 401) {
+            console.error("[MOBILE LOGIN] 401 Unauthorized - credentials might be invalid");
+          }
+        }
+        
+        throw error;
+      }
     },
     onSuccess: async () => {
+      console.log("[LOGIN] onSuccess callback called");
       toast({
         title: language === 'ko' ? "로그인 성공" : "Login successful",
         description: language === 'ko' ? "환영합니다!" : "Welcome!",
@@ -106,9 +160,46 @@ export default function Landing() {
       }
     },
     onError: (error: any) => {
+      console.error("[LOGIN] onError callback called");
+      console.error("[LOGIN] Error in onError:", error);
+      
+      const isNativePlatform = Capacitor.isNativePlatform();
+      
+      // 에러 메시지 생성 (더 상세한 정보 포함)
+      let errorMessage = error?.error || error?.message || (language === 'ko' ? "로그인에 실패했습니다" : "Failed to login");
+      
+      // 네트워크 에러 처리
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = language === 'ko' 
+          ? "네트워크 에러: 서버에 연결할 수 없습니다. 인터넷 연결을 확인해주세요."
+          : "Network error: Unable to connect to server. Please check your internet connection.";
+        
+        if (isNativePlatform) {
+          const baseUrl = getApiBaseUrl();
+          errorMessage += `\n${language === 'ko' ? '서버 URL:' : 'Server URL:'} ${baseUrl}`;
+        }
+      }
+      
+      // HTTP 상태 코드별 메시지
+      if (error?.status === 401) {
+        errorMessage = language === 'ko'
+          ? "서버 응답: 401 Unauthorized - 이메일 또는 비밀번호가 올바르지 않습니다."
+          : "Server response: 401 Unauthorized - Invalid email or password.";
+      } else if (error?.status === 0) {
+        errorMessage = language === 'ko'
+          ? "네트워크 에러: 서버에 연결할 수 없습니다."
+          : "Network error: Unable to connect to server.";
+      } else if (error?.status) {
+        errorMessage = `${language === 'ko' ? '서버 응답' : 'Server response'}: ${error.status} ${error.statusText || ''} - ${errorMessage}`;
+      }
+      
+      if (isNativePlatform) {
+        console.error("[MOBILE LOGIN] onError - showing toast with error:", errorMessage);
+      }
+      
       toast({
         title: language === 'ko' ? "로그인 실패" : "Login failed",
-        description: error.error || error.message || (language === 'ko' ? "로그인에 실패했습니다" : "Failed to login"),
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -117,7 +208,24 @@ export default function Landing() {
   // 이메일 회원가입 mutation
   const registerMutation = useMutation({
     mutationFn: async (data: z.infer<typeof registerSchema>) => {
-      return await apiRequest("POST", "/api/email/register", data);
+      console.log("[REGISTER] ========== STARTING REGISTRATION ==========");
+      console.log("[REGISTER] Email:", data.email);
+      console.log("[REGISTER] Calling apiRequest with:", { method: "POST", url: "/api/email/register" });
+      
+      try {
+        const result = await apiRequest("POST", "/api/email/register", data);
+        console.log("[REGISTER] ========== REGISTRATION SUCCESS ==========");
+        console.log("[REGISTER] Response:", result);
+        return result;
+      } catch (error: any) {
+        console.error("[REGISTER] ========== REGISTRATION ERROR ==========");
+        console.error("[REGISTER] Error name:", error?.name);
+        console.error("[REGISTER] Error message:", error?.message);
+        console.error("[REGISTER] Error status:", error?.status);
+        console.error("[REGISTER] Error error:", error?.error);
+        console.error("[REGISTER] Full error object:", error);
+        throw error;
+      }
     },
     onSuccess: async () => {
       toast({
