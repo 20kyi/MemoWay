@@ -1955,8 +1955,7 @@ function MapViewComponent({
                   </div>
                   <Button
                     size="icon"
-                    variant="ghost"
-                    className="h-8 w-8"
+                    className="h-8 w-8 bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md transition-all"
                     onClick={handleClearSearch}
                     title="검색 취소"
                   >

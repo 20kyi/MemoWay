@@ -17,6 +17,7 @@ export const translations = {
       delete: "삭제",
       edit: "수정",
       create: "만들기",
+      add: "추가",
       join: "참여하기",
       leave: "나가기",
       copy: "복사",
@@ -366,6 +367,7 @@ export const translations = {
       delete: "Delete",
       edit: "Edit",
       create: "Create",
+      add: "Add",
       join: "Join",
       leave: "Leave",
       copy: "Copy",
@@ -715,6 +717,7 @@ export const translations = {
       delete: "删除",
       edit: "编辑",
       create: "创建",
+      add: "添加",
       join: "加入",
       leave: "退出",
       copy: "复制",
@@ -1064,6 +1067,7 @@ export const translations = {
       delete: "削除",
       edit: "編集",
       create: "作成",
+      add: "追加",
       join: "参加",
       leave: "退出",
       copy: "コピー",
@@ -1413,6 +1417,7 @@ type Translation = {
     delete: string;
     edit: string;
     create: string;
+    add: string;
     join: string;
     leave: string;
     copy: string;

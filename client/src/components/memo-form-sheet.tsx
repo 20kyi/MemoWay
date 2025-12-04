@@ -237,6 +237,119 @@ export function MemoFormSheet({
     }
   }, [open, editMode]);
 
+  // 스와이프 제스처 처리 (모바일에서 아래로 스와이프하여 닫기)
+  useEffect(() => {
+    if (!open) return;
+    
+    // SheetContent의 실제 DOM 요소 찾기 (약간의 딜레이를 두어 DOM이 완전히 렌더링된 후 찾기)
+    const findSheetContent = () => {
+      const content = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
+      return content;
+    };
+    
+    // DOM이 렌더링될 때까지 대기
+    const timeoutId = setTimeout(() => {
+      const sheetContent = findSheetContent();
+      if (!sheetContent) return;
+
+      let startY = 0;
+      let startTime = 0;
+      let isDragging = false;
+      let initialScrollTop = 0;
+
+      const handleTouchStart = (e: TouchEvent) => {
+        const target = e.target as HTMLElement;
+        startY = e.touches[0].clientY;
+        startTime = Date.now();
+        isDragging = false;
+        
+        // 스크롤 가능한 영역 찾기
+        const scrollableArea = sheetContent.querySelector('[class*="overflow-y-auto"], [class*="overflow-y-scroll"]') as HTMLElement;
+        if (scrollableArea) {
+          initialScrollTop = scrollableArea.scrollTop;
+        }
+      };
+
+      const handleTouchMove = (e: TouchEvent) => {
+        if (!startY) return;
+        
+        const currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        
+        // 스크롤 가능한 영역 확인
+        const scrollableArea = sheetContent.querySelector('[class*="overflow-y-auto"], [class*="overflow-y-scroll"]') as HTMLElement;
+        
+        // 아래로 스와이프만 감지 (양수 = 아래로)
+        if (deltaY > 0) {
+          // 스크롤 가능한 영역이 있고 스크롤이 맨 위가 아니면 스와이프 무시
+          if (scrollableArea && scrollableArea.scrollTop > 0) {
+            // 스크롤이 위로 이동하면 스와이프 취소
+            if (scrollableArea.scrollTop < initialScrollTop) {
+              startY = 0;
+              return;
+            }
+            // 스크롤이 가능한 상태면 스와이프 무시
+            return;
+          }
+          
+          isDragging = true;
+          
+          // Sheet를 아래로 이동시키는 시각적 피드백
+          const maxDrag = 200;
+          const dragRatio = Math.min(deltaY / maxDrag, 1);
+          sheetContent.style.transform = `translateY(${deltaY}px)`;
+          sheetContent.style.transition = 'none';
+          
+          // 배경 투명도 조절
+          const overlay = document.querySelector('[data-radix-dialog-overlay]') as HTMLElement;
+          if (overlay) {
+            overlay.style.opacity = String(0.8 * (1 - dragRatio * 0.5));
+          }
+        }
+      };
+
+      const handleTouchEnd = (e: TouchEvent) => {
+        if (!startY) return;
+        
+        const currentY = e.changedTouches[0].clientY;
+        const deltaY = currentY - startY;
+        const deltaTime = Date.now() - startTime;
+        const velocity = deltaTime > 0 ? deltaY / deltaTime : 0;
+        
+        // 드래그 거리 초기화
+        sheetContent.style.transform = '';
+        sheetContent.style.transition = '';
+        
+        const overlay = document.querySelector('[data-radix-dialog-overlay]') as HTMLElement;
+        if (overlay) {
+          overlay.style.opacity = '';
+        }
+        
+        // 스와이프 감지 조건: 아래로 100px 이상 또는 빠른 속도로 아래로 스와이프
+        if (isDragging && (deltaY > 100 || (deltaY > 50 && velocity > 0.3))) {
+          onOpenChange(false);
+        }
+        
+        startY = 0;
+        isDragging = false;
+      };
+
+      sheetContent.addEventListener('touchstart', handleTouchStart, { passive: true });
+      sheetContent.addEventListener('touchmove', handleTouchMove, { passive: true });
+      sheetContent.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+      return () => {
+        sheetContent.removeEventListener('touchstart', handleTouchStart);
+        sheetContent.removeEventListener('touchmove', handleTouchMove);
+        sheetContent.removeEventListener('touchend', handleTouchEnd);
+      };
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [open, onOpenChange]);
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
@@ -373,8 +486,11 @@ export function MemoFormSheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col [&>button]:cursor-default">
+    <Sheet open={open} onOpenChange={onOpenChange} modal={true}>
+      <SheetContent 
+        side="bottom" 
+        className="h-[90vh] rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col [&>button]:cursor-default touch-pan-y"
+      >
         <div className="w-12 h-1 bg-indigo-300/50 rounded-full mx-auto mt-3 mb-4" />
         
         <div className="px-4 sm:px-5 flex-shrink-0 pb-2">
