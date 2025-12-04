@@ -568,7 +568,12 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
                 />
               </div>
               <div className="flex-shrink-0 pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
-                <Button type="submit" size="sm" className="w-full text-sm" disabled={isLoading} data-testid="button-submit-create-group">
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md transition-all" 
+                  disabled={isLoading} 
+                  data-testid="button-submit-create-group"
+                >
                   {isLoading ? `${t.common.create}...` : t.common.create}
                 </Button>
               </div>
