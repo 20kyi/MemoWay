@@ -260,16 +260,90 @@ function Router() {
           appStateListenerRef.current = await CapacitorApp.addListener('appStateChange', handleAppStateChange);
           console.log('[APP STATE] App state change listener registered');
 
-          // Browser 이벤트 리스너 (브라우저가 닫힐 때)
-          // 주의: 외부 브라우저(Chrome Custom Tab)에서 카카오 로그인을 완료하면
-          // 세션 쿠키는 외부 브라우저에만 저장되고 앱의 WebView에는 전달되지 않습니다.
-          // 따라서 브라우저가 닫힌 후에는 appStateChange 이벤트를 통해 세션을 확인해야 합니다.
-          Browser.addListener('browserFinished', async () => {
-            console.log('[BROWSER] Browser closed, will check session on app state change...');
-            // 브라우저가 닫혔다는 것을 표시 (appStateChange에서 사용)
-            localStorage.setItem('browserClosed', Date.now().toString());
-          });
-          console.log('[BROWSER] Browser finished listener registered');
+      // Browser 이벤트 리스너 (브라우저가 닫힐 때)
+      // 안드로이드에서 외부 브라우저로 카카오 로그인을 시작한 경우,
+      // 브라우저가 닫히면 앱으로 돌아왔다는 의미이므로 세션을 확인해야 합니다.
+      Browser.addListener('browserFinished', async () => {
+        console.log('[BROWSER] Browser closed, checking session...');
+        
+        // 안드로이드에서만 세션 확인
+        if (Capacitor.isNativePlatform()) {
+          const baseUrl = getApiBaseUrl();
+          if (!baseUrl) {
+            console.warn('[BROWSER] Base URL not available');
+            return;
+          }
+
+          // 로그아웃 직후에는 세션 확인하지 않음
+          const logoutTimestamp = localStorage.getItem("logoutTimestamp");
+          const isRecentLogout = logoutTimestamp && (Date.now() - parseInt(logoutTimestamp)) < 30000;
+          
+          if (isRecentLogout) {
+            console.log('[BROWSER] Recent logout detected, skipping session check');
+            return;
+          }
+
+          // 세션 확인 (최대 5번 시도, 점진적 대기 시간)
+          let sessionFound = false;
+          for (let attempt = 0; attempt < 5; attempt++) {
+            try {
+              console.log(`[BROWSER] Session check attempt ${attempt + 1}/5`);
+              const response = await fetch(`${baseUrl}/api/auth/user`, {
+                method: 'GET',
+                credentials: 'include', // 쿠키 포함
+                headers: {
+                  'Accept': 'application/json',
+                }
+              });
+
+              if (response.ok) {
+                // 200: 로그인됨
+                const userData = await response.json();
+                console.log('[BROWSER] ✅ Session found, user:', userData?.id);
+                sessionFound = true;
+                
+                // auth context 업데이트 (queryClient를 통해)
+                await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+                
+                // 메인 화면으로 이동
+                console.log('[BROWSER] Redirecting to home page (main screen)');
+                setTimeout(() => {
+                  window.location.href = '/';
+                }, 500);
+                break;
+              } else if (response.status === 401) {
+                // 401: 비로그인 상태
+                console.log('[BROWSER] ❌ No session found (401) - login failed or session expired');
+                console.log('[BROWSER] Staying on login page');
+                break; // 더 이상 시도하지 않음
+              } else {
+                console.warn(`[BROWSER] Session check failed (attempt ${attempt + 1}):`, response.status);
+              }
+            } catch (err) {
+              console.error(`[BROWSER] Session check error (attempt ${attempt + 1}):`, err);
+            }
+
+            // 마지막 시도가 아니면 점진적으로 대기 시간 증가
+            if (attempt < 4) {
+              const waitTime = (attempt + 1) * 1000; // 1초, 2초, 3초, 4초
+              console.log(`[BROWSER] Waiting ${waitTime}ms before next attempt...`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
+          }
+
+          if (!sessionFound) {
+            console.error('[BROWSER] Failed to find session after 5 attempts');
+            console.error('[BROWSER] Possible reasons:');
+            console.error('[BROWSER] 1. Login was not completed in external browser');
+            console.error('[BROWSER] 2. Session cookie was not set properly');
+            console.error('[BROWSER] 3. Cookie domain/path mismatch between browser and WebView');
+            // 세션을 찾지 못했으므로 로그인 화면 유지
+          }
+        } else {
+          console.log('[BROWSER] Web platform, skipping session check');
+        }
+      });
+      console.log('[BROWSER] Browser finished listener registered');
         } catch (error) {
           console.error('[APP STATE] Failed to register listeners:', error);
         }
