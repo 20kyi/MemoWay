@@ -9,10 +9,11 @@ import { ThemeProvider } from "./lib/theme-context";
 import { LayoutThemeProvider } from "./lib/layout-theme-context";
 import { MapProviderProvider } from "./lib/map-provider-context";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, lazy, Suspense, useRef } from "react";
 import { getQueryFn } from "./lib/queryClient";
 import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
+import { Browser } from "@capacitor/browser";
 import { getApiBaseUrl } from "./lib/api-config";
 
 // Lazy load pages for code splitting
@@ -24,6 +25,7 @@ const KakaoCallback = lazy(() => import("@/pages/kakao-callback"));
 function Router() {
   const { isAuthenticated, isLoading, user, networkError } = useAuth();
   const { setLanguage } = useLanguage();
+  const appStateListenerRef = useRef<any>(null);
 
   // Handle Deep Link from OAuth callback (Android app)
   useEffect(() => {
@@ -134,8 +136,123 @@ function Router() {
       }).catch(() => {
         // No launch URL, app opened normally
       });
+
+      // 앱이 포그라운드로 돌아왔을 때 세션 확인 (외부 브라우저에서 카카오 로그인 완료 후)
+      const handleAppStateChange = async (state: { isActive: boolean }) => {
+        if (state.isActive) {
+          console.log('[APP STATE] App became active, checking session...');
+          
+          // 로그아웃 직후에는 세션 확인하지 않음
+          const logoutTimestamp = localStorage.getItem("logoutTimestamp");
+          const isRecentLogout = logoutTimestamp && (Date.now() - parseInt(logoutTimestamp)) < 30000;
+          
+          if (isRecentLogout) {
+            console.log('[APP STATE] Recent logout detected, skipping session check');
+            return;
+          }
+
+          // 현재 인증되지 않은 상태이고 로딩 중이 아닐 때만 세션 확인
+          // 외부 브라우저에서 카카오 로그인 완료 후 앱으로 돌아왔을 때를 감지
+          if (!isAuthenticated && !isLoading && !user) {
+            console.log('[APP STATE] Not authenticated, checking session after app became active...');
+            
+            const baseUrl = getApiBaseUrl();
+            if (!baseUrl) {
+              console.warn('[APP STATE] Base URL not available');
+              return;
+            }
+
+            // 세션 확인 (최대 5번 시도, 점진적 대기 시간)
+            let sessionFound = false;
+            for (let attempt = 0; attempt < 5; attempt++) {
+              try {
+                console.log(`[APP STATE] Session check attempt ${attempt + 1}/5`);
+                const response = await fetch(`${baseUrl}/api/auth/user`, {
+                  method: 'GET',
+                  credentials: 'include', // 쿠키 포함
+                  headers: {
+                    'Accept': 'application/json',
+                  }
+                });
+
+                if (response.ok) {
+                  const userData = await response.json();
+                  console.log('[APP STATE] ✅ Session found, user:', userData?.id);
+                  sessionFound = true;
+                  
+                  // 인증 상태 갱신
+                  await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+                  
+                  // 메인 화면으로 이동
+                  setTimeout(() => {
+                    console.log('[APP STATE] Redirecting to home page');
+                    window.location.href = '/';
+                  }, 500);
+                  break;
+                } else if (response.status === 401) {
+                  console.log('[APP STATE] No session found (401)');
+                  // 외부 브라우저에서 로그인했지만 앱의 WebView에는 세션이 없을 수 있음
+                  // 더 시도하지 않고 종료
+                  break;
+                } else {
+                  console.warn(`[APP STATE] Session check failed (attempt ${attempt + 1}):`, response.status);
+                }
+              } catch (err) {
+                console.error(`[APP STATE] Session check error (attempt ${attempt + 1}):`, err);
+              }
+
+              // 마지막 시도가 아니면 점진적으로 대기 시간 증가
+              if (attempt < 4) {
+                const waitTime = (attempt + 1) * 1000; // 1초, 2초, 3초, 4초
+                console.log(`[APP STATE] Waiting ${waitTime}ms before next attempt...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+              }
+            }
+
+            if (!sessionFound) {
+              console.log('[APP STATE] No session found after 5 attempts');
+              console.log('[APP STATE] This might be because:');
+              console.log('[APP STATE] 1. Login was not completed in external browser');
+              console.log('[APP STATE] 2. Session cookie was not set properly');
+              console.log('[APP STATE] 3. Cookie domain/path mismatch between browser and WebView');
+            }
+          } else {
+            console.log('[APP STATE] Already authenticated or loading, skipping session check');
+          }
+        }
+      };
+
+      // 앱 상태 변경 리스너 및 브라우저 이벤트 리스너 등록 (async 함수로 래핑)
+      (async () => {
+        try {
+          // 앱 상태 변경 리스너 등록
+          appStateListenerRef.current = await CapacitorApp.addListener('appStateChange', handleAppStateChange);
+          console.log('[APP STATE] App state change listener registered');
+
+          // Browser 이벤트 리스너 (브라우저가 닫힐 때)
+          // 주의: 외부 브라우저(Chrome Custom Tab)에서 카카오 로그인을 완료하면
+          // 세션 쿠키는 외부 브라우저에만 저장되고 앱의 WebView에는 전달되지 않습니다.
+          // 따라서 브라우저가 닫힌 후에는 appStateChange 이벤트를 통해 세션을 확인해야 합니다.
+          Browser.addListener('browserFinished', async () => {
+            console.log('[BROWSER] Browser closed, will check session on app state change...');
+            // 브라우저가 닫혔다는 것을 표시 (appStateChange에서 사용)
+            localStorage.setItem('browserClosed', Date.now().toString());
+          });
+          console.log('[BROWSER] Browser finished listener registered');
+        } catch (error) {
+          console.error('[APP STATE] Failed to register listeners:', error);
+        }
+      })();
+
+      // Cleanup
+      return () => {
+        if (appStateListenerRef.current) {
+          appStateListenerRef.current.remove();
+        }
+        Browser.removeAllListeners();
+      };
     }
-  }, [setLanguage, queryClient]);
+  }, [setLanguage, queryClient, isAuthenticated, isLoading, user]);
 
   // Check for language parameter in URL and set language (web)
   useEffect(() => {

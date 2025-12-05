@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Globe, Users, Languages, Heart, Sparkles, Mail } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -478,6 +479,52 @@ export default function Landing() {
     }
   };
 
+  // 안드로이드에서 외부 브라우저로 카카오 로그인을 시작하는 함수
+  const handleKakaoLoginWithBrowser = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      // 웹에서는 기존 방식 사용
+      handleKakaoLogin();
+      return;
+    }
+
+    try {
+      const baseUrl = getApiBaseUrl();
+      if (!baseUrl) {
+        toast({
+          title: language === 'ko' ? "오류" : "Error",
+          description: language === 'ko' 
+            ? "서버 연결 설정이 없습니다. 앱을 다시 설치해주세요."
+            : "Server configuration missing. Please reinstall the app.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const loginUrl = `${baseUrl}/api/kakao/login?lang=${language}&platform=web`;
+      console.log('[KAKAO LOGIN] Opening browser with URL:', loginUrl);
+
+      // @capacitor/browser를 사용하여 외부 브라우저 열기
+      await Browser.open({
+        url: loginUrl,
+        windowName: '_self',
+        presentationStyle: 'popover',
+      });
+
+      // 브라우저가 닫힐 때를 감지하기 위해 이벤트 리스너는 App.tsx에서 처리
+      // 여기서는 브라우저를 열기만 함
+      console.log('[KAKAO LOGIN] Browser opened, waiting for callback...');
+    } catch (error: any) {
+      console.error('[KAKAO LOGIN] Failed to open browser:', error);
+      toast({
+        title: language === 'ko' ? "오류" : "Error",
+        description: language === 'ko' 
+          ? "브라우저를 열 수 없습니다."
+          : "Failed to open browser.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleGoogleLogin = () => {
     if (Capacitor.isNativePlatform()) {
       // 네이티브 앱: 절대 URL 사용
@@ -738,7 +785,7 @@ export default function Landing() {
             <Button 
               size="lg" 
               className="w-full h-12 bg-[#FEE500] hover:bg-[#FDD835] border border-[#FDD835] hover:border-[#FBC02D] text-[#000000] font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
-              onClick={handleKakaoLogin}
+              onClick={Capacitor.isNativePlatform() ? handleKakaoLoginWithBrowser : handleKakaoLogin}
               data-testid="button-kakao-login"
             >
               <Heart className="h-5 w-5 mr-2 fill-current" />
