@@ -65,58 +65,80 @@ function Router() {
             const baseUrl = getApiBaseUrl();
             console.log('[DEEP LINK] Base URL:', baseUrl);
             
-            if (baseUrl && sessionOk === 'true') {
-              // 세션을 확인하는 API 호출로 쿠키 동기화 (여러 번 시도)
-              let sessionSynced = false;
-              for (let attempt = 0; attempt < 3; attempt++) {
+            // 안드로이드에서 카카오 로그인 완료 후 세션 확인 및 메인 화면으로 이동
+            if (Capacitor.isNativePlatform() && baseUrl) {
+              console.log('[DEEP LINK] Android: Checking session after Kakao login...');
+              
+              // /api/auth/user 호출하여 로그인 상태 확인 (여러 번 시도)
+              let sessionFound = false;
+              for (let attempt = 0; attempt < 5; attempt++) {
                 try {
-                  console.log(`[DEEP LINK] Session sync attempt ${attempt + 1}/3`);
+                  console.log(`[DEEP LINK] Session check attempt ${attempt + 1}/5`);
                   const response = await fetch(`${baseUrl}/api/auth/user`, {
                     method: 'GET',
-                    credentials: 'include',
+                    credentials: 'include', // 쿠키 포함
                     headers: {
                       'Accept': 'application/json',
                     }
                   });
                   
                   if (response.ok) {
+                    // 200: 로그인됨
                     const userData = await response.json();
-                    console.log('[DEEP LINK] Session sync successful, user:', userData?.id);
-                    sessionSynced = true;
+                    console.log('[DEEP LINK] ✅ Session found, user:', userData?.id);
+                    sessionFound = true;
+                    
+                    // auth context 업데이트 (queryClient를 통해)
+                    await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+                    
+                    // 메인 화면으로 이동
+                    console.log('[DEEP LINK] Redirecting to home page (main screen)');
+                    setTimeout(() => {
+                      window.location.href = '/';
+                    }, 500);
                     break;
+                  } else if (response.status === 401) {
+                    // 401: 비로그인 상태
+                    console.log('[DEEP LINK] ❌ No session found (401) - login failed or session expired');
+                    console.log('[DEEP LINK] Staying on login page');
+                    break; // 더 이상 시도하지 않음
                   } else {
-                    console.warn(`[DEEP LINK] Session sync failed (attempt ${attempt + 1}):`, response.status);
-                    // 401이면 세션이 없는 것이므로 더 이상 시도하지 않음
-                    if (response.status === 401) {
-                      console.error('[DEEP LINK] Session not found - login may have failed');
-                      break;
-                    }
+                    console.warn(`[DEEP LINK] Session check failed (attempt ${attempt + 1}):`, response.status);
                   }
                 } catch (err) {
-                  console.error(`[DEEP LINK] Session sync error (attempt ${attempt + 1}):`, err);
+                  console.error(`[DEEP LINK] Session check error (attempt ${attempt + 1}):`, err);
                 }
                 
-                // 마지막 시도가 아니면 잠시 대기
-                if (attempt < 2) {
-                  await new Promise(resolve => setTimeout(resolve, 500));
+                // 마지막 시도가 아니면 점진적으로 대기 시간 증가
+                if (attempt < 4) {
+                  const waitTime = (attempt + 1) * 500; // 0.5초, 1초, 1.5초, 2초
+                  console.log(`[DEEP LINK] Waiting ${waitTime}ms before next attempt...`);
+                  await new Promise(resolve => setTimeout(resolve, waitTime));
                 }
               }
               
-              if (!sessionSynced) {
-                console.error('[DEEP LINK] Failed to sync session after 3 attempts');
+              if (!sessionFound) {
+                console.error('[DEEP LINK] Failed to find session after 5 attempts');
+                console.error('[DEEP LINK] Possible reasons:');
+                console.error('[DEEP LINK] 1. Login was not completed in external browser');
+                console.error('[DEEP LINK] 2. Session cookie was not set properly');
+                console.error('[DEEP LINK] 3. Cookie domain/path mismatch between browser and WebView');
+                // 세션을 찾지 못했으므로 로그인 화면 유지
+                return;
+              }
+            } else if (!Capacitor.isNativePlatform()) {
+              // 웹: 기존 로직 유지
+              if (baseUrl && sessionOk === 'true') {
+                // 인증 상태 확인 및 재요청
+                await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+                
+                // 홈으로 이동
+                setTimeout(() => {
+                  console.log('[DEEP LINK] Redirecting to home page (Web)');
+                  window.location.href = '/';
+                }, 500);
               }
             }
-            
-            // 인증 상태 확인 및 재요청 (쿠키가 동기화된 후)
-            // invalidateQueries를 호출하여 즉시 세션을 다시 확인
-            queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-            
-            // 세션 동기화 후 홈으로 이동
-            // 페이지 리로드를 통해 쿠키가 제대로 적용되도록 함
-            setTimeout(() => {
-              console.log('[DEEP LINK] Redirecting to home page');
-              window.location.href = '/';
-            }, sessionOk === 'true' ? 1500 : 500);
           }
         } catch (error) {
           console.error('Failed to parse Deep Link:', error);
@@ -151,73 +173,82 @@ function Router() {
             return;
           }
 
-          // 현재 인증되지 않은 상태이고 로딩 중이 아닐 때만 세션 확인
-          // 외부 브라우저에서 카카오 로그인 완료 후 앱으로 돌아왔을 때를 감지
-          if (!isAuthenticated && !isLoading && !user) {
-            console.log('[APP STATE] Not authenticated, checking session after app became active...');
-            
-            const baseUrl = getApiBaseUrl();
-            if (!baseUrl) {
-              console.warn('[APP STATE] Base URL not available');
-              return;
-            }
+          // 안드로이드에서만 세션 확인 (웹은 기존 로직 유지)
+          if (Capacitor.isNativePlatform()) {
+            // 현재 인증되지 않은 상태이고 로딩 중이 아닐 때만 세션 확인
+            // 외부 브라우저에서 카카오 로그인 완료 후 앱으로 돌아왔을 때를 감지
+            if (!isAuthenticated && !isLoading && !user) {
+              console.log('[APP STATE] Android: Not authenticated, checking session after app became active...');
+              
+              const baseUrl = getApiBaseUrl();
+              if (!baseUrl) {
+                console.warn('[APP STATE] Base URL not available');
+                return;
+              }
 
-            // 세션 확인 (최대 5번 시도, 점진적 대기 시간)
-            let sessionFound = false;
-            for (let attempt = 0; attempt < 5; attempt++) {
-              try {
-                console.log(`[APP STATE] Session check attempt ${attempt + 1}/5`);
-                const response = await fetch(`${baseUrl}/api/auth/user`, {
-                  method: 'GET',
-                  credentials: 'include', // 쿠키 포함
-                  headers: {
-                    'Accept': 'application/json',
+              // /api/auth/user 호출하여 로그인 상태 확인 (최대 5번 시도, 점진적 대기 시간)
+              let sessionFound = false;
+              for (let attempt = 0; attempt < 5; attempt++) {
+                try {
+                  console.log(`[APP STATE] Session check attempt ${attempt + 1}/5`);
+                  const response = await fetch(`${baseUrl}/api/auth/user`, {
+                    method: 'GET',
+                    credentials: 'include', // 쿠키 포함
+                    headers: {
+                      'Accept': 'application/json',
+                    }
+                  });
+
+                  if (response.ok) {
+                    // 200: 로그인됨
+                    const userData = await response.json();
+                    console.log('[APP STATE] ✅ Session found, user:', userData?.id);
+                    sessionFound = true;
+                    
+                    // auth context 업데이트 (queryClient를 통해)
+                    await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+                    
+                    // 메인 화면으로 이동
+                    console.log('[APP STATE] Redirecting to home page (main screen)');
+                    setTimeout(() => {
+                      window.location.href = '/';
+                    }, 500);
+                    break;
+                  } else if (response.status === 401) {
+                    // 401: 비로그인 상태
+                    console.log('[APP STATE] ❌ No session found (401) - login failed or session expired');
+                    console.log('[APP STATE] Staying on login page');
+                    // 더 시도하지 않고 종료
+                    break;
+                  } else {
+                    console.warn(`[APP STATE] Session check failed (attempt ${attempt + 1}):`, response.status);
                   }
-                });
-
-                if (response.ok) {
-                  const userData = await response.json();
-                  console.log('[APP STATE] ✅ Session found, user:', userData?.id);
-                  sessionFound = true;
-                  
-                  // 인증 상태 갱신
-                  await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-                  
-                  // 메인 화면으로 이동
-                  setTimeout(() => {
-                    console.log('[APP STATE] Redirecting to home page');
-                    window.location.href = '/';
-                  }, 500);
-                  break;
-                } else if (response.status === 401) {
-                  console.log('[APP STATE] No session found (401)');
-                  // 외부 브라우저에서 로그인했지만 앱의 WebView에는 세션이 없을 수 있음
-                  // 더 시도하지 않고 종료
-                  break;
-                } else {
-                  console.warn(`[APP STATE] Session check failed (attempt ${attempt + 1}):`, response.status);
+                } catch (err) {
+                  console.error(`[APP STATE] Session check error (attempt ${attempt + 1}):`, err);
                 }
-              } catch (err) {
-                console.error(`[APP STATE] Session check error (attempt ${attempt + 1}):`, err);
+
+                // 마지막 시도가 아니면 점진적으로 대기 시간 증가
+                if (attempt < 4) {
+                  const waitTime = (attempt + 1) * 1000; // 1초, 2초, 3초, 4초
+                  console.log(`[APP STATE] Waiting ${waitTime}ms before next attempt...`);
+                  await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
               }
 
-              // 마지막 시도가 아니면 점진적으로 대기 시간 증가
-              if (attempt < 4) {
-                const waitTime = (attempt + 1) * 1000; // 1초, 2초, 3초, 4초
-                console.log(`[APP STATE] Waiting ${waitTime}ms before next attempt...`);
-                await new Promise(resolve => setTimeout(resolve, waitTime));
+              if (!sessionFound) {
+                console.log('[APP STATE] No session found after 5 attempts');
+                console.log('[APP STATE] This might be because:');
+                console.log('[APP STATE] 1. Login was not completed in external browser');
+                console.log('[APP STATE] 2. Session cookie was not set properly');
+                console.log('[APP STATE] 3. Cookie domain/path mismatch between browser and WebView');
+                // 세션을 찾지 못했으므로 로그인 화면 유지
               }
-            }
-
-            if (!sessionFound) {
-              console.log('[APP STATE] No session found after 5 attempts');
-              console.log('[APP STATE] This might be because:');
-              console.log('[APP STATE] 1. Login was not completed in external browser');
-              console.log('[APP STATE] 2. Session cookie was not set properly');
-              console.log('[APP STATE] 3. Cookie domain/path mismatch between browser and WebView');
+            } else {
+              console.log('[APP STATE] Already authenticated or loading, skipping session check');
             }
           } else {
-            console.log('[APP STATE] Already authenticated or loading, skipping session check');
+            // 웹: 기존 로직 유지 (세션 확인하지 않음)
+            console.log('[APP STATE] Web platform, skipping session check');
           }
         }
       };
