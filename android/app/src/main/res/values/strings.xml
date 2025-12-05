@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MemoWay</string>
+    <string name="title_activity_main">MemoWay</string>
+    <string name="package_name">com.memoway.app</string>
+    <string name="custom_url_scheme">com.memoway.app</string>
+</resources>

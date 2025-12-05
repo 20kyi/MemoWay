@@ -130,6 +130,15 @@ export function setupKakaoAuth(app: Express) {
                          userAgent.includes('wv') || // WebView
                          (userAgent.includes('Android') && !userAgent.includes('Chrome'));
     
+    // Android 플랫폼인 경우 redirect-flow 비활성화하고 JSON 응답 반환
+    if (isAndroidApp || platform === 'android') {
+      console.log('Android platform detected - redirecting to REST API login');
+      return res.status(400).json({ 
+        androidAuth: "use /api/kakao/android-login instead",
+        message: "Android apps should use Kakao SDK and POST to /api/kakao/android-login"
+      });
+    }
+    
     // Generate CSRF state token with language and platform info
     const stateData = {
       token: randomBytes(32).toString("hex"),
@@ -639,40 +648,50 @@ export function setupKakaoAuth(app: Express) {
           </div>
           <script>
             // 세션 쿠키를 WebView에 설정하기 위해 API 호출
-            // 이렇게 하면 쿠키가 WebView의 쿠키 저장소에 저장됩니다
+            // 중요: OAuth WebView와 앱의 WebView는 별개의 쿠키 저장소를 사용하므로
+            // 앱이 Deep Link로 열릴 때 세션을 다시 확인해야 합니다
             (async function() {
               try {
+                console.log('[REDIRECT PAGE] Starting session sync...');
+                
                 // 세션을 확인하는 API 호출로 쿠키 동기화
+                // credentials: 'include'로 쿠키를 받아옵니다
                 const response = await fetch('${baseUrl}/api/auth/user', {
                   method: 'GET',
-                  credentials: 'include',
+                  credentials: 'include', // 쿠키 포함
                   headers: {
                     'Accept': 'application/json',
                   }
                 });
                 
                 if (response.ok) {
-                  console.log('Session cookie synced to WebView');
+                  const userData = await response.json();
+                  console.log('[REDIRECT PAGE] Session cookie synced to WebView, user:', userData?.id);
+                  
                   // 쿠키가 설정된 후 Deep Link로 리다이렉트
+                  // 앱이 열릴 때 세션을 다시 확인하도록 session_ok=true 전달
                   setTimeout(() => {
                     try {
+                      console.log('[REDIRECT PAGE] Redirecting to app via Deep Link...');
                       window.location.href = ${JSON.stringify(appDeepLink)};
                     } catch (e) {
-                      console.error('Failed to redirect:', e);
+                      console.error('[REDIRECT PAGE] Failed to redirect:', e);
                     }
-                  }, 500);
+                  }, 800); // 쿠키 설정을 위한 충분한 시간 확보
                 } else {
-                  console.error('Session sync failed:', response.status);
+                  console.error('[REDIRECT PAGE] Session sync failed:', response.status);
                   // 세션 동기화 실패 시에도 Deep Link로 리다이렉트 (앱에서 처리)
+                  const errorDeepLink = ${JSON.stringify(appDeepLink.replace('session_ok=true', 'error=session_sync_failed'))};
                   setTimeout(() => {
-                    window.location.href = ${JSON.stringify(appDeepLink)};
+                    window.location.href = errorDeepLink;
                   }, 500);
                 }
               } catch (error) {
-                console.error('Failed to sync session cookie:', error);
+                console.error('[REDIRECT PAGE] Failed to sync session cookie:', error);
                 // 에러 발생 시에도 Deep Link로 리다이렉트
+                const errorDeepLink = ${JSON.stringify(appDeepLink.replace('session_ok=true', 'error=session_sync_failed'))};
                 setTimeout(() => {
-                  window.location.href = ${JSON.stringify(appDeepLink)};
+                  window.location.href = errorDeepLink;
                 }, 500);
               }
             })();
@@ -690,16 +709,29 @@ export function setupKakaoAuth(app: Express) {
     `);
   });
 
-  // Android 네이티브 로그인 엔드포인트
+  // Android 네이티브 로그인 엔드포인트 (Kakao SDK + REST API 방식)
+  // Android 앱은 Kakao SDK로 로그인 후 accessToken을 이 엔드포인트로 전달
   app.post("/api/kakao/android-login", async (req, res) => {
+    console.log('[ANDROID LOGIN] Android Kakao login request received');
+    console.log('[ANDROID LOGIN] Request headers:', {
+      origin: req.get('origin'),
+      'user-agent': req.get('user-agent')?.substring(0, 100),
+      cookie: req.get('cookie') ? 'present' : 'missing'
+    });
+    
     const { accessToken, kakaoId, email, nickname, profileImage } = req.body;
 
     if (!accessToken || !kakaoId) {
-      return res.status(400).json({ error: "Missing required fields" });
+      console.error('[ANDROID LOGIN] Missing required fields:', { 
+        hasAccessToken: !!accessToken, 
+        hasKakaoId: !!kakaoId 
+      });
+      return res.status(400).json({ error: "Missing required fields: accessToken and kakaoId are required" });
     }
 
     try {
-      // 카카오 토큰 검증 (선택사항 - 보안 강화)
+      // 카카오 토큰 검증 (보안 강화)
+      console.log('[ANDROID LOGIN] Validating Kakao access token...');
       const userInfoResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -707,10 +739,16 @@ export function setupKakaoAuth(app: Express) {
       });
 
       if (!userInfoResponse.ok) {
+        const errorText = await userInfoResponse.text();
+        console.error('[ANDROID LOGIN] Invalid access token:', errorText);
         return res.status(401).json({ error: "Invalid access token" });
       }
 
       const userInfo: KakaoUserInfo = await userInfoResponse.json();
+      console.log('[ANDROID LOGIN] Kakao user info retrieved:', { 
+        id: userInfo.id, 
+        hasEmail: !!userInfo.kakao_account?.email 
+      });
 
       // 사용자 정보 저장
       const user = await storage.upsertUser({
@@ -722,6 +760,8 @@ export function setupKakaoAuth(app: Express) {
         provider: "kakao",
         kakaoId: kakaoId.toString(),
       });
+
+      console.log('[ANDROID LOGIN] User upserted:', { id: user.id, email: user.email });
 
       // 세션 생성
       (req as any).login(
@@ -737,23 +777,42 @@ export function setupKakaoAuth(app: Express) {
         },
         (err: any) => {
           if (err) {
-            console.error("Session creation failed:", err);
+            console.error("[ANDROID LOGIN] Session creation failed:", err);
             return res.status(500).json({ error: "Failed to create session" });
           }
           
+          // 세션 저장 (쿠키가 제대로 설정되도록)
           req.session.save((saveErr) => {
             if (saveErr) {
-              console.error("Session save failed:", saveErr);
+              console.error("[ANDROID LOGIN] Session save failed:", saveErr);
               return res.status(500).json({ error: "Failed to save session" });
             }
-            console.log(`Android Kakao login successful for user ID: ${user.id}`);
-            res.json({ success: true, user });
+            
+            console.log(`[ANDROID LOGIN] Android Kakao login successful for user ID: ${user.id}`);
+            console.log('[ANDROID LOGIN] Session ID:', req.session?.id?.substring(0, 10));
+            
+            // 세션 쿠키가 제대로 설정되도록 응답
+            // CORS와 credentials 설정은 이미 server/index.ts에서 처리됨
+            res.json({ 
+              success: true, 
+              user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                profileImageUrl: user.profileImageUrl,
+              }
+            });
           });
         }
       );
     } catch (error) {
-      console.error("Android Kakao login error:", error);
-      res.status(500).json({ error: "Login failed" });
+      console.error("[ANDROID LOGIN] Android Kakao login error:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ 
+        error: "Login failed",
+        details: errorMessage
+      });
     }
   });
 }

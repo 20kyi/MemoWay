@@ -13,6 +13,7 @@ import { useEffect, lazy, Suspense } from "react";
 import { getQueryFn } from "./lib/queryClient";
 import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
+import { getApiBaseUrl } from "./lib/api-config";
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import("@/pages/home"));
@@ -37,45 +38,82 @@ function Router() {
             const sessionOk = url.searchParams.get('session_ok');
             const error = url.searchParams.get('error');
             
-            if (error === 'session_failed') {
-              console.error('Kakao login failed: session not found');
-              // 에러 상태 표시 필요시 여기에 추가
-              return;
+            if (error === 'session_failed' || error === 'session_sync_failed') {
+              console.error('Kakao login failed:', error === 'session_failed' ? 'session not found' : 'session sync failed');
+              // 세션 동기화 실패 시에도 재시도
+              if (error === 'session_sync_failed') {
+                console.log('[DEEP LINK] Retrying session sync...');
+                // 세션 동기화 재시도 로직은 아래에서 처리됨
+              } else {
+                // 세션이 없는 경우는 재시도하지 않음
+                return;
+              }
             }
             
             if (langParam && ['ko', 'en', 'zh', 'ja'].includes(langParam)) {
               setLanguage(langParam as Language);
             }
             
-            // 세션 쿠키를 WebView에 동기화하기 위해 먼저 서버에 요청
-            // 이렇게 하면 쿠키가 WebView에 설정됩니다
-            const baseUrl = (window as any).Capacitor?.isNativePlatform() 
-              ? import.meta.env.VITE_REPLIT_URL || ''
-              : '';
+            console.log('[DEEP LINK] Kakao login callback received, session_ok:', sessionOk);
             
-            if (baseUrl) {
-              // 세션을 확인하는 API 호출로 쿠키 동기화
-              try {
-                await fetch(`${baseUrl}/api/auth/user`, {
-                  method: 'GET',
-                  credentials: 'include',
-                  headers: {
-                    'Accept': 'application/json',
+            // 세션 쿠키를 WebView에 동기화하기 위해 서버에 요청
+            // WebView에서 앱으로 Deep Link로 이동할 때 쿠키가 전달되지 않으므로
+            // 앱이 열릴 때 서버에서 쿠키를 다시 받아와야 합니다
+            const baseUrl = getApiBaseUrl();
+            console.log('[DEEP LINK] Base URL:', baseUrl);
+            
+            if (baseUrl && sessionOk === 'true') {
+              // 세션을 확인하는 API 호출로 쿠키 동기화 (여러 번 시도)
+              let sessionSynced = false;
+              for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                  console.log(`[DEEP LINK] Session sync attempt ${attempt + 1}/3`);
+                  const response = await fetch(`${baseUrl}/api/auth/user`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                      'Accept': 'application/json',
+                    }
+                  });
+                  
+                  if (response.ok) {
+                    const userData = await response.json();
+                    console.log('[DEEP LINK] Session sync successful, user:', userData?.id);
+                    sessionSynced = true;
+                    break;
+                  } else {
+                    console.warn(`[DEEP LINK] Session sync failed (attempt ${attempt + 1}):`, response.status);
+                    // 401이면 세션이 없는 것이므로 더 이상 시도하지 않음
+                    if (response.status === 401) {
+                      console.error('[DEEP LINK] Session not found - login may have failed');
+                      break;
+                    }
                   }
-                });
-                console.log('Session sync attempted via API call');
-              } catch (err) {
-                console.error('Failed to sync session:', err);
+                } catch (err) {
+                  console.error(`[DEEP LINK] Session sync error (attempt ${attempt + 1}):`, err);
+                }
+                
+                // 마지막 시도가 아니면 잠시 대기
+                if (attempt < 2) {
+                  await new Promise(resolve => setTimeout(resolve, 500));
+                }
+              }
+              
+              if (!sessionSynced) {
+                console.error('[DEEP LINK] Failed to sync session after 3 attempts');
               }
             }
             
             // 인증 상태 확인 및 재요청 (쿠키가 동기화된 후)
+            // invalidateQueries를 호출하여 즉시 세션을 다시 확인
             queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
             
-            // 세션 동기화를 위한 대기 시간 증가
+            // 세션 동기화 후 홈으로 이동
+            // 페이지 리로드를 통해 쿠키가 제대로 적용되도록 함
             setTimeout(() => {
+              console.log('[DEEP LINK] Redirecting to home page');
               window.location.href = '/';
-            }, 1000);
+            }, sessionOk === 'true' ? 1500 : 500);
           }
         } catch (error) {
           console.error('Failed to parse Deep Link:', error);

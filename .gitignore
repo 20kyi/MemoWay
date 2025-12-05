@@ -14,9 +14,9 @@ vite.config.ts.*
 .local/
 
 # Capacitor
-android/
-ios/
-.capacitor/
+# android/
+# ios/
+# .capacitor/
 
 # IDE
 .vscode/

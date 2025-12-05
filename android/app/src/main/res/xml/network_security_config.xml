@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 카카오 지도 API 도메인 허용 -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">dapi.kakao.com</domain>
+        <domain includeSubdomains="true">kakaomap.com</domain>
+        <domain includeSubdomains="true">developers.kakao.com</domain>
+    </domain-config>
+    
+    <!-- Railway 프로덕션 서버 도메인 허용 (HTTPS 쿠키 저장 지원) -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">memoway-production.up.railway.app</domain>
+    </domain-config>
+    
+    <!-- 기본 설정: HTTPS만 허용 -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
