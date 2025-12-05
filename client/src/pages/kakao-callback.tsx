@@ -14,8 +14,11 @@ export default function KakaoCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        console.log('[KAKAO CALLBACK] ========== Processing Kakao OAuth callback ==========');
-        console.log('[KAKAO CALLBACK] Current URL:', window.location.href);
+        console.log('[KAKAO LOGIN FLOW] ========== Frontend Kakao Callback Page ==========');
+        console.log('[KAKAO LOGIN FLOW] Current URL:', window.location.href);
+        console.log('[KAKAO LOGIN FLOW] Pathname:', window.location.pathname);
+        console.log('[KAKAO LOGIN FLOW] Search:', window.location.search);
+        console.log('[KAKAO LOGIN FLOW] Is Native Platform:', Capacitor.isNativePlatform());
         
         // URL에서 인가 코드와 state 추출
         const urlParams = new URLSearchParams(window.location.search);
@@ -24,7 +27,7 @@ export default function KakaoCallback() {
         const error = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
         
-        console.log('[KAKAO CALLBACK] URL params:', {
+        console.log('[KAKAO LOGIN FLOW] URL params:', {
           hasCode: !!code,
           hasState: !!state,
           error: error || 'none',
@@ -33,17 +36,19 @@ export default function KakaoCallback() {
         
         // OAuth 에러 처리
         if (error) {
-          console.error('[KAKAO CALLBACK] ❌ OAuth error:', error, errorDescription);
+          console.error('[KAKAO LOGIN FLOW] ❌ OAuth error:', error, errorDescription);
           setStatus("error");
           setErrorMessage(errorDescription || error || "카카오 로그인에 실패했습니다.");
           
           // 앱인 경우 딥링크로 에러 전달
           if (Capacitor.isNativePlatform()) {
+            console.log('[KAKAO LOGIN FLOW] Redirecting to app with error (Deep Link)');
             setTimeout(() => {
               window.location.href = `com.memoway.app://login?error=oauth_failed&message=${encodeURIComponent(errorDescription || error)}`;
             }, 2000);
           } else {
             // 웹인 경우 홈으로 리다이렉트
+            console.log('[KAKAO LOGIN FLOW] Redirecting to home with error');
             setTimeout(() => {
               setLocation('/?error=oauth_failed&provider=kakao');
             }, 2000);
@@ -53,15 +58,17 @@ export default function KakaoCallback() {
         
         // 인가 코드가 없으면 에러
         if (!code) {
-          console.error('[KAKAO CALLBACK] ❌ No authorization code received');
+          console.error('[KAKAO LOGIN FLOW] ❌ No authorization code received');
           setStatus("error");
           setErrorMessage("인가 코드를 받지 못했습니다.");
           
           if (Capacitor.isNativePlatform()) {
+            console.log('[KAKAO LOGIN FLOW] Redirecting to app with no_code error (Deep Link)');
             setTimeout(() => {
               window.location.href = 'com.memoway.app://login?error=no_code';
             }, 2000);
           } else {
+            console.log('[KAKAO LOGIN FLOW] Redirecting to home with no_code error');
             setTimeout(() => {
               setLocation('/?error=oauth_failed&provider=kakao');
             }, 2000);
@@ -72,14 +79,15 @@ export default function KakaoCallback() {
         // 서버로 인가 코드 전달
         const baseUrl = getApiBaseUrl();
         if (!baseUrl) {
-          console.error('[KAKAO CALLBACK] ❌ Server configuration missing');
+          console.error('[KAKAO LOGIN FLOW] ❌ Server configuration missing');
           setStatus("error");
           setErrorMessage("서버 연결 설정이 없습니다.");
           return;
         }
         
-        console.log('[KAKAO CALLBACK] Exchanging code with server...');
-        console.log('[KAKAO CALLBACK] Server URL:', baseUrl);
+        console.log('[KAKAO LOGIN FLOW] Exchanging code with server...');
+        console.log('[KAKAO LOGIN FLOW] Server URL:', baseUrl);
+        console.log('[KAKAO LOGIN FLOW] Exchange endpoint:', `${baseUrl}/api/kakao/exchange-code`);
         
         const response = await fetch(`${baseUrl}/api/kakao/exchange-code`, {
           method: 'POST',
@@ -113,7 +121,7 @@ export default function KakaoCallback() {
         }
         
         const result = await response.json();
-        console.log('[KAKAO CALLBACK] ✅ Login successful:', {
+        console.log('[KAKAO LOGIN FLOW] ✅ Login successful:', {
           success: result.success,
           userId: result.user?.id,
           sessionId: result.sessionId
@@ -129,7 +137,7 @@ export default function KakaoCallback() {
           const lang = result.lang || 'ko';
           const deepLink = `com.memoway.app://login?success=true&lang=${lang}&session_ok=true`;
           
-          console.log('[KAKAO CALLBACK] Redirecting to app via Deep Link:', deepLink);
+          console.log('[KAKAO LOGIN FLOW] Redirecting to app via Deep Link:', deepLink);
           
           // 세션 쿠키가 설정될 시간을 확보
           setTimeout(() => {
@@ -138,6 +146,7 @@ export default function KakaoCallback() {
         } else {
           // 웹인 경우 홈으로 리다이렉트
           const lang = result.lang || 'ko';
+          console.log('[KAKAO LOGIN FLOW] Redirecting to home (Web)');
           setTimeout(() => {
             setLocation(`/?lang=${lang}`);
           }, 1000);

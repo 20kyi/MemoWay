@@ -89,6 +89,7 @@ export function serveStatic(app: Express) {
 
   // fall through to index.html if the file doesn't exist
   // 단, API 경로는 제외
+  // ⚠️ 중요: /api/kakao/callback은 이제 서버 엔드포인트가 있으므로 여기서 처리되지 않음
   app.use("*", (req, res) => {
     // API 경로는 404 반환 (이미 처리되었거나 존재하지 않음)
     if (req.path.startsWith("/api")) {
