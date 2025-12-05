@@ -266,8 +266,11 @@ export default function Landing() {
   const handleKakaoLogin = async () => {
     if (Capacitor.isNativePlatform()) {
       // Android: Kakao SDK + REST API 방식
+      const timestamp = new Date().toISOString();
       try {
-        console.log('[KAKAO LOGIN] Starting Android Kakao login with SDK...');
+        console.log(`[${timestamp}] [KAKAO LOGIN] ========== Starting Android Kakao login with SDK ==========`);
+        console.log('[KAKAO LOGIN] Platform:', Capacitor.getPlatform());
+        console.log('[KAKAO LOGIN] Is native platform:', Capacitor.isNativePlatform());
         
         // Kakao SDK를 통해 로그인
         // 커스텀 Capacitor 플러그인을 통해 네이티브 Kakao SDK 호출
@@ -292,60 +295,112 @@ export default function Landing() {
         // 플러그인 등록 시도
         let KakaoLogin: KakaoLoginPlugin;
         try {
+          console.log('[KAKAO LOGIN] Attempting to register KakaoLogin plugin...');
           KakaoLogin = registerPlugin<KakaoLoginPlugin>('KakaoLogin');
+          console.log('[KAKAO LOGIN] ✅ Plugin registered successfully via registerPlugin');
         } catch (e) {
-          console.warn('[KAKAO LOGIN] registerPlugin failed, trying direct access:', e);
+          console.warn('[KAKAO LOGIN] ⚠️ registerPlugin failed, trying direct access:', e);
           // 방법 2: 직접 접근 (Capacitor 내부 API)
           const Capacitor = (window as any).Capacitor;
+          console.log('[KAKAO LOGIN] Checking Capacitor.Plugins.KakaoLogin...');
           if (Capacitor && Capacitor.Plugins && Capacitor.Plugins.KakaoLogin) {
             KakaoLogin = Capacitor.Plugins.KakaoLogin;
+            console.log('[KAKAO LOGIN] ✅ Plugin found via direct access');
           } else {
+            console.error('[KAKAO LOGIN] ❌ Plugin not found in Capacitor.Plugins');
+            console.error('[KAKAO LOGIN] ❌ Available plugins:', Capacitor?.Plugins ? Object.keys(Capacitor.Plugins) : 'Capacitor.Plugins not available');
             throw new Error('Kakao login plugin not found. Please ensure the plugin is properly installed and the app is rebuilt.');
           }
         }
         
         if (!KakaoLogin || !KakaoLogin.login) {
+          console.error('[KAKAO LOGIN] ❌ Plugin or login method not available');
+          console.error('[KAKAO LOGIN] ❌ KakaoLogin object:', KakaoLogin);
           throw new Error('Kakao login method not available. Please ensure the plugin is properly implemented and the app is rebuilt.');
         }
         
         console.log('[KAKAO LOGIN] Calling Kakao SDK login...');
+        const sdkLoginStart = Date.now();
         const kakaoResult = await KakaoLogin.login();
+        const sdkLoginTime = Date.now() - sdkLoginStart;
         
-        console.log('[KAKAO LOGIN] Kakao SDK login successful:', {
+        console.log('[KAKAO LOGIN] ✅ Kakao SDK login successful:', {
           hasAccessToken: !!kakaoResult.accessToken,
           hasId: !!kakaoResult.id,
-          hasEmail: !!kakaoResult.email
+          hasEmail: !!kakaoResult.email,
+          hasNickname: !!kakaoResult.nickname,
+          hasProfileImage: !!kakaoResult.profileImage,
+          accessTokenLength: kakaoResult.accessToken?.length || 0,
+          loginTime: sdkLoginTime + 'ms'
         });
         
         // 서버에 accessToken 전달하여 세션 생성
         const baseUrl = getApiBaseUrl();
         if (!baseUrl) {
+          console.error('[KAKAO LOGIN] ❌ Server configuration missing');
           throw new Error('Server configuration missing');
         }
         
+        console.log('[KAKAO LOGIN] Server base URL:', baseUrl);
         console.log('[KAKAO LOGIN] Sending login request to server...');
+        const serverRequestStart = Date.now();
+        
+        const requestBody = {
+          accessToken: kakaoResult.accessToken,
+          kakaoId: kakaoResult.id,
+          email: kakaoResult.email,
+          nickname: kakaoResult.nickname,
+          profileImage: kakaoResult.profileImage,
+        };
+        console.log('[KAKAO LOGIN] Request body (sanitized):', {
+          hasAccessToken: !!requestBody.accessToken,
+          hasKakaoId: !!requestBody.kakaoId,
+          kakaoId: requestBody.kakaoId,
+          hasEmail: !!requestBody.email,
+          hasNickname: !!requestBody.nickname,
+          hasProfileImage: !!requestBody.profileImage
+        });
+        
         const response = await fetch(`${baseUrl}/api/kakao/android-login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           credentials: 'include', // 쿠키 포함 (세션 쿠키 받기 위해)
-          body: JSON.stringify({
-            accessToken: kakaoResult.accessToken,
-            kakaoId: kakaoResult.id,
-            email: kakaoResult.email,
-            nickname: kakaoResult.nickname,
-            profileImage: kakaoResult.profileImage,
-          }),
+          body: JSON.stringify(requestBody),
+        });
+        
+        const serverRequestTime = Date.now() - serverRequestStart;
+        console.log('[KAKAO LOGIN] Server response status:', response.status);
+        console.log('[KAKAO LOGIN] Server response time:', serverRequestTime + 'ms');
+        console.log('[KAKAO LOGIN] Server response headers:', {
+          'content-type': response.headers.get('content-type'),
+          'set-cookie': response.headers.get('set-cookie') ? 'present' : 'missing'
         });
         
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          throw new Error(errorData.error || `Server error: ${response.status}`);
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: errorText || 'Unknown error' };
+          }
+          console.error('[KAKAO LOGIN] ❌ Server login failed:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          });
+          throw new Error(errorData.error || errorData.details || `Server error: ${response.status}`);
         }
         
         const result = await response.json();
-        console.log('[KAKAO LOGIN] Server login successful:', result);
+        console.log('[KAKAO LOGIN] ✅ Server login successful:', {
+          success: result.success,
+          userId: result.user?.id,
+          userEmail: result.user?.email,
+          hasSessionId: !!result.sessionId
+        });
         
         // 세션이 생성되었으므로 인증 상태 갱신
         queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -363,7 +418,12 @@ export default function Landing() {
         window.location.href = '/';
         
       } catch (error: any) {
-        console.error('[KAKAO LOGIN] Android Kakao login failed:', error);
+        const timestamp = new Date().toISOString();
+        console.error(`[${timestamp}] [KAKAO LOGIN] ❌ ========== Android Kakao login failed ==========`);
+        console.error('[KAKAO LOGIN] ❌ Error type:', error?.constructor?.name || typeof error);
+        console.error('[KAKAO LOGIN] ❌ Error message:', error?.message);
+        console.error('[KAKAO LOGIN] ❌ Error stack:', error?.stack);
+        console.error('[KAKAO LOGIN] ❌ Full error object:', error);
         
         let errorMessage = language === 'ko' 
           ? "카카오 로그인에 실패했습니다."
@@ -378,6 +438,10 @@ export default function Landing() {
             errorMessage = language === 'ko'
               ? "유효하지 않은 카카오 토큰입니다."
               : "Invalid Kakao access token.";
+          } else if (error.message.includes('plugin not found')) {
+            errorMessage = language === 'ko'
+              ? "카카오 로그인 플러그인을 찾을 수 없습니다. 앱을 다시 빌드해주세요."
+              : "Kakao login plugin not found. Please rebuild the app.";
           } else {
             errorMessage = error.message;
           }

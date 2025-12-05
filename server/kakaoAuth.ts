@@ -712,45 +712,90 @@ export function setupKakaoAuth(app: Express) {
   // Android 네이티브 로그인 엔드포인트 (Kakao SDK + REST API 방식)
   // Android 앱은 Kakao SDK로 로그인 후 accessToken을 이 엔드포인트로 전달
   app.post("/api/kakao/android-login", async (req, res) => {
-    console.log('[ANDROID LOGIN] Android Kakao login request received');
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [ANDROID LOGIN] ========== Android Kakao login request received ==========`);
+    console.log('[ANDROID LOGIN] Request method:', req.method);
+    console.log('[ANDROID LOGIN] Request URL:', req.url);
     console.log('[ANDROID LOGIN] Request headers:', {
       origin: req.get('origin'),
       'user-agent': req.get('user-agent')?.substring(0, 100),
-      cookie: req.get('cookie') ? 'present' : 'missing'
+      cookie: req.get('cookie') ? 'present' : 'missing',
+      'content-type': req.get('content-type'),
+      'x-platform': req.get('x-platform'),
+      host: req.get('host'),
+      referer: req.get('referer')
+    });
+    console.log('[ANDROID LOGIN] Request body keys:', Object.keys(req.body || {}));
+    console.log('[ANDROID LOGIN] Request body (sanitized):', {
+      hasAccessToken: !!req.body?.accessToken,
+      hasKakaoId: !!req.body?.kakaoId,
+      hasEmail: !!req.body?.email,
+      hasNickname: !!req.body?.nickname,
+      hasProfileImage: !!req.body?.profileImage,
+      accessTokenLength: req.body?.accessToken?.length || 0,
+      kakaoId: req.body?.kakaoId ? String(req.body.kakaoId).substring(0, 10) + '...' : 'missing'
     });
     
     const { accessToken, kakaoId, email, nickname, profileImage } = req.body;
 
     if (!accessToken || !kakaoId) {
-      console.error('[ANDROID LOGIN] Missing required fields:', { 
+      console.error('[ANDROID LOGIN] ❌ Missing required fields:', { 
         hasAccessToken: !!accessToken, 
-        hasKakaoId: !!kakaoId 
+        hasKakaoId: !!kakaoId,
+        accessTokenType: typeof accessToken,
+        kakaoIdType: typeof kakaoId,
+        fullBody: JSON.stringify(req.body).substring(0, 200)
       });
-      return res.status(400).json({ error: "Missing required fields: accessToken and kakaoId are required" });
+      return res.status(400).json({ 
+        error: "Missing required fields: accessToken and kakaoId are required",
+        received: {
+          hasAccessToken: !!accessToken,
+          hasKakaoId: !!kakaoId,
+          bodyKeys: Object.keys(req.body || {})
+        }
+      });
     }
 
     try {
       // 카카오 토큰 검증 (보안 강화)
       console.log('[ANDROID LOGIN] Validating Kakao access token...');
+      console.log('[ANDROID LOGIN] Access token (first 20 chars):', accessToken?.substring(0, 20) + '...');
+      console.log('[ANDROID LOGIN] KakaoId:', kakaoId);
+      
+      const tokenValidationStart = Date.now();
       const userInfoResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      const tokenValidationTime = Date.now() - tokenValidationStart;
+      console.log('[ANDROID LOGIN] Token validation response status:', userInfoResponse.status);
+      console.log('[ANDROID LOGIN] Token validation time:', tokenValidationTime + 'ms');
 
       if (!userInfoResponse.ok) {
         const errorText = await userInfoResponse.text();
-        console.error('[ANDROID LOGIN] Invalid access token:', errorText);
-        return res.status(401).json({ error: "Invalid access token" });
+        console.error('[ANDROID LOGIN] ❌ Invalid access token - Status:', userInfoResponse.status);
+        console.error('[ANDROID LOGIN] ❌ Invalid access token - Response:', errorText);
+        console.error('[ANDROID LOGIN] ❌ Invalid access token - Headers:', Object.fromEntries(userInfoResponse.headers.entries()));
+        return res.status(401).json({ 
+          error: "Invalid access token",
+          status: userInfoResponse.status,
+          details: errorText.substring(0, 200)
+        });
       }
 
       const userInfo: KakaoUserInfo = await userInfoResponse.json();
-      console.log('[ANDROID LOGIN] Kakao user info retrieved:', { 
+      console.log('[ANDROID LOGIN] ✅ Kakao user info retrieved:', { 
         id: userInfo.id, 
-        hasEmail: !!userInfo.kakao_account?.email 
+        hasEmail: !!userInfo.kakao_account?.email,
+        email: userInfo.kakao_account?.email || 'not provided',
+        hasNickname: !!userInfo.kakao_account?.profile?.nickname,
+        nickname: userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || 'not provided',
+        connectedAt: userInfo.connected_at
       });
 
       // 사용자 정보 저장
+      const userUpsertStart = Date.now();
       const user = await storage.upsertUser({
         id: `kakao_${kakaoId}`,
         email: email || userInfo.kakao_account?.email || `kakao_${kakaoId}@placeholder.com`,
@@ -760,8 +805,14 @@ export function setupKakaoAuth(app: Express) {
         provider: "kakao",
         kakaoId: kakaoId.toString(),
       });
-
-      console.log('[ANDROID LOGIN] User upserted:', { id: user.id, email: user.email });
+      const userUpsertTime = Date.now() - userUpsertStart;
+      console.log('[ANDROID LOGIN] ✅ User upserted:', { 
+        id: user.id, 
+        email: user.email,
+        firstName: user.firstName,
+        provider: user.provider,
+        upsertTime: userUpsertTime + 'ms'
+      });
 
       // 세션 생성
       (req as any).login(
@@ -777,19 +828,43 @@ export function setupKakaoAuth(app: Express) {
         },
         (err: any) => {
           if (err) {
-            console.error("[ANDROID LOGIN] Session creation failed:", err);
-            return res.status(500).json({ error: "Failed to create session" });
+            console.error("[ANDROID LOGIN] ❌ Session creation failed:", err);
+            console.error("[ANDROID LOGIN] ❌ Session creation error details:", {
+              message: err?.message,
+              stack: err?.stack,
+              name: err?.name,
+              userId: user.id
+            });
+            return res.status(500).json({ 
+              error: "Failed to create session",
+              details: err?.message || String(err)
+            });
           }
           
+          console.log('[ANDROID LOGIN] Session created, saving...');
           // 세션 저장 (쿠키가 제대로 설정되도록)
           req.session.save((saveErr) => {
             if (saveErr) {
-              console.error("[ANDROID LOGIN] Session save failed:", saveErr);
-              return res.status(500).json({ error: "Failed to save session" });
+              console.error("[ANDROID LOGIN] ❌ Session save failed:", saveErr);
+              console.error("[ANDROID LOGIN] ❌ Session save error details:", {
+                message: saveErr?.message,
+                stack: saveErr?.stack,
+                name: saveErr?.name,
+                sessionId: req.session?.id
+              });
+              return res.status(500).json({ 
+                error: "Failed to save session",
+                details: saveErr?.message || String(saveErr)
+              });
             }
             
-            console.log(`[ANDROID LOGIN] Android Kakao login successful for user ID: ${user.id}`);
-            console.log('[ANDROID LOGIN] Session ID:', req.session?.id?.substring(0, 10));
+            const sessionId = req.session?.id;
+            console.log(`[ANDROID LOGIN] ✅ Android Kakao login successful for user ID: ${user.id}`);
+            console.log('[ANDROID LOGIN] ✅ Session ID:', sessionId?.substring(0, 20));
+            console.log('[ANDROID LOGIN] ✅ Session cookie name:', req.session?.cookie?.name || 'connect.sid');
+            console.log('[ANDROID LOGIN] ✅ Session cookie secure:', req.session?.cookie?.secure);
+            console.log('[ANDROID LOGIN] ✅ Session cookie sameSite:', req.session?.cookie?.sameSite);
+            console.log('[ANDROID LOGIN] ========== Login process completed successfully ==========');
             
             // 세션 쿠키가 제대로 설정되도록 응답
             // CORS와 credentials 설정은 이미 server/index.ts에서 처리됨
@@ -801,17 +876,29 @@ export function setupKakaoAuth(app: Express) {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 profileImageUrl: user.profileImageUrl,
-              }
+              },
+              sessionId: sessionId?.substring(0, 10) // 디버깅용 (일부만)
             });
           });
         }
       );
     } catch (error) {
-      console.error("[ANDROID LOGIN] Android Kakao login error:", error);
+      const timestamp = new Date().toISOString();
+      console.error(`[${timestamp}] [ANDROID LOGIN] ❌ ========== Android Kakao login error ==========`);
+      console.error("[ANDROID LOGIN] ❌ Error type:", error instanceof Error ? error.constructor.name : typeof error);
+      console.error("[ANDROID LOGIN] ❌ Error message:", error instanceof Error ? error.message : String(error));
+      console.error("[ANDROID LOGIN] ❌ Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      console.error("[ANDROID LOGIN] ❌ Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2).substring(0, 500));
+      
       const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
       res.status(500).json({ 
         error: "Login failed",
-        details: errorMessage
+        details: errorMessage,
+        ...(process.env.NODE_ENV === 'development' && { 
+          stack: errorStack?.substring(0, 500) // 개발 환경에서만 스택 트레이스 제공
+        })
       });
     }
   });

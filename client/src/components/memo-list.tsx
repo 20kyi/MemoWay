@@ -432,23 +432,22 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
             <div className="px-4 pt-4 pb-2 flex-shrink-0">
               <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t.memoList.searchPlaceholder}
-                    className="pl-10 pr-10 border-0 focus-visible:ring-0 bg-transparent"
+                    className="pr-10 border-0 focus-visible:ring-0 bg-transparent"
                     data-testid="input-memo-search"
                   />
                   {searchQuery && (
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                       onClick={() => setSearchQuery("")}
                       data-testid="button-clear-search"
                     >
-                      <X className="h-3.5 w-3.5" />
+                      <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
