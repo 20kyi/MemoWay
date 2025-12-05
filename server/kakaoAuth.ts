@@ -53,13 +53,19 @@ export function setupKakaoAuth(app: Express) {
     detectedReplitDomain = `https://${process.env.REPL_SLUG}.replit.app`;
   }
   
+  // Railway 환경 감지 (환경 변수로 확인, 요청별로는 각 엔드포인트에서 확인)
+  const isRailway = !!process.env.RAILWAY_ENVIRONMENT || 
+                    !!process.env.RAILWAY_ENVIRONMENT_NAME ||
+                    !!process.env.RAILWAY_SERVICE_NAME;
+  
   const isLocalDev = process.env.NODE_ENV === 'development' && 
                      !process.env.APP_DOMAIN && 
                      !process.env.REPLIT_DEV_DOMAIN &&
-                     !detectedReplitDomain;
+                     !detectedReplitDomain &&
+                     !isRailway;
   const appDomain = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN || detectedReplitDomain;
   const useHttps = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : 
-                    (!!process.env.REPLIT_DEV_DOMAIN || !!detectedReplitDomain);
+                    (!!process.env.REPLIT_DEV_DOMAIN || !!detectedReplitDomain || isRailway);
   
   // Log configuration status
   console.log('=== Kakao OAuth Configuration ===');
@@ -157,35 +163,40 @@ export function setupKakaoAuth(app: Express) {
         }
       }
       
-      // Replit 개발 도메인(*.riker.replit.dev)은 동적으로 생성되므로 Kakao에 등록할 수 없음
-      // 프로덕션 도메인(*.replit.app)을 우선적으로 사용
+      // Railway 환경에서는 요청 호스트를 직접 사용
       const requestHost = req.get('host') || '';
       const isReplitDevDomain = requestHost.includes('.riker.replit.dev');
       
-      // 안드로이드 앱 요청일 경우 항상 memo-way.replit.app 사용 (Kakao에 등록된 도메인)
-      // REPL_SLUG을 무시하고 하드코딩된 도메인 사용 (등록된 URI와 일치해야 함)
-      if (isAndroidApp || (isReplitDevDomain && isAndroidApp)) {
+      // Railway 환경 감지 (요청 호스트로도 확인)
+      const isRailwayRequest = isRailway || requestHost.includes('.up.railway.app');
+      
+      // Railway 환경 우선 확인 (Android 앱이어도 Railway 환경이면 Railway 도메인 사용)
+      if (isRailwayRequest) {
+        // Railway 환경: 요청 호스트를 그대로 사용 (memoway-production.up.railway.app)
+        host = requestHost || 'memoway-production.up.railway.app';
+        protocol = 'https';
+        console.log('Railway environment detected - using host:', host);
+        console.log('Railway environment - Android app:', isAndroidApp);
+        console.log('Railway environment - Request host:', requestHost);
+      } else if (isAndroidApp || (isReplitDevDomain && isAndroidApp)) {
+        // Replit 안드로이드 앱 요청일 경우 (Railway가 아닐 때만)
         resolvedHost = 'memo-way.replit.app';
         console.log('Android app detected - using registered domain:', resolvedHost);
+        host = resolvedHost;
+        protocol = 'https';
       } else {
-        // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
+        // Replit 프로덕션 도메인 우선 사용
         if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
           if (process.env.REPL_SLUG) {
-            // Replit 프로덕션 도메인 사용
             resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
           } else if (isReplitDevDomain) {
-            // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
-            // 기본 프로덕션 도메인 사용
             resolvedHost = 'memo-way.replit.app';
           }
         }
+        host = resolvedHost || process.env.REPLIT_DEV_DOMAIN || 
+               (isReplitDevDomain ? 'memo-way.replit.app' : (requestHost || process.env.HOST || 'memo-way.replit.app'));
+        protocol = useHttps || host.includes('.replit.app') ? 'https' : (req.protocol || 'http');
       }
-      
-      // Fallback to configured domain or request host (if not dev domain)
-      host = resolvedHost || process.env.REPLIT_DEV_DOMAIN || 
-             (isReplitDevDomain ? 'memo-way.replit.app' : (requestHost || process.env.HOST || 'memo-way.replit.app'));
-      // Use HTTPS for Replit production domain
-      protocol = useHttps || host.includes('.replit.app') ? 'https' : (req.protocol || 'http');
     }
     
     const redirectUri = `${protocol}://${host}/api/kakao/callback`;
@@ -207,10 +218,22 @@ export function setupKakaoAuth(app: Express) {
     
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
     
-    // 서버 측 리다이렉트로 직접 이동 (더 안정적)
-    // 안드로이드 앱의 외부 브라우저에서도 작동
-    console.log('Redirecting to Kakao OAuth:', kakaoAuthUrl);
-    res.redirect(kakaoAuthUrl);
+    // 명시적으로 세션 저장 후 리다이렉트 (Android WebView에서 세션 쿠키가 제대로 설정되도록)
+    // 세션 저장이 완료된 후에만 리다이렉트하여 쿠키가 제대로 설정되도록 보장
+    req.session.save((err) => {
+      if (err) {
+        console.error('Failed to save session before redirect:', err);
+        return res.status(500).json({ error: "Failed to save session" });
+      }
+      
+      console.log('Session saved successfully before Kakao OAuth redirect');
+      console.log('Session ID:', req.session?.id?.substring(0, 10));
+      
+      // 서버 측 리다이렉트로 직접 이동 (더 안정적)
+      // 안드로이드 앱의 외부 브라우저에서도 작동
+      console.log('Redirecting to Kakao OAuth:', kakaoAuthUrl);
+      res.redirect(kakaoAuthUrl);
+    });
   });
 
   // Kakao OAuth callback
@@ -239,11 +262,27 @@ export function setupKakaoAuth(app: Express) {
     const sessionState = (req.session as any).kakaoState;
     console.log('Session state:', sessionState ? 'present' : 'missing');
     console.log('Request state:', state ? 'present' : 'missing');
+    console.log('Session ID:', req.session?.id?.substring(0, 10));
+    console.log('Session cookie:', req.headers.cookie ? 'present' : 'missing');
     
     if (!state || state !== sessionState) {
       console.error('❌ State mismatch - possible CSRF attack or session expired');
       console.error('   Session state:', sessionState);
       console.error('   Request state:', state);
+      console.error('   Session exists:', !!req.session);
+      console.error('   Session ID:', req.session?.id);
+      console.error('   Cookies:', req.headers.cookie);
+      console.error('   Request host:', req.get('host'));
+      console.error('   Request protocol:', req.protocol);
+      
+      // 세션이 없는 경우 더 명확한 에러 메시지
+      if (!req.session || !sessionState) {
+        return res.status(403).json({ 
+          error: "Session expired or not found. Please try logging in again.",
+          details: "The session cookie may not have been saved properly. This can happen in Android WebView if cookies are not properly configured."
+        });
+      }
+      
       return res.status(403).json({ error: "Invalid state parameter - possible CSRF attack" });
     }
     
@@ -277,61 +316,64 @@ export function setupKakaoAuth(app: Express) {
     let host: string;
     let protocol: string;
     
+    // Railway 환경 감지 (콜백에서도 동일하게, 요청 호스트로도 확인)
+    const requestHostCallback = req.get('host') || '';
+    const isRailwayCallback = !!process.env.RAILWAY_ENVIRONMENT || 
+                              !!process.env.RAILWAY_ENVIRONMENT_NAME ||
+                              !!process.env.RAILWAY_SERVICE_NAME ||
+                              requestHostCallback.includes('.up.railway.app');
+    
     if (isLocalDev) {
       // Local development: always use localhost:5000
       host = 'localhost:5000';
       protocol = 'http';
     } else {
-      // Production/Replit: use configured domain or detect from request
-      // Re-detect Replit domain in callback (same logic as above)
-      let detectedReplitDomain: string | undefined;
-      if (process.env.REPL_SLUG && !process.env.APP_DOMAIN && !process.env.REPLIT_DEV_DOMAIN) {
-        detectedReplitDomain = `https://${process.env.REPL_SLUG}.replit.app`;
-      }
-      const appDomainCallback = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN || detectedReplitDomain;
-      const useHttpsCallback = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : 
-                                (!!process.env.REPLIT_DEV_DOMAIN || !!detectedReplitDomain);
+      // Production/Replit/Railway: use configured domain or detect from request
+      const isReplitDevDomain = requestHostCallback.includes('.riker.replit.dev');
       
-      // If appDomain is a full URL, extract hostname
-      let resolvedHost = appDomainCallback;
-      if (resolvedHost && (resolvedHost.startsWith('http://') || resolvedHost.startsWith('https://'))) {
-        try {
-          const url = new URL(resolvedHost);
-          resolvedHost = url.hostname + (url.port ? `:${url.port}` : '');
-        } catch (e) {
-          // Invalid URL, use as-is
-        }
-      }
-      
-      // Replit 개발 도메인(*.riker.replit.dev)은 동적으로 생성되므로 Kakao에 등록할 수 없음
-      // 프로덕션 도메인(*.replit.app)을 우선적으로 사용
-      const requestHost = req.get('host') || '';
-      const isReplitDevDomain = requestHost.includes('.riker.replit.dev');
-      
-      // 안드로이드 앱 요청일 경우 항상 memo-way.replit.app 사용 (Kakao에 등록된 도메인)
-      // REPL_SLUG을 무시하고 하드코딩된 도메인 사용 (등록된 URI와 일치해야 함)
-      if (isAndroidAppCallback) {
-        resolvedHost = 'memo-way.replit.app';
-        console.log('Android app callback detected - using registered domain:', resolvedHost);
+      if (isRailwayCallback) {
+        // Railway 환경: 요청 호스트를 그대로 사용
+        host = requestHostCallback || 'memoway-production.up.railway.app';
+        protocol = 'https';
+        console.log('Railway environment detected in callback - using host:', host);
+        console.log('Railway callback - Request host:', requestHostCallback);
+      } else if (isAndroidAppCallback) {
+        // Replit 안드로이드 앱 요청일 경우
+        host = 'memo-way.replit.app';
+        protocol = 'https';
+        console.log('Android app callback detected - using registered domain:', host);
       } else {
-        // 프로덕션 도메인 우선 사용 (REPL_SLUG이 있으면 프로덕션 도메인 사용)
+        // Replit 프로덕션 도메인 우선 사용
+        let detectedReplitDomain: string | undefined;
+        if (process.env.REPL_SLUG && !process.env.APP_DOMAIN && !process.env.REPLIT_DEV_DOMAIN) {
+          detectedReplitDomain = `https://${process.env.REPL_SLUG}.replit.app`;
+        }
+        const appDomainCallback = process.env.APP_DOMAIN || process.env.REPLIT_DEV_DOMAIN || detectedReplitDomain;
+        const useHttpsCallback = process.env.APP_DOMAIN ? (process.env.APP_USE_HTTPS !== 'false') : 
+                                  (!!process.env.REPLIT_DEV_DOMAIN || !!detectedReplitDomain);
+        
+        let resolvedHost = appDomainCallback;
+        if (resolvedHost && (resolvedHost.startsWith('http://') || resolvedHost.startsWith('https://'))) {
+          try {
+            const url = new URL(resolvedHost);
+            resolvedHost = url.hostname + (url.port ? `:${url.port}` : '');
+          } catch (e) {
+            // Invalid URL, use as-is
+          }
+        }
+        
         if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
           if (process.env.REPL_SLUG) {
-            // Replit 프로덕션 도메인 사용
             resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
           } else if (isReplitDevDomain) {
-            // 개발 도메인을 사용 중이지만 프로덕션 도메인을 찾을 수 없음
-            // 기본 프로덕션 도메인 사용
             resolvedHost = 'memo-way.replit.app';
           }
         }
+        
+        host = resolvedHost || 
+               (isReplitDevDomain ? 'memo-way.replit.app' : (requestHostCallback || process.env.HOST || 'memo-way.replit.app'));
+        protocol = useHttpsCallback || host.includes('.replit.app') ? 'https' : (req.protocol || 'http');
       }
-      
-      // Fallback to configured domain or request host (if not dev domain)
-      host = resolvedHost || 
-             (isReplitDevDomain ? 'memo-way.replit.app' : (requestHost || process.env.HOST || 'memo-way.replit.app'));
-      // Use HTTPS for Replit production domain
-      protocol = useHttpsCallback || host.includes('.replit.app') ? 'https' : (req.protocol || 'http');
     }
     
     const redirectUri = `${protocol}://${host}/api/kakao/callback`;
