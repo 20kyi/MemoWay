@@ -67,14 +67,18 @@ function Router() {
             
             // 안드로이드에서 카카오 로그인 완료 후 세션 확인 및 메인 화면으로 이동
             if (Capacitor.isNativePlatform() && baseUrl) {
-              console.log('[DEEP LINK] Android: Checking session after Kakao login...');
+              console.log('[ANDROID KAKAO LOGIN] ========== Deep Link Session Check ==========');
+              console.log('[ANDROID KAKAO LOGIN] Checking session after Kakao login...');
               
               // /api/auth/user 호출하여 로그인 상태 확인 (여러 번 시도)
               let sessionFound = false;
+              const checkUrl = `${baseUrl}/api/auth/user`;
+              console.log('[ANDROID KAKAO LOGIN] checking /api/auth/user', { url: checkUrl });
+              
               for (let attempt = 0; attempt < 5; attempt++) {
                 try {
-                  console.log(`[DEEP LINK] Session check attempt ${attempt + 1}/5`);
-                  const response = await fetch(`${baseUrl}/api/auth/user`, {
+                  console.log(`[ANDROID KAKAO LOGIN] Session check attempt ${attempt + 1}/5`);
+                  const response = await fetch(checkUrl, {
                     method: 'GET',
                     credentials: 'include', // 쿠키 포함
                     headers: {
@@ -82,47 +86,58 @@ function Router() {
                     }
                   });
                   
+                  console.log(`[ANDROID KAKAO LOGIN] Response status: ${response.status}`);
+                  
                   if (response.ok) {
                     // 200: 로그인됨
                     const userData = await response.json();
-                    console.log('[DEEP LINK] ✅ Session found, user:', userData?.id);
+                    console.log('[ANDROID KAKAO LOGIN] ✅ /api/auth/user 200 - Session found');
+                    console.log('[ANDROID KAKAO LOGIN] User data:', {
+                      id: userData?.id,
+                      email: userData?.email,
+                      firstName: userData?.firstName,
+                      lastName: userData?.lastName
+                    });
                     sessionFound = true;
                     
                     // auth context 업데이트 (queryClient를 통해)
                     await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
                     
                     // 메인 화면으로 이동
-                    console.log('[DEEP LINK] Redirecting to home page (main screen)');
+                    console.log('[ANDROID KAKAO LOGIN] Redirecting to home page (main screen)');
                     setTimeout(() => {
                       window.location.href = '/';
                     }, 500);
                     break;
                   } else if (response.status === 401) {
                     // 401: 비로그인 상태
-                    console.log('[DEEP LINK] ❌ No session found (401) - login failed or session expired');
-                    console.log('[DEEP LINK] Staying on login page');
+                    console.log('[ANDROID KAKAO LOGIN] /api/auth/user 401');
+                    console.log('[ANDROID KAKAO LOGIN] ❌ No session found (401) - login failed or session expired');
+                    console.log('[ANDROID KAKAO LOGIN] Staying on login page');
                     break; // 더 이상 시도하지 않음
                   } else {
-                    console.warn(`[DEEP LINK] Session check failed (attempt ${attempt + 1}):`, response.status);
+                    console.warn(`[ANDROID KAKAO LOGIN] Session check failed (attempt ${attempt + 1}):`, response.status);
+                    const errorText = await response.text().catch(() => '');
+                    console.warn(`[ANDROID KAKAO LOGIN] Error response:`, errorText);
                   }
                 } catch (err) {
-                  console.error(`[DEEP LINK] Session check error (attempt ${attempt + 1}):`, err);
+                  console.error(`[ANDROID KAKAO LOGIN] Session check error (attempt ${attempt + 1}):`, err);
                 }
                 
                 // 마지막 시도가 아니면 점진적으로 대기 시간 증가
                 if (attempt < 4) {
                   const waitTime = (attempt + 1) * 500; // 0.5초, 1초, 1.5초, 2초
-                  console.log(`[DEEP LINK] Waiting ${waitTime}ms before next attempt...`);
+                  console.log(`[ANDROID KAKAO LOGIN] Waiting ${waitTime}ms before next attempt...`);
                   await new Promise(resolve => setTimeout(resolve, waitTime));
                 }
               }
               
               if (!sessionFound) {
-                console.error('[DEEP LINK] Failed to find session after 5 attempts');
-                console.error('[DEEP LINK] Possible reasons:');
-                console.error('[DEEP LINK] 1. Login was not completed in external browser');
-                console.error('[DEEP LINK] 2. Session cookie was not set properly');
-                console.error('[DEEP LINK] 3. Cookie domain/path mismatch between browser and WebView');
+                console.error('[ANDROID KAKAO LOGIN] Failed to find session after 5 attempts');
+                console.error('[ANDROID KAKAO LOGIN] Possible reasons:');
+                console.error('[ANDROID KAKAO LOGIN] 1. Login was not completed in external browser');
+                console.error('[ANDROID KAKAO LOGIN] 2. Session cookie was not set properly');
+                console.error('[ANDROID KAKAO LOGIN] 3. Cookie domain/path mismatch between browser and WebView');
                 // 세션을 찾지 못했으므로 로그인 화면 유지
                 return;
               }
@@ -178,20 +193,24 @@ function Router() {
             // 현재 인증되지 않은 상태이고 로딩 중이 아닐 때만 세션 확인
             // 외부 브라우저에서 카카오 로그인 완료 후 앱으로 돌아왔을 때를 감지
             if (!isAuthenticated && !isLoading && !user) {
-              console.log('[APP STATE] Android: Not authenticated, checking session after app became active...');
+              console.log('[ANDROID KAKAO LOGIN] ========== App State Change Session Check ==========');
+              console.log('[ANDROID KAKAO LOGIN] Android: Not authenticated, checking session after app became active...');
               
               const baseUrl = getApiBaseUrl();
               if (!baseUrl) {
-                console.warn('[APP STATE] Base URL not available');
+                console.warn('[ANDROID KAKAO LOGIN] Base URL not available');
                 return;
               }
 
               // /api/auth/user 호출하여 로그인 상태 확인 (최대 5번 시도, 점진적 대기 시간)
               let sessionFound = false;
+              const checkUrl = `${baseUrl}/api/auth/user`;
+              console.log('[ANDROID KAKAO LOGIN] checking /api/auth/user', { url: checkUrl });
+              
               for (let attempt = 0; attempt < 5; attempt++) {
                 try {
-                  console.log(`[APP STATE] Session check attempt ${attempt + 1}/5`);
-                  const response = await fetch(`${baseUrl}/api/auth/user`, {
+                  console.log(`[ANDROID KAKAO LOGIN] Session check attempt ${attempt + 1}/5`);
+                  const response = await fetch(checkUrl, {
                     method: 'GET',
                     credentials: 'include', // 쿠키 포함
                     headers: {
@@ -199,48 +218,59 @@ function Router() {
                     }
                   });
 
+                  console.log(`[ANDROID KAKAO LOGIN] Response status: ${response.status}`);
+
                   if (response.ok) {
                     // 200: 로그인됨
                     const userData = await response.json();
-                    console.log('[APP STATE] ✅ Session found, user:', userData?.id);
+                    console.log('[ANDROID KAKAO LOGIN] ✅ /api/auth/user 200 - Session found');
+                    console.log('[ANDROID KAKAO LOGIN] User data:', {
+                      id: userData?.id,
+                      email: userData?.email,
+                      firstName: userData?.firstName,
+                      lastName: userData?.lastName
+                    });
                     sessionFound = true;
                     
                     // auth context 업데이트 (queryClient를 통해)
                     await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
                     
                     // 메인 화면으로 이동
-                    console.log('[APP STATE] Redirecting to home page (main screen)');
+                    console.log('[ANDROID KAKAO LOGIN] Redirecting to home page (main screen)');
                     setTimeout(() => {
                       window.location.href = '/';
                     }, 500);
                     break;
                   } else if (response.status === 401) {
                     // 401: 비로그인 상태
-                    console.log('[APP STATE] ❌ No session found (401) - login failed or session expired');
-                    console.log('[APP STATE] Staying on login page');
+                    console.log('[ANDROID KAKAO LOGIN] /api/auth/user 401');
+                    console.log('[ANDROID KAKAO LOGIN] ❌ No session found (401) - login failed or session expired');
+                    console.log('[ANDROID KAKAO LOGIN] Staying on login page');
                     // 더 시도하지 않고 종료
                     break;
                   } else {
-                    console.warn(`[APP STATE] Session check failed (attempt ${attempt + 1}):`, response.status);
+                    console.warn(`[ANDROID KAKAO LOGIN] Session check failed (attempt ${attempt + 1}):`, response.status);
+                    const errorText = await response.text().catch(() => '');
+                    console.warn(`[ANDROID KAKAO LOGIN] Error response:`, errorText);
                   }
                 } catch (err) {
-                  console.error(`[APP STATE] Session check error (attempt ${attempt + 1}):`, err);
+                  console.error(`[ANDROID KAKAO LOGIN] Session check error (attempt ${attempt + 1}):`, err);
                 }
 
                 // 마지막 시도가 아니면 점진적으로 대기 시간 증가
                 if (attempt < 4) {
                   const waitTime = (attempt + 1) * 1000; // 1초, 2초, 3초, 4초
-                  console.log(`[APP STATE] Waiting ${waitTime}ms before next attempt...`);
+                  console.log(`[ANDROID KAKAO LOGIN] Waiting ${waitTime}ms before next attempt...`);
                   await new Promise(resolve => setTimeout(resolve, waitTime));
                 }
               }
 
               if (!sessionFound) {
-                console.log('[APP STATE] No session found after 5 attempts');
-                console.log('[APP STATE] This might be because:');
-                console.log('[APP STATE] 1. Login was not completed in external browser');
-                console.log('[APP STATE] 2. Session cookie was not set properly');
-                console.log('[APP STATE] 3. Cookie domain/path mismatch between browser and WebView');
+                console.log('[ANDROID KAKAO LOGIN] No session found after 5 attempts');
+                console.log('[ANDROID KAKAO LOGIN] This might be because:');
+                console.log('[ANDROID KAKAO LOGIN] 1. Login was not completed in external browser');
+                console.log('[ANDROID KAKAO LOGIN] 2. Session cookie was not set properly');
+                console.log('[ANDROID KAKAO LOGIN] 3. Cookie domain/path mismatch between browser and WebView');
                 // 세션을 찾지 못했으므로 로그인 화면 유지
               }
             } else {
@@ -264,13 +294,14 @@ function Router() {
       // 안드로이드에서 외부 브라우저로 카카오 로그인을 시작한 경우,
       // 브라우저가 닫히면 앱으로 돌아왔다는 의미이므로 세션을 확인해야 합니다.
       Browser.addListener('browserFinished', async () => {
-        console.log('[BROWSER] Browser closed, checking session...');
+        console.log('[ANDROID KAKAO LOGIN] ========== Browser Finished Session Check ==========');
+        console.log('[ANDROID KAKAO LOGIN] Browser closed, checking session...');
         
         // 안드로이드에서만 세션 확인
         if (Capacitor.isNativePlatform()) {
           const baseUrl = getApiBaseUrl();
           if (!baseUrl) {
-            console.warn('[BROWSER] Base URL not available');
+            console.warn('[ANDROID KAKAO LOGIN] Base URL not available');
             return;
           }
 
@@ -279,16 +310,19 @@ function Router() {
           const isRecentLogout = logoutTimestamp && (Date.now() - parseInt(logoutTimestamp)) < 30000;
           
           if (isRecentLogout) {
-            console.log('[BROWSER] Recent logout detected, skipping session check');
+            console.log('[ANDROID KAKAO LOGIN] Recent logout detected, skipping session check');
             return;
           }
 
           // 세션 확인 (최대 5번 시도, 점진적 대기 시간)
           let sessionFound = false;
+          const checkUrl = `${baseUrl}/api/auth/user`;
+          console.log('[ANDROID KAKAO LOGIN] checking /api/auth/user', { url: checkUrl });
+          
           for (let attempt = 0; attempt < 5; attempt++) {
             try {
-              console.log(`[BROWSER] Session check attempt ${attempt + 1}/5`);
-              const response = await fetch(`${baseUrl}/api/auth/user`, {
+              console.log(`[ANDROID KAKAO LOGIN] Session check attempt ${attempt + 1}/5`);
+              const response = await fetch(checkUrl, {
                 method: 'GET',
                 credentials: 'include', // 쿠키 포함
                 headers: {
@@ -296,47 +330,58 @@ function Router() {
                 }
               });
 
+              console.log(`[ANDROID KAKAO LOGIN] Response status: ${response.status}`);
+
               if (response.ok) {
                 // 200: 로그인됨
                 const userData = await response.json();
-                console.log('[BROWSER] ✅ Session found, user:', userData?.id);
+                console.log('[ANDROID KAKAO LOGIN] ✅ /api/auth/user 200 - Session found');
+                console.log('[ANDROID KAKAO LOGIN] User data:', {
+                  id: userData?.id,
+                  email: userData?.email,
+                  firstName: userData?.firstName,
+                  lastName: userData?.lastName
+                });
                 sessionFound = true;
                 
                 // auth context 업데이트 (queryClient를 통해)
                 await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
                 
                 // 메인 화면으로 이동
-                console.log('[BROWSER] Redirecting to home page (main screen)');
+                console.log('[ANDROID KAKAO LOGIN] Redirecting to home page (main screen)');
                 setTimeout(() => {
                   window.location.href = '/';
                 }, 500);
                 break;
               } else if (response.status === 401) {
                 // 401: 비로그인 상태
-                console.log('[BROWSER] ❌ No session found (401) - login failed or session expired');
-                console.log('[BROWSER] Staying on login page');
+                console.log('[ANDROID KAKAO LOGIN] /api/auth/user 401');
+                console.log('[ANDROID KAKAO LOGIN] ❌ No session found (401) - login failed or session expired');
+                console.log('[ANDROID KAKAO LOGIN] Staying on login page');
                 break; // 더 이상 시도하지 않음
               } else {
-                console.warn(`[BROWSER] Session check failed (attempt ${attempt + 1}):`, response.status);
+                console.warn(`[ANDROID KAKAO LOGIN] Session check failed (attempt ${attempt + 1}):`, response.status);
+                const errorText = await response.text().catch(() => '');
+                console.warn(`[ANDROID KAKAO LOGIN] Error response:`, errorText);
               }
             } catch (err) {
-              console.error(`[BROWSER] Session check error (attempt ${attempt + 1}):`, err);
+              console.error(`[ANDROID KAKAO LOGIN] Session check error (attempt ${attempt + 1}):`, err);
             }
 
             // 마지막 시도가 아니면 점진적으로 대기 시간 증가
             if (attempt < 4) {
               const waitTime = (attempt + 1) * 1000; // 1초, 2초, 3초, 4초
-              console.log(`[BROWSER] Waiting ${waitTime}ms before next attempt...`);
+              console.log(`[ANDROID KAKAO LOGIN] Waiting ${waitTime}ms before next attempt...`);
               await new Promise(resolve => setTimeout(resolve, waitTime));
             }
           }
 
           if (!sessionFound) {
-            console.error('[BROWSER] Failed to find session after 5 attempts');
-            console.error('[BROWSER] Possible reasons:');
-            console.error('[BROWSER] 1. Login was not completed in external browser');
-            console.error('[BROWSER] 2. Session cookie was not set properly');
-            console.error('[BROWSER] 3. Cookie domain/path mismatch between browser and WebView');
+            console.error('[ANDROID KAKAO LOGIN] Failed to find session after 5 attempts');
+            console.error('[ANDROID KAKAO LOGIN] Possible reasons:');
+            console.error('[ANDROID KAKAO LOGIN] 1. Login was not completed in external browser');
+            console.error('[ANDROID KAKAO LOGIN] 2. Session cookie was not set properly');
+            console.error('[ANDROID KAKAO LOGIN] 3. Cookie domain/path mismatch between browser and WebView');
             // 세션을 찾지 못했으므로 로그인 화면 유지
           }
         } else {

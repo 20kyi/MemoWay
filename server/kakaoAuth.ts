@@ -486,6 +486,9 @@ export function setupKakaoAuth(app: Express) {
               
               console.log('[KAKAO EXCHANGE] ✅ Session created successfully');
               const sessionId = req.session?.id;
+              console.log('[KAKAO ANDROID LOGIN] session userId=', user.id);
+              console.log('[KAKAO ANDROID LOGIN] sessionId=', sessionId?.substring(0, 20));
+              console.log('[KAKAO ANDROID LOGIN] platform=', platform);
               
               res.json({ 
                 success: true, 
@@ -1274,6 +1277,10 @@ export function setupKakaoAuth(app: Express) {
               
               console.log('[KAKAO FLOW] ✅ Session created successfully');
               console.log('[KAKAO FLOW] ✅ Kakao login successful for user ID:', user.id);
+              const sessionId = req.session?.id;
+              console.log('[KAKAO ANDROID LOGIN] session userId=', user.id);
+              console.log('[KAKAO ANDROID LOGIN] sessionId=', sessionId?.substring(0, 20));
+              console.log('[KAKAO ANDROID LOGIN] platform=', platform);
               
               // 세션이 있으면 Deep Link로 리다이렉트
               // ⚠️ 중요: 서버 레벨에서는 추가 redirect를 하지 않고 HTML만 반환
