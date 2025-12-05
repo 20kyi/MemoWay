@@ -67,6 +67,13 @@ export default defineConfig({
     // 기본 Vite 청크 분리 로직이 자동으로 의존성 순서를 보장함
     rollupOptions: {
       onwarn(warning, warn) {
+        // Capacitor 플러그인 동적 import 경고는 무시 (런타임에 로드됨)
+        if (warning.code === 'UNRESOLVED_IMPORT' && 
+            warning.id && 
+            (warning.id.includes('@team-lepisode/capacitor-kakao-login') ||
+             warning.id.includes('@capacitor/'))) {
+          return; // 경고 무시
+        }
         // 환경 변수 관련 경고는 무시하지 않음
         warn(warning);
       },

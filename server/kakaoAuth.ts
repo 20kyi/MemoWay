@@ -245,9 +245,243 @@ export function setupKakaoAuth(app: Express) {
     });
   });
 
-  // Kakao OAuth callback
-  app.get("/api/kakao/callback", async (req, res) => {
-    console.log('=== Kakao OAuth Callback Received ===');
+  // 인가 코드를 받아서 토큰 교환 및 세션 생성하는 엔드포인트 (프런트엔드에서 호출)
+  app.post("/api/kakao/exchange-code", async (req, res) => {
+    console.log('[KAKAO EXCHANGE] ========== Authorization code exchange request ==========');
+    console.log('[KAKAO EXCHANGE] Request body:', {
+      hasCode: !!req.body.code,
+      hasState: !!req.body.state,
+      lang: req.body.lang
+    });
+    
+    const { code, state, lang = 'ko' } = req.body;
+    
+    // 인가 코드 검증
+    if (!code || typeof code !== "string") {
+      console.error('[KAKAO EXCHANGE] ❌ Missing authorization code');
+      return res.status(400).json({ error: "Authorization code is required" });
+    }
+    
+    // CSRF state 검증 (세션에 저장된 state와 비교)
+    const sessionState = (req.session as any).kakaoState;
+    if (state && state !== sessionState) {
+      console.error('[KAKAO EXCHANGE] ❌ State mismatch - possible CSRF attack');
+      return res.status(403).json({ error: "Invalid state parameter - possible CSRF attack" });
+    }
+    
+    // State에서 언어 및 플랫폼 정보 추출
+    let platform = 'web';
+    try {
+      if (state) {
+        const stateData = JSON.parse(Buffer.from(state as string, 'base64').toString());
+        platform = stateData.platform || 'web';
+      }
+    } catch (e) {
+      console.warn('[KAKAO EXCHANGE] Failed to parse state, using defaults');
+    }
+    
+    // Clear state from session
+    if (sessionState) {
+      delete (req.session as any).kakaoState;
+    }
+    
+    // Redirect URI 결정 (콜백과 동일한 로직)
+    const userAgent = req.get('user-agent') || '';
+    const xPlatform = req.get('x-platform');
+    const isAndroidApp = platform === 'android' || 
+                         xPlatform === 'android' ||
+                         userAgent.includes('wv') ||
+                         (userAgent.includes('Android') && !userAgent.includes('Chrome'));
+    
+    let host: string;
+    let protocol: string;
+    const requestHost = req.get('host') || '';
+    const isRailway = !!process.env.RAILWAY_ENVIRONMENT || 
+                      !!process.env.RAILWAY_ENVIRONMENT_NAME ||
+                      !!process.env.RAILWAY_SERVICE_NAME ||
+                      requestHost.includes('.up.railway.app');
+    
+    if (isLocalDev) {
+      host = 'localhost:5000';
+      protocol = 'http';
+    } else {
+      const isReplitDevDomain = requestHost.includes('.riker.replit.dev');
+      
+      if (isRailway) {
+        host = requestHost || 'memoway-production.up.railway.app';
+        protocol = 'https';
+      } else if (isAndroidApp) {
+        host = 'memo-way.replit.app';
+        protocol = 'https';
+      } else {
+        let resolvedHost = appDomain;
+        if (resolvedHost && (resolvedHost.startsWith('http://') || resolvedHost.startsWith('https://'))) {
+          try {
+            const url = new URL(resolvedHost);
+            resolvedHost = url.hostname + (url.port ? `:${url.port}` : '');
+          } catch (e) {
+            // Invalid URL, use as-is
+          }
+        }
+        
+        if (!resolvedHost && !process.env.REPLIT_DEV_DOMAIN) {
+          if (process.env.REPL_SLUG) {
+            resolvedHost = `${process.env.REPL_SLUG}.replit.app`;
+          } else if (isReplitDevDomain) {
+            resolvedHost = 'memo-way.replit.app';
+          }
+        }
+        
+        host = resolvedHost || 
+               (isReplitDevDomain ? 'memo-way.replit.app' : (requestHost || process.env.HOST || 'memo-way.replit.app'));
+        protocol = useHttps || host.includes('.replit.app') ? 'https' : (req.protocol || 'http');
+      }
+    }
+    
+    const redirectUri = `${protocol}://${host}/api/kakao/callback`;
+    
+    try {
+      console.log('[KAKAO EXCHANGE] Exchanging code for token...');
+      console.log('[KAKAO EXCHANGE] Redirect URI:', redirectUri);
+      
+      // 인가 코드를 액세스 토큰으로 교환
+      const tokenResponse = await fetch("https://kauth.kakao.com/oauth/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          client_id: clientId!,
+          client_secret: clientSecret!,
+          redirect_uri: redirectUri,
+          code,
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        const error = await tokenResponse.text();
+        console.error('[KAKAO EXCHANGE] ❌ Token exchange failed:', error);
+        return res.status(500).json({ 
+          error: "Failed to exchange authorization code",
+          details: error
+        });
+      }
+
+      const tokenData: KakaoTokenResponse = await tokenResponse.json();
+      console.log('[KAKAO EXCHANGE] ✅ Token received');
+
+      // 카카오 사용자 정보 가져오기
+      const userInfoResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      });
+
+      if (!userInfoResponse.ok) {
+        const error = await userInfoResponse.text();
+        console.error('[KAKAO EXCHANGE] ❌ User info fetch failed:', error);
+        return res.status(500).json({ error: "Failed to fetch user information" });
+      }
+
+      const userInfo: KakaoUserInfo = await userInfoResponse.json();
+      console.log('[KAKAO EXCHANGE] ✅ User info retrieved:', { id: userInfo.id });
+
+      // 사용자 정보 저장/업데이트
+      const email = userInfo.kakao_account?.email || `kakao_${userInfo.id}@placeholder.com`;
+      const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
+      const profileImage = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image;
+
+      const user = await storage.upsertUser({
+        id: `kakao_${userInfo.id}`,
+        email,
+        firstName: nickname,
+        lastName: "",
+        profileImageUrl: profileImage || null,
+        provider: "kakao",
+        kakaoId: userInfo.id.toString(),
+      });
+
+      console.log('[KAKAO EXCHANGE] ✅ User upserted:', { id: user.id });
+
+      // 세션 생성
+      return new Promise<void>((resolve, reject) => {
+        (req as any).login(
+          {
+            id: user.id,
+            claims: {
+              sub: user.id,
+              email: user.email,
+              first_name: user.firstName,
+              last_name: user.lastName,
+              profile_image_url: user.profileImageUrl,
+            },
+          },
+          (err: any) => {
+            if (err) {
+              console.error('[KAKAO EXCHANGE] ❌ Session creation failed:', err);
+              return reject(res.status(500).json({ error: "Failed to create session" }));
+            }
+            
+            req.session.save((saveErr: any) => {
+              if (saveErr) {
+                console.error('[KAKAO EXCHANGE] ❌ Session save failed:', saveErr);
+                return reject(res.status(500).json({ error: "Failed to save session" }));
+              }
+              
+              console.log('[KAKAO EXCHANGE] ✅ Session created successfully');
+              const sessionId = req.session?.id;
+              
+              res.json({ 
+                success: true, 
+                user: {
+                  id: user.id,
+                  email: user.email,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  profileImageUrl: user.profileImageUrl,
+                },
+                sessionId: sessionId?.substring(0, 10), // 일부만 반환 (보안)
+                lang: lang,
+                platform: platform
+              });
+              
+              resolve();
+            });
+          }
+        );
+      });
+    } catch (error) {
+      console.error('[KAKAO EXCHANGE] ❌ Error:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ 
+        error: "Kakao OAuth failed",
+        details: errorMessage
+      });
+    }
+  });
+
+  // Kakao OAuth callback - 프런트엔드 페이지로 리다이렉트 (인가 코드를 쿼리 파라미터로 전달)
+  // 프런트엔드에서 인가 코드를 받아서 /api/kakao/exchange-code로 전달하는 방식
+  app.get("/api/kakao/callback", (req, res) => {
+    console.log('=== Kakao OAuth Callback Received (Redirecting to frontend) ===');
+    console.log('Request URL:', req.url);
+    console.log('Query params:', { 
+      code: req.query.code ? 'present' : 'missing', 
+      state: req.query.state ? 'present' : 'missing',
+      error: req.query.error || 'none',
+      error_description: req.query.error_description || 'none'
+    });
+    
+    // 프런트엔드 콜백 페이지로 리다이렉트 (쿼리 파라미터 유지)
+    // 프런트엔드에서 인가 코드를 받아서 서버로 전달
+    const queryString = new URLSearchParams(req.query as any).toString();
+    res.redirect(`/api/kakao/callback?${queryString}`);
+  });
+
+  // 기존 서버 측 콜백 처리 (레거시 지원 - 필요시 사용)
+  app.get("/api/kakao/callback-server", async (req, res) => {
+    console.log('=== Kakao OAuth Callback Received (Server-side) ===');
     console.log('Request URL:', req.url);
     console.log('Request Host:', req.get('host'));
     console.log('Request Protocol:', req.protocol);

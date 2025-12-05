@@ -19,6 +19,7 @@ import { getApiBaseUrl } from "./lib/api-config";
 const Home = lazy(() => import("@/pages/home"));
 const Landing = lazy(() => import("@/pages/landing"));
 const NotFound = lazy(() => import("@/pages/not-found"));
+const KakaoCallback = lazy(() => import("@/pages/kakao-callback"));
 
 function Router() {
   const { isAuthenticated, isLoading, user, networkError } = useAuth();
@@ -300,6 +301,9 @@ function Router() {
       </div>
     }>
       <Switch>
+        {/* 카카오 OAuth 콜백 페이지 (인증 전에도 접근 가능) */}
+        <Route path="/api/kakao/callback" component={KakaoCallback} />
+        
         {showLoading || !isAuthenticated ? (
           <Route path="/" component={Landing} />
         ) : (

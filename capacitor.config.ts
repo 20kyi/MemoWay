@@ -30,6 +30,12 @@ const config: CapacitorConfig = {
       smallIcon: "ic_stat_icon_config_sample",
       iconColor: "#488AFF",
       sound: "beep.wav",
+    },
+    KakaoLogin: {
+      // 카카오 네이티브 앱 키 (카카오 개발자 콘솔에서 발급받은 네이티브 앱 키)
+      nativeAppKey: "972181125f7cd0fb9dbd9442fdde314e",
+      // JavaScript 키 (웹용, 선택사항)
+      // jsKey: "YOUR_JAVASCRIPT_KEY"
     }
   }
 };

@@ -4,4 +4,6 @@
     <string name="title_activity_main">MemoWay</string>
     <string name="package_name">com.memoway.app</string>
     <string name="custom_url_scheme">com.memoway.app</string>
+    <!-- 카카오 네이티브 앱 키 -->
+    <string name="kakao_native_app_key">972181125f7cd0fb9dbd9442fdde314e</string>
 </resources>

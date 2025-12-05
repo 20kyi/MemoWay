@@ -272,67 +272,85 @@ export default function Landing() {
         console.log('[KAKAO LOGIN] Platform:', Capacitor.getPlatform());
         console.log('[KAKAO LOGIN] Is native platform:', Capacitor.isNativePlatform());
         
-        // Kakao SDK를 통해 로그인
-        // 커스텀 Capacitor 플러그인을 통해 네이티브 Kakao SDK 호출
-        console.log('[KAKAO LOGIN] Using custom KakaoLoginPlugin...');
+        // @team-lepisode/capacitor-kakao-login 플러그인 사용
+        console.log('[KAKAO LOGIN] Attempting to load @team-lepisode/capacitor-kakao-login plugin...');
         
-        // Capacitor 플러그인 접근
-        // 방법 1: registerPlugin 사용
-        const { registerPlugin } = await import('@capacitor/core');
-        
-        // 타입 정의
-        interface KakaoLoginPlugin {
-          login: () => Promise<{
-            accessToken: string;
-            refreshToken?: string;
-            id: string;
-            email?: string;
-            nickname?: string;
-            profileImage?: string;
-          }>;
-        }
-        
-        // 플러그인 등록 시도
-        let KakaoLogin: KakaoLoginPlugin;
+        let KakaoLogin: any;
         try {
-          console.log('[KAKAO LOGIN] Attempting to register KakaoLogin plugin...');
-          KakaoLogin = registerPlugin<KakaoLoginPlugin>('KakaoLogin');
-          console.log('[KAKAO LOGIN] ✅ Plugin registered successfully via registerPlugin');
-        } catch (e) {
-          console.warn('[KAKAO LOGIN] ⚠️ registerPlugin failed, trying direct access:', e);
-          // 방법 2: 직접 접근 (Capacitor 내부 API)
-          const Capacitor = (window as any).Capacitor;
-          console.log('[KAKAO LOGIN] Checking Capacitor.Plugins.KakaoLogin...');
-          if (Capacitor && Capacitor.Plugins && Capacitor.Plugins.KakaoLogin) {
-            KakaoLogin = Capacitor.Plugins.KakaoLogin;
-            console.log('[KAKAO LOGIN] ✅ Plugin found via direct access');
-          } else {
-            console.error('[KAKAO LOGIN] ❌ Plugin not found in Capacitor.Plugins');
-            console.error('[KAKAO LOGIN] ❌ Available plugins:', Capacitor?.Plugins ? Object.keys(Capacitor.Plugins) : 'Capacitor.Plugins not available');
-            throw new Error('Kakao login plugin not found. Please ensure the plugin is properly installed and the app is rebuilt.');
+          // 동적 import를 try-catch로 감싸서 빌드 시 에러 방지
+          // 플러그인이 설치되지 않았거나 로드할 수 없으면 웹 OAuth로 fallback
+          const pluginModule = await import('@team-lepisode/capacitor-kakao-login').catch((err) => {
+            console.warn('[KAKAO LOGIN] Plugin import failed, using web OAuth fallback:', err);
+            return null;
+          });
+          
+          if (!pluginModule || !pluginModule.KakaoLogin) {
+            throw new Error('Plugin module not available');
           }
+          
+          KakaoLogin = pluginModule.KakaoLogin;
+          console.log('[KAKAO LOGIN] ✅ Plugin loaded successfully');
+        } catch (importError: any) {
+          console.error('[KAKAO LOGIN] ❌ Failed to load plugin:', importError?.message || importError);
+          // 플러그인을 로드할 수 없으면 웹 OAuth 플로우로 fallback
+          console.log('[KAKAO LOGIN] Falling back to web OAuth flow...');
+          const baseUrl = getApiBaseUrl();
+          const loginUrl = baseUrl 
+            ? `${baseUrl}/api/kakao/login?lang=${language}&platform=web`
+            : `/api/kakao/login?lang=${language}&platform=web`;
+          window.location.href = loginUrl;
+          return;
         }
         
-        if (!KakaoLogin || !KakaoLogin.login) {
+        if (!KakaoLogin || typeof KakaoLogin.login !== 'function') {
           console.error('[KAKAO LOGIN] ❌ Plugin or login method not available');
-          console.error('[KAKAO LOGIN] ❌ KakaoLogin object:', KakaoLogin);
-          throw new Error('Kakao login method not available. Please ensure the plugin is properly implemented and the app is rebuilt.');
+          // 웹 OAuth로 fallback
+          const baseUrl = getApiBaseUrl();
+          const loginUrl = baseUrl 
+            ? `${baseUrl}/api/kakao/login?lang=${language}&platform=web`
+            : `/api/kakao/login?lang=${language}&platform=web`;
+          window.location.href = loginUrl;
+          return;
+        }
+        
+        // 플러그인 초기화 (필요시 - 앱 시작 시 한 번만 호출)
+        try {
+          await KakaoLogin.initialize({
+            appKey: '972181125f7cd0fb9dbd9442fdde314e' // 네이티브 앱 키 사용
+          });
+          console.log('[KAKAO LOGIN] ✅ Plugin initialized');
+        } catch (initError: any) {
+          // 이미 초기화되었거나 에러가 발생해도 계속 진행
+          console.warn('[KAKAO LOGIN] ⚠️ Plugin initialization warning (may already be initialized):', initError?.message || initError);
         }
         
         console.log('[KAKAO LOGIN] Calling Kakao SDK login...');
         const sdkLoginStart = Date.now();
-        const kakaoResult = await KakaoLogin.login();
+        
+        // 카카오 로그인 실행
+        const loginResult = await KakaoLogin.login();
         const sdkLoginTime = Date.now() - sdkLoginStart;
         
         console.log('[KAKAO LOGIN] ✅ Kakao SDK login successful:', {
-          hasAccessToken: !!kakaoResult.accessToken,
-          hasId: !!kakaoResult.id,
-          hasEmail: !!kakaoResult.email,
-          hasNickname: !!kakaoResult.nickname,
-          hasProfileImage: !!kakaoResult.profileImage,
-          accessTokenLength: kakaoResult.accessToken?.length || 0,
-          loginTime: sdkLoginTime + 'ms'
+          hasAccessToken: !!loginResult.accessToken,
+          hasId: !!loginResult.id,
+          hasEmail: !!loginResult.email,
+          hasNickname: !!loginResult.nickname,
+          hasProfileImage: !!loginResult.profileImage,
+          accessTokenLength: loginResult.accessToken?.length || 0,
+          loginTime: sdkLoginTime + 'ms',
+          fullResult: loginResult // 디버깅용
         });
+        
+        // 플러그인 응답 형식에 맞게 변환 (서버 API 형식에 맞춤)
+        const kakaoResult = {
+          accessToken: loginResult.accessToken || '',
+          refreshToken: loginResult.refreshToken,
+          id: loginResult.id?.toString() || String(loginResult.id) || '',
+          email: loginResult.email,
+          nickname: loginResult.nickname,
+          profileImage: loginResult.profileImage
+        };
         
         // 서버에 accessToken 전달하여 세션 생성
         const baseUrl = getApiBaseUrl();
