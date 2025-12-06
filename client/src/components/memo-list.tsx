@@ -543,11 +543,14 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
 
           <CardContent className="pb-3">
             <p className="text-sm line-clamp-2 leading-relaxed whitespace-pre-wrap">{memo.content}</p>
-            {(memo as any).rating > 0 && (
-              <div className="mt-2">
-                <StarRating value={(memo as any).rating} readOnly size="sm" />
-              </div>
-            )}
+            <div className="mt-2 flex items-center gap-1">
+              <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
+              {(memo as any).rating > 0 && (
+                <span className="text-xs text-muted-foreground font-medium">
+                  {(memo as any).rating}
+                </span>
+              )}
+            </div>
           </CardContent>
 
           <CardFooter className="flex items-center justify-between pt-0">

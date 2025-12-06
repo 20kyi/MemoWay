@@ -186,11 +186,14 @@ export function MemoDetailSheet({
                   <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-sky-600 dark:text-sky-500 truncate flex-1" data-testid="text-memo-title">
                     {memo.buildingName}
                   </SheetTitle>
-                  {(memo as any).rating > 0 && (
-                    <div className="flex items-center ml-2">
-                      <StarRating value={(memo as any).rating} readOnly size="sm" />
-                    </div>
-                  )}
+                  <div className="flex items-center ml-2 gap-1">
+                    <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
+                    {(memo as any).rating > 0 && (
+                      <span className="text-sm text-muted-foreground font-medium">
+                        {(memo as any).rating}
+                      </span>
+                    )}
+                  </div>
                   {onNavigateToLocation && (
                     <Button
                       variant="ghost"
