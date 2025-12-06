@@ -184,8 +184,21 @@ export function MemoFormSheet({
     },
   });
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   // Track if form has been initialized for this open session
   const [isFormInitialized, setIsFormInitialized] = useState(false);
+
+  useEffect(() => {
+    if (open && scrollContainerRef.current) {
+      // 약간의 지연 후 스크롤을 맨 위로 올림
+      setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = 0;
+        }
+      }, 50);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (open && !isFormInitialized && initialData) {
@@ -541,7 +554,10 @@ export function MemoFormSheet({
             }} 
             className="flex flex-col flex-1 min-h-0"
           >
-            <div className="flex-1 overflow-y-auto px-4 sm:px-5 space-y-4 pb-4">
+            <div 
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto px-4 sm:px-5 space-y-4 pb-4"
+            >
               <FormField
                 control={form.control}
                 name="buildingName"
