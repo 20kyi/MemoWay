@@ -29,7 +29,7 @@ export const users = pgTable("users", {
   // Authentication provider: 'replit', 'kakao', 'google', or 'email'
   provider: varchar("provider").notNull().default('replit'),
   // Points system for copy memos feature (10 points per memo)
-  points: integer("points").notNull().default(1000),
+  points: integer("points").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
