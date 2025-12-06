@@ -495,6 +495,44 @@ export default function Home() {
     }
   }, [copyMemoMutation]);
 
+  // 다중 메모 복사 핸들러 (메모이제이션)
+  const handleBulkCopy = useCallback(async (memoIds: string[]) => {
+    if (!memoIds || memoIds.length === 0) return;
+    
+    const requiredPoints = memoIds.length * 10;
+    if (confirm(`${memoIds.length}개의 메모를 복사하시겠습니까? (총 ${requiredPoints}포인트 소모)`)) {
+      try {
+        let successCount = 0;
+        const promises = memoIds.map(id => copyMemoMutation.mutateAsync(id).catch(e => {
+          console.error(`메모 ${id} 복사 실패:`, e);
+          return null;
+        }));
+        
+        const results = await Promise.all(promises);
+        successCount = results.filter(r => r !== null).length;
+        
+        if (successCount > 0) {
+          toast({
+            title: "복사 완료",
+            description: `${successCount}개의 메모가 복사되었습니다.`,
+          });
+          
+          // 쿼리 무효화
+          queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        } else {
+          toast({
+            title: "복사 실패",
+            description: "메모 복사에 실패했습니다. 포인트를 확인해주세요.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("다중 복사 중 오류:", error);
+      }
+    }
+  }, [copyMemoMutation, toast, queryClient]);
+
   // 지도 저장하기 버튼 클릭 핸들러 (다이얼로그 열기)
   const handleSaveMapClick = useCallback(() => {
     if (selectedMemoIdsForMap && selectedMemoIdsForMap.size > 0) {
@@ -794,6 +832,7 @@ export default function Home() {
               onDeleteMemo={handleDeleteMemo}
               onMemoClick={handleMarkerClick}
               onSetMainMemo={handleSetMainMemo}
+              onBulkCopy={handleBulkCopy}
               isLoading={createGroupMutation.isPending || joinGroupMutation.isPending}
             />
         )}

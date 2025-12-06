@@ -96,9 +96,10 @@ interface GroupManagementProps {
   onDeleteMemo?: (memoId: string) => void;
   onMemoClick?: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
+  onBulkCopy?: (memoIds: string[]) => void;
 }
 
-export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, onUpdateMemberPermissions, myMemberIds, personalMemberId, userId, userPoints = 0, isLoading = false, onEditMemo, onDeleteMemo, onMemoClick, onSetMainMemo }: GroupManagementProps) {
+export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, onUpdateMemberPermissions, myMemberIds, personalMemberId, userId, userPoints = 0, isLoading = false, onEditMemo, onDeleteMemo, onMemoClick, onSetMainMemo, onBulkCopy }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -348,6 +349,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
               onDelete={onDeleteMemo}
               onMemoClick={onMemoClick}
               onSetMainMemo={onSetMainMemo}
+              onBulkCopy={onBulkCopy}
               hideHeader={true}
               hideFilters={true}
               showAuthorTab={true}

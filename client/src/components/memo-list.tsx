@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check, Calendar } from "lucide-react";
+import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check, Calendar, Copy } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
@@ -36,6 +36,7 @@ interface MemoListProps {
   onEdit: (memoId: string) => void;
   onDelete: (memoId: string) => void;
   onBulkDelete?: (memoIds: string[]) => void;
+  onBulkCopy?: (memoIds: string[]) => void;
   onMemoClick: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
   onMoveToGroup?: (memoIds: string[], groupId: string) => void;
@@ -58,7 +59,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery }: MemoListProps) {
+export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onBulkCopy, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -249,6 +250,14 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
     }
   };
 
+  const handleBulkCopy = () => {
+    if (onBulkCopy && selectedMemoIds.size > 0) {
+      onBulkCopy(Array.from(selectedMemoIds));
+      setIsSelectionMode(false);
+      setSelectedMemoIds(new Set());
+    }
+  };
+
   const selectAll = () => {
     setSelectedMemoIds(new Set(filteredMemos.map(m => m.id)));
   };
@@ -309,6 +318,17 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
   const currentCategory = getCategoryDisplay(selectedCategory);
   const CurrentIcon = currentCategory.icon;
 
+  // 선택된 메모들이 모두 다른 사용자의 것인지 확인
+  const isAllOthersMemos = useMemo(() => {
+    if (!currentUserId || selectedMemoIds.size === 0) return false;
+    return Array.from(selectedMemoIds).every(id => {
+      const memo = memos.find(m => m.id === id);
+      // 메모가 없거나(삭제됨?), 작성자 ID가 현재 사용자 ID와 다르면 true (남의 것)
+      // 즉, 내 것이 하나라도 있으면 false
+      return memo && memo.member.userId !== currentUserId;
+    });
+  }, [selectedMemoIds, memos, currentUserId]);
+
   return (
     <div className="flex flex-col h-full">
       {/* App Name Header */}
@@ -363,17 +383,31 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                 {t.memoList.moveToGroup}
               </Button>
             )}
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={handleBulkDelete}
-              disabled={selectedMemoIds.size === 0}
-              className="flex-1 bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 shadow-sm hover:shadow-md transition-all"
-              data-testid="button-bulk-delete"
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              {t.memoList.delete}
-            </Button>
+            {onBulkCopy && isAllOthersMemos ? (
+              <Button
+                size="sm"
+                variant="default"
+                onClick={handleBulkCopy}
+                disabled={selectedMemoIds.size === 0}
+                className="flex-1 bg-gradient-to-br from-emerald-200 to-teal-200 hover:from-emerald-300 hover:to-teal-300 border-2 border-emerald-300/60 text-emerald-700 shadow-sm hover:shadow-md transition-all"
+                data-testid="button-bulk-copy"
+              >
+                <Copy className="h-4 w-4 mr-1" />
+                {t.common.copy || "복사"}
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={selectedMemoIds.size === 0}
+                className="flex-1 bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 shadow-sm hover:shadow-md transition-all"
+                data-testid="button-bulk-delete"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                {t.memoList.delete}
+              </Button>
+            )}
           </div>
         </div>
       ) : (
