@@ -597,11 +597,24 @@ export function ProfileView({
       // 로그아웃 및 홈으로 이동
       console.log("[ProfileView] Redirecting to home...");
       
-      // Clear local storage just in case
-      localStorage.clear();
+      // Clear all client state
+      try {
+        queryClient.setQueryData(['/api/auth/user'], null);
+        queryClient.cancelQueries();
+        queryClient.clear();
+        
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Force clear cookie on client side too
+        document.cookie = "connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      } catch (e) {
+        console.error("Client state cleanup error:", e);
+      }
       
       setTimeout(() => {
-        window.location.href = '/';
+        // Use replace to prevent back button and force reload
+        window.location.replace('/?deleted=true');
       }, 500);
       
     } catch (error: any) {
