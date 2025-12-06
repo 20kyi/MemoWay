@@ -59,8 +59,8 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
     chunkSizeWarningLimit: 1000, // Increase limit to 1MB
-    minify: 'esbuild', // Use esbuild for faster minification
-    sourcemap: false, // Disable sourcemaps in production for smaller bundle
+    minify: false, // Disable minification for debugging
+    sourcemap: true, // Enable sourcemaps for debugging
     cssCodeSplit: true, // Enable CSS code splitting
     reportCompressedSize: false, // Disable compressed size reporting for faster builds
     // manualChunks 제거: Capacitor WebView는 청크 로딩 순서를 보장하지 않음
