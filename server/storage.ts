@@ -91,13 +91,21 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
+    // [CRITICAL FIX] 신규 가입 시 points를 0으로 초기화
+    // cleanedData에 points가 없으면 DB 기본값을 사용하는데, DB 마이그레이션이 안 된 경우 1000이 들어갈 수 있음
+    // insertData에는 points: 0을 명시하고, update 시에는(set) points를 건드리지 않음
+    const insertData = { ...cleanedData };
+    if (insertData.points === undefined) {
+      insertData.points = 0;
+    }
+    
     const [user] = await db
       .insert(users)
-      .values(cleanedData)
+      .values(insertData)
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          ...cleanedData,
+          ...cleanedData, // points가 없으므로 기존 값 유지
           updatedAt: new Date(),
         },
       })

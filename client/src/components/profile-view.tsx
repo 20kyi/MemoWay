@@ -635,12 +635,9 @@ export function ProfileView({
         }
       }
       
-      // 오류 화면 방지를 위해 즉시 리다이렉트 (토스트는 사라지더라도 오류 화면보다 나음)
-      // 약간의 지연(50ms)만 둠
-      setTimeout(() => {
-        // Use replace to prevent back button and force reload
-        window.location.replace('/?deleted=true');
-      }, 50);
+      // 오류 화면 방지를 위해 즉시 리다이렉트
+      // setTimeout 없이 바로 실행하여 렌더링 사이클로 인한 에러 방지
+      window.location.href = '/?deleted=true';
       
     } catch (error: any) {
       console.error("[ProfileView] Account deletion error:", error);
