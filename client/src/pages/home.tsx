@@ -279,7 +279,7 @@ export default function Home() {
   }, [filteredGroups]);
 
   // Memo mutations
-  const { createMemoMutation, updateMemoMutation, deleteMemoMutation, setMainMemoMutation } =
+  const { createMemoMutation, updateMemoMutation, deleteMemoMutation, setMainMemoMutation, copyMemoMutation } =
     useMemos({
       selectedLocation,
       personalMemberId,
