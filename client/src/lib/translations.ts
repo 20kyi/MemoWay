@@ -352,6 +352,19 @@ export const translations = {
       monthsAgo: "개월 전",
       yearsAgo: "년 전",
     },
+    // Attendance
+    attendance: {
+      checked: "출석 완료!",
+      pointsEarned: "{points} 포인트를 획득했습니다!",
+      failed: "출석 체크 실패",
+      daily: "매일 출석체크",
+      check: "출석하기",
+      completed: "출석 완료",
+      streak: "{day}일차",
+      challenge: "{day}일차 출석체크를 완료하세요!",
+      todayCompleted: "오늘 출석체크를 완료했습니다!",
+      desc: "매일 출석하고 포인트를 받아가세요",
+    },
     // Exit Dialog
     exitDialog: {
       title: "앱 종료",
@@ -710,6 +723,19 @@ export const translations = {
       daysAgo: " days ago",
       monthsAgo: " months ago",
       yearsAgo: " years ago",
+    },
+    // Attendance
+    attendance: {
+      checked: "Attendance Checked!",
+      pointsEarned: "You earned {points} points!",
+      failed: "Failed to check attendance",
+      daily: "Daily Attendance",
+      check: "Check In",
+      completed: "Checked In",
+      streak: "Day {day}",
+      challenge: "Complete Day {day} check-in!",
+      todayCompleted: "You have checked in today!",
+      desc: "Check in daily and earn points",
     },
     // Exit Dialog
     exitDialog: {
@@ -1070,6 +1096,19 @@ export const translations = {
       monthsAgo: "个月前",
       yearsAgo: "年前",
     },
+    // Attendance
+    attendance: {
+      checked: "签到成功！",
+      pointsEarned: "获得 {points} 积分！",
+      failed: "签到失败",
+      daily: "每日签到",
+      check: "签到",
+      completed: "已签到",
+      streak: "第 {day} 天",
+      challenge: "完成第 {day} 天签到！",
+      todayCompleted: "今天已签到！",
+      desc: "每日签到赚取积分",
+    },
     // Exit Dialog
     exitDialog: {
       title: "退出应用",
@@ -1429,6 +1468,19 @@ export const translations = {
       monthsAgo: "ヶ月前",
       yearsAgo: "年前",
     },
+    // Attendance
+    attendance: {
+      checked: "出席チェック完了！",
+      pointsEarned: "{points}ポイントを獲得しました！",
+      failed: "出席チェック失敗",
+      daily: "毎日出席チェック",
+      check: "出席する",
+      completed: "出席完了",
+      streak: "{day}日目",
+      challenge: "{day}日目の出席チェックを完了しましょう！",
+      todayCompleted: "今日の出席チェックは完了しました！",
+      desc: "毎日出席してポイントを獲得しましょう",
+    },
     // Exit Dialog
     exitDialog: {
       title: "アプリを終了",
@@ -1779,6 +1831,18 @@ type Translation = {
     daysAgo: string;
     monthsAgo: string;
     yearsAgo: string;
+  };
+  attendance: {
+    checked: string;
+    pointsEarned: string;
+    failed: string;
+    daily: string;
+    check: string;
+    completed: string;
+    streak: string;
+    challenge: string;
+    todayCompleted: string;
+    desc: string;
   };
   exitDialog: {
     title: string;

@@ -49,15 +49,15 @@ export function AttendanceButton() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] }); // 포인트 업데이트
       
       toast({
-        title: t("attendanceChecked", "Attendance Checked!"),
-        description: t("attendancePointsEarned", `You earned ${data.pointsAdded} points!`),
+        title: t.attendance.checked,
+        description: t.attendance.pointsEarned.replace("{points}", data.pointsAdded.toString()),
         variant: "default",
       });
     },
     onError: (error) => {
       toast({
-        title: t("error", "Error"),
-        description: t("attendanceFailed", "Failed to check attendance"),
+        title: t.toast.locationError, // "Error"
+        description: t.attendance.failed,
         variant: "destructive",
       });
     },
@@ -145,7 +145,7 @@ export function AttendanceButton() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               <Sparkles className="w-5 h-5 text-purple-500" />
-              {t("dailyAttendance", "Daily Attendance")}
+              {t.attendance.daily}
             </DialogTitle>
           </DialogHeader>
           
@@ -183,7 +183,7 @@ export function AttendanceButton() {
                       "text-[10px] font-medium",
                       isToday ? "text-purple-600" : "text-gray-400"
                     )}>
-                      {day}일차
+                      {t.attendance.streak.replace("{day}", day.toString())}
                     </span>
                   </div>
                 );
@@ -193,11 +193,11 @@ export function AttendanceButton() {
             <div className="bg-purple-50 rounded-xl p-4 text-center mb-6">
               <p className="text-purple-900 font-medium mb-1">
                 {status?.canCheck 
-                  ? `${currentDay}일차 출석체크를 완료하세요!` 
-                  : "오늘 출석체크를 완료했습니다!"}
+                  ? t.attendance.challenge.replace("{day}", currentDay.toString())
+                  : t.attendance.todayCompleted}
               </p>
               <p className="text-sm text-purple-600/80">
-                매일 출석하고 포인트를 받아가세요
+                {t.attendance.desc}
               </p>
             </div>
 
@@ -214,9 +214,9 @@ export function AttendanceButton() {
               {checkMutation.isPending ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
               ) : status?.canCheck ? (
-                "출석하기"
+                t.attendance.check
               ) : (
-                "출석 완료"
+                t.attendance.completed
               )}
             </Button>
           </div>
@@ -225,4 +225,3 @@ export function AttendanceButton() {
     </>
   );
 }
-
