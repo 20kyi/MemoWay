@@ -34,6 +34,30 @@ export function AttendanceButton() {
     staleTime: 30000,
   });
 
+  const checkMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/attendance/check");
+    },
+    onSuccess: (data: CheckResponse) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/attendance/status"] });
+      
+      toast({
+        title: t("attendanceChecked", "Attendance Checked!"),
+        description: t("attendancePointsEarned", `You earned ${data.pointsAdded} points!`),
+        variant: "default",
+      });
+      
+      setIsVisible(false);
+    },
+    onError: (error) => {
+      toast({
+        title: t("error", "Error"),
+        description: t("attendanceFailed", "Failed to check attendance"),
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     console.log("[AttendanceButton] Status:", status, "Loading:", isLoading, "Error:", error);
     if (error) {
