@@ -27,14 +27,16 @@ export function AttendanceButton() {
   const { t } = useLanguage();
   const { layoutTheme } = useLayoutTheme();
   const isCoupleTheme = layoutTheme === "couple-clay";
-  const [isVisible, setIsVisible] = useState(false);
 
   // 출석 상태 조회
-  const { data: status, isLoading, error } = useQuery<AttendanceStatus>({
+  // [수정] isLoading일 때 null을 반환하면, 지도 드래그 등으로 인한 리페치 시 버튼이 깜빡이거나 사라질 수 있음
+  // 따라서 refetchOnWindowFocus를 끄고, 렌더링 로직에서 isLoading 체크를 제거함
+  const { data: status } = useQuery<AttendanceStatus>({
     queryKey: ["/api/attendance/status"],
-    // 1분마다 갱신하여 13:00 리셋 시점에 버튼이 생기도록 유도
     refetchInterval: 60000, 
     staleTime: 30000,
+    refetchOnWindowFocus: false, // 지도 드래그/포커스 변경 시 깜빡임 방지
+    refetchOnMount: false,
   });
 
   const checkMutation = useMutation({
@@ -49,8 +51,6 @@ export function AttendanceButton() {
         description: t("attendancePointsEarned", `You earned ${data.pointsAdded} points!`),
         variant: "default",
       });
-      
-      setIsVisible(false);
     },
     onError: (error) => {
       toast({
@@ -61,44 +61,41 @@ export function AttendanceButton() {
     },
   });
 
-  useEffect(() => {
-    console.log("[AttendanceButton] Status:", status, "Loading:", isLoading, "Error:", error);
-    if (error) {
-      console.error("[AttendanceButton] API Error:", error);
-    }
-    
-    if (status?.canCheck) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
-    }
-  }, [status, isLoading, error]);
+  // [수정] 로컬 state(isVisible) 제거하고 props/data 기반으로 직접 렌더링
+  // 불필요한 useEffect 제거하여 렌더링 타이밍 이슈 해결
+  const shouldShow = status?.canCheck;
 
-  // 디버깅용: 에러가 있거나 로딩 중이어도 강제로 보여주기 위한 임시 코드 (테스트 후 삭제)
-  // if (isLoading) return null; 
-  
-  if (isLoading) return null;
-  
-  // 에러 발생 시에도 null 반환 (콘솔에는 찍힘)
-  if (error) return null;
-  
-  if (!status || !isVisible) return null;
+  // 클릭 핸들러: 로그 추가 및 이벤트 전파 중단
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 지도로 클릭 이벤트가 새지 않도록 방지
+    console.log("[ATTENDANCE BUTTON] clicked");
+    
+    if (checkMutation.isPending) return;
+    checkMutation.mutate();
+  };
+
+  if (!shouldShow) return null;
 
   return (
     <Button
-      onClick={() => checkMutation.mutate()}
+      onClick={handleClick}
       disabled={checkMutation.isPending}
+      // [수정] z-index 대폭 상향 (지도 레이어보다 위), pointer-events-auto 명시
       className={`
-        fixed z-[20000] right-4
+        fixed right-4 z-[9999]
         ${isCoupleTheme ? 'bottom-[23.25rem]' : 'bottom-[17.5rem]'}
         rounded-full shadow-lg
         bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700
         text-white border-2 border-emerald-200/50
         w-16 h-16 sm:w-auto sm:h-14 sm:px-6
         flex items-center justify-center gap-2
-        transition-all duration-500 ease-in-out transform hover:scale-110 active:scale-95
-        ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}
+        transition-transform duration-200 ease-in-out hover:scale-105 active:scale-95
+        pointer-events-auto touch-manipulation
       `}
+      style={{
+        position: 'fixed', // Tailwind 클래스가 안 먹힐 경우 대비
+        zIndex: 9999,      // Tailwind z-index보다 확실하게 적용
+      }}
       data-testid="btn-attendance-check"
     >
       {checkMutation.isPending ? (
