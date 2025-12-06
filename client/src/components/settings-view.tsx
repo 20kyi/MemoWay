@@ -64,8 +64,12 @@ export function SettingsView({
     localStorage.setItem('toastNotificationsEnabled', toastNotificationsEnabled.toString());
   }, [toastNotificationsEnabled]);
 
+  // 로그아웃 로딩 상태 추가
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true); // 로딩 시작
       console.log('[LOGOUT] ========== Starting logout from SettingsView ==========');
       
       // 공통 로그아웃 함수 사용 (네트워크 실패해도 항상 성공으로 반환)
@@ -163,6 +167,7 @@ export function SettingsView({
           // 웹 브라우저: 상대 경로 사용 (logout 파라미터 추가)
           window.location.replace('/?logout=true');
         }
+        // 로딩 상태는 페이지 이동과 함께 초기화되므로 굳이 false로 설정할 필요 없음
       }, 300); // 토스트 메시지를 보여주기 위한 짧은 지연
     } catch (error: any) {
       // 예상치 못한 에러가 발생해도 상태 초기화 및 네비게이션은 수행
@@ -492,6 +497,23 @@ export function SettingsView({
           </div>
         </CardContent>
       </Card>
+
+      {/* 로그아웃 로딩 오버레이 */}
+      {isLoggingOut && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center animate-in fade-in duration-300">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-lg font-medium text-gray-700">
+              {language === 'ko' ? '로그아웃 중...' : 
+               language === 'en' ? 'Logging out...' : 
+               language === 'zh' ? '正在退出...' : 'ログアウト中...'}
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              {language === 'ko' ? '잠시만 기다려주세요' : 'Please wait a moment'}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
