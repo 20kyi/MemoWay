@@ -597,6 +597,8 @@ function Router() {
   );
 }
 
+import { ErrorBoundary } from "@/components/error-boundary";
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -607,7 +609,9 @@ function App() {
               <MapProviderProvider>
                 <TooltipProvider>
                   <Toaster />
-                  <Router />
+                  <ErrorBoundary>
+                    <Router />
+                  </ErrorBoundary>
                 </TooltipProvider>
               </MapProviderProvider>
             </FontProvider>

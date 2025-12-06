@@ -60,10 +60,19 @@ export default function Home() {
     }
   }, [isLoading, user, isAuthenticated, setLocation]);
   
-  // 안전장치: user가 null이거나 인증되지 않았으면 아무것도 렌더링하지 않음
-  // 로딩 중이거나 user가 없으면 null 반환 (App.tsx의 라우팅 로직이 자동으로 Landing 페이지로 리다이렉트할 것)
+  // 안전장치: user가 null이거나 인증되지 않았으면 로딩 화면 표시
+  // App.tsx에서 이미 처리하지만, Home 컴포넌트 내부에서도 상태 불일치로 인한 흰 화면 방지
   if (isLoading || !user || !isAuthenticated) {
-    return null;
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/10 to-accent/20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">
+            {isLoading ? "데이터를 불러오는 중..." : "로그인 정보를 확인 중..."}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // Tab navigation
