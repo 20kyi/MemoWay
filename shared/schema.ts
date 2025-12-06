@@ -75,6 +75,7 @@ export const memos = pgTable("memos", {
   markerIcon: varchar("marker_icon").notNull().default('default'),
   mainPhotoId: varchar("main_photo_id"),
   isMainMemo: boolean("is_main_memo").notNull().default(false),
+  rating: integer("rating").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -159,6 +160,7 @@ export const insertMemoSchema = createInsertSchema(memos).omit({
   updatedAt: true,
 }).extend({
   markerIcon: z.enum(markerIconTypes).default('default'),
+  rating: z.number().min(0).max(5).default(0),
 });
 
 export const insertPhotoSchema = createInsertSchema(photos).omit({
