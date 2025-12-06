@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun, Map, Coins, Plus, Sparkles, Users, ExternalLink } from "lucide-react";
+import { Bell, MapPin, Languages, LogOut, Type, User, Moon, Sun, Map, Coins, Plus, Sparkles, Users, ExternalLink, Loader2 } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { useFont, type FontFamily } from "@/lib/font-context";
 import { useLayoutTheme, type LayoutTheme } from "@/lib/layout-theme-context";
@@ -21,14 +21,14 @@ import { getApiBaseUrl } from "@/lib/api-config";
 import { handleLogout as handleLogoutUtil } from "@/lib/authUtils";
 import { useLocation } from "wouter";
 
-interface SettingsViewProps {
-  notificationsEnabled: boolean;
-  onNotificationsChange: (enabled: boolean) => void;
-  locationEnabled: boolean;
-  onLocationChange: (enabled: boolean) => void;
-  proximityRadius: number;
-  onProximityRadiusChange: (radius: number) => void;
-}
+// interface SettingsViewProps {
+//   notificationsEnabled: boolean;
+//   onNotificationsChange: (enabled: boolean) => void;
+//   locationEnabled: boolean;
+//   onLocationChange: (enabled: boolean) => void;
+//   proximityRadius: number;
+//   onProximityRadiusChange: (radius: number) => void;
+// }
 
 const languageOptions: { value: Language; label: string; flag: string }[] = [
   { value: "ko", label: "한국어", flag: "🇰🇷" },
@@ -37,18 +37,8 @@ const languageOptions: { value: Language; label: string; flag: string }[] = [
   { value: "ja", label: "日本語", flag: "🇯🇵" },
 ];
 
-export function SettingsView({
-  notificationsEnabled,
-  onNotificationsChange,
-  locationEnabled,
-  onLocationChange,
-  proximityRadius,
-  onProximityRadiusChange,
-}: SettingsViewProps) {
-  const { language, setLanguage, t } = useLanguage();
-  const { fontFamily, setFontFamily, fontSize, setFontSize } = useFont();
-  const { layoutTheme, setLayoutTheme } = useLayoutTheme();
-  const { mapProvider, setMapProvider } = useMapProvider();
+export function SettingsView() {
+  const { language, t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
