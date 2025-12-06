@@ -76,9 +76,16 @@ export function usePersonalMember({
           localStorage.setItem("personalMemberId", response.member.id);
           // groups 쿼리를 무효화하지 않고 setQueryData로 직접 업데이트하여 재요청 방지
           queryClient.setQueryData<typeof groups>(["/api/groups"], (oldData) => {
-            if (!oldData) return [response.group];
+            // 서버 응답의 response.group에는 members 배열이 없으므로 수동으로 추가해야 함
+            // GroupWithMembers 타입 구조에 맞춤
+            const newGroup = {
+              ...response.group,
+              members: [response.member]
+            };
+            
+            if (!oldData) return [newGroup];
+            
             // 새로 생성된 그룹을 기존 데이터에 추가
-            const newGroup = response.group;
             if (newGroup && !oldData.some((g) => g.id === newGroup.id)) {
               return [...oldData, newGroup];
             }
