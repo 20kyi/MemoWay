@@ -80,31 +80,41 @@ export function AttendanceButton() {
     <Button
       onClick={handleClick}
       disabled={checkMutation.isPending}
-      // [수정] z-index 대폭 상향 (지도 레이어보다 위), pointer-events-auto 명시
+      // [수정] 레이아웃 디자인을 지도 잠금 버튼과 동일하게 변경
+      // - 커플 테마: 60px 원형, 그림자/테두리 적용
+      // - 기본 테마: 40px 둥근 사각형 (rounded-lg), 그림자/테두리 적용
+      // - 위치: 지도 잠금 버튼에서 5rem 위로 (기본 테마 기준 7rem + 5rem = 12rem)
       className={`
         fixed right-4 z-[9999]
-        ${isCoupleTheme ? 'bottom-[23.25rem]' : 'bottom-[17.5rem]'}
-        rounded-full shadow-lg
+        ${isCoupleTheme 
+          ? 'bottom-[15rem] h-[60px] w-[60px] rounded-full' 
+          : 'bottom-[12rem] h-10 w-10 rounded-lg'
+        }
+        shadow-lg transition-all hover:shadow-xl
         bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700
         text-white border-2 border-emerald-200/50
-        w-16 h-16 sm:w-auto sm:h-14 sm:px-6
-        flex items-center justify-center gap-2
+        flex items-center justify-center
         transition-transform duration-200 ease-in-out hover:scale-105 active:scale-95
         pointer-events-auto touch-manipulation
       `}
       style={{
-        position: 'fixed', // Tailwind 클래스가 안 먹힐 경우 대비
-        zIndex: 9999,      // Tailwind z-index보다 확실하게 적용
+        position: 'fixed',
+        zIndex: 9999,
+        // 커플 테마일 때 추가 스타일 (그림자 등)
+        ...(isCoupleTheme ? {
+          boxShadow: `
+            inset 0 1px 2px rgba(255, 255, 255, 0.5),
+            0 4px 8px rgba(240, 120, 150, 0.25),
+            0 0 30px rgba(0, 0, 0, 0.10)
+          `
+        } : {})
       }}
       data-testid="btn-attendance-check"
     >
       {checkMutation.isPending ? (
         <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
       ) : (
-        <>
-          <CalendarCheck className="w-6 h-6" />
-          <span className="hidden sm:inline font-bold text-lg">출석체크</span>
-        </>
+        <CalendarCheck className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} text-white`} />
       )}
     </Button>
   );
