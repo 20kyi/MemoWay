@@ -9,7 +9,7 @@ import { getApiBaseUrl } from "./api-config";
  * 주의: 이 함수는 네비게이션을 처리하지 않습니다.
  * 호출하는 컴포넌트에서 로그아웃 후 네비게이션을 처리해야 합니다.
  */
-export async function handleLogout(): Promise<{ success: boolean; error?: string }> {
+export async function handleLogout(): Promise<{ success: boolean; error?: string; serverRequestSuccess?: boolean }> {
   const isNativePlatform = Capacitor.isNativePlatform();
   const baseUrl = getApiBaseUrl();
   
