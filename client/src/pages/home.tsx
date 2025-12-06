@@ -737,6 +737,7 @@ export default function Home() {
                   isActive={activeTab === "map"}
                 />
               )}
+            {/* Attendance Button Here */}
             <AttendanceButton />
           </div>
         )}

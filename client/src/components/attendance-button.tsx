@@ -27,52 +27,35 @@ export function AttendanceButton() {
   const [isVisible, setIsVisible] = useState(false);
 
   // 출석 상태 조회
-  const { data: status, isLoading } = useQuery<AttendanceStatus>({
+  const { data: status, isLoading, error } = useQuery<AttendanceStatus>({
     queryKey: ["/api/attendance/status"],
     // 1분마다 갱신하여 13:00 리셋 시점에 버튼이 생기도록 유도
     refetchInterval: 60000, 
     staleTime: 30000,
   });
 
-  // 출석 체크 요청
-  const checkMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest("POST", "/api/attendance/check", {});
-    },
-    onSuccess: (data: CheckResponse) => {
-      // 포인트 갱신을 위해 유저 정보 무효화
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      // 출석 상태 무효화
-      queryClient.invalidateQueries({ queryKey: ["/api/attendance/status"] });
-      
-      // 토스트 메시지 표시
-      toast({
-        title: "출석 체크 완료!",
-        description: data.message,
-        variant: "default", // 초록색 계열이면 좋겠으나 default 사용
-      });
-
-      // 버튼 숨기기 애니메이션
-      setIsVisible(false);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "출석 체크 실패",
-        description: error.message || "다시 시도해주세요.",
-        variant: "destructive",
-      });
-    }
-  });
-
   useEffect(() => {
+    console.log("[AttendanceButton] Status:", status, "Loading:", isLoading, "Error:", error);
+    if (error) {
+      console.error("[AttendanceButton] API Error:", error);
+    }
+    
     if (status?.canCheck) {
       setIsVisible(true);
     } else {
       setIsVisible(false);
     }
-  }, [status]);
+  }, [status, isLoading, error]);
 
-  if (isLoading || !status || !isVisible) return null;
+  // 디버깅용: 에러가 있거나 로딩 중이어도 강제로 보여주기 위한 임시 코드 (테스트 후 삭제)
+  // if (isLoading) return null; 
+  
+  if (isLoading) return null;
+  
+  // 에러 발생 시에도 null 반환 (콘솔에는 찍힘)
+  if (error) return null;
+  
+  if (!status || !isVisible) return null;
 
   return (
     <Button

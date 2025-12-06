@@ -50,6 +50,21 @@ async function checkDatabase() {
     // 전체 메모 수
     const totalMemos = await pool.query('SELECT COUNT(*) as count FROM memos');
     console.log(`전체 메모 수: ${totalMemos.rows[0].count}\n`);
+
+    // 출석 테이블 확인
+    try {
+      const attendance = await pool.query('SELECT * FROM attendance ORDER BY updated_at DESC LIMIT 10');
+      console.log('=== 출석 목록 (최근 10개) ===');
+      if (attendance.rows.length === 0) {
+        console.log('출석 데이터 없음');
+      } else {
+        attendance.rows.forEach((att, i) => {
+          console.log(`${i + 1}. UserID: ${att.user_id}, LastDate: ${att.last_attendance_date}, Streak: ${att.attendance_streak}`);
+        });
+      }
+    } catch (e) {
+      console.log('attendance 테이블이 존재하지 않음:', e.message);
+    }
     
   } catch (error) {
     console.error('오류 발생:', error);
