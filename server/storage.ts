@@ -42,6 +42,10 @@ export interface IStorage {
   copyGroupMemosToPersonal(groupId: string, userId: string): Promise<{ group: Group; member: Member; copiedCount: number }>;
   copyMemoToPersonal(memoId: string, userId: string): Promise<Memo>;
   
+  // Attendance
+  checkAttendance(userId: string): Promise<{ success: boolean; pointsAdded: number; streak: number; message: string }>;
+  getAttendanceStatus(userId: string): Promise<{ canCheck: boolean; streak: number; lastCheckDate: string | null }>;
+  
   // Members
   createMember(member: InsertMember): Promise<Member>;
   getMembersByGroupId(groupId: string): Promise<Member[]>;
@@ -771,6 +775,93 @@ export class DatabaseStorage implements IStorage {
 
   async deletePhoto(photoId: string): Promise<void> {
     await db.delete(photos).where(eq(photos.id, photoId));
+  }
+
+  // Attendance Logic
+  private getAttendanceCycleDate(): string {
+    // 13:00 KST Reset Logic
+    // KST = UTC + 9
+    // Reset at 13:00 KST = 04:00 UTC
+    // If current UTC hour < 4, it belongs to previous date's cycle
+    // Effective Date = (UTC Time - 4 hours) formatted as YYYY-MM-DD
+    
+    const now = new Date();
+    const effectiveTime = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+    return effectiveTime.toISOString().split('T')[0];
+  }
+
+  private getYesterdayCycleDate(): string {
+    const now = new Date();
+    const effectiveTime = new Date(now.getTime() - 28 * 60 * 60 * 1000); // -4h (adjust) - 24h (yesterday)
+    return effectiveTime.toISOString().split('T')[0];
+  }
+
+  async getAttendanceStatus(userId: string): Promise<{ canCheck: boolean; streak: number; lastCheckDate: string | null }> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("USER_NOT_FOUND");
+
+    const todayKey = this.getAttendanceCycleDate();
+    const lastCheck = user.lastAttendanceDate;
+    
+    // If last check was today, cannot check again
+    const canCheck = lastCheck !== todayKey;
+    
+    return {
+      canCheck,
+      streak: user.attendanceStreak,
+      lastCheckDate: lastCheck,
+    };
+  }
+
+  async checkAttendance(userId: string): Promise<{ success: boolean; pointsAdded: number; streak: number; message: string }> {
+    return await db.transaction(async (tx) => {
+      const [user] = await tx.select().from(users).where(eq(users.id, userId));
+      if (!user) throw new Error("USER_NOT_FOUND");
+
+      const todayKey = this.getAttendanceCycleDate();
+      const yesterdayKey = this.getYesterdayCycleDate();
+      
+      // 1. Check if already attended today
+      if (user.lastAttendanceDate === todayKey) {
+        throw new Error("ALREADY_CHECKED_TODAY");
+      }
+
+      // 2. Calculate Streak
+      let newStreak = 1;
+      if (user.lastAttendanceDate === yesterdayKey) {
+        newStreak = user.attendanceStreak + 1;
+      } else {
+        // Missed a day or first time
+        newStreak = 1;
+      }
+
+      // 3. Calculate Points
+      let pointsToAdd = 10; // Base points
+      let message = "출석 완료! +10포인트";
+
+      // 4. Check Bonus (7th day)
+      if (newStreak === 7) {
+        pointsToAdd += 30; // Bonus
+        message = "7일 연속 출석! +40포인트 (보너스 포함)";
+        // Reset streak to 0 as per requirements ("streakCount=0으로 초기화")
+        newStreak = 0; 
+      }
+
+      // 5. Update User
+      await tx.update(users).set({
+        points: user.points + pointsToAdd,
+        attendanceStreak: newStreak,
+        lastAttendanceDate: todayKey,
+        updatedAt: new Date(),
+      }).where(eq(users.id, userId));
+
+      return {
+        success: true,
+        pointsAdded: pointsToAdd,
+        streak: newStreak,
+        message
+      };
+    });
   }
 }
 

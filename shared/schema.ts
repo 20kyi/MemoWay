@@ -30,6 +30,9 @@ export const users = pgTable("users", {
   provider: varchar("provider").notNull().default('replit'),
   // Points system for copy memos feature (10 points per memo)
   points: integer("points").notNull().default(0),
+  // Attendance system
+  lastAttendanceDate: varchar("last_attendance_date"), // Stores YYYY-MM-DD based on 13:00 KST reset
+  attendanceStreak: integer("attendance_streak").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

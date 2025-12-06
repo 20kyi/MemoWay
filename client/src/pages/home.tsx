@@ -40,6 +40,7 @@ import { MemoClusterSheet } from "@/components/memo-cluster-sheet";
 import { MemoList } from "@/components/memo-list";
 import { GroupManagement } from "@/components/group-management";
 import { ProfileView } from "@/components/profile-view";
+import { AttendanceButton } from "@/components/attendance-button";
 
 export default function Home() {
   const { t } = useLanguage();
@@ -736,6 +737,7 @@ export default function Home() {
                   isActive={activeTab === "map"}
                 />
               )}
+            <AttendanceButton />
           </div>
         )}
         {activeTab === "memos" && (

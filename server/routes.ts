@@ -255,6 +255,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Attendance
+  app.get("/api/attendance/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const status = await storage.getAttendanceStatus(userId);
+      
+      // Calculate next reset time (13:00 KST)
+      const now = new Date();
+      const kstOffset = 9 * 60 * 60 * 1000;
+      const kstTime = new Date(now.getTime() + kstOffset);
+      
+      // If current KST hour < 13, reset is today 13:00 KST
+      // Else, reset is tomorrow 13:00 KST
+      let nextResetKST = new Date(kstTime);
+      if (kstTime.getUTCHours() >= 13) {
+        nextResetKST.setUTCDate(nextResetKST.getUTCDate() + 1);
+      }
+      nextResetKST.setUTCHours(13, 0, 0, 0);
+      
+      // Convert back to UTC for client (which handles timezone display) or ISO string
+      const nextResetUTC = new Date(nextResetKST.getTime() - kstOffset);
+      
+      res.json({
+        ...status,
+        nextReset: nextResetUTC.toISOString(),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/attendance/check", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const result = await storage.checkAttendance(userId);
+      res.json(result);
+    } catch (error: any) {
+      if (error.message === "ALREADY_CHECKED_TODAY") {
+        return res.status(400).json({ error: "오늘은 이미 출석체크를 완료했습니다." });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Groups
   app.post("/api/groups", isAuthenticated, async (req: any, res) => {
     try {
