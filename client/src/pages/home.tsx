@@ -490,46 +490,43 @@ export default function Home() {
 
   // 메모 복사 핸들러 (메모이제이션)
   const handleCopyMemo = useCallback((memoId: string) => {
-    if (confirm("10포인트를 사용하여 이 메모를 내 개인 메모로 복사하시겠습니까?")) {
-      copyMemoMutation.mutate(memoId);
-    }
+    // 사용자 요청으로 확인 창 제거 (바로 복사)
+    copyMemoMutation.mutate(memoId);
   }, [copyMemoMutation]);
 
   // 다중 메모 복사 핸들러 (메모이제이션)
   const handleBulkCopy = useCallback(async (memoIds: string[]) => {
     if (!memoIds || memoIds.length === 0) return;
     
-    const requiredPoints = memoIds.length * 10;
-    if (confirm(`${memoIds.length}개의 메모를 복사하시겠습니까? (총 ${requiredPoints}포인트 소모)`)) {
-      try {
-        let successCount = 0;
-        const promises = memoIds.map(id => copyMemoMutation.mutateAsync(id).catch(e => {
-          console.error(`메모 ${id} 복사 실패:`, e);
-          return null;
-        }));
+    // 사용자 요청으로 확인 창 제거 (바로 복사)
+    try {
+      let successCount = 0;
+      const promises = memoIds.map(id => copyMemoMutation.mutateAsync(id).catch(e => {
+        console.error(`메모 ${id} 복사 실패:`, e);
+        return null;
+      }));
+      
+      const results = await Promise.all(promises);
+      successCount = results.filter(r => r !== null).length;
+      
+      if (successCount > 0) {
+        toast({
+          title: "복사 완료",
+          description: `${successCount}개의 메모가 복사되었습니다.`,
+        });
         
-        const results = await Promise.all(promises);
-        successCount = results.filter(r => r !== null).length;
-        
-        if (successCount > 0) {
-          toast({
-            title: "복사 완료",
-            description: `${successCount}개의 메모가 복사되었습니다.`,
-          });
-          
-          // 쿼리 무효화
-          queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-        } else {
-          toast({
-            title: "복사 실패",
-            description: "메모 복사에 실패했습니다. 포인트를 확인해주세요.",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error("다중 복사 중 오류:", error);
+        // 쿼리 무효화
+        queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      } else {
+        toast({
+          title: "복사 실패",
+          description: "메모 복사에 실패했습니다. 포인트를 확인해주세요.",
+          variant: "destructive",
+        });
       }
+    } catch (error) {
+      console.error("다중 복사 중 오류:", error);
     }
   }, [copyMemoMutation, toast, queryClient]);
 
