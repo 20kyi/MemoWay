@@ -221,23 +221,10 @@ export function MemoFormSheet({
     }
   }, [open, isFormInitialized, initialData, form]);
 
-  // 모바일에서 새 메모 창이 열릴 때 메모 내용 입력 필드에 자동 포커스
+  // 모바일에서 새 메모 창이 열릴 때 자동 포커스 제거
   useEffect(() => {
-    if (open && !editMode) {
-      // Sheet가 완전히 열린 후 포커스 설정 (모바일에서 딜레이 필요)
-      const focusTimer = setTimeout(() => {
-        if (contentInputRef.current) {
-          // 포커스 설정 시 preventScroll: true 옵션을 사용하여 브라우저의 자동 스크롤 방지
-          // 대신 scrollIntoView로 제어하거나, 상단 헤더가 보이도록 유지
-          contentInputRef.current.focus({ preventScroll: true });
-          
-          // 요소가 화면에 보이도록 부드럽게 스크롤 (필요한 경우)
-          // contentInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-      }, 300); // Sheet 애니메이션 완료 후 포커스
-
-      return () => clearTimeout(focusTimer);
-    }
+    // 빈 useEffect를 남겨두거나, 자동 포커스 로직을 완전히 제거합니다.
+    // 사용자의 요청에 따라 자동 포커스를 제거하여 모바일 키보드가 올라오지 않게 합니다.
   }, [open, editMode]);
 
   // 스와이프 제스처 처리 (모바일에서 아래로 스와이프하여 닫기)
