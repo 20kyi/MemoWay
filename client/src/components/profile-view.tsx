@@ -862,19 +862,16 @@ export function ProfileView({
       
       // 1. 인증 관련 캐시 무효화 및 제거 (가장 먼저 실행)
       try {
-        // 모든 쿼리 무효화
-        await queryClient.invalidateQueries();
-        
-        // 특히 /api/auth/user 쿼리를 명시적으로 무효화 및 제거
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-        queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
-        
-        // 인증 상태를 즉시 null로 설정 (auto-login 방지)
+        // 인증 상태를 먼저 null로 설정 (auto-login 방지 및 UI 갱신 유도)
+        // 이렇게 하면 useAuth를 사용하는 컴포넌트들이 즉시 '비로그인' 상태로 전환됨
         queryClient.setQueryData(['/api/auth/user'], null);
         
-        console.log('[LOGOUT] Auth queries invalidated and removed');
+        // 모든 쿼리 제거 (불필요한 refetch 방지)
+        queryClient.removeQueries();
+        
+        console.log('[LOGOUT] Auth queries cleared');
       } catch (e) {
-        console.error('[LOGOUT] Failed to invalidate auth queries:', e);
+        console.error('[LOGOUT] Failed to clear auth queries:', e);
         // 최소한 쿼리 데이터는 null로 설정
         try {
           queryClient.setQueryData(['/api/auth/user'], null);
@@ -884,11 +881,7 @@ export function ProfileView({
       }
       
       // 3. 모든 쿼리 캐시 무효화 및 제거 (memos, groups 등)
-      try {
-        queryClient.removeQueries();
-      } catch (e) {
-        console.error('[LOGOUT] Failed to remove queries:', e);
-      }
+      // 이미 위에서 removeQueries()를 호출했으므로 생략 가능하지만 안전을 위해 유지
       
       // 4. 로컬 스토리지에서 사용자 관련 데이터 제거
       localStorage.removeItem("currentMemberId");

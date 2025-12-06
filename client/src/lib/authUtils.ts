@@ -99,24 +99,25 @@ export async function handleLogout(): Promise<{ success: boolean; error?: string
     // 네트워크 에러가 발생해도 클라이언트 상태는 초기화해야 함
   }
   
-  // 요청 성공/실패와 상관없이 항상 쿼리 캐시 무효화 시도
+  // 요청 성공/실패와 상관없이 항상 쿼리 캐시 초기화
   // 네트워크 에러가 발생해도 클라이언트 상태는 완전히 초기화해야 함
   try {
-    console.log('[LOGOUT] Invalidating all queries...');
-    await queryClient.invalidateQueries();
+    console.log('[LOGOUT] Clearing query cache...');
     
-    // 특히 /api/auth/user 쿼리를 명시적으로 무효화 및 제거
-    await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-    queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
-    
-    // 인증 상태를 즉시 null로 설정 (auto-login 방지)
+    // 1. 인증 상태를 먼저 null로 설정 (UI 업데이트 및 쿼리 비활성화 유도)
+    // 이렇게 하면 useAuth를 사용하는 컴포넌트들이 즉시 '비로그인' 상태로 전환되어
+    // 보호된 쿼리들(enabled: !!user)이 비활성화됨
     queryClient.setQueryData(['/api/auth/user'], null);
+    
+    // 2. 모든 쿼리 제거 (캐시 삭제)
+    // invalidateQueries 대신 removeQueries를 사용하여 불필요한 refetch 방지
+    queryClient.removeQueries();
     
     console.log('[LOGOUT] ========== Logout completed successfully ==========');
     console.log('[LOGOUT] Server request success:', logoutRequestSuccess);
     console.log('[LOGOUT] Client state cleared:', !queryClient.getQueryData(['/api/auth/user']));
   } catch (invalidateError) {
-    console.error('[LOGOUT] Failed to invalidate queries:', invalidateError);
+    console.error('[LOGOUT] Failed to clear queries:', invalidateError);
     // invalidate 실패해도 계속 진행
     // 최소한 쿼리 데이터는 null로 설정
     try {
