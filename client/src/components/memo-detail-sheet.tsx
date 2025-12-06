@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus, ArrowLeft, Star } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
+import { StarRating } from "@/components/ui/star-rating";
 
 interface MemoDetailSheetProps {
   memo: MemoWithDetails | null;
@@ -185,6 +186,11 @@ export function MemoDetailSheet({
                   <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-sky-600 dark:text-sky-500 truncate flex-1" data-testid="text-memo-title">
                     {memo.buildingName}
                   </SheetTitle>
+                  {(memo as any).rating > 0 && (
+                    <div className="flex items-center ml-2">
+                      <StarRating value={(memo as any).rating} readOnly size="sm" />
+                    </div>
+                  )}
                   {onNavigateToLocation && (
                     <Button
                       variant="ghost"

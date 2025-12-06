@@ -595,9 +595,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         groupId: z.string().optional(),
         markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).default('default'),
         mainPhotoIndex: z.string().optional(),
+        rating: z.number().min(0).max(5).default(0),
       });
       
-      let { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon } = bodySchema.parse(req.body);
+      let { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon, rating } = bodySchema.parse(req.body);
       
       // Verify member and get correct member ID
       const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
@@ -655,6 +656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         memberId,
         groupId: groupId || null,
         markerIcon,
+        rating,
         mainPhotoId: null,
       });
 
@@ -734,6 +736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: z.string().min(1, "메모 내용을 입력하세요").max(2000),
         groupId: z.string().optional().transform(val => val === "" ? null : val),
         markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).optional(),
+        rating: z.number().min(0).max(5).optional(),
         deletedPhotoIds: z.string().optional(),
         mainPhotoId: z.string().optional(),
         mainPhotoIndex: z.string().optional(),
@@ -757,6 +760,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add markerIcon if provided
       if (updateData.markerIcon) {
         memoUpdate.markerIcon = updateData.markerIcon;
+      }
+
+      // Add rating if provided
+      if (updateData.rating !== undefined) {
+        memoUpdate.rating = updateData.rating;
       }
       
       // Verify memo exists

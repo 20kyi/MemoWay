@@ -31,6 +31,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+import { StarRating } from "@/components/ui/star-rating";
+
 const MARKER_ICON_COMPONENTS: Record<MarkerIconType, any> = {
   default: MapPin,
   travel: Plane,
@@ -48,6 +50,7 @@ type MemoFormValues = {
   content: string;
   groupIds: string[];
   markerIcon: MarkerIconType;
+  rating: number;
 };
 
 type PhotoItem = {
@@ -73,6 +76,7 @@ interface MemoFormSheetProps {
     markerIcon?: string;
     mainPhotoId?: string;
     existingPhotos?: Array<{ id: string; url: string; order?: number }>;
+    rating?: number;
   } | null;
   groups: Array<{ id: string; name: string }>;
   isLoading?: boolean;
@@ -171,6 +175,7 @@ export function MemoFormSheet({
     content: z.string().min(1, t.memoForm.content),
     groupIds: z.array(z.string()).optional().default([]),
     markerIcon: z.enum(markerIconTypes).default('default'),
+    rating: z.number().min(0).max(5).default(0),
   });
 
   const form = useForm<MemoFormValues>({
@@ -181,6 +186,7 @@ export function MemoFormSheet({
       content: initialData?.content || "",
       groupIds: initialData?.groupIds || [],
       markerIcon: (initialData?.markerIcon as MarkerIconType) || 'default',
+      rating: initialData?.rating || 0,
     },
   });
 
@@ -209,6 +215,7 @@ export function MemoFormSheet({
         content: initialData.content || "",
         groupIds: initialData.groupIds || [],
         markerIcon: (initialData.markerIcon as MarkerIconType) || 'default',
+        rating: initialData.rating || 0,
       });
       // 폼이 열릴 때 저장 중 상태 초기화
       setIsSubmitting(false);
@@ -684,6 +691,29 @@ export function MemoFormSheet({
                             </Button>
                           );
                         })}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="rating"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-white">평점</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg border-indigo-200 bg-white/50">
+                        <StarRating
+                          value={field.value}
+                          onChange={field.onChange}
+                          size="lg"
+                        />
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {field.value > 0 ? `${field.value}점` : '평가 없음'}
+                        </span>
                       </div>
                     </FormControl>
                     <FormMessage />

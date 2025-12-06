@@ -12,6 +12,8 @@ import { useLanguage } from "@/lib/language-context";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+import { StarRating } from "@/components/ui/star-rating";
+
 interface Group {
   id: string;
   name: string;
@@ -541,6 +543,11 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
 
           <CardContent className="pb-3">
             <p className="text-sm line-clamp-2 leading-relaxed whitespace-pre-wrap">{memo.content}</p>
+            {(memo as any).rating > 0 && (
+              <div className="mt-2">
+                <StarRating value={(memo as any).rating} readOnly size="sm" />
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="flex items-center justify-between pt-0">
