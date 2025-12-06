@@ -80,6 +80,15 @@ export class DatabaseStorage implements IStorage {
     if (cleanedData.provider && cleanedData.provider !== 'email') {
       delete cleanedData.passwordHash;
     }
+
+    // [CRITICAL FIX] 카카오 로그인 시 kakaoId로 기존 사용자를 먼저 찾아서 ID를 일치시킴
+    if (cleanedData.kakaoId) {
+      const existingUser = await this.getUserByKakaoId(cleanedData.kakaoId as string);
+      if (existingUser) {
+        // 기존 사용자의 ID를 사용하여 업데이트 (새로 생성된 ID 무시)
+        cleanedData.id = existingUser.id;
+      }
+    }
     
     const [user] = await db
       .insert(users)
@@ -126,79 +135,111 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(userId: string): Promise<void> {
-    // 트랜잭션으로 모든 관련 데이터 삭제
-    await db.transaction(async (tx) => {
-      // 1. 사용자의 모든 메모의 사진 삭제
-      const userMemos = await tx
-        .select({ id: memos.id })
-        .from(memos)
-        .where(eq(memos.userId, userId));
-      
-      const memoIds = userMemos.map(m => m.id);
-      if (memoIds.length > 0) {
-        await tx.delete(photos).where(inArray(photos.memoId, memoIds));
-      }
+    console.log(`[Storage] Starting deleteUser for userId: ${userId}`);
+    
+    try {
+      // 트랜잭션으로 모든 관련 데이터 삭제
+      await db.transaction(async (tx) => {
+        console.log(`[Storage:${userId}] Transaction started`);
 
-      // 2. 사용자의 모든 메모 삭제
-      await tx.delete(memos).where(eq(memos.userId, userId));
-
-      // 3. 사용자가 속한 모든 그룹의 멤버 삭제
-      const userMembers = await tx
-        .select({ groupId: members.groupId })
-        .from(members)
-        .where(eq(members.userId, userId));
+        // 1. 사용자의 멤버 정보 먼저 조회
+        console.log(`[Storage:${userId}] Fetching user members...`);
+        const userMembers = await tx
+          .select({ id: members.id, groupId: members.groupId })
+          .from(members)
+          .where(eq(members.userId, userId));
+        
+        console.log(`[Storage:${userId}] Found ${userMembers.length} member records`);
       
+      const memberIds = userMembers.map(m => m.id);
       const groupIds = [...new Set(userMembers.map(m => m.groupId))];
+
+      if (memberIds.length > 0) {
+        // 2. 사용자가 작성한 메모 찾기 (memos는 userId가 아닌 memberId로 연결됨)
+        const userMemos = await tx
+          .select({ id: memos.id })
+          .from(memos)
+          .where(inArray(memos.memberId, memberIds));
+        
+        const memoIds = userMemos.map(m => m.id);
+        
+        // 3. 사진 삭제
+        if (memoIds.length > 0) {
+          await tx.delete(photos).where(inArray(photos.memoId, memoIds));
+        }
+
+        // 4. 메모 삭제
+        await tx.delete(memos).where(inArray(memos.memberId, memberIds));
+      }
       
-      // 4. 사용자가 방장인 그룹 처리
+      // 5. 사용자가 방장인 그룹 처리
       for (const groupId of groupIds) {
-        const group = await tx
+        // 그룹이 여전히 존재하는지 확인
+        const groupList = await tx
           .select()
           .from(groups)
           .where(eq(groups.id, groupId))
           .limit(1);
         
-        if (group.length > 0) {
-          const groupMembers = await tx
-            .select()
-            .from(members)
-            .where(eq(members.groupId, groupId));
+        if (groupList.length === 0) continue;
+
+        const groupMembers = await tx
+          .select()
+          .from(members)
+          .where(eq(members.groupId, groupId));
+        
+        // 현재 사용자가 이 그룹에서 방장인지 확인
+        const currentMember = groupMembers.find(m => m.userId === userId);
+        
+        if (currentMember && currentMember.role === 'leader') {
+          // 방장인 경우: 다른 멤버가 있으면 첫 번째 멤버에게 방장 권한 이전
+          const otherMembers = groupMembers.filter(m => m.userId !== userId);
           
-          const leaderMember = groupMembers.find(m => m.role === 'leader' && m.userId === userId);
-          
-          if (leaderMember) {
-            // 방장인 경우: 다른 멤버가 있으면 첫 번째 멤버에게 방장 권한 이전, 없으면 그룹 삭제
-            const otherMembers = groupMembers.filter(m => m.userId !== userId);
-            if (otherMembers.length > 0) {
-              // 첫 번째 멤버에게 방장 권한 이전
-              await tx
-                .update(members)
-                .set({ role: 'leader' })
-                .where(eq(members.id, otherMembers[0].id));
-            } else {
-              // 그룹에 다른 멤버가 없으면 그룹 삭제
-              const groupMemos = await tx
-                .select({ id: memos.id })
-                .from(memos)
-                .where(eq(memos.groupId, groupId));
-              
-              const groupMemoIds = groupMemos.map(m => m.id);
-              if (groupMemoIds.length > 0) {
-                await tx.delete(photos).where(inArray(photos.memoId, groupMemoIds));
-                await tx.delete(memos).where(eq(memos.groupId, groupId));
-              }
-              await tx.delete(groups).where(eq(groups.id, groupId));
+          if (otherMembers.length > 0) {
+            // 첫 번째 멤버에게 방장 권한 이전
+            await tx
+              .update(members)
+              .set({ role: 'leader' })
+              .where(eq(members.id, otherMembers[0].id));
+            console.log(`[DeleteUser] Transferred leadership of group ${groupId} to member ${otherMembers[0].id}`);
+          } else {
+            // 그룹에 다른 멤버가 없으면 그룹 삭제
+            // 그룹에 속한 모든 메모 삭제
+            const allGroupMemos = await tx
+              .select({ id: memos.id })
+              .from(memos)
+              .where(eq(memos.groupId, groupId));
+            
+            const allGroupMemoIds = allGroupMemos.map(m => m.id);
+            if (allGroupMemoIds.length > 0) {
+              await tx.delete(photos).where(inArray(photos.memoId, allGroupMemoIds));
+              await tx.delete(memos).where(eq(memos.groupId, groupId));
             }
+            
+            await tx.delete(groups).where(eq(groups.id, groupId));
+            console.log(`[DeleteUser] Deleted empty group ${groupId}`);
           }
         }
       }
 
-      // 5. 사용자의 멤버 레코드 삭제
+      // 6. 사용자의 멤버 레코드 삭제
       await tx.delete(members).where(eq(members.userId, userId));
 
-      // 6. 사용자 삭제
-      await tx.delete(users).where(eq(users.id, userId));
-    });
+        // 7. 사용자 삭제
+        console.log(`[Storage:${userId}] Deleting user record...`);
+        const deletedUser = await tx.delete(users).where(eq(users.id, userId)).returning({ id: users.id });
+        
+        if (deletedUser.length === 0) {
+           console.warn(`[Storage:${userId}] WARNING: User record not found or already deleted`);
+        } else {
+           console.log(`[Storage:${userId}] User record deleted`);
+        }
+      });
+      console.log(`[Storage] deleteUser transaction completed for ${userId}`);
+    } catch (error) {
+      console.error(`[Storage] deleteUser transaction FAILED for ${userId}`, error);
+      throw error;
+    }
   }
 
   // Groups

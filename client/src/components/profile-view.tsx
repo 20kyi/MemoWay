@@ -556,7 +556,7 @@ export function ProfileView({
 
   // 계정 삭제
   const deleteAccount = async () => {
-    if (!confirm(
+    if (!window.confirm(
       language === 'ko'
         ? '정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
         : language === 'en'
@@ -569,27 +569,43 @@ export function ProfileView({
     }
 
     try {
+      console.log("[ProfileView] Starting account deletion...");
+      console.log("[ProfileView] Calling DELETE /api/users/me");
+      
       const response = await apiRequest('DELETE', '/api/users/me');
-      if (response.ok) {
-        toast({
-          title: language === 'ko' ? '계정 삭제 완료' : language === 'en' ? 'Account Deleted' : language === 'zh' ? '账户已删除' : 'アカウントを削除しました',
-          description: language === 'ko'
-            ? '계정이 성공적으로 삭제되었습니다.'
-            : language === 'en'
-            ? 'Your account has been successfully deleted.'
-            : language === 'zh'
-            ? '您的账户已成功删除。'
-            : 'アカウントが正常に削除されました。',
-        });
-        // 로그아웃 및 홈으로 이동
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1000);
-      } else {
-        throw new Error('Account deletion failed');
-      }
+      
+      console.log("[ProfileView] Response status:", response.status);
+      console.log("[ProfileView] Response OK:", response.ok);
+
+      // apiRequest in queryClient.ts throws if response is not OK,
+      // so if we reach here, it's likely successful or apiRequest returned the body directly.
+      // Let's check what apiRequest returns. queryClient.ts returns responseBody if successful.
+      
+      console.log("[ProfileView] Deletion successful, response:", response);
+
+      toast({
+        title: language === 'ko' ? '계정 삭제 완료' : language === 'en' ? 'Account Deleted' : language === 'zh' ? '账户已删除' : 'アカウントを削除しました',
+        description: language === 'ko'
+          ? '계정이 성공적으로 삭제되었습니다.'
+          : language === 'en'
+          ? 'Your account has been successfully deleted.'
+          : language === 'zh'
+          ? '您的账户已成功删除。'
+          : 'アカウントが正常に削除されました。',
+      });
+      
+      // 로그아웃 및 홈으로 이동
+      console.log("[ProfileView] Redirecting to home...");
+      
+      // Clear local storage just in case
+      localStorage.clear();
+      
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
+      
     } catch (error: any) {
-      console.error('Account deletion error:', error);
+      console.error("[ProfileView] Account deletion error:", error);
       toast({
         title: language === 'ko' ? '계정 삭제 실패' : language === 'en' ? 'Account Deletion Failed' : language === 'zh' ? '账户删除失败' : 'アカウント削除に失敗しました',
         description: error.message || (language === 'ko'

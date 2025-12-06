@@ -893,21 +893,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/users/me", isAuthenticated, async (req: any, res) => {
+    const requestId = Math.random().toString(36).substring(7);
+    console.log(`[DELETE USER:${requestId}] Route hit`);
+    
     try {
-      const userId = req.user.claims.sub;
+      // Check user object
+      if (!req.user) {
+        console.error(`[DELETE USER:${requestId}] req.user is undefined`);
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      console.log(`[DELETE USER:${requestId}] req.user:`, JSON.stringify(req.user, null, 2));
+
+      // Extract User ID safely
+      const userId = req.user.id || req.user.claims?.sub;
+      console.log(`[DELETE USER:${requestId}] Target userId: ${userId}`);
+
+      if (!userId) {
+        console.error(`[DELETE USER:${requestId}] Failed to extract userId`);
+        return res.status(400).json({ error: "User ID missing" });
+      }
+
+      // 1. DB Deletion
+      console.log(`[DELETE USER:${requestId}] Calling storage.deleteUser...`);
       await storage.deleteUser(userId);
+      console.log(`[DELETE USER:${requestId}] DB deletion successful`);
+
+      // 2. Session & Cookie Cleanup
+      const cookieOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none' as const,
+        path: "/",
+      };
+
+      console.log(`[DELETE USER:${requestId}] Starting session destruction...`);
       
-      // 세션 종료
+      // Logout Passport
       req.logout((err: any) => {
         if (err) {
-          console.error('Logout error during account deletion:', err);
+          console.error(`[DELETE USER:${requestId}] req.logout error:`, err);
+          // Continue anyway to destroy session
+        } else {
+          console.log(`[DELETE USER:${requestId}] req.logout successful`);
+        }
+
+        // Destroy Session
+        if (req.session) {
+          req.session.destroy((destroyErr: any) => {
+            if (destroyErr) {
+              console.error(`[DELETE USER:${requestId}] req.session.destroy error:`, destroyErr);
+              return res.status(500).json({ error: "Failed to destroy session" });
+            }
+            
+            console.log(`[DELETE USER:${requestId}] Session destroyed`);
+            
+            // Clear Cookie
+            res.clearCookie('connect.sid', cookieOptions);
+            console.log(`[DELETE USER:${requestId}] Cookie 'connect.sid' cleared with options:`, cookieOptions);
+            
+            // Final Success Response
+            return res.status(200).json({ success: true, message: "Account deleted and logged out" });
+          });
+        } else {
+          console.log(`[DELETE USER:${requestId}] No session found to destroy`);
+          res.clearCookie('connect.sid', cookieOptions);
+          return res.status(200).json({ success: true, message: "Account deleted (no session)" });
         }
       });
-      
-      res.json({ success: true, message: "Account deleted successfully" });
+
     } catch (error: any) {
-      console.error('Account deletion error:', error);
-      res.status(500).json({ error: error.message || "Failed to delete account" });
+      console.error(`[DELETE USER:${requestId}] CRITICAL ERROR:`, error);
+      console.error(`[DELETE USER:${requestId}] Stack:`, error.stack);
+      res.status(500).json({ 
+        error: error.message || "Internal Server Error during deletion",
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   });
 
