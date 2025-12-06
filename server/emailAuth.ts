@@ -220,66 +220,76 @@ export function setupEmailAuth(app: Express) {
       }
       console.log(`[EMAIL LOGIN] ===================================`);
       
-      (req as any).login(userSession, (err: any) => {
-        if (err) {
-          console.error("[EMAIL LOGIN] Session creation failed:", err);
-          return res.status(500).json({ error: "세션 생성에 실패했습니다" });
+      // 세션 보안 강화: 로그인 전 세션 재생성 (세션 고정 공격 방지 및 기존 쿠키 정리)
+      req.session.regenerate((regenErr) => {
+        if (regenErr) {
+          console.error("[EMAIL LOGIN] Session regeneration failed:", regenErr);
+          return res.status(500).json({ error: "세션 생성에 실패했습니다 (regenerate)" });
         }
+        
+        console.log(`[EMAIL LOGIN] Session regenerated. New ID: ${req.sessionID}`);
 
-        console.log(`[EMAIL LOGIN] ========== AFTER LOGIN ==========`);
-        console.log(`[EMAIL LOGIN] Login successful, saving session for user: ${user.id}`);
-        console.log(`[EMAIL LOGIN] Session ID after login: ${req.sessionID}`);
-        console.log(`[EMAIL LOGIN] Session exists:`, !!req.session);
-        console.log(`[EMAIL LOGIN] ===================================`);
-        
-        // 세션 데이터를 명시적으로 설정하여 변경 감지 (쿠키 설정 보장)
-        // saveUninitialized: false일 때 세션에 변경이 있어야 쿠키가 생성됨
-        req.session.userId = user.id;
-        // 세션을 "dirty" 상태로 만들어서 반드시 저장되도록 함
-        req.session.touch();
-        
-        // 세션 저장 후 명시적으로 쿠키 설정
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error("[EMAIL LOGIN] Session save failed:", saveErr);
-            return res.status(500).json({ error: "세션 저장에 실패했습니다" });
+        (req as any).login(userSession, (err: any) => {
+          if (err) {
+            console.error("[EMAIL LOGIN] Session creation failed:", err);
+            return res.status(500).json({ error: "세션 생성에 실패했습니다" });
           }
 
-          console.log(`[EMAIL LOGIN] ========== LOGIN SUCCESS ==========`);
-          console.log(`[EMAIL LOGIN] User ID: ${user.id}`);
-          console.log(`[EMAIL LOGIN] Session ID after save: ${req.sessionID}`);
-          console.log(`[EMAIL LOGIN] Cookie config:`, {
-            secure: req.session.cookie.secure,
-            sameSite: req.session.cookie.sameSite,
-            httpOnly: req.session.cookie.httpOnly,
-            path: req.session.cookie.path,
-            maxAge: req.session.cookie.maxAge,
-          });
-          
-          // Android WebView 쿠키 저장을 위해 항상 SameSite=None + Secure=true 사용
-          const cookieValue = req.sessionID;
-          const cookieOptions = {
-            httpOnly: true,
-            secure: true, // 항상 true - HTTPS 필수 (Android WebView 지원)
-            sameSite: "none" as const, // 항상 "none" - Android WebView cross-site 쿠키 지원
-            path: "/",
-            maxAge: req.session.cookie.maxAge || 7 * 24 * 60 * 60 * 1000,
-          };
-          
-          console.log(`[EMAIL LOGIN] Setting cookie manually:`, {
-            name: 'connect.sid',
-            value: cookieValue,
-            options: cookieOptions,
-          });
-          
-          res.cookie("connect.sid", cookieValue, cookieOptions);
-          
-          const setCookieHeader = res.getHeader('Set-Cookie');
-          console.log(`[EMAIL LOGIN] Set-Cookie header after manual set:`, setCookieHeader);
-          console.log(`[EMAIL LOGIN] All response headers:`, res.getHeaders());
+          console.log(`[EMAIL LOGIN] ========== AFTER LOGIN ==========`);
+          console.log(`[EMAIL LOGIN] Login successful, saving session for user: ${user.id}`);
+          console.log(`[EMAIL LOGIN] Session ID after login: ${req.sessionID}`);
+          console.log(`[EMAIL LOGIN] Session exists:`, !!req.session);
           console.log(`[EMAIL LOGIN] ===================================`);
           
-          return res.json({ success: true, user });
+          // 세션 데이터를 명시적으로 설정하여 변경 감지 (쿠키 설정 보장)
+          // saveUninitialized: false일 때 세션에 변경이 있어야 쿠키가 생성됨
+          req.session.userId = user.id;
+          // 세션을 "dirty" 상태로 만들어서 반드시 저장되도록 함
+          req.session.touch();
+          
+          // 세션 저장 후 명시적으로 쿠키 설정
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error("[EMAIL LOGIN] Session save failed:", saveErr);
+              return res.status(500).json({ error: "세션 저장에 실패했습니다" });
+            }
+
+            console.log(`[EMAIL LOGIN] ========== LOGIN SUCCESS ==========`);
+            console.log(`[EMAIL LOGIN] User ID: ${user.id}`);
+            console.log(`[EMAIL LOGIN] Session ID after save: ${req.sessionID}`);
+            console.log(`[EMAIL LOGIN] Cookie config:`, {
+              secure: req.session.cookie.secure,
+              sameSite: req.session.cookie.sameSite,
+              httpOnly: req.session.cookie.httpOnly,
+              path: req.session.cookie.path,
+              maxAge: req.session.cookie.maxAge,
+            });
+            
+            // Android WebView 쿠키 저장을 위해 항상 SameSite=None + Secure=true 사용
+            const cookieValue = req.sessionID;
+            const cookieOptions = {
+              httpOnly: true,
+              secure: true, // 항상 true - HTTPS 필수 (Android WebView 지원)
+              sameSite: "none" as const, // 항상 "none" - Android WebView cross-site 쿠키 지원
+              path: "/",
+              maxAge: req.session.cookie.maxAge || 7 * 24 * 60 * 60 * 1000,
+            };
+            
+            console.log(`[EMAIL LOGIN] Setting cookie manually:`, {
+              name: 'connect.sid',
+              value: cookieValue,
+              options: cookieOptions,
+            });
+            
+            res.cookie("connect.sid", cookieValue, cookieOptions);
+            
+            const setCookieHeader = res.getHeader('Set-Cookie');
+            console.log(`[EMAIL LOGIN] Set-Cookie header after manual set:`, setCookieHeader);
+            console.log(`[EMAIL LOGIN] All response headers:`, res.getHeaders());
+            console.log(`[EMAIL LOGIN] ===================================`);
+            
+            return res.json({ success: true, user });
+          });
         });
       });
     } catch (error: any) {

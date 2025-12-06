@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MapPin, Globe, Users, Languages, Heart, Sparkles, Mail } from "lucide-react";
+import { MapPin, Globe, Users, Languages, Heart, Sparkles, Mail, Loader2 } from "lucide-react";
 import { useLanguage, type Language } from "@/lib/language-context";
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
@@ -54,6 +54,7 @@ export default function Landing() {
   const queryClient = useQueryClient();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
+  const [isKakaoLoading, setIsKakaoLoading] = useState(false);
 
   // 이메일 로그인 폼
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -134,6 +135,10 @@ export default function Landing() {
     },
     onSuccess: async () => {
       console.log("[LOGIN] onSuccess callback called");
+
+      // 로그인 성공 시 로그아웃 타임스탬프 제거 (useAuth 쿼리 활성화)
+      localStorage.removeItem("logoutTimestamp");
+
       toast({
         title: language === 'ko' ? "로그인 성공" : "Login successful",
         description: language === 'ko' ? "환영합니다!" : "Welcome!",
@@ -430,6 +435,9 @@ export default function Landing() {
         // 세션이 생성되었으므로 인증 상태 갱신
         queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
         
+        // 로그인 성공 시 로그아웃 타임스탬프 제거 (useAuth 쿼리 활성화)
+        localStorage.removeItem("logoutTimestamp");
+        
         // 성공 메시지
         toast({
           title: language === 'ko' ? "로그인 성공" : "Login successful",
@@ -477,6 +485,7 @@ export default function Landing() {
           description: errorMessage,
           variant: "destructive",
         });
+        setIsKakaoLoading(false);
       }
     } else {
       // 웹: 기존 OAuth redirect 방식 유지
@@ -792,13 +801,25 @@ export default function Landing() {
               size="lg" 
               className="w-full h-12 bg-[#FEE500] hover:bg-[#FDD835] border border-[#FDD835] hover:border-[#FBC02D] text-[#000000] font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
               onClick={handleKakaoLogin}
+              disabled={isKakaoLoading}
               data-testid="button-kakao-login"
             >
-              <Heart className="h-5 w-5 mr-2 fill-current" />
-              {language === 'ko' && '카카오로 로그인'}
-              {language === 'en' && 'Sign in with Kakao'}
-              {language === 'zh' && '使用 Kakao 登录'}
-              {language === 'ja' && 'Kakao でログイン'}
+              {isKakaoLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  {language === 'ko' ? '카카오 로그인 중...' : 
+                   language === 'en' ? 'Processing...' : 
+                   language === 'zh' ? '处理中...' : '処理中...'}
+                </>
+              ) : (
+                <>
+                  <Heart className="h-5 w-5 mr-2 fill-current" />
+                  {language === 'ko' && '카카오로 로그인'}
+                  {language === 'en' && 'Sign in with Kakao'}
+                  {language === 'zh' && '使用 Kakao 登录'}
+                  {language === 'ja' && 'Kakao でログイン'}
+                </>
+              )}
             </Button>
           </div>
 

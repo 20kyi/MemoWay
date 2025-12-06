@@ -1583,73 +1583,83 @@ export function setupKakaoAuth(app: Express) {
       });
 
       // 세션 생성
-      (req as any).login(
-        {
-          id: user.id,
-          claims: {
-            sub: user.id,
-            email: user.email,
-            first_name: user.firstName,
-            last_name: user.lastName,
-            profile_image_url: user.profileImageUrl,
+      // 세션 보안 강화: 로그인 전 세션 재생성
+      req.session.regenerate((regenErr) => {
+        if (regenErr) {
+          console.error("[ANDROID LOGIN] Session regeneration failed:", regenErr);
+          return res.status(500).json({ error: "Failed to regenerate session" });
+        }
+        
+        console.log(`[ANDROID LOGIN] Session regenerated. New ID: ${req.sessionID}`);
+
+        (req as any).login(
+          {
+            id: user.id,
+            claims: {
+              sub: user.id,
+              email: user.email,
+              first_name: user.firstName,
+              last_name: user.lastName,
+              profile_image_url: user.profileImageUrl,
+            },
           },
-        },
-        (err: any) => {
-          if (err) {
-            console.error("[ANDROID LOGIN] ❌ Session creation failed:", err);
-            console.error("[ANDROID LOGIN] ❌ Session creation error details:", {
-              message: err?.message,
-              stack: err?.stack,
-              name: err?.name,
-              userId: user.id
-            });
-            return res.status(500).json({ 
-              error: "Failed to create session",
-              details: err?.message || String(err)
-            });
-          }
-          
-          console.log('[ANDROID LOGIN] Session created, saving...');
-          // 세션 저장 (쿠키가 제대로 설정되도록)
-          req.session.save((saveErr) => {
-            if (saveErr) {
-              console.error("[ANDROID LOGIN] ❌ Session save failed:", saveErr);
-              console.error("[ANDROID LOGIN] ❌ Session save error details:", {
-                message: saveErr?.message,
-                stack: saveErr?.stack,
-                name: saveErr?.name,
-                sessionId: req.session?.id
+          (err: any) => {
+            if (err) {
+              console.error("[ANDROID LOGIN] ❌ Session creation failed:", err);
+              console.error("[ANDROID LOGIN] ❌ Session creation error details:", {
+                message: err?.message,
+                stack: err?.stack,
+                name: err?.name,
+                userId: user.id
               });
               return res.status(500).json({ 
-                error: "Failed to save session",
-                details: saveErr?.message || String(saveErr)
+                error: "Failed to create session",
+                details: err?.message || String(err)
               });
             }
             
-            const sessionId = req.session?.id;
-            console.log(`[ANDROID LOGIN] ✅ Android Kakao login successful for user ID: ${user.id}`);
-            console.log('[ANDROID LOGIN] ✅ Session ID:', sessionId?.substring(0, 20));
-            console.log('[ANDROID LOGIN] ✅ Session cookie name:', req.session?.cookie?.name || 'connect.sid');
-            console.log('[ANDROID LOGIN] ✅ Session cookie secure:', req.session?.cookie?.secure);
-            console.log('[ANDROID LOGIN] ✅ Session cookie sameSite:', req.session?.cookie?.sameSite);
-            console.log('[ANDROID LOGIN] ========== Login process completed successfully ==========');
-            
-            // 세션 쿠키가 제대로 설정되도록 응답
-            // CORS와 credentials 설정은 이미 server/index.ts에서 처리됨
-            res.json({ 
-              success: true, 
-              user: {
-                id: user.id,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                profileImageUrl: user.profileImageUrl,
-              },
-              sessionId: sessionId?.substring(0, 10) // 디버깅용 (일부만)
+            console.log('[ANDROID LOGIN] Session created, saving...');
+            // 세션 저장 (쿠키가 제대로 설정되도록)
+            req.session.save((saveErr) => {
+              if (saveErr) {
+                console.error("[ANDROID LOGIN] ❌ Session save failed:", saveErr);
+                console.error("[ANDROID LOGIN] ❌ Session save error details:", {
+                  message: saveErr?.message,
+                  stack: saveErr?.stack,
+                  name: saveErr?.name,
+                  sessionId: req.session?.id
+                });
+                return res.status(500).json({ 
+                  error: "Failed to save session",
+                  details: saveErr?.message || String(saveErr)
+                });
+              }
+              
+              const sessionId = req.session?.id;
+              console.log(`[ANDROID LOGIN] ✅ Android Kakao login successful for user ID: ${user.id}`);
+              console.log('[ANDROID LOGIN] ✅ Session ID:', sessionId?.substring(0, 20));
+              console.log('[ANDROID LOGIN] ✅ Session cookie name:', req.session?.cookie?.name || 'connect.sid');
+              console.log('[ANDROID LOGIN] ✅ Session cookie secure:', req.session?.cookie?.secure);
+              console.log('[ANDROID LOGIN] ✅ Session cookie sameSite:', req.session?.cookie?.sameSite);
+              console.log('[ANDROID LOGIN] ========== Login process completed successfully ==========');
+              
+              // 세션 쿠키가 제대로 설정되도록 응답
+              // CORS와 credentials 설정은 이미 server/index.ts에서 처리됨
+              res.json({ 
+                success: true, 
+                user: {
+                  id: user.id,
+                  email: user.email,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  profileImageUrl: user.profileImageUrl,
+                },
+                sessionId: sessionId?.substring(0, 10) // 디버깅용 (일부만)
+              });
             });
-          });
-        }
-      );
+          }
+        );
+      });
     } catch (error) {
       const timestamp = new Date().toISOString();
       console.error(`[${timestamp}] [ANDROID LOGIN] ❌ ========== Android Kakao login error ==========`);

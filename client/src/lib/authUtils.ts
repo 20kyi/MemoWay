@@ -42,10 +42,13 @@ export async function handleLogout(): Promise<{ success: boolean; error?: string
     const response = await fetch(logoutUrl, {
       method: 'GET',
       credentials: 'include', // 쿠키 포함 필수 (CORS preflight에서도 필요)
+      cache: 'no-store', // 캐시 사용 금지 (항상 서버에 요청)
       redirect: 'manual', // 리다이렉트를 수동으로 처리
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'Pragma': 'no-cache', // HTTP 1.0 캐시 방지
+        'Cache-Control': 'no-cache, no-store, must-revalidate', // HTTP 1.1 캐시 방지
         ...(isNativePlatform && { 'X-Platform': 'android' }), // 안드로이드 앱임을 명시
       },
     });
