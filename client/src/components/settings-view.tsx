@@ -66,87 +66,77 @@ export function SettingsView() {
       const logoutResult = await handleLogoutUtil();
       console.log('[LOGOUT] Logout result:', logoutResult);
       
-      // 요청 성공/실패와 상관없이 항상 클라이언트 상태 초기화
-      console.log('[LOGOUT] Clearing all user data...');
-      
-      // 1. 인증 관련 캐시 무효화 및 제거 (가장 먼저 실행)
-      try {
-        // 모든 쿼리 무효화
-        await queryClient.invalidateQueries();
-        
-        // 특히 /api/auth/user 쿼리를 명시적으로 무효화 및 제거
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-        queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
-        
-        // 인증 상태를 즉시 null로 설정 (auto-login 방지)
-        queryClient.setQueryData(['/api/auth/user'], null);
-        
-        console.log('[LOGOUT] Auth queries invalidated and removed');
-      } catch (e) {
-        console.error('[LOGOUT] Failed to invalidate auth queries:', e);
-        // 최소한 쿼리 데이터는 null로 설정
-        try {
-          queryClient.setQueryData(['/api/auth/user'], null);
-        } catch (e2) {
-          console.error('[LOGOUT] Failed to set query data to null:', e2);
-        }
-      }
-      
-      // 3. 모든 쿼리 캐시 무효화 및 제거 (memos, groups 등)
-      try {
-        queryClient.removeQueries();
-      } catch (e) {
-        console.error('[LOGOUT] Failed to remove queries:', e);
-      }
-      
-      // 4. 로컬 스토리지에서 사용자 관련 데이터 제거
-      localStorage.removeItem("currentMemberId");
-      localStorage.removeItem("personalMemberId");
-      localStorage.removeItem("myMemberIds");
-      localStorage.removeItem("notificationsEnabled");
-      localStorage.removeItem("locationEnabled");
-      localStorage.removeItem("proximityRadius");
-      localStorage.removeItem("toastNotificationsEnabled");
-      
-      // 5. 로그아웃 플래그 설정 (자동 인증 재확인 방지)
-      // 30초 동안 자동 인증 재확인 비활성화 (모바일 앱에서 자동 로그인 완전 차단)
-      localStorage.setItem("logoutTimestamp", Date.now().toString());
-      
-      // 6. 클라이언트 측에서도 쿠키 삭제 시도 (WebView에서 쿠키가 남아있을 수 있음)
-      try {
-        // 모든 가능한 도메인과 경로에서 쿠키 삭제 시도
-        const domains = [
-          window.location.hostname,
-          '.memoway-production.up.railway.app',
-          'memoway-production.up.railway.app',
-        ];
-        const paths = ['/', '/api'];
-        
-        domains.forEach(domain => {
-          paths.forEach(path => {
-            // connect.sid 쿠키 삭제 시도
-            document.cookie = `connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`;
-            document.cookie = `connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`;
-          });
-        });
-        console.log('[LOGOUT] Client-side cookies cleared');
-      } catch (e) {
-        console.error('[LOGOUT] Failed to clear client-side cookies:', e);
-      }
-      
-      // 로그아웃 메시지 표시
-      toast({
-        title: language === 'ko' ? "로그아웃 완료" : "Logged out",
-        description: language === 'ko' 
-          ? "로그아웃되었습니다."
-          : "You have been logged out.",
-      });
-      
-      // 로그아웃 후 즉시 랜딩 페이지로 강제 리다이렉트
-      // 인증 캐시가 무효화되었으므로 Home 컴포넌트의 보호 로직이 자동으로 리다이렉트할 것
-      // 추가 안전장치로 window.location.replace 사용
-      // logout 파라미터를 추가하여 자동 인증 재확인 방지
+      // 로딩 화면을 보여주기 위해 지연 후 데이터 초기화 및 리다이렉트
       setTimeout(() => {
+        // 요청 성공/실패와 상관없이 항상 클라이언트 상태 초기화
+        console.log('[LOGOUT] Clearing all user data...');
+        
+        // 1. 인증 관련 캐시 무효화 및 제거 (가장 먼저 실행)
+        try {
+          // 모든 쿼리 무효화
+          queryClient.invalidateQueries();
+          
+          // 특히 /api/auth/user 쿼리를 명시적으로 무효화 및 제거
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+          queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
+          
+          // 인증 상태를 즉시 null로 설정 (auto-login 방지)
+          queryClient.setQueryData(['/api/auth/user'], null);
+          
+          console.log('[LOGOUT] Auth queries invalidated and removed');
+        } catch (e) {
+          console.error('[LOGOUT] Failed to invalidate auth queries:', e);
+          // 최소한 쿼리 데이터는 null로 설정
+          try {
+            queryClient.setQueryData(['/api/auth/user'], null);
+          } catch (e2) {
+            console.error('[LOGOUT] Failed to set query data to null:', e2);
+          }
+        }
+        
+        // 3. 모든 쿼리 캐시 무효화 및 제거 (memos, groups 등)
+        try {
+          queryClient.removeQueries();
+        } catch (e) {
+          console.error('[LOGOUT] Failed to remove queries:', e);
+        }
+        
+        // 4. 로컬 스토리지에서 사용자 관련 데이터 제거
+        localStorage.removeItem("currentMemberId");
+        localStorage.removeItem("personalMemberId");
+        localStorage.removeItem("myMemberIds");
+        localStorage.removeItem("notificationsEnabled");
+        localStorage.removeItem("locationEnabled");
+        localStorage.removeItem("proximityRadius");
+        localStorage.removeItem("toastNotificationsEnabled");
+        
+        // 5. 로그아웃 플래그 설정 (자동 인증 재확인 방지)
+        // 30초 동안 자동 인증 재확인 비활성화 (모바일 앱에서 자동 로그인 완전 차단)
+        localStorage.setItem("logoutTimestamp", Date.now().toString());
+        
+        // 6. 클라이언트 측에서도 쿠키 삭제 시도 (WebView에서 쿠키가 남아있을 수 있음)
+        try {
+          // 모든 가능한 도메인과 경로에서 쿠키 삭제 시도
+          const domains = [
+            window.location.hostname,
+            '.memoway-production.up.railway.app',
+            'memoway-production.up.railway.app',
+          ];
+          const paths = ['/', '/api'];
+          
+          domains.forEach(domain => {
+            paths.forEach(path => {
+              // connect.sid 쿠키 삭제 시도
+              document.cookie = `connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`;
+              document.cookie = `connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`;
+            });
+          });
+          console.log('[LOGOUT] Client-side cookies cleared');
+        } catch (e) {
+          console.error('[LOGOUT] Failed to clear client-side cookies:', e);
+        }
+        
+        // 로그아웃 후 즉시 랜딩 페이지로 강제 리다이렉트
         console.log('[LOGOUT] Force redirecting to landing page...');
         
         const isNativePlatform = Capacitor.isNativePlatform();
@@ -157,32 +147,31 @@ export function SettingsView() {
           // 웹 브라우저: 상대 경로 사용 (logout 파라미터 추가)
           window.location.replace('/?logout=true');
         }
-        // 로딩 상태는 페이지 이동과 함께 초기화되므로 굳이 false로 설정할 필요 없음
-      }, 300); // 토스트 메시지를 보여주기 위한 짧은 지연
+      }, 1000); // 로딩 화면을 확실히 보여주기 위해 1초 지연
     } catch (error: any) {
       // 예상치 못한 에러가 발생해도 상태 초기화 및 네비게이션은 수행
       console.error('[LOGOUT] Unexpected error during logout:', error);
       
-      // 에러가 발생해도 클라이언트 상태는 초기화 시도
-      try {
-        queryClient.setQueryData(['/api/auth/user'], null);
-        queryClient.removeQueries();
-        localStorage.removeItem("currentMemberId");
-        localStorage.removeItem("personalMemberId");
-        localStorage.removeItem("myMemberIds");
-      } catch (e) {
-        console.error('[LOGOUT] Failed to clear state after error:', e);
-      }
-      
-      // 에러가 발생해도 랜딩 페이지로 이동 (logout 파라미터 추가)
+      // 에러가 발생해도 지연 후 클라이언트 상태는 초기화 시도
       setTimeout(() => {
+        try {
+          queryClient.setQueryData(['/api/auth/user'], null);
+          queryClient.removeQueries();
+          localStorage.removeItem("currentMemberId");
+          localStorage.removeItem("personalMemberId");
+          localStorage.removeItem("myMemberIds");
+        } catch (e) {
+          console.error('[LOGOUT] Failed to clear state after error:', e);
+        }
+        
+        // 에러가 발생해도 랜딩 페이지로 이동 (logout 파라미터 추가)
         const isNativePlatform = Capacitor.isNativePlatform();
         if (isNativePlatform) {
           window.location.replace(window.location.origin + '/?logout=true');
         } else {
           window.location.replace('/?logout=true');
         }
-      }, 300);
+      }, 1000);
     }
   };
 
@@ -490,10 +479,10 @@ export function SettingsView() {
 
       {/* 로그아웃 로딩 오버레이 */}
       {isLoggingOut && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="flex flex-col items-center animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center animate-in fade-in duration-300">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <p className="text-lg font-medium text-gray-700">
+            <p className="text-lg font-bold text-gray-800">
               {language === 'ko' ? '로그아웃 중...' : 
                language === 'en' ? 'Logging out...' : 
                language === 'zh' ? '正在退出...' : 'ログアウト中...'}
