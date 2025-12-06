@@ -25,7 +25,7 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { getApiBaseUrl } from "@/lib/api-config";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const languageOptions: { value: Language; label: string; flag: string }[] = [
@@ -55,6 +55,20 @@ export default function Landing() {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
   const [isKakaoLoading, setIsKakaoLoading] = useState(false);
+
+  useEffect(() => {
+    // 딥링크 또는 리다이렉트로 돌아왔을 때 URL 파라미터 확인
+    const params = new URLSearchParams(window.location.search);
+    const sessionOk = params.get('session_ok');
+    const loginSuccess = params.get('login_success');
+    const code = params.get('code'); // 웹 리다이렉트 시 code 파라미터
+    
+    // 로그인 처리 중인 파라미터가 있으면 로딩 상태 표시
+    if (sessionOk === 'true' || loginSuccess === 'true' || code) {
+      console.log('[LANDING] Login processing detected from URL parameters');
+      setIsKakaoLoading(true);
+    }
+  }, []);
 
   // 이메일 로그인 폼
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -270,6 +284,9 @@ export default function Landing() {
   });
 
   const handleKakaoLogin = async () => {
+    // 로그인 시작 즉시 로딩 화면 표시
+    setIsKakaoLoading(true);
+
     if (Capacitor.isNativePlatform()) {
       // Android: Kakao SDK + REST API 방식
       const timestamp = new Date().toISOString();
@@ -458,6 +475,9 @@ export default function Landing() {
         console.error('[KAKAO LOGIN] ❌ Error stack:', error?.stack);
         console.error('[KAKAO LOGIN] ❌ Full error object:', error);
         
+        // 에러 발생 시에만 로딩 화면 끄기
+        setIsKakaoLoading(false);
+        
         let errorMessage = language === 'ko' 
           ? "카카오 로그인에 실패했습니다."
           : "Kakao login failed.";
@@ -565,6 +585,37 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-pink-100/50 to-pink-50 flex items-center justify-center relative overflow-hidden pt-[env(safe-area-inset-top)]">
+      {/* Full Screen Loading Overlay */}
+      {isKakaoLoading && (
+        <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center animate-in fade-in duration-300">
+            <Loader2 className="h-12 w-12 animate-spin text-[#FEE500] mb-4" />
+            <p className="text-lg font-medium text-gray-700">
+              {language === 'ko' ? '카카오 로그인 중...' : 
+               language === 'en' ? 'Processing Kakao Login...' : 
+               language === 'zh' ? '正在处理 Kakao 登录...' : 'Kakao ログイン処理中...'}
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              {language === 'ko' ? '잠시만 기다려주세요' : 'Please wait a moment'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Test Button - Top Left (Development Only) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-4 left-4 z-50">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="bg-white/80 backdrop-blur-sm text-xs"
+            onClick={() => setIsKakaoLoading(!isKakaoLoading)}
+          >
+            로딩 화면 테스트
+          </Button>
+        </div>
+      )}
+
       {/* Language Selector - Top Right */}
       <div className="absolute top-4 right-4 z-50">
         <DropdownMenu modal={false}>
