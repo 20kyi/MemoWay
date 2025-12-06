@@ -32,6 +32,7 @@ export function useMemos({
       formData.append("longitude", selectedLocation?.lng.toString() || "0");
       formData.append("content", data.content);
       formData.append("markerIcon", data.markerIcon || "default");
+      formData.append("rating", (data.rating || 0).toString());
 
       // 개인 메모인지 그룹 메모인지 결정
       const isPersonalMemo = !data.groupIds || data.groupIds.length === 0;
@@ -137,6 +138,10 @@ export function useMemos({
 
         if (data.markerIcon) {
           formData.append("markerIcon", data.markerIcon);
+        }
+
+        if (data.rating !== undefined) {
+          formData.append("rating", data.rating.toString());
         }
 
         // Only send groupId if a group is selected

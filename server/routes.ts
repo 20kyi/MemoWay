@@ -595,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         groupId: z.string().optional(),
         markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).default('default'),
         mainPhotoIndex: z.string().optional(),
-        rating: z.number().min(0).max(5).default(0),
+        rating: z.coerce.number().min(0).max(5).default(0),
       });
       
       let { buildingName, address, latitude, longitude, content, memberId, groupId, markerIcon, rating } = bodySchema.parse(req.body);
@@ -736,7 +736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: z.string().min(1, "메모 내용을 입력하세요").max(2000),
         groupId: z.string().optional().transform(val => val === "" ? null : val),
         markerIcon: z.enum(['default', 'travel', 'love', 'food', 'cafe', 'shopping', 'sport', 'work']).optional(),
-        rating: z.number().min(0).max(5).optional(),
+        rating: z.coerce.number().min(0).max(5).optional(),
         deletedPhotoIds: z.string().optional(),
         mainPhotoId: z.string().optional(),
         mainPhotoIndex: z.string().optional(),
