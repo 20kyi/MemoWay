@@ -77,6 +77,9 @@ export const translations = {
       groupsSelected: "{count}개 그룹 선택됨",
       personalMemoPreparing: "개인 메모 준비 중...",
       photoOrderHint: "첫 번째 사진이 대표 사진으로 표시됩니다. 드래그하여 순서를 변경할 수 있습니다.",
+      rating: "평점",
+      noRating: "평가 없음",
+      ratingScore: "{score}점",
     },
     // Memo Detail
     memoDetail: {
@@ -433,6 +436,9 @@ export const translations = {
       groupsSelected: "{count} groups selected",
       personalMemoPreparing: "Preparing personal memo...",
       photoOrderHint: "The first photo will be displayed as the representative photo. You can change the order by dragging.",
+      rating: "Rating",
+      noRating: "No rating",
+      ratingScore: "{score} stars",
     },
     // Memo Detail
     memoDetail: {
@@ -789,6 +795,9 @@ export const translations = {
       groupsSelected: "已选择 {count} 个群组",
       personalMemoPreparing: "正在准备个人备忘录...",
       photoOrderHint: "第一张照片将显示为代表照片。您可以通过拖拽来更改顺序。",
+      rating: "评分",
+      noRating: "无评分",
+      ratingScore: "{score}分",
     },
     // Memo Detail
     memoDetail: {
@@ -1145,6 +1154,9 @@ export const translations = {
       groupsSelected: "{count}個のグループが選択されました",
       personalMemoPreparing: "個人メモを準備中...",
       photoOrderHint: "最初の写真が代表写真として表示されます。ドラッグして順序を変更できます。",
+      rating: "評価",
+      noRating: "評価なし",
+      ratingScore: "{score}点",
     },
     // Memo Detail
     memoDetail: {
@@ -1498,6 +1510,9 @@ type Translation = {
     groupsSelected: string;
     personalMemoPreparing: string;
     photoOrderHint: string;
+    rating: string;
+    noRating: string;
+    ratingScore: string;
   };
   memoDetail: {
     photos: string;

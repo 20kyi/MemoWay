@@ -40,6 +40,7 @@ export interface IStorage {
   updateGroup(groupId: string, updateData: Partial<InsertGroup>): Promise<Group>;
   deleteGroup(groupId: string): Promise<void>;
   copyGroupMemosToPersonal(groupId: string, userId: string): Promise<{ group: Group; member: Member; copiedCount: number }>;
+  copyMemoToPersonal(memoId: string, userId: string): Promise<Memo>;
   
   // Members
   createMember(member: InsertMember): Promise<Member>;
@@ -670,6 +671,69 @@ export class DatabaseStorage implements IStorage {
       }
 
       return { group: newGroup, member: newMember, copiedCount };
+    });
+  }
+
+  async copyMemoToPersonal(memoId: string, userId: string): Promise<Memo> {
+    return await db.transaction(async (tx) => {
+      // 1. Get original memo
+      const originalMemo = await tx.query.memos.findFirst({
+        where: eq(memos.id, memoId),
+      });
+
+      if (!originalMemo) {
+        throw new Error("MEMO_NOT_FOUND");
+      }
+
+      // 2. Check points
+      const [user] = await tx.select().from(users).where(eq(users.id, userId));
+      if (!user) {
+        throw new Error("USER_NOT_FOUND");
+      }
+
+      if (user.points < 10) {
+        throw new Error("INSUFFICIENT_POINTS");
+      }
+
+      // Deduct points
+      await tx
+        .update(users)
+        .set({ points: user.points - 10 })
+        .where(eq(users.id, userId));
+
+      // 3. Find personal member ID
+      const userMembers = await tx
+        .select()
+        .from(members)
+        .where(eq(members.userId, userId));
+
+      if (userMembers.length === 0) {
+        throw new Error("MEMBER_NOT_FOUND");
+      }
+
+      // Use the first member found as the author (since it's a personal memo, groupId will be null)
+      // Ideally we should look for a member belonging to "Personal Memos" group if logic requires,
+      // but for personal memos (groupId: null), any memberId belonging to the user is valid in createMemo logic.
+      const personalMember = userMembers[0];
+
+      // 4. Copy memo
+      const [newMemo] = await tx
+        .insert(memos)
+        .values({
+          buildingName: originalMemo.buildingName,
+          address: originalMemo.address,
+          latitude: originalMemo.latitude,
+          longitude: originalMemo.longitude,
+          content: originalMemo.content,
+          markerIcon: originalMemo.markerIcon,
+          memberId: personalMember.id,
+          groupId: null, // Set as personal memo
+          mainPhotoId: null,
+          rating: originalMemo.rating,
+        })
+        .returning();
+
+      return newMemo;
     });
   }
 

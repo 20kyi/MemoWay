@@ -281,11 +281,36 @@ export function useMemos({
     },
   });
 
+  const copyMemoMutation = useMutation({
+    mutationFn: async (memoId: string) => {
+      return apiRequest("POST", `/api/memos/${memoId}/copy`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      // Points update
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      toast({
+        title: t.common.copy || "복사 완료",
+        description: "내 개인 메모로 복사되었습니다. (10포인트 차감)",
+      });
+      onSuccess?.();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "복사 실패",
+        description: error.message || "메모 복사에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  });
+
   return {
     createMemoMutation,
     updateMemoMutation,
     deleteMemoMutation,
     setMainMemoMutation,
+    copyMemoMutation,
   };
 }
 

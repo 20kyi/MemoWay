@@ -703,7 +703,7 @@ export function MemoFormSheet({
                 name="rating"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-white">평점</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-white">{t.memoForm.rating}</FormLabel>
                     <FormControl>
                       <div className="flex items-center gap-3 p-3 border rounded-lg border-indigo-200 bg-white/50">
                         <StarRating
@@ -712,7 +712,7 @@ export function MemoFormSheet({
                           size="lg"
                         />
                         <span className="text-sm font-medium text-muted-foreground">
-                          {field.value > 0 ? `${field.value}점` : '평가 없음'}
+                          {field.value > 0 ? t.memoForm.ratingScore.replace('{score}', field.value.toString()) : t.memoForm.noRating}
                         </span>
                       </div>
                     </FormControl>

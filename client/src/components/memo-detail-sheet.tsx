@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus, ArrowLeft, Star } from "lucide-react";
+import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus, ArrowLeft, Star, Copy } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -27,6 +27,7 @@ interface MemoDetailSheetProps {
   onDelete: (memoId: string) => void;
   onNavigateToLocation?: (lat: number, lng: number) => void;
   onAddNewMemo?: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
+  onCopy?: (memoId: string) => void;
 }
 
 export function MemoDetailSheet({
@@ -37,6 +38,7 @@ export function MemoDetailSheet({
   onDelete,
   onNavigateToLocation,
   onAddNewMemo,
+  onCopy,
 }: MemoDetailSheetProps) {
   const { t, language } = useLanguage();
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -364,6 +366,21 @@ export function MemoDetailSheet({
                       <Plus className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
                       <span className="whitespace-nowrap hidden sm:inline">{t.memoDetail.addMemoHere}</span>
                       <span className="whitespace-nowrap sm:hidden">{t.common.add}</span>
+                    </Button>
+                  )}
+                  {onCopy && (
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onClick={() => {
+                        onCopy(memo.id);
+                        onOpenChange(false);
+                      }}
+                      className="h-11 sm:h-12 text-xs sm:text-base font-medium border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                      data-testid="button-copy-memo"
+                    >
+                      <Copy className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                      <span className="whitespace-nowrap">{t.common.copy || "복사"}</span>
                     </Button>
                   )}
                   {onEdit && (

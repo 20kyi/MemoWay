@@ -900,6 +900,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/memos/:id/copy", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+
+      const memo = await storage.copyMemoToPersonal(id, userId);
+      
+      // Broadcast to WebSocket clients
+      const memoWithDetails = await storage.getMemoById(memo.id);
+      broadcast({ 
+        type: "memo_created", 
+        memo: memoWithDetails 
+      });
+
+      res.json(memoWithDetails);
+    } catch (error: any) {
+      if (error.message === "MEMO_NOT_FOUND") {
+        return res.status(404).json({ error: "메모를 찾을 수 없습니다" });
+      }
+      if (error.message === "INSUFFICIENT_POINTS") {
+        return res.status(403).json({ error: "포인트가 부족합니다 (10 포인트 필요)" });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.delete("/api/users/me", isAuthenticated, async (req: any, res) => {
     const requestId = Math.random().toString(36).substring(7);
     console.log(`[DELETE USER:${requestId}] Route hit`);

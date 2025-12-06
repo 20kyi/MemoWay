@@ -488,6 +488,13 @@ export default function Home() {
     setMainMemoMutation.mutate(memoId);
   }, [setMainMemoMutation]);
 
+  // 메모 복사 핸들러 (메모이제이션)
+  const handleCopyMemo = useCallback((memoId: string) => {
+    if (confirm("10포인트를 사용하여 이 메모를 내 개인 메모로 복사하시겠습니까?")) {
+      copyMemoMutation.mutate(memoId);
+    }
+  }, [copyMemoMutation]);
+
   // 지도 저장하기 버튼 클릭 핸들러 (다이얼로그 열기)
   const handleSaveMapClick = useCallback(() => {
     if (selectedMemoIdsForMap && selectedMemoIdsForMap.size > 0) {
@@ -1028,8 +1035,13 @@ export default function Home() {
             setMemoDetailOpen(false);
             setSelectedMemo(null);
             setSelectedLocation(location);
-          setMemoFormOpen(true);
-        }}
+            setMemoFormOpen(true);
+          }}
+          onCopy={
+            selectedMemo && selectedMemo.member.userId !== (user as any)?.id && selectedMemo.groupId
+              ? handleCopyMemo
+              : undefined
+          }
       />
 
       <ExitDialog open={showExitDialog} onOpenChange={setShowExitDialog} />
