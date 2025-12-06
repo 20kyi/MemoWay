@@ -79,23 +79,23 @@ export function AttendanceButton() {
       onClick={() => checkMutation.mutate()}
       disabled={checkMutation.isPending}
       className={`
-        fixed bottom-[calc(4rem+1.5rem)] left-4 z-50
+        fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[20000]
         rounded-full shadow-lg
         bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700
         text-white border-2 border-emerald-200/50
-        w-12 h-12 sm:w-auto sm:h-12 sm:px-4
+        w-16 h-16 sm:w-auto sm:h-14 sm:px-6
         flex items-center justify-center gap-2
-        transition-all duration-500 ease-in-out transform hover:scale-105 active:scale-95
-        ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}
+        transition-all duration-500 ease-in-out transform hover:scale-110 active:scale-95
+        ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}
       `}
       data-testid="btn-attendance-check"
     >
       {checkMutation.isPending ? (
-        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
       ) : (
         <>
-          <CalendarCheck className="w-5 h-5" />
-          <span className="hidden sm:inline font-bold">출석</span>
+          <CalendarCheck className="w-6 h-6" />
+          <span className="hidden sm:inline font-bold text-lg">출석체크</span>
         </>
       )}
     </Button>
