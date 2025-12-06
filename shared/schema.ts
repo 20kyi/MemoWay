@@ -30,6 +30,11 @@ export const users = pgTable("users", {
   provider: varchar("provider").notNull().default('replit'),
   // Points system for copy memos feature (10 points per memo)
   points: integer("points").notNull().default(0),
+  // Subscription system
+  subscriptionType: varchar("subscription_type"),
+  subscriptionStatus: varchar("subscription_status"),
+  subscriptionRenewAt: timestamp("subscription_renew_at"),
+  subscriptionPurchaseToken: varchar("subscription_purchase_token"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -5,6 +5,7 @@ import {
   members, 
   memos, 
   photos,
+  attendance,
   type User,
   type UpsertUser,
   type Group, 
@@ -797,18 +798,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAttendanceStatus(userId: string): Promise<{ canCheck: boolean; streak: number; lastCheckDate: string | null }> {
-    const user = await this.getUser(userId);
-    if (!user) throw new Error("USER_NOT_FOUND");
-
-    const todayKey = this.getAttendanceCycleDate();
-    const lastCheck = user.lastAttendanceDate;
+    const [record] = await db.select().from(attendance).where(eq(attendance.userId, userId));
     
-    // If last check was today, cannot check again
+    const todayKey = this.getAttendanceCycleDate();
+    const lastCheck = record?.lastAttendanceDate || null;
+    const streak = record?.attendanceStreak || 0;
+    
     const canCheck = lastCheck !== todayKey;
     
     return {
       canCheck,
-      streak: user.attendanceStreak,
+      streak,
       lastCheckDate: lastCheck,
     };
   }
@@ -818,42 +818,52 @@ export class DatabaseStorage implements IStorage {
       const [user] = await tx.select().from(users).where(eq(users.id, userId));
       if (!user) throw new Error("USER_NOT_FOUND");
 
+      const [record] = await tx.select().from(attendance).where(eq(attendance.userId, userId));
+      
       const todayKey = this.getAttendanceCycleDate();
       const yesterdayKey = this.getYesterdayCycleDate();
       
-      // 1. Check if already attended today
-      if (user.lastAttendanceDate === todayKey) {
+      const lastCheck = record?.lastAttendanceDate || null;
+      const currentStreak = record?.attendanceStreak || 0;
+
+      if (lastCheck === todayKey) {
         throw new Error("ALREADY_CHECKED_TODAY");
       }
 
-      // 2. Calculate Streak
       let newStreak = 1;
-      if (user.lastAttendanceDate === yesterdayKey) {
-        newStreak = user.attendanceStreak + 1;
-      } else {
-        // Missed a day or first time
-        newStreak = 1;
+      if (lastCheck === yesterdayKey) {
+        newStreak = currentStreak + 1;
       }
 
-      // 3. Calculate Points
-      let pointsToAdd = 10; // Base points
+      let pointsToAdd = 10;
       let message = "출석 완료! +10포인트";
 
-      // 4. Check Bonus (7th day)
       if (newStreak === 7) {
-        pointsToAdd += 30; // Bonus
+        pointsToAdd += 30;
         message = "7일 연속 출석! +40포인트 (보너스 포함)";
-        // Reset streak to 0 as per requirements ("streakCount=0으로 초기화")
-        newStreak = 0; 
+        newStreak = 0;
       }
 
-      // 5. Update User
+      // Update points
       await tx.update(users).set({
         points: user.points + pointsToAdd,
-        attendanceStreak: newStreak,
-        lastAttendanceDate: todayKey,
         updatedAt: new Date(),
       }).where(eq(users.id, userId));
+
+      // Upsert attendance record
+      await tx.insert(attendance).values({
+        userId,
+        lastAttendanceDate: todayKey,
+        attendanceStreak: newStreak,
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: attendance.userId,
+        set: {
+          lastAttendanceDate: todayKey,
+          attendanceStreak: newStreak,
+          updatedAt: new Date(),
+        }
+      });
 
       return {
         success: true,
