@@ -1463,7 +1463,7 @@ function GoogleMapViewComponent({
                   <Filter className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-primary-foreground'}`} />
                   {!selectedMarkerIcons.includes("all") && (
                     <Badge 
-                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]"
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
                       data-testid="badge-marker-filter-count"
                     >
                       {selectedMarkerIcons.filter(icon => icon !== "all").length}
