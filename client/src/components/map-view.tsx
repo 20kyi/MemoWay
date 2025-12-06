@@ -2761,7 +2761,18 @@ function MapViewComponent({
 
                 {/* Marker Icon Filter */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-muted-foreground">{t.common.markerFilter}</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-muted-foreground">{t.common.markerFilter}</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 px-2 text-xs"
+                      onClick={() => onMarkerIconsChange?.(["all"])}
+                      disabled={selectedMarkerIcons.includes("all") && selectedMarkerIcons.length === 1}
+                    >
+                      {t.common.resetFilter}
+                    </Button>
+                  </div>
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     <label className="flex items-center space-x-3 cursor-pointer p-2 rounded-md hover:bg-muted/50 transition-colors">
                       <Checkbox
@@ -2851,7 +2862,18 @@ function MapViewComponent({
 
                 {/* Group List */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-muted-foreground">{t.common.groupFilter}</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-muted-foreground">{t.common.groupFilter}</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 px-2 text-xs"
+                      onClick={() => onGroupIdsChange?.(["all"])}
+                      disabled={selectedGroupIds.includes("all") && selectedGroupIds.length === 1}
+                    >
+                      {t.common.resetFilter}
+                    </Button>
+                  </div>
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     <label className="flex items-center space-x-3 cursor-pointer p-2 rounded-md hover:bg-muted/50 transition-colors">
                       <Checkbox
