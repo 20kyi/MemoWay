@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarCheck, Check } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
+import { useLayoutTheme } from "@/lib/layout-theme-context";
 
 interface AttendanceStatus {
   canCheck: boolean;
@@ -24,6 +25,8 @@ export function AttendanceButton() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const { layoutTheme } = useLayoutTheme();
+  const isCoupleTheme = layoutTheme === "couple-clay";
   const [isVisible, setIsVisible] = useState(false);
 
   // 출석 상태 조회
@@ -86,7 +89,8 @@ export function AttendanceButton() {
       onClick={() => checkMutation.mutate()}
       disabled={checkMutation.isPending}
       className={`
-        fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[20000]
+        fixed z-[20000] right-4
+        ${isCoupleTheme ? 'bottom-[23.25rem]' : 'bottom-[17.5rem]'}
         rounded-full shadow-lg
         bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700
         text-white border-2 border-emerald-200/50
