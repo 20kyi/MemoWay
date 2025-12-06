@@ -414,6 +414,7 @@ function MapViewComponent({
   const [markers, setMarkers] = useState<Array<{ overlay: any; handler?: (e: MouseEvent) => void; contentDiv?: HTMLElement; topDiv?: HTMLElement | null; memoId?: string; memoIds?: string[] }>>([]);
   const [markerFilterOpen, setMarkerFilterOpen] = useState(false);
   const [groupFilterOpen, setGroupFilterOpen] = useState(false);
+  const [minRating, setMinRating] = useState(0);
   const watchIdRef = useRef<number | null>(null);
   const { toast } = useToast();
 
