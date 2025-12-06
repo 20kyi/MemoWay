@@ -285,31 +285,37 @@ export default function Landing() {
             return null;
           });
           
-          if (!pluginModule || !pluginModule.KakaoLogin) {
+          // 플러그인 모듈에서 CapacitorKakaoLogin 추출 (export 이름이 다름)
+          if (!pluginModule || !pluginModule.CapacitorKakaoLogin) {
             throw new Error('Plugin module not available');
           }
           
-          KakaoLogin = pluginModule.KakaoLogin;
+          KakaoLogin = pluginModule.CapacitorKakaoLogin;
           console.log('[KAKAO LOGIN] ✅ Plugin loaded successfully');
         } catch (importError: any) {
           console.error('[KAKAO LOGIN] ❌ Failed to load plugin:', importError?.message || importError);
-          // 플러그인을 로드할 수 없으면 웹 OAuth 플로우로 fallback
-          console.log('[KAKAO LOGIN] Falling back to web OAuth flow...');
+          // 플러그인을 로드할 수 없으면 앱 내 WebView에서 OAuth 플로우 진행
+          console.log('[KAKAO LOGIN] Falling back to in-app WebView OAuth flow...');
           const baseUrl = getApiBaseUrl();
+          // platform=android_webview를 사용하여 서버가 앱 내 WebView임을 인식하도록 함
           const loginUrl = baseUrl 
-            ? `${baseUrl}/api/kakao/login?lang=${language}&platform=web`
-            : `/api/kakao/login?lang=${language}&platform=web`;
+            ? `${baseUrl}/api/kakao/login?lang=${language}&platform=android_webview`
+            : `/api/kakao/login?lang=${language}&platform=android_webview`;
+          // window.location.href를 사용하면 앱 내 WebView에서 페이지가 전환되어
+          // 세션 쿠키가 동일한 WebView에 유지됨 (외부 브라우저와 달리)
+          console.log('[KAKAO LOGIN] Navigating to:', loginUrl);
           window.location.href = loginUrl;
           return;
         }
         
         if (!KakaoLogin || typeof KakaoLogin.login !== 'function') {
           console.error('[KAKAO LOGIN] ❌ Plugin or login method not available');
-          // 웹 OAuth로 fallback
+          // 앱 내 WebView에서 OAuth로 fallback
           const baseUrl = getApiBaseUrl();
           const loginUrl = baseUrl 
-            ? `${baseUrl}/api/kakao/login?lang=${language}&platform=web`
-            : `/api/kakao/login?lang=${language}&platform=web`;
+            ? `${baseUrl}/api/kakao/login?lang=${language}&platform=android_webview`
+            : `/api/kakao/login?lang=${language}&platform=android_webview`;
+          console.log('[KAKAO LOGIN] Navigating to:', loginUrl);
           window.location.href = loginUrl;
           return;
         }
@@ -785,7 +791,7 @@ export default function Landing() {
             <Button 
               size="lg" 
               className="w-full h-12 bg-[#FEE500] hover:bg-[#FDD835] border border-[#FDD835] hover:border-[#FBC02D] text-[#000000] font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
-              onClick={Capacitor.isNativePlatform() ? handleKakaoLoginWithBrowser : handleKakaoLogin}
+              onClick={handleKakaoLogin}
               data-testid="button-kakao-login"
             >
               <Heart className="h-5 w-5 mr-2 fill-current" />

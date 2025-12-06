@@ -1282,15 +1282,25 @@ export function setupKakaoAuth(app: Express) {
               console.log('[KAKAO ANDROID LOGIN] sessionId=', sessionId?.substring(0, 20));
               console.log('[KAKAO ANDROID LOGIN] platform=', platform);
               
-              // 세션이 있으면 Deep Link로 리다이렉트
-              // ⚠️ 중요: 서버 레벨에서는 추가 redirect를 하지 않고 HTML만 반환
+              // 플랫폼에 따라 다른 처리
+              // android_webview: 앱 내 WebView에서 로그인 중이므로 딥링크 대신 직접 페이지 전환
+              // 그 외: Deep Link 사용
               const appDeepLink = `com.memoway.app://login?lang=${lang}&session_ok=true`;
               const baseUrl = `${req.protocol}://${req.get('host')}`;
               
-              console.log('[KAKAO FLOW] redirect to (final):', appDeepLink);
+              console.log('[KAKAO FLOW] Platform:', platform);
+              console.log('[KAKAO FLOW] redirect to (final):', platform === 'android_webview' ? '/' : appDeepLink);
               console.log('[KAKAO LOGIN FLOW] ⚠️  중요: 이 엔드포인트는 HTML을 반환합니다. 서버 레벨에서 추가 redirect를 하지 않습니다.');
               
-              // ⚠️ 무한 루프 방지: 서버 레벨에서는 절대 res.redirect를 사용하지 않음
+              // android_webview: 앱 내 WebView에서 로그인 중이므로 딥링크 대신 직접 홈으로 리다이렉트
+              // 이렇게 하면 세션 쿠키가 동일한 WebView 인스턴스에서 유지됨
+              if (platform === 'android_webview') {
+                console.log('[KAKAO LOGIN FLOW] ✅ android_webview 플랫폼 - 앱 내 WebView에서 직접 홈으로 리다이렉트');
+                // 서버 레벨 리다이렉트로 직접 홈으로 이동 (세션 쿠키가 WebView에서 유지됨)
+                return res.redirect(`/?lang=${lang}&login_success=true`);
+              }
+              
+              // ⚠️ 무한 루프 방지: 서버 레벨에서는 절대 res.redirect를 사용하지 않음 (외부 브라우저용)
               // HTML만 반환하고 JavaScript로 딥링크 이동
               res.send(`
       <!DOCTYPE html>

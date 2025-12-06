@@ -124,7 +124,8 @@ export default function KakaoCallback() {
         console.log('[KAKAO LOGIN FLOW] ✅ Login successful:', {
           success: result.success,
           userId: result.user?.id,
-          sessionId: result.sessionId
+          sessionId: result.sessionId,
+          platform: result.platform
         });
         
         setStatus("success");
@@ -132,9 +133,19 @@ export default function KakaoCallback() {
         // 인증 상태 갱신
         await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
         
-        // 앱인 경우 딥링크로 리다이렉트
-        if (Capacitor.isNativePlatform()) {
-          const lang = result.lang || 'ko';
+        const lang = result.lang || 'ko';
+        const platform = result.platform || 'web';
+        
+        // 안드로이드 WebView에서 실행 중인 경우 딥링크 대신 직접 홈으로 이동
+        // (세션 쿠키가 동일한 WebView 인스턴스에서 유지됨)
+        if (Capacitor.isNativePlatform() && platform === 'android_webview') {
+          console.log('[KAKAO LOGIN FLOW] Android WebView detected - redirecting directly to home');
+          setTimeout(() => {
+            window.location.href = `/?lang=${lang}&login_success=true`;
+          }, 500);
+        } else if (Capacitor.isNativePlatform()) {
+          // 네이티브 앱이지만 WebView가 아닌 경우 (외부 브라우저에서 열린 경우)
+          // 딥링크로 리다이렉트
           const deepLink = `com.memoway.app://login?success=true&lang=${lang}&session_ok=true`;
           
           console.log('[KAKAO LOGIN FLOW] Redirecting to app via Deep Link:', deepLink);
@@ -145,7 +156,6 @@ export default function KakaoCallback() {
           }, 1000);
         } else {
           // 웹인 경우 홈으로 리다이렉트
-          const lang = result.lang || 'ko';
           console.log('[KAKAO LOGIN FLOW] Redirecting to home (Web)');
           setTimeout(() => {
             setLocation(`/?lang=${lang}`);

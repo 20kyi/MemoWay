@@ -404,16 +404,28 @@ function Router() {
     }
   }, [setLanguage, queryClient, isAuthenticated, isLoading, user]);
 
-  // Check for language parameter in URL and set language (web)
+  // Check for language parameter and login_success in URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const langParam = params.get('lang');
+    const loginSuccess = params.get('login_success');
+    
     if (langParam && ['ko', 'en', 'zh', 'ja'].includes(langParam)) {
       setLanguage(langParam as Language);
-      // Clean up URL parameter
+    }
+    
+    // 안드로이드 WebView에서 카카오 로그인 성공 후 리다이렉트된 경우
+    if (loginSuccess === 'true') {
+      console.log('[ANDROID WEBVIEW LOGIN] Login success detected, refreshing auth state...');
+      // 인증 상태 갱신
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    }
+    
+    // Clean up URL parameters
+    if (langParam || loginSuccess) {
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [setLanguage]);
+  }, [setLanguage, queryClient]);
 
   // 로그인 후 데이터 미리 가져오기 (prefetch)로 로딩 시간 단축
   useEffect(() => {
