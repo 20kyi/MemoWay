@@ -156,7 +156,7 @@ export function MemoFormSheet({
   const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
   const [deletedPhotoIds, setDeletedPhotoIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false); // 저장 중 상태 관리
-  const buildingNameInputRef = useRef<HTMLInputElement>(null);
+  const contentInputRef = useRef<HTMLTextAreaElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -221,15 +221,18 @@ export function MemoFormSheet({
     }
   }, [open, isFormInitialized, initialData, form]);
 
-  // 모바일에서 새 메모 창이 열릴 때 건물명 입력 필드에 자동 포커스
+  // 모바일에서 새 메모 창이 열릴 때 메모 내용 입력 필드에 자동 포커스
   useEffect(() => {
     if (open && !editMode) {
       // Sheet가 완전히 열린 후 포커스 설정 (모바일에서 딜레이 필요)
       const focusTimer = setTimeout(() => {
-        if (buildingNameInputRef.current) {
-          buildingNameInputRef.current.focus();
-          // 모바일에서 키보드가 올라오도록 스크롤
-          buildingNameInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (contentInputRef.current) {
+          // 포커스 설정 시 preventScroll: true 옵션을 사용하여 브라우저의 자동 스크롤 방지
+          // 대신 scrollIntoView로 제어하거나, 상단 헤더가 보이도록 유지
+          contentInputRef.current.focus({ preventScroll: true });
+          
+          // 요소가 화면에 보이도록 부드럽게 스크롤 (필요한 경우)
+          // contentInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       }, 300); // Sheet 애니메이션 완료 후 포커스
 
@@ -561,16 +564,9 @@ export function MemoFormSheet({
                     <FormControl>
                       <Input 
                         {...field} 
-                        ref={(e) => {
-                          field.ref(e);
-                          if (buildingNameInputRef) {
-                            (buildingNameInputRef as React.MutableRefObject<HTMLInputElement | null>).current = e;
-                          }
-                        }}
                         placeholder={t.memoForm.buildingNamePlaceholder} 
                         className="text-sm h-11 border-indigo-200 focus:border-sky-500 focus:ring-sky-500" 
                         data-testid="input-building-name"
-                        autoFocus={!editMode}
                       />
                     </FormControl>
                     <FormMessage />
@@ -642,6 +638,10 @@ export function MemoFormSheet({
                     <FormControl>
                       <Textarea 
                         {...field} 
+                        ref={(e) => {
+                          field.ref(e);
+                          contentInputRef.current = e;
+                        }}
                         placeholder={t.memoForm.contentPlaceholder} 
                         className="min-h-24 sm:min-h-28 resize-none text-sm border-indigo-200 focus:border-sky-500 focus:ring-sky-500"
                         data-testid="input-memo-content"
