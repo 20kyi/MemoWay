@@ -21,7 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Search, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, Lock, Unlock, Edit, Trash2, Plus, Save } from "lucide-react";
+import { Search, X, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Dumbbell, Briefcase, Filter, Users, Lock, Unlock, Edit, Trash2, Plus, Save, Star } from "lucide-react";
 import { loadKakaoMaps } from "@/lib/kakao-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -421,6 +421,11 @@ function MapViewComponent({
   const filteredMemos = useMemo(() => {
     let filtered = memos;
 
+    // Filter by rating
+    if (minRating > 0) {
+      filtered = filtered.filter(memo => (memo.rating || 0) >= minRating);
+    }
+
     // Filter by marker icon
     if (!selectedMarkerIcons.includes("all")) {
       filtered = filtered.filter(memo => selectedMarkerIcons.includes(memo.markerIcon));
@@ -440,7 +445,7 @@ function MapViewComponent({
     }
 
     return filtered;
-  }, [memos, selectedMarkerIcons, selectedGroupIds]);
+  }, [memos, selectedMarkerIcons, selectedGroupIds, minRating]);
 
   // Cleanup search markers when component unmounts
   useEffect(() => {
@@ -2714,42 +2719,86 @@ function MapViewComponent({
               <DialogHeader>
                 <DialogTitle>{t.common.markerFilter}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3 py-4 max-h-96 overflow-y-auto">
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <Checkbox
-                    checked={selectedMarkerIcons.includes("all")}
-                    onCheckedChange={() => {
-                      onMarkerIconsChange?.(["all"]);
-                    }}
-                    data-testid="checkbox-marker-icon-all"
-                  />
-                  <div className="flex items-center flex-1">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    <span>{t.categories.all}</span>
+              <div className="space-y-6 overflow-y-auto p-1">
+                {/* Rating Filter */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-muted-foreground">{t.common.minRating}</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 px-2 text-xs"
+                      onClick={() => setMinRating(0)}
+                      disabled={minRating === 0}
+                    >
+                      {t.common.resetFilter}
+                    </Button>
                   </div>
-                </label>
-                {Object.entries(MARKER_ICON_COMPONENTS).map(([icon, IconComponent]) => (
-                  <label key={icon} className="flex items-center space-x-3 cursor-pointer">
-                    <Checkbox
-                      checked={selectedMarkerIcons.includes(icon)}
-                      onCheckedChange={() => {
-                        if (selectedMarkerIcons.includes("all")) {
-                          onMarkerIconsChange?.([icon]);
-                        } else if (selectedMarkerIcons.includes(icon)) {
-                          const newSelection = selectedMarkerIcons.filter(i => i !== icon);
-                          onMarkerIconsChange?.(newSelection.length === 0 ? ["all"] : newSelection);
-                        } else {
-                          onMarkerIconsChange?.([...selectedMarkerIcons, icon]);
-                        }
-                      }}
-                      data-testid={`checkbox-marker-icon-${icon}`}
-                    />
-                    <div className="flex items-center flex-1">
-                      <IconComponent className="h-4 w-4 mr-2" />
-                      <span>{t.categories[icon as keyof typeof t.categories]}</span>
-                    </div>
-                  </label>
-                ))}
+                  <div className="flex items-center justify-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setMinRating(star === minRating ? 0 : star)}
+                        className="focus:outline-none transition-transform active:scale-95"
+                      >
+                        <Star
+                          className={`h-8 w-8 ${
+                            star <= minRating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-muted-foreground/30"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground">
+                    {minRating > 0 
+                      ? t.common.ratingAbove.replace("{rating}", minRating.toString())
+                      : t.common.showAllResults}
+                  </p>
+                </div>
+
+                {/* Marker Icon Filter */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-muted-foreground">{t.common.markerFilter}</h4>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    <label className="flex items-center space-x-3 cursor-pointer p-2 rounded-md hover:bg-muted/50 transition-colors">
+                      <Checkbox
+                        checked={selectedMarkerIcons.includes("all")}
+                        onCheckedChange={() => {
+                          onMarkerIconsChange?.(["all"]);
+                        }}
+                        data-testid="checkbox-marker-icon-all"
+                      />
+                      <div className="flex items-center flex-1">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        <span>{t.categories.all}</span>
+                      </div>
+                    </label>
+                    {Object.entries(MARKER_ICON_COMPONENTS).map(([icon, IconComponent]) => (
+                      <label key={icon} className="flex items-center space-x-3 cursor-pointer p-2 rounded-md hover:bg-muted/50 transition-colors">
+                        <Checkbox
+                          checked={selectedMarkerIcons.includes(icon)}
+                          onCheckedChange={() => {
+                            if (selectedMarkerIcons.includes("all")) {
+                              onMarkerIconsChange?.([icon]);
+                            } else if (selectedMarkerIcons.includes(icon)) {
+                              const newSelection = selectedMarkerIcons.filter(i => i !== icon);
+                              onMarkerIconsChange?.(newSelection.length === 0 ? ["all"] : newSelection);
+                            } else {
+                              onMarkerIconsChange?.([...selectedMarkerIcons, icon]);
+                            }
+                          }}
+                          data-testid={`checkbox-marker-icon-${icon}`}
+                        />
+                        <div className="flex items-center flex-1">
+                          <IconComponent className="h-4 w-4 mr-2" />
+                          <span>{t.categories[icon as keyof typeof t.categories]}</span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
@@ -2760,59 +2809,103 @@ function MapViewComponent({
               <DialogHeader>
                 <DialogTitle>{t.common.groupFilter}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3 py-4 max-h-96 overflow-y-auto">
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <Checkbox
-                    checked={selectedGroupIds.includes("all")}
-                    onCheckedChange={() => {
-                      onGroupIdsChange?.(["all"]);
-                    }}
-                    data-testid="checkbox-group-all"
-                  />
-                  <span>{t.common.allGroups}</span>
-                </label>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <Checkbox
-                    checked={selectedGroupIds.includes("personal")}
-                    onCheckedChange={() => {
-                      if (selectedGroupIds.includes("all")) {
-                        onGroupIdsChange?.(["personal"]);
-                      } else if (selectedGroupIds.includes("personal")) {
-                        const newSelection = selectedGroupIds.filter(id => id !== "personal");
-                        onGroupIdsChange?.(newSelection.length === 0 ? ["all"] : newSelection);
-                      } else {
-                        onGroupIdsChange?.([...selectedGroupIds, "personal"]);
-                      }
-                    }}
-                    data-testid="checkbox-group-personal"
-                  />
-                  <span>{t.common.personalMemo}</span>
-                </label>
-                {groups.filter(group => group.name !== "개인 메모").map((group) => (
-                  <label key={group.id} className="flex items-center space-x-3 cursor-pointer">
-                    <Checkbox
-                      checked={selectedGroupIds.includes(group.id)}
-                      onCheckedChange={() => {
-                        if (selectedGroupIds.includes("all")) {
-                          onGroupIdsChange?.([group.id]);
-                        } else if (selectedGroupIds.includes(group.id)) {
-                          const newSelection = selectedGroupIds.filter(id => id !== group.id);
-                          onGroupIdsChange?.(newSelection.length === 0 ? ["all"] : newSelection);
-                        } else {
-                          onGroupIdsChange?.([...selectedGroupIds, group.id]);
-                        }
-                      }}
-                      data-testid={`checkbox-group-${group.id}`}
-                    />
-                    <div className="flex items-center flex-1">
-                      <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0 mr-2" 
-                        style={{ backgroundColor: group.color }}
+              <div className="space-y-6 overflow-y-auto p-1">
+                {/* Rating Filter (Shared) */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-muted-foreground">{t.common.minRating}</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 px-2 text-xs"
+                      onClick={() => setMinRating(0)}
+                      disabled={minRating === 0}
+                    >
+                      {t.common.resetFilter}
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setMinRating(star === minRating ? 0 : star)}
+                        className="focus:outline-none transition-transform active:scale-95"
+                      >
+                        <Star
+                          className={`h-8 w-8 ${
+                            star <= minRating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-muted-foreground/30"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground">
+                    {minRating > 0 
+                      ? t.common.ratingAbove.replace("{rating}", minRating.toString())
+                      : t.common.showAllResults}
+                  </p>
+                </div>
+
+                {/* Group List */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-muted-foreground">{t.common.groupFilter}</h4>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    <label className="flex items-center space-x-3 cursor-pointer p-2 rounded-md hover:bg-muted/50 transition-colors">
+                      <Checkbox
+                        checked={selectedGroupIds.includes("all")}
+                        onCheckedChange={() => {
+                          onGroupIdsChange?.(["all"]);
+                        }}
+                        data-testid="checkbox-group-all"
                       />
-                      <span>{group.name}</span>
-                    </div>
-                  </label>
-                ))}
+                      <span>{t.common.allGroups}</span>
+                    </label>
+                    <label className="flex items-center space-x-3 cursor-pointer p-2 rounded-md hover:bg-muted/50 transition-colors">
+                      <Checkbox
+                        checked={selectedGroupIds.includes("personal")}
+                        onCheckedChange={() => {
+                          if (selectedGroupIds.includes("all")) {
+                            onGroupIdsChange?.(["personal"]);
+                          } else if (selectedGroupIds.includes("personal")) {
+                            const newSelection = selectedGroupIds.filter(id => id !== "personal");
+                            onGroupIdsChange?.(newSelection.length === 0 ? ["all"] : newSelection);
+                          } else {
+                            onGroupIdsChange?.([...selectedGroupIds, "personal"]);
+                          }
+                        }}
+                        data-testid="checkbox-group-personal"
+                      />
+                      <span>{t.common.personalMemo}</span>
+                    </label>
+                    {groups.filter(group => group.name !== "개인 메모").map((group) => (
+                      <label key={group.id} className="flex items-center space-x-3 cursor-pointer p-2 rounded-md hover:bg-muted/50 transition-colors">
+                        <Checkbox
+                          checked={selectedGroupIds.includes(group.id)}
+                          onCheckedChange={() => {
+                            if (selectedGroupIds.includes("all")) {
+                              onGroupIdsChange?.([group.id]);
+                            } else if (selectedGroupIds.includes(group.id)) {
+                              const newSelection = selectedGroupIds.filter(id => id !== group.id);
+                              onGroupIdsChange?.(newSelection.length === 0 ? ["all"] : newSelection);
+                            } else {
+                              onGroupIdsChange?.([...selectedGroupIds, group.id]);
+                            }
+                          }}
+                          data-testid={`checkbox-group-${group.id}`}
+                        />
+                        <div className="flex items-center flex-1">
+                          <div 
+                            className="w-3 h-3 rounded-full flex-shrink-0 mr-2" 
+                            style={{ backgroundColor: group.color }}
+                          />
+                          <span>{group.name}</span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
             </DialogContent>
           </Dialog>

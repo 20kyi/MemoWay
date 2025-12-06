@@ -15,7 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Search, X, Filter, Users, User, Lock, Unlock, Edit, Trash2, Plus, MapPin, Save } from "lucide-react";
+import { Search, X, Filter, Users, User, Lock, Unlock, Edit, Trash2, Plus, MapPin, Save, Star } from "lucide-react";
 import { loadGoogleMaps } from "@/lib/google-maps";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/language-context";
@@ -89,6 +89,7 @@ function GoogleMapViewComponent({
   const [isMapLocked, setIsMapLocked] = useState(false);
   const [isMarkerFilterOpen, setIsMarkerFilterOpen] = useState(false);
   const [isGroupFilterOpen, setIsGroupFilterOpen] = useState(false);
+  const [minRating, setMinRating] = useState(0);
   const [mapError, setMapError] = useState<string | null>(null);
   const errorToastShownRef = useRef(false); // 토스트 중복 표시 방지
   const isDraggingRef = useRef(false); // 드래그 상태 추적
@@ -489,9 +490,10 @@ function GoogleMapViewComponent({
       const iconMatch = selectedMarkerIcons.includes("all") || selectedMarkerIcons.includes(memo.markerIcon);
       const groupMatch = selectedGroupIds.includes("all") || 
                         (memo.groupId ? selectedGroupIds.includes(memo.groupId) : selectedGroupIds.includes("personal"));
-      return iconMatch && groupMatch;
+      const ratingMatch = (memo.rating || 0) >= minRating;
+      return iconMatch && groupMatch && ratingMatch;
     });
-  }, [memos, selectedMarkerIcons, selectedGroupIds]);
+  }, [memos, selectedMarkerIcons, selectedGroupIds, minRating]);
 
   // 위치별로 그룹화된 메모를 useMemo로 최적화
   const groupedMemos = useMemo(() => {
@@ -1081,9 +1083,51 @@ function GoogleMapViewComponent({
           <DialogHeader>
             <DialogTitle>{t.common.markerFilter}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 overflow-y-auto">
+          <div className="space-y-6 overflow-y-auto p-1">
+            {/* Rating Filter */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-muted-foreground">{t.common.minRating}</h4>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 px-2 text-xs"
+                  onClick={() => setMinRating(0)}
+                  disabled={minRating === 0}
+                >
+                  {t.common.resetFilter}
+                </Button>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setMinRating(star === minRating ? 0 : star)}
+                    className="focus:outline-none transition-transform active:scale-95"
+                  >
+                    <Star
+                      className={`h-8 w-8 ${
+                        star <= minRating
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-muted-foreground/30"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-center text-muted-foreground">
+                {minRating > 0 
+                  ? t.common.ratingAbove.replace("{rating}", minRating.toString())
+                  : t.common.showAllResults}
+              </p>
+            </div>
+
+            {/* Marker Icon Filter */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">{t.common.markerFilter}</h4>
+              <div className="grid grid-cols-2 gap-2">
             {["all", "default", "travel", "love", "food", "cafe", "shopping", "sport", "work"].map((icon) => (
-              <div key={icon} className="flex items-center space-x-2">
+              <div key={icon} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
                 <Checkbox
                   id={`marker-${icon}`}
                   checked={selectedMarkerIcons.includes(icon)}
@@ -1101,11 +1145,13 @@ function GoogleMapViewComponent({
                   }}
                   data-testid={`checkbox-marker-${icon}`}
                 />
-                <label htmlFor={`marker-${icon}`} className="cursor-pointer">
+                <label htmlFor={`marker-${icon}`} className="cursor-pointer text-sm flex-1">
                   {t.categories[icon as keyof typeof t.categories]}
                 </label>
               </div>
             ))}
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -1116,8 +1162,50 @@ function GoogleMapViewComponent({
           <DialogHeader>
             <DialogTitle>{t.common.groupFilter}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 overflow-y-auto">
-            <div className="flex items-center space-x-2">
+          <div className="space-y-6 overflow-y-auto p-1">
+            {/* Rating Filter (Shared) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-muted-foreground">{t.common.minRating}</h4>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 px-2 text-xs"
+                  onClick={() => setMinRating(0)}
+                  disabled={minRating === 0}
+                >
+                  {t.common.resetFilter}
+                </Button>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setMinRating(star === minRating ? 0 : star)}
+                    className="focus:outline-none transition-transform active:scale-95"
+                  >
+                    <Star
+                      className={`h-8 w-8 ${
+                        star <= minRating
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-muted-foreground/30"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-center text-muted-foreground">
+                {minRating > 0 
+                  ? t.common.ratingAbove.replace("{rating}", minRating.toString())
+                  : t.common.showAllResults}
+              </p>
+            </div>
+
+            {/* Group List */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">{t.common.groupFilter}</h4>
+              <div className="space-y-2">
+            <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
               <Checkbox
                 id="group-all"
                 checked={selectedGroupIds.includes("all")}
@@ -1128,11 +1216,11 @@ function GoogleMapViewComponent({
                 }}
                 data-testid="checkbox-group-all"
               />
-              <label htmlFor="group-all" className="cursor-pointer">
+              <label htmlFor="group-all" className="cursor-pointer text-sm flex-1">
                 {t.categories.all}
               </label>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
               <Checkbox
                 id="group-personal"
                 checked={selectedGroupIds.includes("personal")}
@@ -1146,12 +1234,12 @@ function GoogleMapViewComponent({
                 }}
                 data-testid="checkbox-group-personal"
               />
-              <label htmlFor="group-personal" className="cursor-pointer">
+              <label htmlFor="group-personal" className="cursor-pointer text-sm flex-1">
                 {t.common.personal}
               </label>
             </div>
             {groups.map((group) => (
-              <div key={group.id} className="flex items-center space-x-2">
+              <div key={group.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
                 <Checkbox
                   id={`group-${group.id}`}
                   checked={selectedGroupIds.includes(group.id)}
@@ -1165,12 +1253,14 @@ function GoogleMapViewComponent({
                   }}
                   data-testid={`checkbox-group-${group.id}`}
                 />
-                <label htmlFor={`group-${group.id}`} className="cursor-pointer flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: group.color }} />
+                <label htmlFor={`group-${group.id}`} className="cursor-pointer flex items-center gap-2 text-sm flex-1">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: group.color }} />
                   {group.name}
                 </label>
               </div>
             ))}
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

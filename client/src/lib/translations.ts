@@ -32,6 +32,9 @@ export const translations = {
       groupFilter: "그룹 필터",
       allGroups: "전체 그룹",
       showAllResults: "검색결과 전체 보기",
+      minRating: "최소 평점",
+      ratingAbove: "{rating}점 이상",
+      resetFilter: "필터 초기화",
     },
     // Categories
     categories: {
@@ -385,6 +388,9 @@ export const translations = {
       groupFilter: "Group Filter",
       allGroups: "All Groups",
       showAllResults: "Show All Results",
+      minRating: "Minimum Rating",
+      ratingAbove: "{rating} Stars & Up",
+      resetFilter: "Reset Filter",
     },
     // Categories
     categories: {
@@ -738,6 +744,9 @@ export const translations = {
       groupFilter: "组筛选",
       allGroups: "所有组",
       showAllResults: "显示所有结果",
+      minRating: "最低评分",
+      ratingAbove: "{rating}星及以上",
+      resetFilter: "重置筛选",
     },
     // Categories
     categories: {
@@ -1091,6 +1100,9 @@ export const translations = {
       groupFilter: "グループフィルター",
       allGroups: "すべてのグループ",
       showAllResults: "すべての結果を表示",
+      minRating: "最低評価",
+      ratingAbove: "{rating}点以上",
+      resetFilter: "フィルターをリセット",
     },
     // Categories
     categories: {
@@ -1444,6 +1456,9 @@ type Translation = {
     groupFilter: string;
     allGroups: string;
     showAllResults: string;
+    minRating: string;
+    ratingAbove: string;
+    resetFilter: string;
   };
   categories: {
     all: string;
