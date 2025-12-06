@@ -599,7 +599,12 @@ export function ProfileView({
       
       // Clear all client state
       try {
+        // 1. 인증 상태를 먼저 null로 설정 (UI 업데이트 및 쿼리 비활성화 유도)
+        // 이렇게 하면 useAuth를 사용하는 컴포넌트들이 즉시 '비로그인' 상태로 전환됨
         queryClient.setQueryData(['/api/auth/user'], null);
+        
+        // 2. 모든 쿼리 제거 (캐시 삭제) - 불필요한 refetch 방지
+        queryClient.removeQueries();
         queryClient.cancelQueries();
         queryClient.clear();
         
@@ -607,15 +612,35 @@ export function ProfileView({
         sessionStorage.clear();
         
         // Force clear cookie on client side too
-        document.cookie = "connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        const domains = [
+          window.location.hostname,
+          '.memoway-production.up.railway.app',
+          'memoway-production.up.railway.app',
+        ];
+        const paths = ['/', '/api'];
+        
+        domains.forEach(domain => {
+          paths.forEach(path => {
+            document.cookie = `connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`;
+            document.cookie = `connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`;
+          });
+        });
       } catch (e) {
         console.error("Client state cleanup error:", e);
+        // 최소한 인증 상태는 null로 설정 시도
+        try {
+          queryClient.setQueryData(['/api/auth/user'], null);
+        } catch (e2) {
+          console.error("Failed to set query data to null:", e2);
+        }
       }
       
+      // 오류 화면 방지를 위해 즉시 리다이렉트 (토스트는 사라지더라도 오류 화면보다 나음)
+      // 약간의 지연(50ms)만 둠
       setTimeout(() => {
         // Use replace to prevent back button and force reload
         window.location.replace('/?deleted=true');
-      }, 500);
+      }, 50);
       
     } catch (error: any) {
       console.error("[ProfileView] Account deletion error:", error);
