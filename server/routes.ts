@@ -858,14 +858,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "메모를 수정할 권한이 없습니다" });
       }
       
+      // ⚠️ 중요: groupId가 변경될 때 memberId도 업데이트해야 합니다
+      const isMovingToGroup = !existingMemo.groupId && updateData.groupId; // 개인 메모 → 그룹 메모
+      const isMovingFromGroup = existingMemo.groupId && !updateData.groupId; // 그룹 메모 → 개인 메모
+      const isChangingGroup = existingMemo.groupId && updateData.groupId && existingMemo.groupId !== updateData.groupId; // 그룹 A → 그룹 B
+      
+      if (isMovingToGroup || isChangingGroup) {
+        // 개인 메모를 그룹으로 옮기거나 그룹을 변경할 때
+        // 새로운 그룹 내의 사용자 멤버 ID를 찾아서 memberId를 업데이트
+        const newGroupMember = await storage.getMemberByUserAndGroup(userId, updateData.groupId!);
+        if (!newGroupMember) {
+          return res.status(403).json({ error: "해당 그룹의 멤버가 아닙니다" });
+        }
+        memoUpdate.memberId = newGroupMember.id;
+        console.log(`[API:PATCH /api/memos/:id] 메모를 그룹으로 이동: memberId ${existingMemo.memberId} → ${newGroupMember.id} (그룹: ${updateData.groupId})`);
+      } else if (isMovingFromGroup) {
+        // 그룹 메모를 개인 메모로 옮길 때
+        // 사용자의 개인 메모용 멤버 ID를 찾아서 memberId를 업데이트
+        const userGroups = await storage.getGroups(userId);
+        // 개인 메모용 멤버 찾기 (groupId가 null인 멤버 또는 "개인 메모" 그룹의 멤버)
+        let personalMember = null;
+        for (const group of userGroups) {
+          if (group.name === "개인 메모") {
+            personalMember = group.members.find(m => m.userId === userId);
+            if (personalMember) break;
+          }
+        }
+        // 개인 메모 그룹을 찾지 못한 경우, 사용자의 첫 번째 멤버 사용
+        if (!personalMember && userGroups.length > 0) {
+          personalMember = userGroups[0].members.find(m => m.userId === userId);
+        }
+        if (!personalMember) {
+          return res.status(404).json({ error: "개인 메모용 멤버를 찾을 수 없습니다" });
+        }
+        memoUpdate.memberId = personalMember.id;
+        console.log(`[API:PATCH /api/memos/:id] 메모를 개인 메모로 이동: memberId ${existingMemo.memberId} → ${personalMember.id}`);
+      }
+      
       // Set editorMemberId to the current user's member ID in the memo's group
-      if (existingMemo.groupId) {
-        if (!currentMember) {
-          currentMember = await storage.getMemberByUserAndGroup(userId, existingMemo.groupId);
+      if (updateData.groupId) {
+        // 업데이트 후 그룹이 있는 경우
+        const targetGroupMember = await storage.getMemberByUserAndGroup(userId, updateData.groupId);
+        if (targetGroupMember) {
+          memoUpdate.editorMemberId = targetGroupMember.id;
         }
-        if (currentMember) {
-          memoUpdate.editorMemberId = currentMember.id;
-        }
+      } else if (existingMemo.groupId) {
+        // 그룹에서 개인 메모로 옮기는 경우 editorMemberId 제거
+        memoUpdate.editorMemberId = null;
       }
       
       await storage.updateMemo(req.params.id, memoUpdate);
