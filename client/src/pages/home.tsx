@@ -830,6 +830,7 @@ export default function Home() {
               }
               onEditMemo={handleEditMemo}
               onDeleteMemo={handleDeleteMemo}
+              onCopyMemo={handleCopyMemo}
               onMemoClick={handleMarkerClick}
               onSetMainMemo={handleSetMainMemo}
               onBulkCopy={handleBulkCopy}
@@ -1076,11 +1077,8 @@ export default function Home() {
             setSelectedLocation(location);
             setMemoFormOpen(true);
           }}
-          onCopy={
-            selectedMemo && selectedMemo.member.userId !== (user as any)?.id && selectedMemo.groupId
-              ? handleCopyMemo
-              : undefined
-          }
+          onCopy={handleCopyMemo}
+          currentUserId={(user as any)?.id}
       />
 
       <ExitDialog open={showExitDialog} onOpenChange={setShowExitDialog} />

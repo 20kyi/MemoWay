@@ -28,6 +28,7 @@ interface MemoDetailSheetProps {
   onNavigateToLocation?: (lat: number, lng: number) => void;
   onAddNewMemo?: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
   onCopy?: (memoId: string) => void;
+  currentUserId?: string; // ⚠️ 추가: 현재 사용자 ID (다른 사용자 메모 판별용)
 }
 
 export function MemoDetailSheet({
@@ -39,6 +40,7 @@ export function MemoDetailSheet({
   onNavigateToLocation,
   onAddNewMemo,
   onCopy,
+  currentUserId,
 }: MemoDetailSheetProps) {
   const { t, language } = useLanguage();
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -345,7 +347,7 @@ export function MemoDetailSheet({
             </div>
 
             {/* 하단 고정 영역 - 액션 버튼들 */}
-            {(onAddNewMemo || onEdit || onDelete) && (
+            {(onAddNewMemo || onEdit || (currentUserId && memo.member.userId !== currentUserId ? onCopy : onDelete)) && (
               <div className="mt-auto flex-shrink-0 px-4 sm:px-5 py-4 border-t border-indigo-200/50 bg-gradient-to-br from-indigo-50/30 to-white">
                 <div className="flex flex-nowrap gap-1.5 sm:gap-3">
                   {onAddNewMemo && (
@@ -368,52 +370,75 @@ export function MemoDetailSheet({
                       <span className="whitespace-nowrap sm:hidden">{t.common.add}</span>
                     </Button>
                   )}
-                  {onCopy && (
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      onClick={() => {
-                        onCopy(memo.id);
-                        onOpenChange(false);
-                      }}
-                      className="h-11 sm:h-12 text-xs sm:text-base font-medium border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
-                      data-testid="button-copy-memo"
-                    >
-                      <Copy className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                      <span className="whitespace-nowrap">{t.common.copy || "복사"}</span>
-                    </Button>
-                  )}
-                  {onEdit && (
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      onClick={() => {
-                        onEdit(memo.id);
-                        onOpenChange(false);
-                      }}
-                      className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
-                      data-testid="button-edit-memo"
-                    >
-                      <Edit className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                      <span className="whitespace-nowrap">{t.common.edit}</span>
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      size="lg"
-                      variant="destructive"
-                      onClick={() => {
-                        if (confirm(t.memoDetail.confirmDelete)) {
-                          onDelete(memo.id);
+                  {/* ⚠️ 중요: 다른 사용자가 쓴 메모인지 확인 */}
+                  {currentUserId && memo.member.userId !== currentUserId ? (
+                    // 다른 사용자가 쓴 메모: 복사 버튼만 표시
+                    onCopy && (
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={() => {
+                          onCopy(memo.id);
                           onOpenChange(false);
-                        }
-                      }}
-                      className="h-11 sm:h-12 text-xs sm:text-base font-medium bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
-                      data-testid="button-delete-memo"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                      <span className="whitespace-nowrap">{t.common.delete}</span>
-                    </Button>
+                        }}
+                        className="h-11 sm:h-12 text-xs sm:text-base font-medium border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                        data-testid="button-copy-memo"
+                      >
+                        <Copy className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                        <span className="whitespace-nowrap">{t.common.copy || "복사"}</span>
+                      </Button>
+                    )
+                  ) : (
+                    // 내가 쓴 메모: 편집 및 삭제 버튼 표시
+                    <>
+                      {onCopy && (
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          onClick={() => {
+                            onCopy(memo.id);
+                            onOpenChange(false);
+                          }}
+                          className="h-11 sm:h-12 text-xs sm:text-base font-medium border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                          data-testid="button-copy-memo"
+                        >
+                          <Copy className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{t.common.copy || "복사"}</span>
+                        </Button>
+                      )}
+                      {onEdit && (
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          onClick={() => {
+                            onEdit(memo.id);
+                            onOpenChange(false);
+                          }}
+                          className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                          data-testid="button-edit-memo"
+                        >
+                          <Edit className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{t.common.edit}</span>
+                        </Button>
+                      )}
+                      {onDelete && (
+                        <Button
+                          size="lg"
+                          variant="destructive"
+                          onClick={() => {
+                            if (confirm(t.memoDetail.confirmDelete)) {
+                              onDelete(memo.id);
+                              onOpenChange(false);
+                            }
+                          }}
+                          className="h-11 sm:h-12 text-xs sm:text-base font-medium bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                          data-testid="button-delete-memo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{t.common.delete}</span>
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

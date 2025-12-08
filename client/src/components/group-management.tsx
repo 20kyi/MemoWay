@@ -97,9 +97,10 @@ interface GroupManagementProps {
   onMemoClick?: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
   onBulkCopy?: (memoIds: string[]) => void;
+  onCopyMemo?: (memoId: string) => void; // ⚠️ 추가: 개별 메모 복사 핸들러
 }
 
-export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, onUpdateMemberPermissions, myMemberIds, personalMemberId, userId, userPoints = 0, isLoading = false, onEditMemo, onDeleteMemo, onMemoClick, onSetMainMemo, onBulkCopy }: GroupManagementProps) {
+export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGroup, onJoinGroup, onLeaveGroup, onCopyGroup, onDeleteGroup, onRemoveMember, onTransferLeadership, onUpdateMemberPermissions, myMemberIds, personalMemberId, userId, userPoints = 0, isLoading = false, onEditMemo, onDeleteMemo, onMemoClick, onSetMainMemo, onBulkCopy, onCopyMemo }: GroupManagementProps) {
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -347,6 +348,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
               groups={[]}
               onEdit={onEditMemo}
               onDelete={onDeleteMemo}
+              onCopy={onCopyMemo}
               onMemoClick={onMemoClick}
               onSetMainMemo={onSetMainMemo}
               onBulkCopy={onBulkCopy}

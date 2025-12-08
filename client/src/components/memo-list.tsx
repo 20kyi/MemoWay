@@ -37,6 +37,7 @@ interface MemoListProps {
   onDelete: (memoId: string) => void;
   onBulkDelete?: (memoIds: string[]) => void;
   onBulkCopy?: (memoIds: string[]) => void;
+  onCopy?: (memoId: string) => void; // ⚠️ 추가: 개별 메모 복사 핸들러
   onMemoClick: (memoId: string) => void;
   onSetMainMemo?: (memoId: string) => void;
   onMoveToGroup?: (memoIds: string[], groupId: string) => void;
@@ -59,7 +60,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onBulkCopy, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery }: MemoListProps) {
+export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onBulkCopy, onCopy, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -619,30 +620,52 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                     />
                   </Button>
                 )}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="rounded-full text-muted-foreground hover:text-foreground"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(memo.id);
-                  }}
-                  data-testid={`button-edit-${memo.id}`}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="rounded-full text-muted-foreground hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(memo.id);
-                  }}
-                  data-testid={`button-delete-${memo.id}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {/* ⚠️ 중요: 다른 사용자가 쓴 메모인지 확인 */}
+                {currentUserId && memo.member.userId !== currentUserId ? (
+                  // 다른 사용자가 쓴 메모: 복사 버튼만 표시
+                  onCopy && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="rounded-full text-muted-foreground hover:text-emerald-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onCopy(memo.id);
+                      }}
+                      data-testid={`button-copy-${memo.id}`}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  )
+                ) : (
+                  // 내가 쓴 메모: 편집 및 삭제 버튼 표시
+                  <>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="rounded-full text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(memo.id);
+                      }}
+                      data-testid={`button-edit-${memo.id}`}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="rounded-full text-muted-foreground hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(memo.id);
+                      }}
+                      data-testid={`button-delete-${memo.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             )}
           </CardFooter>
