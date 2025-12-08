@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit, Search, X, DoorOpen, Coins, AlertTriangle, ArrowLeft, FileText } from "lucide-react";
@@ -1059,23 +1058,18 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
                   const canRemove = isCurrentUserLeader && !isCurrentUser && onRemoveMember;
                   const canTransfer = isCurrentUserLeader && !isLeader && onTransferLeadership;
 
+                  const isAdmin = !isLeader && member.canEditGroupMemos === true;
+
                   return (
                     <div key={member.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-2 sm:p-3 rounded-lg border hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
-                        <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
-                          <AvatarFallback className="text-xs sm:text-sm font-medium bg-muted">
-                            {member.name[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium flex-1">{member.name}</span>
+                        <span className="text-sm font-medium flex-1">
+                          {isLeader && <span className="text-yellow-600 dark:text-yellow-400 font-semibold mr-1">{t.groups.leader}</span>}
+                          {isAdmin && <span className="text-blue-600 dark:text-blue-400 font-semibold mr-1">관리자</span>}
+                          {member.name}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
-                        {isLeader && (
-                          <Badge variant="default" className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">
-                            <Crown className="h-3 w-3 mr-1" />
-                            {t.groups.leader}
-                          </Badge>
-                        )}
                         {!isLeader && isCurrentUserLeader && onUpdateMemberPermissions && (
                           <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md">
                             <Checkbox
