@@ -780,6 +780,7 @@ export default function Home() {
               onSetMainMemo={handleSetMainMemo}
               onMoveToGroup={handleMoveToGroup}
               onDeleteSavedMap={handleDeleteSavedMap}
+              userPoints={(user as any)?.points ?? 0}
             />
         )}
         {activeTab === "groups" && (
@@ -1080,6 +1081,7 @@ export default function Home() {
           onCopy={handleCopyMemo}
           currentUserId={(user as any)?.id}
           groups={filteredGroups}
+          userPoints={(user as any)?.points ?? 0}
         />
 
       <ExitDialog open={showExitDialog} onOpenChange={setShowExitDialog} />

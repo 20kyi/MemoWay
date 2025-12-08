@@ -357,6 +357,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
               showAuthorTab={true}
               currentUserId={userId}
               externalSearchQuery={groupMemoSearchQuery}
+              userPoints={userPoints}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full p-8 text-center">

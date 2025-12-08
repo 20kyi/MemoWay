@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check, Calendar, Copy } from "lucide-react";
+import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check, Calendar, Copy, Coins, AlertTriangle } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
@@ -58,6 +58,7 @@ interface MemoListProps {
   showAuthorTab?: boolean;
   currentUserId?: string;
   externalSearchQuery?: string; // 외부에서 전달받는 검색어 (그룹 메모 뷰용)
+  userPoints?: number; // 사용자 포인트 (타인 메모 복사 확인 팝업용)
 }
 
 const categoryIcons: Record<MarkerIconType, any> = {
@@ -71,7 +72,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onBulkCopy, onCopy, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery }: MemoListProps) {
+export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onBulkCopy, onCopy, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery, userPoints = 0 }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -811,30 +812,49 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
 
       {/* 타인 메모 복사 확인 다이얼로그 */}
       <AlertDialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
-        <AlertDialogContent
-          data-testid="dialog-copy-memo"
-          className="max-w-sm rounded-3xl border-0 bg-gradient-to-br from-white/95 to-white/90 dark:from-zinc-900/95 dark:to-zinc-900/90 backdrop-blur-xl shadow-2xl"
-        >
-          <AlertDialogHeader className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
-              <Copy className="h-8 w-8 text-white" />
-            </div>
-            <AlertDialogTitle className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+        <AlertDialogContent className="sm:max-w-md w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-[calc(100%-2rem)] mx-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-xl sm:rounded-2xl p-4 sm:p-6">
+          <AlertDialogHeader className="flex-shrink-0">
+            <AlertDialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Copy className="h-5 w-5 text-primary" />
               {t.common.copy || "복사"}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-base text-gray-600 dark:text-gray-400 px-4">
-              {t.memoDetail.confirmCopy}
+            <AlertDialogDescription className="space-y-3 pt-2 overflow-y-auto flex-1 max-h-[60vh] pr-1 sm:pr-2">
+              <p>
+                {t.memoDetail.confirmCopy}
+              </p>
+              
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{t.groups.memoCount}</span>
+                  <span className="font-semibold">1개</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{t.groups.requiredPoints}</span>
+                  <span className="font-semibold text-amber-600 dark:text-amber-400">
+                    {(10).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm border-t pt-2">
+                  <span className="text-muted-foreground">{t.groups.currentPoints}</span>
+                  <span className="font-semibold text-primary">
+                    {userPoints.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {10 > userPoints && (
+                <div className="flex items-start gap-2 bg-destructive/10 text-destructive rounded-lg p-3">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm">
+                    {t.groups.insufficientPoints} {(10).toLocaleString()}
+                  </p>
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-3 sm:gap-3 mt-2">
-            <AlertDialogCancel
-              data-testid="button-cancel-copy"
-              className="flex-1 h-12 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-zinc-800/80 hover:bg-gray-50 dark:hover:bg-zinc-700 font-semibold text-gray-700 dark:text-gray-300 shadow-md hover:shadow-lg transition-all duration-200 mt-0"
-            >
-              {t.common.cancel}
-            </AlertDialogCancel>
+          <AlertDialogFooter className="flex-shrink-0 pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
+            <AlertDialogCancel data-testid="button-cancel-copy">{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
-              data-testid="button-confirm-copy"
               onClick={() => {
                 if (pendingCopyMemoId && onCopy) {
                   onCopy(pendingCopyMemoId);
@@ -842,9 +862,12 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                 setCopyDialogOpen(false);
                 setPendingCopyMemoId(null);
               }}
-              className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              disabled={10 > userPoints}
+              data-testid="button-confirm-copy"
+              className="bg-primary hover:bg-primary/90"
             >
-              {t.common.copy || "복사"}
+              <Coins className="h-4 w-4 mr-2" />
+              {t.groups.confirmCopy || t.common.copy || "복사"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
