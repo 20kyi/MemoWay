@@ -2404,7 +2404,7 @@ function MapViewComponent({
             <div className="flex flex-col gap-2">
               <div className={isCoupleTheme 
                 ? "search-bar-couple-theme flex gap-2 p-2"
-                : "flex gap-2 p-2 mt-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
+                : "flex gap-2 p-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
               }>
                 <div className="relative flex-1">
                   <Input
