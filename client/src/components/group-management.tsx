@@ -1033,7 +1033,27 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-2 overflow-y-auto flex-1 pr-2">
-                {group.members.map(member => {
+                {group.members
+                  .sort((a, b) => {
+                    // 1. 방장이 최상단
+                    const aIsLeader = a.role === 'leader';
+                    const bIsLeader = b.role === 'leader';
+                    if (aIsLeader && !bIsLeader) return -1;
+                    if (!aIsLeader && bIsLeader) return 1;
+                    
+                    // 2. 관리자 (canEditGroupMemos가 true인 멤버)가 그 다음
+                    // 둘 다 방장이 아니고, 둘 다 일반 유저가 아닌 경우
+                    if (!aIsLeader && !bIsLeader) {
+                      const aIsAdmin = a.canEditGroupMemos === true;
+                      const bIsAdmin = b.canEditGroupMemos === true;
+                      if (aIsAdmin && !bIsAdmin) return -1;
+                      if (!aIsAdmin && bIsAdmin) return 1;
+                    }
+                    
+                    // 3. 같은 등급 내에서는 이름 순서 유지
+                    return 0;
+                  })
+                  .map(member => {
                   const isLeader = member.role === 'leader';
                   const isCurrentUser = member.userId === userId;
                   const canRemove = isCurrentUserLeader && !isCurrentUser && onRemoveMember;
