@@ -2400,11 +2400,11 @@ function MapViewComponent({
           )}
 
           {/* 주소 검색 바 */}
-          <div className={`absolute ${isCoupleTheme ? 'top-[5.5rem] sm:top-[6.5rem]' : 'top-4'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
+          <div className={`absolute ${isCoupleTheme ? 'top-[5.5rem] sm:top-[6.5rem]' : 'top-0'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
             <div className="flex flex-col gap-2">
               <div className={isCoupleTheme 
                 ? "search-bar-couple-theme flex gap-2 p-2"
-                : "flex gap-2 p-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
+                : "flex gap-2 p-2 mt-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
               }>
                 <div className="relative flex-1">
                   <Input
