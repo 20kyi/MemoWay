@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +89,8 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pressStartTimeRef = useRef<number>(0);
   const justEnteredSelectionModeRef = useRef<boolean>(false);
+  const pressStartPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const isScrollingRef = useRef<boolean>(false);
 
   // 관리자 권한 체크 함수 (관리자 또는 방장)
   const isAdminForMemo = useCallback((memo: MemoWithDetails) => {
@@ -118,6 +120,47 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
   }, [currentUserId, groups]);
 
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
+
+  // 스크롤 컨테이너 참조
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 스크롤 감지: 스크롤 중에는 선택 모드 활성화 방지
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    let scrollTimeout: NodeJS.Timeout | null = null;
+
+    const handleScroll = () => {
+      // 스크롤 중임을 표시
+      isScrollingRef.current = true;
+      
+      // 스크롤 중에는 모든 긴 터치 타이머 취소
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+
+      // 스크롤이 멈춘 후 일정 시간이 지나면 스크롤 상태 해제
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      scrollTimeout = setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 150);
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    scrollContainer.addEventListener('touchmove', handleScroll, { passive: true });
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      scrollContainer.removeEventListener('touchmove', handleScroll);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+    };
+  }, []);
 
   const filteredMemos = useMemo(() => {
     let filtered = memos;
@@ -238,20 +281,53 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
     return memosByLocation.get(key) || [];
   };
 
-  const handleLongPressStart = (memoId: string) => {
+  const handleLongPressStart = (memoId: string, event: React.TouchEvent | React.MouseEvent) => {
+    // 터치/마우스 시작 위치 저장
+    const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+    const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+    pressStartPositionRef.current = { x: clientX, y: clientY };
     pressStartTimeRef.current = Date.now();
+    isScrollingRef.current = false;
+    
     longPressTimerRef.current = setTimeout(() => {
-      setIsSelectionMode(true);
-      setSelectedMemoIds(new Set([memoId]));
-      justEnteredSelectionModeRef.current = true;
+      // 스크롤 중이 아니고 위치 이동이 적을 때만 선택 모드 활성화
+      if (!isScrollingRef.current && pressStartPositionRef.current) {
+        setIsSelectionMode(true);
+        setSelectedMemoIds(new Set([memoId]));
+        justEnteredSelectionModeRef.current = true;
+      }
     }, 500);
   };
+
+  const handleLongPressMove = useCallback((event: React.TouchEvent | React.MouseEvent) => {
+    if (!pressStartPositionRef.current) return;
+    
+    const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+    const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+    
+    // 이동 거리 계산
+    const deltaX = Math.abs(clientX - pressStartPositionRef.current.x);
+    const deltaY = Math.abs(clientY - pressStartPositionRef.current.y);
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // 10px 이상 이동하면 스크롤로 간주
+    if (distance > 10) {
+      isScrollingRef.current = true;
+      // 스크롤 중이면 긴 터치 타이머 취소
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+    }
+  }, []);
 
   const handleLongPressEnd = () => {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
     }
+    pressStartPositionRef.current = null;
+    isScrollingRef.current = false;
   };
 
   const handleMemoClick = (memoId: string) => {
@@ -538,7 +614,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
       )}
 
       {/* Memo List */}
-      <div className="px-4 space-y-4 overflow-y-auto flex-1">
+      <div ref={scrollContainerRef} className="px-4 space-y-4 overflow-y-auto flex-1">
       {filteredMemos.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full p-8 text-center">
           <p className="text-muted-foreground text-lg mb-2">
@@ -558,9 +634,11 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                   : 'border-primary/30 hover:border-primary/50 hover:shadow-2xl'
               }`}
               onClick={() => handleMemoClick(memo.id)}
-              onTouchStart={() => handleLongPressStart(memo.id)}
+              onTouchStart={(e) => handleLongPressStart(memo.id, e)}
+              onTouchMove={handleLongPressMove}
               onTouchEnd={handleLongPressEnd}
-              onMouseDown={() => handleLongPressStart(memo.id)}
+              onMouseDown={(e) => handleLongPressStart(memo.id, e)}
+              onMouseMove={handleLongPressMove}
               onMouseUp={handleLongPressEnd}
               onMouseLeave={handleLongPressEnd}
               data-testid={`card-memo-${memo.id}`}
