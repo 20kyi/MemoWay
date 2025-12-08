@@ -718,11 +718,6 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
                           const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
                           return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: group.color }} />;
                         })()}
-                        {isLeader && (
-                          <div className="absolute -top-1 -right-1 bg-amber-400 rounded-full p-0.5 shadow-sm">
-                            <Crown className="h-3 w-3 text-amber-900" fill="currentColor" />
-                          </div>
-                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
