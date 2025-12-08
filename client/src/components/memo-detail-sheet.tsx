@@ -6,6 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus, ArrowLeft, Star, Copy } from "lucide-react";
 import {
   Tooltip,
@@ -44,6 +54,8 @@ export function MemoDetailSheet({
 }: MemoDetailSheetProps) {
   const { t, language } = useLanguage();
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [pendingCopyMemoId, setPendingCopyMemoId] = useState<string | null>(null);
 
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
 
@@ -347,7 +359,7 @@ export function MemoDetailSheet({
             </div>
 
             {/* 하단 고정 영역 - 액션 버튼들 */}
-            {(onAddNewMemo || onEdit || (currentUserId && memo.member.userId !== currentUserId ? onCopy : onDelete)) && (
+            {(onAddNewMemo || (currentUserId && memo.member.userId !== currentUserId ? !!onCopy : true)) && (
               <div className="mt-auto flex-shrink-0 px-4 sm:px-5 py-4 border-t border-indigo-200/50 bg-gradient-to-br from-indigo-50/30 to-white">
                 <div className="flex flex-nowrap gap-1.5 sm:gap-3">
                   {onAddNewMemo && (
@@ -378,8 +390,8 @@ export function MemoDetailSheet({
                         size="lg"
                         variant="outline"
                         onClick={() => {
-                          onCopy(memo.id);
-                          onOpenChange(false);
+                          setPendingCopyMemoId(memo.id);
+                          setCopyDialogOpen(true);
                         }}
                         className="h-11 sm:h-12 text-xs sm:text-base font-medium border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
                         data-testid="button-copy-memo"
@@ -471,6 +483,48 @@ export function MemoDetailSheet({
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* 타인 메모 복사 확인 다이얼로그 */}
+    <AlertDialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
+      <AlertDialogContent
+        data-testid="dialog-copy-memo"
+        className="max-w-sm rounded-3xl border-0 bg-gradient-to-br from-white/95 to-white/90 dark:from-zinc-900/95 dark:to-zinc-900/90 backdrop-blur-xl shadow-2xl"
+      >
+        <AlertDialogHeader className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
+            <Copy className="h-8 w-8 text-white" />
+          </div>
+          <AlertDialogTitle className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            {t.common.copy || "복사"}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-base text-gray-600 dark:text-gray-400 px-4">
+            {t.memoDetail.confirmCopy}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex-row gap-3 sm:gap-3 mt-2">
+          <AlertDialogCancel
+            data-testid="button-cancel-copy"
+            className="flex-1 h-12 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-zinc-800/80 hover:bg-gray-50 dark:hover:bg-zinc-700 font-semibold text-gray-700 dark:text-gray-300 shadow-md hover:shadow-lg transition-all duration-200 mt-0"
+          >
+            {t.common.cancel}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            data-testid="button-confirm-copy"
+            onClick={() => {
+              if (pendingCopyMemoId && onCopy) {
+                onCopy(pendingCopyMemoId);
+                onOpenChange(false);
+              }
+              setCopyDialogOpen(false);
+              setPendingCopyMemoId(null);
+            }}
+            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            {t.common.copy || "복사"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }

@@ -94,6 +94,7 @@ export const translations = {
       viewOnMap: "지도에서 위치 보기",
       addMemoHere: "새 메모 추가",
       confirmDelete: "정말 삭제하시겠습니까?",
+      confirmCopy: "이 메모를 복사하시겠습니까? (10포인트 차감)",
     },
     // Memo List
     memoList: {
@@ -466,6 +467,7 @@ export const translations = {
       viewOnMap: "View Location on Map",
       addMemoHere: "Add New Memo Here",
       confirmDelete: "Are you sure you want to delete?",
+      confirmCopy: "Are you sure you want to copy this memo? (10 points will be deducted)",
     },
     // Memo List
     memoList: {
@@ -838,6 +840,7 @@ export const translations = {
       viewOnMap: "在地图上查看位置",
       addMemoHere: "在此添加新备忘录",
       confirmDelete: "确定要删除吗？",
+      confirmCopy: "确定要复制此备忘录吗？(将扣除10点)",
     },
     // Memo List
     memoList: {
@@ -1210,6 +1213,7 @@ export const translations = {
       viewOnMap: "地図で位置を表示",
       addMemoHere: "ここに新しいメモを追加",
       confirmDelete: "本当に削除しますか？",
+      confirmCopy: "このメモをコピーしてもよろしいですか？(10ポイント差し引かれます)",
     },
     // Memo List
     memoList: {
@@ -1578,6 +1582,7 @@ type Translation = {
     viewOnMap: string;
     addMemoHere: string;
     confirmDelete: string;
+    confirmCopy: string;
   };
   memoList: {
     noMemos: string;
