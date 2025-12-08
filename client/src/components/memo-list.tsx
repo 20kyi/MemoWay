@@ -90,13 +90,31 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
   const pressStartTimeRef = useRef<number>(0);
   const justEnteredSelectionModeRef = useRef<boolean>(false);
 
-  // 관리자 권한 체크 함수
+  // 관리자 권한 체크 함수 (관리자 또는 방장)
   const isAdminForMemo = useCallback((memo: MemoWithDetails) => {
     if (!currentUserId || !memo.groupId) return false;
     const group = groups.find(g => g.id === memo.groupId);
     if (!group || !group.members || group.members.length === 0) return false;
     const currentMember = group.members.find((m: any) => m.userId === currentUserId);
     return currentMember?.canEditGroupMemos === true || currentMember?.role === 'leader';
+  }, [currentUserId, groups]);
+
+  // 방장 권한 체크 함수
+  const isLeaderForMemo = useCallback((memo: MemoWithDetails) => {
+    if (!currentUserId || !memo.groupId) return false;
+    const group = groups.find(g => g.id === memo.groupId);
+    if (!group || !group.members || group.members.length === 0) return false;
+    const currentMember = group.members.find((m: any) => m.userId === currentUserId);
+    return currentMember?.role === 'leader';
+  }, [currentUserId, groups]);
+
+  // 관리자 권한 체크 함수 (방장 제외)
+  const isAdminOnlyForMemo = useCallback((memo: MemoWithDetails) => {
+    if (!currentUserId || !memo.groupId) return false;
+    const group = groups.find(g => g.id === memo.groupId);
+    if (!group || !group.members || group.members.length === 0) return false;
+    const currentMember = group.members.find((m: any) => m.userId === currentUserId);
+    return currentMember?.canEditGroupMemos === true && currentMember?.role !== 'leader';
   }, [currentUserId, groups]);
 
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
@@ -664,34 +682,35 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                         <Copy className="h-4 w-4" />
                       </Button>
                     )}
-                    {/* 관리자인 경우 편집 및 삭제 버튼도 표시 */}
+                    {/* 관리자 또는 방장인 경우 편집 버튼 표시 */}
                     {isAdminForMemo(memo) && (
-                      <>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="rounded-full text-muted-foreground hover:text-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(memo.id);
-                          }}
-                          data-testid={`button-edit-${memo.id}`}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="rounded-full text-muted-foreground hover:text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(memo.id);
-                          }}
-                          data-testid={`button-delete-${memo.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="rounded-full text-muted-foreground hover:text-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(memo.id);
+                        }}
+                        data-testid={`button-edit-${memo.id}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {/* 방장인 경우에만 삭제 버튼 표시 */}
+                    {isLeaderForMemo(memo) && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="rounded-full text-muted-foreground hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(memo.id);
+                        }}
+                        data-testid={`button-delete-${memo.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     )}
                   </>
                 ) : (

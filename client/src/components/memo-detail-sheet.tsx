@@ -59,13 +59,22 @@ export function MemoDetailSheet({
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [pendingCopyMemoId, setPendingCopyMemoId] = useState<string | null>(null);
 
-  // 관리자 권한 체크 함수
+  // 관리자 권한 체크 함수 (관리자 또는 방장)
   const isAdmin = useMemo(() => {
     if (!memo || !currentUserId || !memo.groupId) return false;
     const group = groups.find(g => g.id === memo.groupId);
     if (!group) return false;
     const currentMember = group.members.find(m => m.userId === currentUserId);
     return currentMember?.canEditGroupMemos === true || currentMember?.role === 'leader';
+  }, [memo, currentUserId, groups]);
+
+  // 방장 권한 체크 함수
+  const isLeader = useMemo(() => {
+    if (!memo || !currentUserId || !memo.groupId) return false;
+    const group = groups.find(g => g.id === memo.groupId);
+    if (!group) return false;
+    const currentMember = group.members.find(m => m.userId === currentUserId);
+    return currentMember?.role === 'leader';
   }, [memo, currentUserId, groups]);
 
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
@@ -412,42 +421,39 @@ export function MemoDetailSheet({
                           <span className="whitespace-nowrap">{t.common.copy || "복사"}</span>
                         </Button>
                       )}
-                      {/* 관리자인 경우 편집 및 삭제 버튼도 표시 */}
-                      {isAdmin && (
-                        <>
-                          {onEdit && (
-                            <Button
-                              size="lg"
-                              variant="outline"
-                              onClick={() => {
-                                onEdit(memo.id);
-                                onOpenChange(false);
-                              }}
-                              className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
-                              data-testid="button-edit-memo"
-                            >
-                              <Edit className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                              <span className="whitespace-nowrap">{t.common.edit}</span>
-                            </Button>
-                          )}
-                          {onDelete && (
-                            <Button
-                              size="lg"
-                              variant="destructive"
-                              onClick={() => {
-                                if (confirm(t.memoDetail.confirmDelete)) {
-                                  onDelete(memo.id);
-                                  onOpenChange(false);
-                                }
-                              }}
-                              className="h-11 sm:h-12 text-xs sm:text-base font-medium bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
-                              data-testid="button-delete-memo"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                              <span className="whitespace-nowrap">{t.common.delete}</span>
-                            </Button>
-                          )}
-                        </>
+                      {/* 관리자 또는 방장인 경우 편집 버튼 표시 */}
+                      {isAdmin && onEdit && (
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          onClick={() => {
+                            onEdit(memo.id);
+                            onOpenChange(false);
+                          }}
+                          className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                          data-testid="button-edit-memo"
+                        >
+                          <Edit className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{t.common.edit}</span>
+                        </Button>
+                      )}
+                      {/* 방장인 경우에만 삭제 버튼 표시 */}
+                      {isLeader && onDelete && (
+                        <Button
+                          size="lg"
+                          variant="destructive"
+                          onClick={() => {
+                            if (confirm(t.memoDetail.confirmDelete)) {
+                              onDelete(memo.id);
+                              onOpenChange(false);
+                            }
+                          }}
+                          className="h-11 sm:h-12 text-xs sm:text-base font-medium bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                          data-testid="button-delete-memo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{t.common.delete}</span>
+                        </Button>
                       )}
                     </>
                   ) : (
