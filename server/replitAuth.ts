@@ -245,19 +245,16 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   const user = req.user as any;
   
-  // Kakao/Google/Email 사용자는 세션만 확인 (DB 조회 생략하여 성능 향상)
-  // 세션에 이미 user 정보가 있으므로 추가 DB 조회 불필요
-  if (user.claims && (user.claims.sub?.startsWith('kakao_') || 
-                      user.claims.sub?.startsWith('google_') || 
-                      user.claims.sub?.startsWith('email_'))) {
-    return next();
-  }
+  // [CRITICAL FIX] Remove insecure optimization.
+  // Always verify user exists in DB to prevent session cross-talk or stale sessions.
+  // Formerly: skipped DB check for kakao/google/email users.
   
-  // Replit Auth 사용자만 DB 조회 및 토큰 갱신 확인
   // Check if user exists in database to verify session is still valid
   const dbUser = await storage.getUser(user.id);
   if (!dbUser) {
-    return res.status(401).json({ message: "Unauthorized" });
+    console.warn(`[Auth] Session valid but user ${user.id} not found in DB. Logging out.`);
+    req.logout(() => {});
+    return res.status(401).json({ message: "Unauthorized - User Not Found" });
   }
   
   // For Kakao/Google/Email users, no token refresh is needed - just verify user exists

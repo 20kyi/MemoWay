@@ -468,8 +468,10 @@ export function setupKakaoAuth(app: Express) {
       const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
       const profileImage = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image;
 
+      console.log(`[KAKAO EXCHANGE] Upserting user with KakaoID: ${safeKakaoId}`);
+
       const user = await storage.upsertUser({
-        id: `kakao_${safeKakaoId}`,
+        id: `kakao_${safeKakaoId}`, // Proposed ID (will be ignored if user exists)
         email,
         firstName: nickname,
         lastName: "",
@@ -478,7 +480,14 @@ export function setupKakaoAuth(app: Express) {
         kakaoId: safeKakaoId,
       });
 
-      console.log('[KAKAO EXCHANGE] ✅ User upserted:', { id: user.id });
+      console.log('[KAKAO LOGIN] ✅ ========== KAKAO LOGIN SUCCESS ==========');
+      console.log('[KAKAO LOGIN] kakaoId:', safeKakaoId);
+      console.log('[KAKAO LOGIN] email:', email);
+      console.log('[KAKAO LOGIN] nickname:', nickname);
+      console.log('[KAKAO LOGIN] 내부 userId:', user.id);
+      console.log('[KAKAO LOGIN] DB kakaoId:', user.kakaoId);
+      console.log('[KAKAO LOGIN] provider:', user.provider);
+      console.log('[KAKAO LOGIN] ============================================');
 
       // 세션 생성
       return new Promise<void>((resolve, reject) => {
@@ -507,9 +516,10 @@ export function setupKakaoAuth(app: Express) {
               
               console.log('[KAKAO EXCHANGE] ✅ Session created successfully');
               const sessionId = req.session?.id;
-              console.log('[KAKAO ANDROID LOGIN] session userId=', user.id);
-              console.log('[KAKAO ANDROID LOGIN] sessionId=', sessionId?.substring(0, 20));
-              console.log('[KAKAO ANDROID LOGIN] platform=', platform);
+              console.log('[KAKAO EXCHANGE] session userId=', user.id);
+              console.log('[KAKAO EXCHANGE] sessionId=', sessionId?.substring(0, 20));
+              console.log('[KAKAO EXCHANGE] platform=', platform);
+              console.log('[KAKAO EXCHANGE] ⚠️ JWT/세션에 저장된 userId:', user.id);
               
               res.json({ 
                 success: true, 
@@ -823,6 +833,8 @@ export function setupKakaoAuth(app: Express) {
       const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
       const profileImage = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image;
 
+      console.log(`[KAKAO CALLBACK] Upserting user with KakaoID: ${userInfo.id}`);
+
       const user = await storage.upsertUser({
         id: `kakao_${userInfo.id}`,
         email,
@@ -832,6 +844,8 @@ export function setupKakaoAuth(app: Express) {
         provider: "kakao",
         kakaoId: userInfo.id.toString(),
       });
+      
+      console.log('[KAKAO CALLBACK] ✅ User upserted/found:', { id: user.id, kakaoId: user.kakaoId });
 
       // Create session - passport.serializeUser will store only the user ID
       (req as any).login(
@@ -1242,6 +1256,8 @@ export function setupKakaoAuth(app: Express) {
       const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
       const profileImage = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image;
 
+      console.log(`[KAKAO REDIRECT] Upserting user with KakaoID: ${safeKakaoId}`);
+
       const user = await storage.upsertUser({
         id: `kakao_${safeKakaoId}`,
         email,
@@ -1252,7 +1268,14 @@ export function setupKakaoAuth(app: Express) {
         kakaoId: safeKakaoId,
       });
 
-      console.log('[KAKAO FLOW] ✅ User upserted:', { id: user.id });
+      console.log('[KAKAO LOGIN] ✅ ========== KAKAO LOGIN SUCCESS ==========');
+      console.log('[KAKAO LOGIN] kakaoId:', safeKakaoId);
+      console.log('[KAKAO LOGIN] email:', email);
+      console.log('[KAKAO LOGIN] nickname:', nickname);
+      console.log('[KAKAO LOGIN] 내부 userId:', user.id);
+      console.log('[KAKAO LOGIN] DB kakaoId:', user.kakaoId);
+      console.log('[KAKAO LOGIN] provider:', user.provider);
+      console.log('[KAKAO LOGIN] ============================================');
 
       // 세션 생성
       return new Promise<void>((resolve, reject) => {
@@ -1320,9 +1343,10 @@ export function setupKakaoAuth(app: Express) {
               console.log('[KAKAO FLOW] ✅ Session created successfully');
               console.log('[KAKAO FLOW] ✅ Kakao login successful for user ID:', user.id);
               const sessionId = req.session?.id;
-              console.log('[KAKAO ANDROID LOGIN] session userId=', user.id);
-              console.log('[KAKAO ANDROID LOGIN] sessionId=', sessionId?.substring(0, 20));
-              console.log('[KAKAO ANDROID LOGIN] platform=', platform);
+              console.log('[KAKAO FLOW] session userId=', user.id);
+              console.log('[KAKAO FLOW] sessionId=', sessionId?.substring(0, 20));
+              console.log('[KAKAO FLOW] platform=', platform);
+              console.log('[KAKAO FLOW] ⚠️ JWT/세션에 저장된 userId:', user.id);
               
               // 플랫폼에 따라 다른 처리
               // android_webview: 앱 내 WebView에서 로그인 중이므로 딥링크 대신 직접 페이지 전환
@@ -1595,6 +1619,9 @@ export function setupKakaoAuth(app: Express) {
 
       // 사용자 정보 저장
       const userUpsertStart = Date.now();
+      
+      console.log(`[ANDROID LOGIN] Upserting user with KakaoID: ${safeKakaoId}`);
+      
       const user = await storage.upsertUser({
         id: `kakao_${safeKakaoId}`,
         email: email || userInfo.kakao_account?.email || `kakao_${safeKakaoId}@placeholder.com`,
@@ -1605,13 +1632,16 @@ export function setupKakaoAuth(app: Express) {
         kakaoId: safeKakaoId, // 정확한 문자열 ID 사용
       });
       const userUpsertTime = Date.now() - userUpsertStart;
-      console.log('[ANDROID LOGIN] ✅ User upserted:', { 
-        id: user.id, 
-        email: user.email,
-        firstName: user.firstName,
-        provider: user.provider,
-        upsertTime: userUpsertTime + 'ms'
-      });
+      
+      console.log('[KAKAO LOGIN] ✅ ========== KAKAO LOGIN SUCCESS (Android) ==========');
+      console.log('[KAKAO LOGIN] kakaoId:', safeKakaoId);
+      console.log('[KAKAO LOGIN] email:', user.email);
+      console.log('[KAKAO LOGIN] nickname:', user.firstName);
+      console.log('[KAKAO LOGIN] 내부 userId:', user.id);
+      console.log('[KAKAO LOGIN] DB kakaoId:', user.kakaoId);
+      console.log('[KAKAO LOGIN] provider:', user.provider);
+      console.log('[KAKAO LOGIN] upsertTime:', userUpsertTime + 'ms');
+      console.log('[KAKAO LOGIN] ====================================================');
 
       // 세션 생성
       // 세션 보안 강화: 로그인 전 세션 재생성
@@ -1672,6 +1702,7 @@ export function setupKakaoAuth(app: Express) {
               console.log('[ANDROID LOGIN] ✅ Session cookie name:', req.session?.cookie?.name || 'connect.sid');
               console.log('[ANDROID LOGIN] ✅ Session cookie secure:', req.session?.cookie?.secure);
               console.log('[ANDROID LOGIN] ✅ Session cookie sameSite:', req.session?.cookie?.sameSite);
+              console.log('[ANDROID LOGIN] ⚠️ JWT/세션에 저장된 userId:', user.id);
               console.log('[ANDROID LOGIN] ========== Login process completed successfully ==========');
               
               // 세션 쿠키가 제대로 설정되도록 응답

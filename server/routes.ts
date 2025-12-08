@@ -733,7 +733,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateMemo(memo.id, { mainPhotoId: photoIds[0] });
       }
 
-      const memoWithDetails = await storage.getMemoById(memo.id);
+      const memoWithDetails = await storage.getMemoById(memo.id, userId);
+      if (!memoWithDetails) {
+        return res.status(500).json({ error: "메모를 조회할 수 없습니다" });
+      }
       
       // Broadcast to WebSocket clients
       broadcast({ 
@@ -753,21 +756,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/memos", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      console.log(`[API:GET /api/memos] 🔍 Fetching memos for userId=${userId}`);
+      
       const memos = await storage.getMemos(userId);
+      
+      console.log(`[API:GET /api/memos] ✅ Found ${memos.length} memos for userId=${userId}`);
       res.json(memos);
     } catch (error: any) {
+      console.error(`[API:GET /api/memos] ❌ Error:`, error);
       res.status(500).json({ error: error.message });
     }
   });
 
-  app.get("/api/memos/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/memos/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const memo = await storage.getMemoById(req.params.id);
+      const userId = req.user.claims.sub;
+      console.log(`[API:GET /api/memos/:id] 🔍 Fetching memo ${req.params.id} for userId=${userId}`);
+      
+      const memo = await storage.getMemoById(req.params.id, userId);
       if (!memo) {
+        console.warn(`[API:GET /api/memos/:id] ❌ Memo ${req.params.id} not found or access denied for userId=${userId}`);
         return res.status(404).json({ error: "메모를 찾을 수 없습니다" });
       }
+      
+      console.log(`[API:GET /api/memos/:id] ✅ Memo ${req.params.id} retrieved successfully for userId=${userId}`);
       res.json(memo);
     } catch (error: any) {
+      console.error(`[API:GET /api/memos/:id] ❌ Error:`, error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -811,14 +826,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         memoUpdate.rating = updateData.rating;
       }
       
-      // Verify memo exists
-      const existingMemo = await storage.getMemoById(req.params.id);
+      // Verify memo exists and user has access
+      const userId = (req as any).user.claims.sub;
+      const existingMemo = await storage.getMemoById(req.params.id, userId);
       if (!existingMemo) {
         return res.status(404).json({ error: "메모를 찾을 수 없습니다" });
       }
       
       // Check edit permissions
-      const userId = (req as any).user.claims.sub;
       let canEdit = false;
       let currentMember = null;
       
@@ -908,7 +923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateMemo(req.params.id, { mainPhotoId: firstPhoto.id });
       }
       
-      const updatedMemo = await storage.getMemoById(req.params.id);
+      const updatedMemo = await storage.getMemoById(req.params.id, userId);
       if (!updatedMemo) {
         return res.status(500).json({ error: "메모 업데이트 실패" });
       }
@@ -928,9 +943,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/memos/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/memos/:id", isAuthenticated, async (req: any, res) => {
     try {
-      await storage.deleteMemo(req.params.id);
+      const userId = req.user.claims.sub;
+      console.log(`[API:DELETE /api/memos/:id] 🗑️ Attempting to delete memo ${req.params.id} by userId=${userId}`);
+      
+      await storage.deleteMemo(req.params.id, userId);
+      
+      console.log(`[API:DELETE /api/memos/:id] ✅ Memo ${req.params.id} deleted successfully by userId=${userId}`);
       
       // Broadcast to WebSocket clients
       broadcast({ 
@@ -940,6 +960,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true });
     } catch (error: any) {
+      console.error(`[API:DELETE /api/memos/:id] ❌ Error:`, error);
+      
+      if (error.message === "PERMISSION_DENIED") {
+        return res.status(403).json({ error: "메모를 삭제할 권한이 없습니다" });
+      }
+      if (error.message === "MEMO_NOT_FOUND") {
+        return res.status(404).json({ error: "메모를 찾을 수 없습니다" });
+      }
+      
       res.status(500).json({ error: error.message });
     }
   });
@@ -952,7 +981,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const memo = await storage.copyMemoToPersonal(id, userId);
       
       // Broadcast to WebSocket clients
-      const memoWithDetails = await storage.getMemoById(memo.id);
+      const memoWithDetails = await storage.getMemoById(memo.id, userId);
       broadcast({ 
         type: "memo_created", 
         memo: memoWithDetails 
@@ -1050,15 +1079,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/memos/:id/set-main", isAuthenticated, async (req, res) => {
+  app.post("/api/memos/:id/set-main", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const updatedMemo = await storage.setMainMemo(req.params.id);
       
       // Broadcast to WebSocket clients
-      broadcast({ 
-        type: "memo_updated", 
-        memo: await storage.getMemoById(updatedMemo.id)
-      });
+      const memoForBroadcast = await storage.getMemoById(updatedMemo.id, userId);
+      if (memoForBroadcast) {
+        broadcast({ 
+          type: "memo_updated", 
+          memo: memoForBroadcast
+        });
+      }
       
       res.json(updatedMemo);
     } catch (error: any) {

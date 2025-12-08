@@ -57,9 +57,9 @@ export interface IStorage {
   // Memos
   createMemo(memo: InsertMemo): Promise<Memo>;
   getMemos(userId: string): Promise<MemoWithDetails[]>;
-  getMemoById(id: string): Promise<MemoWithDetails | undefined>;
+  getMemoById(id: string, userId: string): Promise<MemoWithDetails | undefined>; // ⚠️ userId 파라미터 추가 (보안 강화)
   updateMemo(id: string, memo: Partial<InsertMemo>): Promise<Memo>;
-  deleteMemo(id: string): Promise<void>;
+  deleteMemo(id: string, userId: string): Promise<void>; // ⚠️ userId 파라미터 추가 (보안 강화)
   clearGroupFromMemos(groupId: string): Promise<void>;
   setMainMemo(memoId: string): Promise<Memo>;
   
@@ -77,7 +77,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    // Remove undefined values and passwordHash for OAuth users
+    // Remove undefined values
     const cleanedData = Object.fromEntries(
       Object.entries(userData).filter(([_, v]) => v !== undefined)
     );
@@ -87,22 +87,36 @@ export class DatabaseStorage implements IStorage {
       delete cleanedData.passwordHash;
     }
 
-    // [CRITICAL FIX] 카카오 로그인 시 kakaoId로 기존 사용자를 먼저 찾아서 ID를 일치시킴
+    // [CRITICAL FIX] Strict User Identification Logic
+    // 1. 카카오 로그인인 경우, 반드시 kakaoId로 먼저 기존 유저를 찾는다.
     if (cleanedData.kakaoId) {
       const existingUser = await this.getUserByKakaoId(cleanedData.kakaoId as string);
       if (existingUser) {
-        // 기존 사용자의 ID를 사용하여 업데이트 (새로 생성된 ID 무시)
+        console.log(`[Storage] Found existing user by KakaoID: ${cleanedData.kakaoId} -> Internal ID: ${existingUser.id}`);
+        // 기존 유저가 있으면, 입력된 ID를 무시하고 기존 ID를 사용하여 업데이트한다.
         cleanedData.id = existingUser.id;
+        
+        // Update existing user
+        const [updatedUser] = await db
+          .update(users)
+          .set({
+            ...cleanedData,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, existingUser.id))
+          .returning();
+        
+        return updatedUser;
       }
     }
     
-    // [CRITICAL FIX] 신규 가입 시 points를 0으로 초기화
-    // cleanedData에 points가 없으면 DB 기본값을 사용하는데, DB 마이그레이션이 안 된 경우 1000이 들어갈 수 있음
-    // insertData에는 points: 0을 명시하고, update 시에는(set) points를 건드리지 않음
+    // 2. 신규 유저 생성 (또는 ID 기반 충돌 처리)
     const insertData = { ...cleanedData };
     if (insertData.points === undefined) {
       insertData.points = 0;
     }
+    
+    console.log(`[Storage] Creating/Updating user. ID: ${insertData.id}, KakaoID: ${insertData.kakaoId}`);
     
     const [user] = await db
       .insert(users)
@@ -110,7 +124,7 @@ export class DatabaseStorage implements IStorage {
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          ...cleanedData, // points가 없으므로 기존 값 유지
+          ...cleanedData,
           updatedAt: new Date(),
         },
       })
@@ -443,7 +457,17 @@ export class DatabaseStorage implements IStorage {
     return memo;
   }
 
+  /**
+   * 사용자가 접근할 수 있는 모든 메모를 조회합니다.
+   * - 사용자가 속한 그룹의 모든 메모
+   * - 사용자가 작성한 개인 메모 (groupId가 null인 메모)
+   * 
+   * @param userId 현재 로그인한 사용자 ID
+   * @returns 사용자가 접근할 수 있는 메모 목록
+   */
   async getMemos(userId: string): Promise<MemoWithDetails[]> {
+    console.log(`[Storage:getMemos] 🔍 Fetching memos for userId=${userId}`);
+    
     // 1. 사용자가 속한 모든 멤버 ID와 그룹 ID 조회
     const userMembers = await db
       .select()
@@ -451,12 +475,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(members.userId, userId));
     
     if (userMembers.length === 0) {
+      console.log(`[Storage:getMemos] ⚠️ User ${userId} has no members. Returning empty array.`);
       return [];
     }
     
     const memberIds = userMembers.map(m => m.id);
     const groupIds = userMembers.map(m => m.groupId);
     
+    console.log(`[Storage:getMemos] ✅ userId=${userId} found ${memberIds.length} member profiles, ${groupIds.length} groups.`);
+
     // 2. SQL WHERE 절로 필요한 메모만 직접 조회 (성능 최적화)
     // - 사용자가 속한 그룹의 모든 메모 (groupId IN groupIds)
     // - 또는 사용자가 직접 작성한 개인 메모 (groupId IS NULL AND memberId IN memberIds)
@@ -479,12 +506,24 @@ export class DatabaseStorage implements IStorage {
         editorMember: true,
         group: true,
       },
+      orderBy: (memos, { desc }) => [desc(memos.createdAt)],
     }) : [];
+    
+    console.log(`[Storage:getMemos] ✅ userId=${userId} found ${userMemos.length} memos.`);
     
     return userMemos;
   }
 
-  async getMemoById(id: string): Promise<MemoWithDetails | undefined> {
+  /**
+   * 메모 ID로 메모를 조회합니다.
+   * ⚠️ 보안: userId를 제공하여 해당 사용자가 접근할 수 있는 메모인지 검증합니다.
+   * 
+   * @param id 메모 ID
+   * @param userId 현재 로그인한 사용자 ID (소유권 검증용)
+   * @returns 사용자가 접근할 수 있는 메모 또는 undefined
+   */
+  async getMemoById(id: string, userId: string): Promise<MemoWithDetails | undefined> {
+    // 1. 메모 조회
     const memo = await db.query.memos.findFirst({
       where: eq(memos.id, id),
       with: {
@@ -494,7 +533,41 @@ export class DatabaseStorage implements IStorage {
         group: true,
       },
     });
-    return memo || undefined;
+    
+    if (!memo) {
+      return undefined;
+    }
+    
+    // 2. 사용자가 이 메모에 접근할 수 있는지 검증
+    // - 메모 작성자의 userId 확인
+    const memoAuthorUserId = memo.member?.userId;
+    if (!memoAuthorUserId) {
+      console.warn(`[Storage:getMemoById] Memo ${id} has no member userId`);
+      return undefined;
+    }
+    
+    // 3. 개인 메모인 경우: 작성자만 접근 가능
+    if (!memo.groupId) {
+      if (memoAuthorUserId !== userId) {
+        console.warn(`[Storage:getMemoById] User ${userId} attempted to access personal memo ${id} owned by ${memoAuthorUserId}`);
+        return undefined;
+      }
+      return memo;
+    }
+    
+    // 4. 그룹 메모인 경우: 해당 그룹의 멤버인지 확인
+    const userMembers = await db
+      .select()
+      .from(members)
+      .where(eq(members.userId, userId));
+    
+    const userGroupIds = userMembers.map(m => m.groupId);
+    if (!userGroupIds.includes(memo.groupId)) {
+      console.warn(`[Storage:getMemoById] User ${userId} attempted to access group memo ${id} from group ${memo.groupId} they are not a member of`);
+      return undefined;
+    }
+    
+    return memo;
   }
 
   async updateMemo(id: string, updateData: Partial<InsertMemo>): Promise<Memo> {
@@ -511,8 +584,69 @@ export class DatabaseStorage implements IStorage {
     return memo;
   }
 
-  async deleteMemo(id: string): Promise<void> {
+  /**
+   * 메모를 삭제합니다.
+   * ⚠️ 보안: userId를 제공하여 해당 사용자가 삭제할 수 있는 메모인지 검증합니다.
+   * 
+   * @param id 메모 ID
+   * @param userId 현재 로그인한 사용자 ID (권한 검증용)
+   * @throws Error 사용자가 이 메모를 삭제할 권한이 없는 경우
+   */
+  async deleteMemo(id: string, userId: string): Promise<void> {
+    console.log(`[Storage:deleteMemo] 🗑️ Attempting to delete memo ${id} by userId=${userId}`);
+    
+    // 1. 메모 조회
+    const memo = await db.query.memos.findFirst({
+      where: eq(memos.id, id),
+      with: {
+        member: true,
+        group: true,
+      },
+    });
+    
+    if (!memo) {
+      throw new Error("MEMO_NOT_FOUND");
+    }
+    
+    // 2. 권한 검증
+    const memoAuthorUserId = memo.member?.userId;
+    if (!memoAuthorUserId) {
+      console.error(`[Storage:deleteMemo] ❌ Memo ${id} has no member userId`);
+      throw new Error("MEMO_NOT_FOUND");
+    }
+    
+    // 3. 개인 메모인 경우: 작성자만 삭제 가능
+    if (!memo.groupId) {
+      if (memoAuthorUserId !== userId) {
+        console.warn(`[Storage:deleteMemo] ❌ User ${userId} attempted to delete personal memo ${id} owned by ${memoAuthorUserId}`);
+        throw new Error("PERMISSION_DENIED");
+      }
+    } else {
+      // 4. 그룹 메모인 경우: 작성자 또는 그룹 방장만 삭제 가능
+      const userMembers = await db
+        .select()
+        .from(members)
+        .where(and(
+          eq(members.userId, userId),
+          eq(members.groupId, memo.groupId)
+        ));
+      
+      if (userMembers.length === 0) {
+        console.warn(`[Storage:deleteMemo] ❌ User ${userId} is not a member of group ${memo.groupId}`);
+        throw new Error("PERMISSION_DENIED");
+      }
+      
+      const userMember = userMembers[0];
+      // 작성자가 아니고 방장도 아닌 경우 삭제 불가
+      if (memoAuthorUserId !== userId && userMember.role !== 'leader') {
+        console.warn(`[Storage:deleteMemo] ❌ User ${userId} attempted to delete group memo ${id} without permission (not author or leader)`);
+        throw new Error("PERMISSION_DENIED");
+      }
+    }
+    
+    // 5. 메모 삭제 (사진은 CASCADE로 자동 삭제됨)
     await db.delete(memos).where(eq(memos.id, id));
+    console.log(`[Storage:deleteMemo] ✅ Memo ${id} deleted successfully by userId=${userId}`);
   }
 
   async clearGroupFromMemos(groupId: string): Promise<void> {
