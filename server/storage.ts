@@ -87,6 +87,21 @@ export class DatabaseStorage implements IStorage {
       delete cleanedData.passwordHash;
     }
 
+    // ⚠️ CRITICAL: kakaoId가 falsy이면 절대 유저를 생성하지 않습니다
+    if (cleanedData.provider === 'kakao') {
+      const kakaoId = cleanedData.kakaoId;
+      if (!kakaoId || kakaoId === 'undefined' || kakaoId === 'null' || kakaoId === '' || kakaoId === '0') {
+        console.error(`[Storage] ❌ Rejected user creation: kakaoId is falsy. Provider: ${cleanedData.provider}, kakaoId: ${kakaoId}`);
+        throw new Error("Invalid kakaoId: 카카오 사용자 ID가 유효하지 않습니다. kakaoId는 반드시 있어야 합니다.");
+      }
+      
+      // ⚠️ CRITICAL: "kakao_undefined" 같은 placeholder 계정은 절대 생성하지 않습니다
+      if (cleanedData.id && (cleanedData.id === 'kakao_undefined' || cleanedData.id.includes('undefined'))) {
+        console.error(`[Storage] ❌ Rejected user creation: placeholder ID detected. ID: ${cleanedData.id}, kakaoId: ${kakaoId}`);
+        throw new Error("Invalid user ID: 플레이스홀더 사용자 ID는 허용되지 않습니다.");
+      }
+    }
+
     // [CRITICAL FIX] Strict User Identification Logic
     // 1. 카카오 로그인인 경우, 반드시 kakaoId로 먼저 기존 유저를 찾는다.
     if (cleanedData.kakaoId) {

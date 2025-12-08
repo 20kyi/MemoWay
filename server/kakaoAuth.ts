@@ -456,8 +456,8 @@ export function setupKakaoAuth(app: Express) {
         safeKakaoId = idMatch[1];
       }
 
-      // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
-      if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null' || safeKakaoId === '') {
+      // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다 (falsy 값 체크)
+      if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null' || safeKakaoId === '' || safeKakaoId === '0') {
         console.error('[KAKAO EXCHANGE] ❌ Invalid or missing Kakao ID:', { 
           safeKakaoId, 
           userInfo,
@@ -474,7 +474,13 @@ export function setupKakaoAuth(app: Express) {
       // 사용자 정보 저장/업데이트
       const email = userInfo.kakao_account?.email || `kakao_${safeKakaoId}@placeholder.com`;
       const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
-      const profileImage = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image;
+      let profileImageUrl = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image || null;
+      
+      // ⚠️ 중요: profileImageUrl을 https로 변환 (Mixed Content 방지)
+      if (profileImageUrl && profileImageUrl.startsWith('http://')) {
+        profileImageUrl = profileImageUrl.replace('http://', 'https://');
+        console.log('[KAKAO EXCHANGE] ✅ Converted profileImageUrl to HTTPS:', profileImageUrl);
+      }
 
       console.log(`[KAKAO EXCHANGE] Upserting user with KakaoID: ${safeKakaoId}`);
 
@@ -483,7 +489,7 @@ export function setupKakaoAuth(app: Express) {
         email,
         firstName: nickname,
         lastName: "",
-        profileImageUrl: profileImage || null,
+        profileImageUrl,
         provider: "kakao",
         kakaoId: safeKakaoId,
       });
@@ -836,14 +842,9 @@ export function setupKakaoAuth(app: Express) {
 
       const userInfo: KakaoUserInfo = await userInfoResponse.json();
 
-      // Upsert user with Kakao data
-      const email = userInfo.kakao_account?.email || `kakao_${userInfo.id}@placeholder.com`;
-      const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
-      const profileImage = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image;
-
       // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
       const kakaoIdStr = userInfo.id.toString();
-      if (!kakaoIdStr || kakaoIdStr === 'undefined' || kakaoIdStr === 'null' || kakaoIdStr === '') {
+      if (!kakaoIdStr || kakaoIdStr === 'undefined' || kakaoIdStr === 'null' || kakaoIdStr === '' || kakaoIdStr === '0') {
         console.error('[KAKAO CALLBACK] ❌ Invalid or missing Kakao ID:', { 
           userInfoId: userInfo.id,
           kakaoIdStr
@@ -853,6 +854,17 @@ export function setupKakaoAuth(app: Express) {
         });
       }
       
+      // Upsert user with Kakao data
+      const email = userInfo.kakao_account?.email || `kakao_${kakaoIdStr}@placeholder.com`;
+      const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
+      let profileImageUrl = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image || null;
+      
+      // ⚠️ 중요: profileImageUrl을 https로 변환 (Mixed Content 방지)
+      if (profileImageUrl && profileImageUrl.startsWith('http://')) {
+        profileImageUrl = profileImageUrl.replace('http://', 'https://');
+        console.log('[KAKAO CALLBACK] ✅ Converted profileImageUrl to HTTPS:', profileImageUrl);
+      }
+      
       console.log(`[KAKAO CALLBACK] Upserting user with KakaoID: ${kakaoIdStr}`);
 
       const user = await storage.upsertUser({
@@ -860,7 +872,7 @@ export function setupKakaoAuth(app: Express) {
         email,
         firstName: nickname,
         lastName: "",
-        profileImageUrl: profileImage || null,
+        profileImageUrl,
         provider: "kakao",
         kakaoId: kakaoIdStr,
       });
@@ -1264,8 +1276,8 @@ export function setupKakaoAuth(app: Express) {
         safeKakaoId = idMatch[1];
       }
 
-      // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
-      if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null' || safeKakaoId === '') {
+      // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다 (falsy 값 체크)
+      if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null' || safeKakaoId === '' || safeKakaoId === '0') {
         console.error('[KAKAO FLOW] ❌ Invalid or missing Kakao ID:', { 
           safeKakaoId, 
           userInfo,
@@ -1298,7 +1310,13 @@ export function setupKakaoAuth(app: Express) {
       // 사용자 정보 저장/업데이트
       const email = userInfo.kakao_account?.email || `kakao_${safeKakaoId}@placeholder.com`;
       const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
-      const profileImage = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image;
+      let profileImageUrl = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image || null;
+      
+      // ⚠️ 중요: profileImageUrl을 https로 변환 (Mixed Content 방지)
+      if (profileImageUrl && profileImageUrl.startsWith('http://')) {
+        profileImageUrl = profileImageUrl.replace('http://', 'https://');
+        console.log('[KAKAO REDIRECT] ✅ Converted profileImageUrl to HTTPS:', profileImageUrl);
+      }
 
       console.log(`[KAKAO REDIRECT] Upserting user with KakaoID: ${safeKakaoId}`);
 
@@ -1307,7 +1325,7 @@ export function setupKakaoAuth(app: Express) {
         email,
         firstName: nickname,
         lastName: "",
-        profileImageUrl: profileImage || null,
+        profileImageUrl,
         provider: "kakao",
         kakaoId: safeKakaoId,
       });
@@ -1583,7 +1601,7 @@ export function setupKakaoAuth(app: Express) {
   // ============================================================================
   // 목적: Android 네이티브 앱의 Kakao SDK 로그인 처리
   // 리디렉션: 없음 (JSON 응답만 반환)
-  // ⚠️ 중요: 이 엔드포인트는 리다이렉트하지 않습니다. JSON만 반환합니다.
+  // ⚠️ 중요: 클라이언트는 accessToken만 전송하고, 서버에서 Kakao API를 호출하여 kakaoId를 가져옵니다.
   // ============================================================================
   app.post("/api/kakao/android-login", async (req, res) => {
     const timestamp = new Date().toISOString();
@@ -1591,85 +1609,92 @@ export function setupKakaoAuth(app: Express) {
     console.log(`[KAKAO LOGIN FLOW] ========== POST /api/kakao/android-login ==========`);
     console.log(`[KAKAO LOGIN FLOW] Timestamp: ${timestamp}`);
     
-    // [CRITICAL FIX] express.json()이 큰 숫자를 파싱할 때 정밀도 손실이 발생하므로
-    // req.body.kakaoId를 믿지 않고 rawBody에서 직접 추출합니다.
-    let safeKakaoId: string | undefined;
-    
-    // 1. rawBody에서 추출 시도
-    if ((req as any).rawBody) {
-      try {
-        const rawBodyStr = (req as any).rawBody.toString('utf8');
-        console.log('[ANDROID LOGIN] Raw body length:', rawBodyStr.length);
-        
-        // "kakaoId": 12345... 또는 "kakaoId": "12345..." 패턴 찾기
-        const idMatch = rawBodyStr.match(/"kakaoId"\s*:\s*"?(\d+)"?/);
-        if (idMatch && idMatch[1]) {
-          safeKakaoId = idMatch[1];
-          console.log('[ANDROID LOGIN] ✅ Extracted safeKakaoId from rawBody:', safeKakaoId);
-        }
-      } catch (e) {
-        console.error('[ANDROID LOGIN] Failed to parse rawBody:', e);
-      }
-    }
-    
-    const { accessToken, kakaoId: unsafeKakaoId, email, nickname, profileImage } = req.body;
+    // ⚠️ 중요: 클라이언트는 accessToken만 전송합니다
+    const { accessToken } = req.body;
 
-    // 2. rawBody 추출 실패 시 req.body 사용 (fallback)
-    if (!safeKakaoId && unsafeKakaoId) {
-      safeKakaoId = String(unsafeKakaoId);
-      console.warn('[ANDROID LOGIN] ⚠️ Using req.body.kakaoId (potential precision loss):', safeKakaoId);
-    }
-
-    // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
-    if (!accessToken) {
-      console.error('[ANDROID LOGIN] ❌ Missing accessToken');
+    // accessToken 검증
+    if (!accessToken || typeof accessToken !== 'string' || accessToken.trim() === '') {
+      console.error('[ANDROID LOGIN] ❌ Missing or invalid accessToken');
       return res.status(400).json({ 
-        error: "Missing required field: accessToken is required"
-      });
-    }
-    
-    if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null' || safeKakaoId === '') {
-      console.error('[ANDROID LOGIN] ❌ Missing or invalid kakaoId:', { 
-        hasAccessToken: !!accessToken, 
-        kakaoId: safeKakaoId,
-        unsafeKakaoId: unsafeKakaoId,
-        rawBody: (req as any).rawBody?.toString('utf8')?.substring(0, 200)
-      });
-      return res.status(400).json({ 
-        error: "Missing or invalid kakaoId. 카카오 사용자 ID를 가져올 수 없습니다."
+        error: "Missing Kakao accessToken"
       });
     }
 
     try {
-      // 카카오 토큰 검증 (보안 강화)
-      console.log('[ANDROID LOGIN] Validating Kakao access token...');
-      console.log('[ANDROID LOGIN] KakaoId (Safe):', safeKakaoId);
+      // ⚠️ CRITICAL: Kakao REST API를 호출하여 실제 kakaoId를 가져옵니다
+      console.log('[ANDROID LOGIN] Calling Kakao API /v2/user/me to get kakaoId...');
       
       const userInfoResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
         },
       });
 
       if (!userInfoResponse.ok) {
         const errorText = await userInfoResponse.text();
-        console.error('[ANDROID LOGIN] ❌ Invalid access token:', errorText);
-        return res.status(401).json({ 
-          error: "Invalid access token",
+        const statusCode = userInfoResponse.status;
+        console.error('[ANDROID LOGIN] ❌ Kakao API call failed:', {
+          status: statusCode,
+          statusText: userInfoResponse.statusText,
+          error: errorText.substring(0, 500)
+        });
+        
+        if (statusCode === 401) {
+          return res.status(401).json({ 
+            error: "Invalid Kakao access token. 카카오 액세스 토큰이 유효하지 않습니다."
+          });
+        }
+        
+        return res.status(500).json({ 
+          error: "Failed to get user info from Kakao. 카카오 사용자 정보를 가져올 수 없습니다.",
           details: errorText.substring(0, 200)
         });
       }
 
-      // 검증용 사용자 정보 가져오기
+      // ⚠️ CRITICAL: 숫자 정밀도 손실 방지를 위해 text로 먼저 받고 ID 추출
       const userInfoText = await userInfoResponse.text();
       let userInfo: KakaoUserInfo;
       try {
         userInfo = JSON.parse(userInfoText);
       } catch (e) {
-        userInfo = {} as any; // 에러 무시 (토큰은 유효함)
+        console.error('[ANDROID LOGIN] ❌ Failed to parse Kakao API response:', e);
+        return res.status(500).json({ 
+          error: "Failed to parse Kakao user info. 카카오 사용자 정보를 파싱할 수 없습니다."
+        });
       }
+
+      // ID 안전하게 추출 (문자열로 처리)
+      let safeKakaoId = String(userInfo.id);
+      const idMatch = userInfoText.match(/"id":\s*(\d+)/);
+      if (idMatch && idMatch[1]) {
+        safeKakaoId = idMatch[1];
+      }
+
+      // ⚠️ CRITICAL: kakaoId가 falsy이면 절대 유저를 생성하지 않습니다
+      if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null' || safeKakaoId === '' || safeKakaoId === '0') {
+        console.error('[ANDROID LOGIN] ❌ Failed to get kakaoId from Kakao API:', { 
+          userInfoId: userInfo.id,
+          safeKakaoId,
+          userInfoText: userInfoText.substring(0, 300)
+        });
+        return res.status(400).json({ 
+          error: "Failed to get kakaoId from Kakao. 카카오 사용자 ID를 가져올 수 없습니다."
+        });
+      }
+
+      console.log('[ANDROID LOGIN] ✅ Kakao user info retrieved, kakaoId:', safeKakaoId);
+
+      // 사용자 정보 추출
+      const email = userInfo.kakao_account?.email || `kakao_${safeKakaoId}@placeholder.com`;
+      const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
+      let profileImageUrl = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image || null;
       
-      console.log('[ANDROID LOGIN] ✅ Kakao user info retrieved');
+      // ⚠️ 중요: profileImageUrl을 https로 변환 (Mixed Content 방지)
+      if (profileImageUrl && profileImageUrl.startsWith('http://')) {
+        profileImageUrl = profileImageUrl.replace('http://', 'https://');
+        console.log('[ANDROID LOGIN] ✅ Converted profileImageUrl to HTTPS:', profileImageUrl);
+      }
 
       // 사용자 정보 저장
       const userUpsertStart = Date.now();
@@ -1678,12 +1703,12 @@ export function setupKakaoAuth(app: Express) {
       
       const user = await storage.upsertUser({
         id: `kakao_${safeKakaoId}`,
-        email: email || userInfo.kakao_account?.email || `kakao_${safeKakaoId}@placeholder.com`,
-        firstName: nickname || userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User",
+        email,
+        firstName: nickname,
         lastName: "",
-        profileImageUrl: profileImage || userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image || null,
+        profileImageUrl,
         provider: "kakao",
-        kakaoId: safeKakaoId, // 정확한 문자열 ID 사용
+        kakaoId: safeKakaoId,
       });
       const userUpsertTime = Date.now() - userUpsertStart;
       
@@ -1759,8 +1784,8 @@ export function setupKakaoAuth(app: Express) {
               console.log('[ANDROID LOGIN] ⚠️ JWT/세션에 저장된 userId:', user.id);
               console.log('[ANDROID LOGIN] ========== Login process completed successfully ==========');
               
-              // 세션 쿠키가 제대로 설정되도록 응답
-              // CORS와 credentials 설정은 이미 server/index.ts에서 처리됨
+              // ⚠️ 중요: 응답에는 로그인한 user 정보를 JSON으로 반환합니다
+              // profileImageUrl은 이미 https로 변환되어 있습니다
               res.json({ 
                 success: true, 
                 user: {
@@ -1768,7 +1793,9 @@ export function setupKakaoAuth(app: Express) {
                   email: user.email,
                   firstName: user.firstName,
                   lastName: user.lastName,
-                  profileImageUrl: user.profileImageUrl,
+                  profileImageUrl: user.profileImageUrl, // 이미 https로 변환됨
+                  points: user.points,
+                  provider: user.provider,
                 },
                 sessionId: sessionId?.substring(0, 10) // 디버깅용 (일부만)
               });
@@ -1787,8 +1814,9 @@ export function setupKakaoAuth(app: Express) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
       
+      // 사용자가 이해할 수 있는 에러 메시지 반환
       res.status(500).json({ 
-        error: "Login failed",
+        error: "로그인에 실패했습니다. 잠시 후 다시 시도해주세요.",
         details: errorMessage,
         ...(process.env.NODE_ENV === 'development' && { 
           stack: errorStack?.substring(0, 500) // 개발 환경에서만 스택 트레이스 제공

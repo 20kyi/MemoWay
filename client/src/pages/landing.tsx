@@ -371,29 +371,16 @@ export default function Landing() {
           fullResult: loginResult // 디버깅용
         });
         
-        // 플러그인 응답 형식에 맞게 변환 (서버 API 형식에 맞춤)
-        // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
-        const kakaoId = loginResult.id?.toString() || String(loginResult.id) || '';
+        // ⚠️ 중요: 클라이언트에서는 accessToken만 서버로 전송합니다.
+        // 서버에서 accessToken을 사용하여 Kakao API를 호출하고 실제 kakaoId를 가져옵니다.
+        const accessToken = loginResult.accessToken;
         
-        if (!kakaoId || kakaoId === 'undefined' || kakaoId === 'null' || kakaoId === '') {
-          console.error('[KAKAO LOGIN] ❌ kakaoId is missing or invalid:', {
-            rawId: loginResult.id,
-            stringified: kakaoId,
-            loginResult: loginResult
-          });
-          throw new Error('카카오 사용자 ID를 가져올 수 없습니다. 앱을 다시 시작해주세요.');
+        if (!accessToken) {
+          console.error('[KAKAO LOGIN] ❌ accessToken is missing');
+          throw new Error('카카오 액세스 토큰을 가져올 수 없습니다. 앱을 다시 시작해주세요.');
         }
         
-        const kakaoResult = {
-          accessToken: loginResult.accessToken || '',
-          refreshToken: loginResult.refreshToken,
-          id: kakaoId,
-          email: loginResult.email,
-          nickname: loginResult.nickname,
-          profileImage: loginResult.profileImage
-        };
-        
-        // 서버에 accessToken 전달하여 세션 생성
+        // 서버에 accessToken만 전달하여 세션 생성
         const baseUrl = getApiBaseUrl();
         if (!baseUrl) {
           console.error('[KAKAO LOGIN] ❌ Server configuration missing');
@@ -401,24 +388,15 @@ export default function Landing() {
         }
         
         console.log('[KAKAO LOGIN] Server base URL:', baseUrl);
-        console.log('[KAKAO LOGIN] Sending login request to server...');
-        console.log('[KAKAO LOGIN] ✅ kakaoId extracted:', kakaoId);
+        console.log('[KAKAO LOGIN] Sending login request to server (accessToken only)...');
         const serverRequestStart = Date.now();
         
+        // ⚠️ 중요: accessToken만 전송합니다. kakaoId는 서버에서 Kakao API로 가져옵니다.
         const requestBody = {
-          accessToken: kakaoResult.accessToken,
-          kakaoId: kakaoResult.id,
-          email: kakaoResult.email,
-          nickname: kakaoResult.nickname,
-          profileImage: kakaoResult.profileImage,
+          accessToken: accessToken,
         };
-        console.log('[KAKAO LOGIN] Request body (sanitized):', {
+        console.log('[KAKAO LOGIN] Request body:', {
           hasAccessToken: !!requestBody.accessToken,
-          hasKakaoId: !!requestBody.kakaoId,
-          kakaoId: requestBody.kakaoId,
-          hasEmail: !!requestBody.email,
-          hasNickname: !!requestBody.nickname,
-          hasProfileImage: !!requestBody.profileImage
         });
         
         const response = await fetch(`${baseUrl}/api/kakao/android-login`, {
