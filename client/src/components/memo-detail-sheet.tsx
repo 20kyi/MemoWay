@@ -379,7 +379,7 @@ export function MemoDetailSheet({
             </div>
 
             {/* 하단 고정 영역 - 액션 버튼들 */}
-            {(onAddNewMemo || (currentUserId && memo.member.userId !== currentUserId ? !!onCopy : true)) && (
+            {(onAddNewMemo || onEdit || onDelete || (currentUserId && memo.member.userId !== currentUserId ? !!onCopy : false)) && (
               <div className="mt-auto flex-shrink-0 px-4 sm:px-5 py-4 border-t border-indigo-200/50 bg-gradient-to-br from-indigo-50/30 to-white">
                 <div className="flex flex-nowrap gap-1.5 sm:gap-3">
                   {onAddNewMemo && (
@@ -457,23 +457,8 @@ export function MemoDetailSheet({
                       )}
                     </>
                   ) : (
-                    // 내가 쓴 메모: 편집 및 삭제 버튼 표시
+                    // 내가 쓴 메모: 편집 및 삭제 버튼 표시 (복사 버튼 제거)
                     <>
-                      {onCopy && (
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          onClick={() => {
-                            onCopy(memo.id);
-                            onOpenChange(false);
-                          }}
-                          className="h-11 sm:h-12 text-xs sm:text-base font-medium border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
-                          data-testid="button-copy-memo"
-                        >
-                          <Copy className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                          <span className="whitespace-nowrap">{t.common.copy || "복사"}</span>
-                        </Button>
-                      )}
                       {onEdit && (
                         <Button
                           size="lg"
