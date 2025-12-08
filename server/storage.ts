@@ -814,10 +814,13 @@ export class DatabaseStorage implements IStorage {
       // Copy all memos to the new group (without photos)
       let copiedCount = 0;
       for (const memo of groupMemos) {
+        // Add group name suffix to building name
+        const buildingName = `${memo.buildingName} (${sourceGroup.name} 복사본)`;
+        
         await tx
           .insert(memos)
           .values({
-            buildingName: memo.buildingName,
+            buildingName: buildingName,
             address: memo.address,
             latitude: memo.latitude,
             longitude: memo.longitude,
@@ -838,9 +841,12 @@ export class DatabaseStorage implements IStorage {
 
   async copyMemoToPersonal(memoId: string, userId: string): Promise<Memo> {
     return await db.transaction(async (tx) => {
-      // 1. Get original memo
+      // 1. Get original memo with group info
       const originalMemo = await tx.query.memos.findFirst({
         where: eq(memos.id, memoId),
+        with: {
+          group: true,
+        },
       });
 
       if (!originalMemo) {
@@ -878,11 +884,17 @@ export class DatabaseStorage implements IStorage {
       // but for personal memos (groupId: null), any memberId belonging to the user is valid in createMemo logic.
       const personalMember = userMembers[0];
 
-      // 4. Copy memo
+      // 4. Prepare building name with group name suffix if memo belongs to a group
+      let buildingName = originalMemo.buildingName;
+      if (originalMemo.group && originalMemo.group.name) {
+        buildingName = `${originalMemo.buildingName} (${originalMemo.group.name} 복사본)`;
+      }
+
+      // 5. Copy memo
       const [newMemo] = await tx
         .insert(memos)
         .values({
-          buildingName: originalMemo.buildingName,
+          buildingName: buildingName,
           address: originalMemo.address,
           latitude: originalMemo.latitude,
           longitude: originalMemo.longitude,
