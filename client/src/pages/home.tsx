@@ -684,7 +684,7 @@ export default function Home() {
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden pt-[env(safe-area-inset-top)]">
       <div className={`overflow-hidden relative z-10 ${
-        isCoupleTheme ? "h-screen pb-0" : "flex-1 pb-16"
+        isCoupleTheme ? "h-screen pb-0" : "flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]"
       }`}>
         {activeTab === "map" && (
           <div className={`relative h-full ${isCoupleTheme ? 'bg-[#FCEDEF]' : ''}`}>

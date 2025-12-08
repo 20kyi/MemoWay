@@ -379,7 +379,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
         </h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 pb-3 sm:pb-4 space-y-3 sm:space-y-4">
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))] space-y-3 sm:space-y-4">
         {/* 그룹 검색 바 */}
         <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
         <div className="relative flex-1">
