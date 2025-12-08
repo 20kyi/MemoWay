@@ -891,7 +891,7 @@ function GoogleMapViewComponent({
       
       {/* 위치 고정 모드 상태 배너 */}
       {isLocationLocked && (
-        <div className="absolute top-[calc(5rem+1rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
+        <div className="absolute top-[calc(env(safe-area-inset-top)+6rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
           <div 
             className="relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3"
             style={{
@@ -947,7 +947,7 @@ function GoogleMapViewComponent({
       
       {/* 지도 저장하기 버튼 (선택된 메모가 있을 때만 표시) */}
       {selectedMemoIdsForMap && selectedMemoIdsForMap.size > 0 && onSaveMap && (
-        <div className="absolute top-[calc(5rem+1rem)] left-1/2 -translate-x-1/2 z-50 px-2">
+        <div className="absolute top-[calc(env(safe-area-inset-top)+6rem)] left-1/2 -translate-x-1/2 z-50 px-2">
           <button
             onClick={onSaveMap}
             className="relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3 cursor-pointer hover:scale-105 active:scale-95 transition-transform"
@@ -1027,7 +1027,7 @@ function GoogleMapViewComponent({
 
       {/* MemoWay 로고 - 커플 테마에서만 표시 */}
       {isCoupleTheme && (
-        <div className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap">
+        <div className="absolute top-[calc(env(safe-area-inset-top)+1.5rem)] sm:top-[calc(env(safe-area-inset-top)+2rem)] left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap">
           <div className="relative flex-shrink-0">
             <MapPin className="h-8 w-8 sm:h-14 sm:w-14 text-[#A28DB3] drop-shadow-md" fill="currentColor" />
           </div>
@@ -1038,7 +1038,7 @@ function GoogleMapViewComponent({
       )}
 
       {/* 주소 검색 바 */}
-      <div className={`absolute ${isCoupleTheme ? 'top-[5.5rem] sm:top-[6.5rem]' : 'top-4'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
+      <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+5.5rem)] sm:top-[calc(env(safe-area-inset-top)+6.5rem)]' : 'top-[calc(env(safe-area-inset-top)+1rem)]'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
         <div className={isCoupleTheme
           ? "search-bar-couple-theme flex gap-2 p-2"
           : "flex gap-2 p-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
