@@ -1766,10 +1766,7 @@ function MapViewComponent({
           });
         }
 
-        // 상위 10개만 선택
-        const top10Places = placesWithDistance.slice(0, 10);
-
-        if (top10Places.length === 0) {
+        if (placesWithDistance.length === 0) {
           setIsSearching(false);
           toast({
             title: t.toast.searchNoResults,
@@ -1779,7 +1776,10 @@ function MapViewComponent({
           return;
         }
 
-        // 각 장소에 마커 표시 (A, B, C... 라벨 포함)
+        // 상위 10개만 마커로 표시 (지도 성능을 위해)
+        const top10Places = placesWithDistance.slice(0, 10);
+
+        // 각 장소에 마커 표시 (A, B, C... 라벨 포함) - 최대 10개만
         const newPlaceMarkers = top10Places.map((place: any, index: number) => {
           const coords = new window.kakao.maps.LatLng(place.lat, place.lng);
           const markerLabel = String.fromCharCode(65 + index); // A, B, C...
@@ -1817,14 +1817,14 @@ function MapViewComponent({
         });
 
         setSearchPlaceMarkers(newPlaceMarkers);
-        setSearchResults(top10Places); // 사이드바에 표시할 결과 저장
+        setSearchResults(placesWithDistance); // 사이드바에 모든 결과 표시
         setAllSearchResults(placesWithDistance); // 전체 검색 결과 저장
         setCurrentSearchQuery(searchQuery); // 검색어 저장 (사이드바 헤더용)
         setIsSearchSidebarOpen(true); // 사이드바 열기
 
         // 첫 번째 장소로 지도 중심 이동
-        if (top10Places.length > 0) {
-          const firstPlace = top10Places[0];
+        if (placesWithDistance.length > 0) {
+          const firstPlace = placesWithDistance[0];
           const centerCoords = new window.kakao.maps.LatLng(firstPlace.lat, firstPlace.lng);
           map.setCenter(centerCoords);
           map.setLevel(5); // 약간 줌 아웃하여 여러 마커 보이도록
@@ -2093,7 +2093,7 @@ function MapViewComponent({
                     </div>
                   ) : (
                     <>
-                      {allSearchResults.length > searchResults.length && (
+                      {allSearchResults.length >= 2 && (
                         <Button
                           onClick={handleShowAllResults}
                           className="w-full h-9 text-xs font-medium bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5 mb-1"
