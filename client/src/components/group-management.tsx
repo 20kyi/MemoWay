@@ -271,7 +271,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
     return (
       <div className="flex flex-col h-full">
         {/* 그룹 헤더 */}
-        <div className="px-4 pt-0 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-3 mb-2">
             <Button
               variant="ghost"
@@ -373,13 +373,13 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
   return (
     <div className="flex flex-col h-full">
       {/* App Name Header */}
-        <div className="px-4 pt-0 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
             MemoWay
           </h1>
         </div>
 
-      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pt-0 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))] space-y-3 sm:space-y-4">
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))] space-y-3 sm:space-y-4">
         {/* 그룹 검색 바 */}
         <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
         <div className="relative flex-1">

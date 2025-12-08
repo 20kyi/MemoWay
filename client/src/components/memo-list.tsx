@@ -418,7 +418,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
 
   if (memos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full pt-0 px-4 pb-8 text-center">
+      <div className="flex flex-col items-center justify-center h-full pt-6 sm:pt-4 px-4 pb-8 text-center">
         <p className="text-muted-foreground text-lg mb-2">{t.memoList.noMemos}</p>
         <p className="text-muted-foreground text-sm">{t.memoList.noMemosDesc}</p>
       </div>
@@ -453,7 +453,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
     <div className="flex flex-col h-full">
       {/* App Name Header */}
       {!hideHeader && (
-        <div className="px-4 pt-0 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
             MemoWay
           </h1>
@@ -462,7 +462,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
 
       {/* Selection Mode Header */}
       {isSelectionMode ? (
-        <div className="px-4 pt-0 pb-3 bg-muted/50 border-b flex flex-col gap-3 flex-shrink-0">
+        <div className="px-4 pt-4 pb-3 bg-muted/50 border-b flex flex-col gap-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -534,7 +534,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
         <>
           {/* 작성자 탭 (그룹 메모 뷰에서만 표시) */}
           {showAuthorTab && currentUserId && (
-            <div className="px-4 pt-0 pb-2 flex-shrink-0">
+            <div className="px-4 pt-4 pb-2 flex-shrink-0">
               <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5">
                 <button
                   onClick={() => setAuthorTab("mine")}
@@ -585,7 +585,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
           )}
           {/* 검색 바 (메모 탭에서만 표시) */}
           {!hideFilters && (
-            <div className="px-4 pt-0 pb-2 flex-shrink-0">
+            <div className="px-4 pt-4 pb-2 flex-shrink-0">
               <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
                 <div className="relative flex-1">
                   <Input

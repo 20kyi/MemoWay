@@ -682,7 +682,7 @@ export default function Home() {
   }, [updateMemoMutation, memos, toast, t, queryClient]);
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden pt-[env(safe-area-inset-top)]">
       <div className={`overflow-hidden relative z-10 ${
         isCoupleTheme ? "h-screen pb-0" : "flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]"
       }`}>
