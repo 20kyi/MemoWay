@@ -2411,6 +2411,12 @@ function MapViewComponent({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleSearchKeyPress}
+                    onFocus={() => {
+                      // 검색바 포커스 시 기존 검색 결과 자동 취소
+                      if (searchMarker !== null || searchPlaceMarkers.length > 0) {
+                        handleClearSearch();
+                      }
+                    }}
                     placeholder={t.common.addressSearchPlaceholder}
                     className="pr-10 border-0 focus-visible:ring-0 bg-transparent"
                     disabled={isSearching}
