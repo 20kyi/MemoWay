@@ -84,6 +84,8 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [pendingCopyMemoId, setPendingCopyMemoId] = useState<string | null>(null);
+  const [bulkCopyDialogOpen, setBulkCopyDialogOpen] = useState(false);
+  const [pendingBulkCopyMemoIds, setPendingBulkCopyMemoIds] = useState<string[]>([]);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pressStartTimeRef = useRef<number>(0);
   const justEnteredSelectionModeRef = useRef<boolean>(false);
@@ -276,9 +278,9 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
 
   const handleBulkCopy = () => {
     if (onBulkCopy && selectedMemoIds.size > 0) {
-      onBulkCopy(Array.from(selectedMemoIds));
-      setIsSelectionMode(false);
-      setSelectedMemoIds(new Set());
+      // 팝업을 띄우기 위해 선택된 메모 ID 저장
+      setPendingBulkCopyMemoIds(Array.from(selectedMemoIds));
+      setBulkCopyDialogOpen(true);
     }
   };
 
@@ -864,6 +866,79 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
               }}
               disabled={10 > userPoints}
               data-testid="button-confirm-copy"
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Coins className="h-4 w-4 mr-2" />
+              {t.groups.confirmCopy || t.common.copy || "복사"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 다중 메모 복사 확인 다이얼로그 */}
+      <AlertDialog open={bulkCopyDialogOpen} onOpenChange={setBulkCopyDialogOpen}>
+        <AlertDialogContent className="sm:max-w-md w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-[calc(100%-2rem)] mx-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-xl sm:rounded-2xl p-4 sm:p-6">
+          <AlertDialogHeader className="flex-shrink-0">
+            <AlertDialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Copy className="h-5 w-5 text-primary" />
+              {t.common.copy || "복사"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2 overflow-y-auto flex-1 max-h-[60vh] pr-1 sm:pr-2">
+              <p>
+                선택한 메모를 복사하시겠습니까?
+              </p>
+              
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{t.groups.memoCount}</span>
+                  <span className="font-semibold">{pendingBulkCopyMemoIds.length}개</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{t.groups.requiredPoints}</span>
+                  <span className="font-semibold text-amber-600 dark:text-amber-400">
+                    {(pendingBulkCopyMemoIds.length * 10).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm border-t pt-2">
+                  <span className="text-muted-foreground">{t.groups.currentPoints}</span>
+                  <span className="font-semibold text-primary">
+                    {userPoints.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {pendingBulkCopyMemoIds.length * 10 > userPoints && (
+                <div className="flex items-start gap-2 bg-destructive/10 text-destructive rounded-lg p-3">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm">
+                    {t.groups.insufficientPoints} {(pendingBulkCopyMemoIds.length * 10).toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-shrink-0 pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
+            <AlertDialogCancel 
+              data-testid="button-cancel-bulk-copy"
+              onClick={() => {
+                setBulkCopyDialogOpen(false);
+                setPendingBulkCopyMemoIds([]);
+              }}
+            >
+              {t.common.cancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (onBulkCopy && pendingBulkCopyMemoIds.length > 0) {
+                  onBulkCopy(pendingBulkCopyMemoIds);
+                  setIsSelectionMode(false);
+                  setSelectedMemoIds(new Set());
+                }
+                setBulkCopyDialogOpen(false);
+                setPendingBulkCopyMemoIds([]);
+              }}
+              disabled={pendingBulkCopyMemoIds.length * 10 > userPoints}
+              data-testid="button-confirm-bulk-copy"
               className="bg-primary hover:bg-primary/90"
             >
               <Coins className="h-4 w-4 mr-2" />
