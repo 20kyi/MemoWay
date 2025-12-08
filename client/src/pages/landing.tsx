@@ -372,10 +372,22 @@ export default function Landing() {
         });
         
         // 플러그인 응답 형식에 맞게 변환 (서버 API 형식에 맞춤)
+        // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
+        const kakaoId = loginResult.id?.toString() || String(loginResult.id) || '';
+        
+        if (!kakaoId || kakaoId === 'undefined' || kakaoId === 'null' || kakaoId === '') {
+          console.error('[KAKAO LOGIN] ❌ kakaoId is missing or invalid:', {
+            rawId: loginResult.id,
+            stringified: kakaoId,
+            loginResult: loginResult
+          });
+          throw new Error('카카오 사용자 ID를 가져올 수 없습니다. 앱을 다시 시작해주세요.');
+        }
+        
         const kakaoResult = {
           accessToken: loginResult.accessToken || '',
           refreshToken: loginResult.refreshToken,
-          id: loginResult.id?.toString() || String(loginResult.id) || '',
+          id: kakaoId,
           email: loginResult.email,
           nickname: loginResult.nickname,
           profileImage: loginResult.profileImage
@@ -390,6 +402,7 @@ export default function Landing() {
         
         console.log('[KAKAO LOGIN] Server base URL:', baseUrl);
         console.log('[KAKAO LOGIN] Sending login request to server...');
+        console.log('[KAKAO LOGIN] ✅ kakaoId extracted:', kakaoId);
         const serverRequestStart = Date.now();
         
         const requestBody = {

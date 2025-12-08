@@ -50,6 +50,8 @@ public class KakaoLoginPlugin extends Plugin {
     }
     
     private void getUserInfo(PluginCall call, OAuthToken token) {
+        // ⚠️ 중요: UserApiClient.getInstance().me()는 /v2/user/me API를 호출합니다
+        // 이 메서드가 반환하는 User 객체의 getId()가 실제 카카오 사용자 ID입니다
         UserApiClient.getInstance().me((user, error) -> {
             if (error != null) {
                 Exception exception = error instanceof Exception ? (Exception) error : new Exception(error.getMessage());
@@ -59,7 +61,18 @@ public class KakaoLoginPlugin extends Plugin {
                 JSObject result = new JSObject();
                 result.put("accessToken", token.getAccessToken());
                 result.put("refreshToken", token.getRefreshToken());
-                result.put("id", user.getId());
+                
+                // ⚠️ CRITICAL: kakaoId는 반드시 String으로 변환하여 전달
+                // user.getId()는 Long 타입일 수 있으므로 String으로 변환
+                Long userId = user.getId();
+                if (userId == null) {
+                    call.reject("카카오 사용자 ID를 가져올 수 없습니다", new Exception("user.getId() returned null"));
+                    return Unit.INSTANCE;
+                }
+                
+                // Long을 String으로 변환 (정밀도 손실 방지)
+                String kakaoId = String.valueOf(userId);
+                result.put("id", kakaoId);
                 
                 // 이메일과 프로필 정보는 null 체크 필요
                 if (user.getKakaoAccount() != null) {
@@ -74,8 +87,10 @@ public class KakaoLoginPlugin extends Plugin {
                 
                 call.resolve(result);
                 return Unit.INSTANCE;
+            } else {
+                call.reject("사용자 정보를 가져올 수 없습니다", new Exception("user is null"));
+                return Unit.INSTANCE;
             }
-            return Unit.INSTANCE;
         });
     }
     

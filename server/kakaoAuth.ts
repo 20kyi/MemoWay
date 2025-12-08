@@ -456,9 +456,17 @@ export function setupKakaoAuth(app: Express) {
         safeKakaoId = idMatch[1];
       }
 
-      if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null') {
-        console.error('[KAKAO EXCHANGE] ❌ Invalid Kakao ID:', { safeKakaoId, userInfo });
-        return res.status(500).json({ error: "Invalid Kakao User ID received" });
+      // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
+      if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null' || safeKakaoId === '') {
+        console.error('[KAKAO EXCHANGE] ❌ Invalid or missing Kakao ID:', { 
+          safeKakaoId, 
+          userInfo,
+          userInfoId: userInfo.id,
+          userInfoText: userInfoText.substring(0, 200)
+        });
+        return res.status(400).json({ 
+          error: "Invalid or missing Kakao User ID. 카카오 사용자 ID를 가져올 수 없습니다."
+        });
       }
 
       console.log('[KAKAO EXCHANGE] ✅ User info retrieved:', { id: safeKakaoId });
@@ -833,16 +841,28 @@ export function setupKakaoAuth(app: Express) {
       const nickname = userInfo.kakao_account?.profile?.nickname || userInfo.properties?.nickname || "Kakao User";
       const profileImage = userInfo.kakao_account?.profile?.profile_image_url || userInfo.properties?.profile_image;
 
-      console.log(`[KAKAO CALLBACK] Upserting user with KakaoID: ${userInfo.id}`);
+      // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
+      const kakaoIdStr = userInfo.id.toString();
+      if (!kakaoIdStr || kakaoIdStr === 'undefined' || kakaoIdStr === 'null' || kakaoIdStr === '') {
+        console.error('[KAKAO CALLBACK] ❌ Invalid or missing Kakao ID:', { 
+          userInfoId: userInfo.id,
+          kakaoIdStr
+        });
+        return res.status(500).json({ 
+          error: "Invalid or missing Kakao User ID. 카카오 사용자 ID를 가져올 수 없습니다."
+        });
+      }
+      
+      console.log(`[KAKAO CALLBACK] Upserting user with KakaoID: ${kakaoIdStr}`);
 
       const user = await storage.upsertUser({
-        id: `kakao_${userInfo.id}`,
+        id: `kakao_${kakaoIdStr}`,
         email,
         firstName: nickname,
         lastName: "",
         profileImageUrl: profileImage || null,
         provider: "kakao",
-        kakaoId: userInfo.id.toString(),
+        kakaoId: kakaoIdStr,
       });
       
       console.log('[KAKAO CALLBACK] ✅ User upserted/found:', { id: user.id, kakaoId: user.kakaoId });
@@ -1244,9 +1264,33 @@ export function setupKakaoAuth(app: Express) {
         safeKakaoId = idMatch[1];
       }
 
-      if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null') {
-        console.error('[KAKAO FLOW] ❌ Invalid Kakao ID:', { safeKakaoId, userInfo });
-        return res.send('Invalid Kakao User ID received');
+      // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
+      if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null' || safeKakaoId === '') {
+        console.error('[KAKAO FLOW] ❌ Invalid or missing Kakao ID:', { 
+          safeKakaoId, 
+          userInfo,
+          userInfoId: userInfo.id,
+          userInfoText: userInfoText.substring(0, 200)
+        });
+        const errorDeepLink = 'com.memoway.app://login?error=invalid_kakao_id&message=카카오 사용자 ID를 가져올 수 없습니다';
+        return res.send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>로그인 실패</title>
+              <script>
+                alert('카카오 사용자 ID를 가져올 수 없습니다.');
+                setTimeout(() => {
+                  window.location.href = '${errorDeepLink}';
+                }, 1000);
+              </script>
+            </head>
+            <body>
+              <p>카카오 사용자 ID를 가져올 수 없습니다. 잠시 후 다시 시도해주세요.</p>
+            </body>
+          </html>
+        `);
       }
 
       console.log('[KAKAO FLOW] ✅ User info retrieved:', { id: safeKakaoId });
@@ -1576,13 +1620,23 @@ export function setupKakaoAuth(app: Express) {
       console.warn('[ANDROID LOGIN] ⚠️ Using req.body.kakaoId (potential precision loss):', safeKakaoId);
     }
 
-    if (!accessToken || !safeKakaoId) {
-      console.error('[ANDROID LOGIN] ❌ Missing required fields:', { 
+    // ⚠️ CRITICAL: kakaoId는 반드시 있어야 합니다
+    if (!accessToken) {
+      console.error('[ANDROID LOGIN] ❌ Missing accessToken');
+      return res.status(400).json({ 
+        error: "Missing required field: accessToken is required"
+      });
+    }
+    
+    if (!safeKakaoId || safeKakaoId === 'undefined' || safeKakaoId === 'null' || safeKakaoId === '') {
+      console.error('[ANDROID LOGIN] ❌ Missing or invalid kakaoId:', { 
         hasAccessToken: !!accessToken, 
-        hasKakaoId: !!safeKakaoId
+        kakaoId: safeKakaoId,
+        unsafeKakaoId: unsafeKakaoId,
+        rawBody: (req as any).rawBody?.toString('utf8')?.substring(0, 200)
       });
       return res.status(400).json({ 
-        error: "Missing required fields: accessToken and kakaoId are required"
+        error: "Missing or invalid kakaoId. 카카오 사용자 ID를 가져올 수 없습니다."
       });
     }
 
