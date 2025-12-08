@@ -266,8 +266,9 @@ export function useGroups({
         newLeaderId: data.newLeaderId,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+    onSuccess: async () => {
+      // 즉시 refetch하여 지연 최소화
+      await queryClient.refetchQueries({ queryKey: ["/api/groups"] });
       toast({
         title: t.toast.leadershipTransferred,
         description: t.toast.leadershipTransferredDesc,

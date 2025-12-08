@@ -525,6 +525,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Transfer leadership (includes all validation)
       await storage.transferLeadership(groupId, currentLeaderMember.id, newLeaderId);
 
+      // Get updated group data for broadcast
+      const updatedGroup = await storage.getGroupById(groupId);
+      if (updatedGroup) {
+        // Broadcast to WebSocket clients
+        broadcast({
+          type: "group_updated",
+          group: updatedGroup,
+        });
+      }
+
       res.json({ success: true });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
