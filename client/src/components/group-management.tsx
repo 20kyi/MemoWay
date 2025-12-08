@@ -344,7 +344,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
           {onEditMemo && onDeleteMemo && onMemoClick ? (
             <MemoList
               memos={groupMemos}
-              groups={[]}
+              groups={selectedGroup ? [selectedGroup] : []}
               onEdit={onEditMemo}
               onDelete={onDeleteMemo}
               onCopy={onCopyMemo}
