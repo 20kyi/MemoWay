@@ -1079,7 +1079,8 @@ export default function Home() {
           }}
           onCopy={handleCopyMemo}
           currentUserId={(user as any)?.id}
-      />
+          groups={filteredGroups}
+        />
 
       <ExitDialog open={showExitDialog} onOpenChange={setShowExitDialog} />
       

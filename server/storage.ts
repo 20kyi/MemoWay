@@ -652,9 +652,9 @@ export class DatabaseStorage implements IStorage {
       }
       
       const userMember = userMembers[0];
-      // 작성자가 아니고 방장도 아닌 경우 삭제 불가
-      if (memoAuthorUserId !== userId && userMember.role !== 'leader') {
-        console.warn(`[Storage:deleteMemo] ❌ User ${userId} attempted to delete group memo ${id} without permission (not author or leader)`);
+      // 작성자가 아니고 방장도 아니고 관리자(canEditGroupMemos)도 아닌 경우 삭제 불가
+      if (memoAuthorUserId !== userId && userMember.role !== 'leader' && !userMember.canEditGroupMemos) {
+        console.warn(`[Storage:deleteMemo] ❌ User ${userId} attempted to delete group memo ${id} without permission (not author, leader, or admin)`);
         throw new Error("PERMISSION_DENIED");
       }
     }

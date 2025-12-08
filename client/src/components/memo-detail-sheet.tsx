@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,7 @@ interface MemoDetailSheetProps {
   onAddNewMemo?: (location: { lat: number; lng: number; address: string; buildingName: string }) => void;
   onCopy?: (memoId: string) => void;
   currentUserId?: string; // ⚠️ 추가: 현재 사용자 ID (다른 사용자 메모 판별용)
+  groups?: Array<{ id: string; members: Array<{ userId?: string; role: string; canEditGroupMemos: boolean }> }>; // 그룹 정보 (관리자 권한 체크용)
 }
 
 export function MemoDetailSheet({
@@ -51,11 +52,21 @@ export function MemoDetailSheet({
   onAddNewMemo,
   onCopy,
   currentUserId,
+  groups = [],
 }: MemoDetailSheetProps) {
   const { t, language } = useLanguage();
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [pendingCopyMemoId, setPendingCopyMemoId] = useState<string | null>(null);
+
+  // 관리자 권한 체크 함수
+  const isAdmin = useMemo(() => {
+    if (!memo || !currentUserId || !memo.groupId) return false;
+    const group = groups.find(g => g.id === memo.groupId);
+    if (!group) return false;
+    const currentMember = group.members.find(m => m.userId === currentUserId);
+    return currentMember?.canEditGroupMemos === true || currentMember?.role === 'leader';
+  }, [memo, currentUserId, groups]);
 
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
 
@@ -384,22 +395,61 @@ export function MemoDetailSheet({
                   )}
                   {/* ⚠️ 중요: 다른 사용자가 쓴 메모인지 확인 */}
                   {currentUserId && memo.member.userId !== currentUserId ? (
-                    // 다른 사용자가 쓴 메모: 복사 버튼만 표시
-                    onCopy && (
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        onClick={() => {
-                          setPendingCopyMemoId(memo.id);
-                          setCopyDialogOpen(true);
-                        }}
-                        className="h-11 sm:h-12 text-xs sm:text-base font-medium border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
-                        data-testid="button-copy-memo"
-                      >
-                        <Copy className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                        <span className="whitespace-nowrap">{t.common.copy || "복사"}</span>
-                      </Button>
-                    )
+                    // 다른 사용자가 쓴 메모: 관리자인 경우 복사/편집/삭제 버튼, 아니면 복사 버튼만
+                    <>
+                      {onCopy && (
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          onClick={() => {
+                            setPendingCopyMemoId(memo.id);
+                            setCopyDialogOpen(true);
+                          }}
+                          className="h-11 sm:h-12 text-xs sm:text-base font-medium border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                          data-testid="button-copy-memo"
+                        >
+                          <Copy className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{t.common.copy || "복사"}</span>
+                        </Button>
+                      )}
+                      {/* 관리자인 경우 편집 및 삭제 버튼도 표시 */}
+                      {isAdmin && (
+                        <>
+                          {onEdit && (
+                            <Button
+                              size="lg"
+                              variant="outline"
+                              onClick={() => {
+                                onEdit(memo.id);
+                                onOpenChange(false);
+                              }}
+                              className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                              data-testid="button-edit-memo"
+                            >
+                              <Edit className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                              <span className="whitespace-nowrap">{t.common.edit}</span>
+                            </Button>
+                          )}
+                          {onDelete && (
+                            <Button
+                              size="lg"
+                              variant="destructive"
+                              onClick={() => {
+                                if (confirm(t.memoDetail.confirmDelete)) {
+                                  onDelete(memo.id);
+                                  onOpenChange(false);
+                                }
+                              }}
+                              className="h-11 sm:h-12 text-xs sm:text-base font-medium bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                              data-testid="button-delete-memo"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                              <span className="whitespace-nowrap">{t.common.delete}</span>
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </>
                   ) : (
                     // 내가 쓴 메모: 편집 및 삭제 버튼 표시
                     <>

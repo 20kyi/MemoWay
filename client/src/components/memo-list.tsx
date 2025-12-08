@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ interface Group {
   id: string;
   name: string;
   color: string;
+  members?: Array<{ userId?: string; role: string; canEditGroupMemos: boolean }>;
 }
 
 type SavedMap = {
@@ -85,6 +86,15 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pressStartTimeRef = useRef<number>(0);
   const justEnteredSelectionModeRef = useRef<boolean>(false);
+
+  // 관리자 권한 체크 함수
+  const isAdminForMemo = useCallback((memo: MemoWithDetails) => {
+    if (!currentUserId || !memo.groupId) return false;
+    const group = groups.find(g => g.id === memo.groupId);
+    if (!group || !group.members || group.members.length === 0) return false;
+    const currentMember = group.members.find((m: any) => m.userId === currentUserId);
+    return currentMember?.canEditGroupMemos === true || currentMember?.role === 'leader';
+  }, [currentUserId, groups]);
 
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
 
@@ -634,22 +644,53 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                 )}
                 {/* ⚠️ 중요: 다른 사용자가 쓴 메모인지 확인 */}
                 {currentUserId && memo.member.userId !== currentUserId ? (
-                  // 다른 사용자가 쓴 메모: 복사 버튼만 표시
-                  onCopy && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="rounded-full text-muted-foreground hover:text-emerald-600"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPendingCopyMemoId(memo.id);
-                        setCopyDialogOpen(true);
-                      }}
-                      data-testid={`button-copy-${memo.id}`}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  )
+                  // 다른 사용자가 쓴 메모: 관리자인 경우 복사/편집/삭제 버튼, 아니면 복사 버튼만
+                  <>
+                    {onCopy && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="rounded-full text-muted-foreground hover:text-emerald-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPendingCopyMemoId(memo.id);
+                          setCopyDialogOpen(true);
+                        }}
+                        data-testid={`button-copy-${memo.id}`}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {/* 관리자인 경우 편집 및 삭제 버튼도 표시 */}
+                    {isAdminForMemo(memo) && (
+                      <>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="rounded-full text-muted-foreground hover:text-foreground"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(memo.id);
+                          }}
+                          data-testid={`button-edit-${memo.id}`}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="rounded-full text-muted-foreground hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(memo.id);
+                          }}
+                          data-testid={`button-delete-${memo.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </>
                 ) : (
                   // 내가 쓴 메모: 편집 및 삭제 버튼 표시
                   <>
