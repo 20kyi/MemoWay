@@ -79,9 +79,10 @@ export function useMemos({
 
       return apiRequest("POST", "/api/memos", formData);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       console.log("[CREATE MEMO API] onSuccess called");
-      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+      // 즉시 refetch하여 지연 최소화
+      await queryClient.refetchQueries({ queryKey: ["/api/memos"] });
       toast({
         title: t.toast.memoCreated,
         description: t.toast.memoCreatedDesc,
@@ -230,9 +231,12 @@ export function useMemos({
         throw error;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+    onSuccess: async () => {
+      // 즉시 refetch하여 지연 최소화
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["/api/memos"] }),
+        queryClient.refetchQueries({ queryKey: ["/api/groups"] }),
+      ]);
       // mutateAsync를 사용할 때는 onSuccess가 호출되지 않으므로
       // home.tsx에서 직접 토스트를 표시하거나
       // mutate를 사용할 때만 여기서 토스트 표시

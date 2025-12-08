@@ -18,7 +18,8 @@ export function useWebSocketMessages({ moveToLocation, myMemberIds }: UseWebSock
   const handleWebSocketMessage = useCallback(
     (data: any) => {
       if (data.type === "memo_created" || data.type === "memo_deleted" || data.type === "memo_updated") {
-        queryClient.invalidateQueries({ queryKey: ["/api/memos"] });
+        // 즉시 refetch하여 지연 최소화
+        queryClient.refetchQueries({ queryKey: ["/api/memos"] });
 
         if (data.type === "memo_created" && data.memo) {
           // Skip notification if this memo was created by the current user
@@ -63,6 +64,9 @@ export function useWebSocketMessages({ moveToLocation, myMemberIds }: UseWebSock
             ),
           });
         }
+      } else if (data.type === "group_updated") {
+        // 그룹 업데이트 시 즉시 refetch하여 지연 최소화
+        queryClient.refetchQueries({ queryKey: ["/api/groups"] });
       }
     },
     [toast, t, moveToLocation, myMemberIds]
