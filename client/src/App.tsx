@@ -15,6 +15,7 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { getApiBaseUrl } from "./lib/api-config";
+import { KeepAwake } from '@capacitor-community/keep-awake';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import("@/pages/home"));
@@ -604,6 +605,22 @@ function Router() {
 import { ErrorBoundary } from "@/components/error-boundary";
 
 function App() {
+  // 앱 실행 시 화면 꺼짐 방지 활성화 (Android/iOS)
+  useEffect(() => {
+    const keepScreenOn = async () => {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          await KeepAwake.keepAwake();
+          console.log('[App] Screen Keep Awake enabled');
+        }
+      } catch (err) {
+        console.error('[App] Failed to enable Keep Awake:', err);
+      }
+    };
+    
+    keepScreenOn();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
