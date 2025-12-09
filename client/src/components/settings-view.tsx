@@ -479,19 +479,22 @@ export function SettingsView() {
             <Button
               onClick={async () => {
                 try {
-                  // 네이티브 코드에서 배터리 최적화 설정 화면 열기
-                  // MainActivity에서 이미 구현되어 있으므로, 여기서는 단순히 앱 정보 화면으로 이동
-                  // 또는 Capacitor App 플러그인을 통해 Intent 호출
                   if (Capacitor.isNativePlatform()) {
-                    // Android Intent를 통해 배터리 최적화 설정 화면 열기
-                    const { App } = await import('@capacitor/app');
-                    // 직접 Intent를 호출할 수 없으므로, 사용자에게 안내
-                    toast({
-                      title: t.settings.batteryOptimization,
-                      description: t.settings.batteryOptimizationRequestDesc,
-                      duration: 5000,
-                    });
-                    // 앱이 시작될 때 자동으로 배터리 최적화 설정 화면이 열리도록 MainActivity에서 처리됨
+                    const { BatteryOptimization } = await import('@capawesome-team/capacitor-android-battery-optimization');
+                    
+                    // 배터리 최적화가 활성화되어 있는지 확인
+                    const status = await BatteryOptimization.isBatteryOptimizationEnabled();
+                    
+                    if (status.enabled) {
+                      // 배터리 최적화 설정 화면 열기
+                      await BatteryOptimization.openBatteryOptimizationSettings();
+                    } else {
+                      toast({
+                        title: t.settings.batteryOptimization,
+                        description: "배터리 최적화가 이미 비활성화되어 있습니다.",
+                        duration: 3000,
+                      });
+                    }
                   }
                 } catch (err) {
                   console.error('Failed to open battery optimization settings:', err);

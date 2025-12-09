@@ -31,97 +31,151 @@ export function useLocationTracking({
 
   // 통합된 위치 추적 (알림 및 위치 업데이트 모두 처리)
   useEffect(() => {
-    if (!locationEnabled || !navigator.geolocation) return;
+    if (!locationEnabled) return;
 
-    let watchId: number | null = null;
     const DESIRED_ACCURACY = 100; // 정밀도 요구사항 완화 (30m -> 100m)
+    let watchId: number | null = null;
+    let watcherId: string | null = null;
 
-    const startTracking = () => {
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude, accuracy } = position.coords;
+    const handleLocationUpdate = (latitude: number, longitude: number, accuracy: number) => {
+      // 정밀도가 100m 이하인 경우 위치 업데이트 (더 유연하게 처리)
+      // 정밀도가 낮아도 위치는 업데이트하되, 알림은 정밀도가 좋을 때만 표시
+      if (accuracy <= DESIRED_ACCURACY || accuracy > 0) {
+        setUserLocation({ lat: latitude, lng: longitude });
 
-          // 정밀도가 100m 이하인 경우 위치 업데이트 (더 유연하게 처리)
-          // 정밀도가 낮아도 위치는 업데이트하되, 알림은 정밀도가 좋을 때만 표시
-          if (accuracy <= DESIRED_ACCURACY || accuracy > 0) {
-            setUserLocation({ lat: latitude, lng: longitude });
+        // 메모 알림이 켜져있고 정밀도가 좋을 때만 근처 메모 체크
+        if (notificationsEnabled && accuracy <= DESIRED_ACCURACY) {
+          memos.forEach((memo) => {
+            // Skip if already notified
+            if (notifiedMemoIds.has(memo.id)) return;
 
-            // 메모 알림이 켜져있고 정밀도가 좋을 때만 근처 메모 체크
-            if (notificationsEnabled && accuracy <= DESIRED_ACCURACY) {
-              memos.forEach((memo) => {
-                // Skip if already notified
-                if (notifiedMemoIds.has(memo.id)) return;
+            const distance = calculateDistance(
+              latitude,
+              longitude,
+              memo.latitude,
+              memo.longitude
+            );
 
-                const distance = calculateDistance(
-                  latitude,
-                  longitude,
-                  memo.latitude,
-                  memo.longitude
-                );
-
-                if (distance <= proximityRadius) {
-                  // Notify user (자신이 작성한 메모도 포함)
-                  toast({
-                    title: memo.buildingName || "근처 메모",
-                    description: `${Math.round(distance)}m 내에 메모가 있습니다`,
-                  });
-
-                  // Mark as notified
-                  setNotifiedMemoIds((prev) => new Set(prev).add(memo.id));
-                }
+            if (distance <= proximityRadius) {
+              // Notify user (자신이 작성한 메모도 포함)
+              toast({
+                title: memo.buildingName || "근처 메모",
+                description: `${Math.round(distance)}m 내에 메모가 있습니다`,
               });
+
+              // Mark as notified
+              setNotifiedMemoIds((prev) => new Set(prev).add(memo.id));
             }
-          }
-        },
-        (error) => {
-          const now = Date.now();
-          const errorCode = error.code;
-          
-          // 같은 에러가 30초 이내에 발생했으면 표시하지 않음
-          if (
-            errorCode === lastErrorCodeRef.current &&
-            now - lastErrorTimeRef.current < ERROR_THROTTLE_MS
-          ) {
-            console.warn("위치 추적 오류 (알림 제한):", error);
-            return;
-          }
-
-          lastErrorTimeRef.current = now;
-          lastErrorCodeRef.current = errorCode;
-
-          // 에러 타입별 적절한 메시지 표시
-          let errorMessage = "위치 정보를 가져올 수 없습니다.";
-          
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = "위치 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.";
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = "위치 정보를 사용할 수 없습니다. GPS 신호를 확인해주세요.";
-              break;
-            case error.TIMEOUT:
-              errorMessage = "위치 정보 요청 시간이 초과되었습니다. 다시 시도해주세요.";
-              break;
-            default:
-              errorMessage = "위치 정보를 가져올 수 없습니다. 브라우저 설정을 확인하세요.";
-          }
-
-          console.error("위치 추적 오류:", error);
-          
-          // 에러 메시지는 한 번만 표시
-          toast({
-            title: "위치 추적 오류",
-            description: errorMessage,
-            variant: "destructive",
-            duration: 5000, // 5초간 표시
           });
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 10000, // 10초 이내 캐시된 위치 사용 가능
-          timeout: 15000, // 타임아웃 15초로 증가
         }
-      );
+      }
+    };
+
+    const handleLocationError = (error: any) => {
+      const now = Date.now();
+      const errorCode = error?.code || error?.PERMISSION_DENIED || 1;
+      
+      // 같은 에러가 30초 이내에 발생했으면 표시하지 않음
+      if (
+        errorCode === lastErrorCodeRef.current &&
+        now - lastErrorTimeRef.current < ERROR_THROTTLE_MS
+      ) {
+        console.warn("위치 추적 오류 (알림 제한):", error);
+        return;
+      }
+
+      lastErrorTimeRef.current = now;
+      lastErrorCodeRef.current = errorCode;
+
+      // 에러 타입별 적절한 메시지 표시
+      let errorMessage = "위치 정보를 가져올 수 없습니다.";
+      
+      if (error?.code === "NOT_AUTHORIZED" || errorCode === 1) {
+        errorMessage = "위치 권한이 거부되었습니다. 설정에서 위치 권한을 허용해주세요.";
+      } else if (error?.code === "POSITION_UNAVAILABLE" || errorCode === 2) {
+        errorMessage = "위치 정보를 사용할 수 없습니다. GPS 신호를 확인해주세요.";
+      } else if (error?.code === "TIMEOUT" || errorCode === 3) {
+        errorMessage = "위치 정보 요청 시간이 초과되었습니다. 다시 시도해주세요.";
+      }
+
+      console.error("위치 추적 오류:", error);
+      
+      // 에러 메시지는 한 번만 표시
+      toast({
+        title: "위치 추적 오류",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 5000, // 5초간 표시
+      });
+    };
+
+    const startTracking = async () => {
+      // 네이티브 플랫폼에서는 background-geolocation 사용
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const { BackgroundGeolocation } = await import("@capacitor-community/background-geolocation");
+          
+          watcherId = await BackgroundGeolocation.addWatcher(
+            {
+              backgroundMessage: "위치 기반 알림을 위해 앱이 실행 중입니다.",
+              backgroundTitle: "지도 리마인더",
+              requestPermissions: true,
+              stale: false,
+              distanceFilter: 10, // 10미터 이동 시마다 갱신 (배터리 소모 조절)
+            },
+            (location, error) => {
+              if (error) {
+                handleLocationError(error);
+                return;
+              }
+              
+              if (location) {
+                const accuracy = location.accuracy || 100;
+                handleLocationUpdate(
+                  location.latitude,
+                  location.longitude,
+                  accuracy
+                );
+              }
+            }
+          );
+          
+          console.log("Background geolocation watcher started:", watcherId);
+        } catch (err) {
+          console.error("Failed to start background geolocation, falling back to standard geolocation:", err);
+          // Fallback to standard geolocation
+          if (navigator.geolocation) {
+            watchId = navigator.geolocation.watchPosition(
+              (position) => {
+                const { latitude, longitude, accuracy } = position.coords;
+                handleLocationUpdate(latitude, longitude, accuracy);
+              },
+              handleLocationError,
+              {
+                enableHighAccuracy: true,
+                maximumAge: 10000,
+                timeout: 15000,
+              }
+            );
+          }
+        }
+      } else {
+        // 웹에서는 기존 navigator.geolocation 사용
+        if (navigator.geolocation) {
+          watchId = navigator.geolocation.watchPosition(
+            (position) => {
+              const { latitude, longitude, accuracy } = position.coords;
+              handleLocationUpdate(latitude, longitude, accuracy);
+            },
+            handleLocationError,
+            {
+              enableHighAccuracy: true,
+              maximumAge: 10000,
+              timeout: 15000,
+            }
+          );
+        }
+      }
     };
 
     startTracking();
@@ -129,6 +183,12 @@ export function useLocationTracking({
     return () => {
       if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
+      }
+      if (watcherId !== null && Capacitor.isNativePlatform()) {
+        // Background geolocation watcher 제거
+        import("@capacitor-community/background-geolocation").then(({ BackgroundGeolocation }) => {
+          BackgroundGeolocation.removeWatcher({ id: watcherId! }).catch(console.error);
+        }).catch(console.error);
       }
     };
   }, [locationEnabled, notificationsEnabled, memos, proximityRadius, notifiedMemoIds, toast]);
