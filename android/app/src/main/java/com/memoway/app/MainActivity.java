@@ -165,27 +165,21 @@ public class MainActivity extends BridgeActivity {
     }
     
     /**
-     * 커스텀 WebViewClient: 로컬 파일 강제 로드 및 URL 처리
+     * 커스텀 WebViewClient: 외부 URL 처리
      */
     private class CustomWebViewClient extends WebViewClient {
-        private static final String LOCAL_FILE_PATH = "file:///android_asset/public/index.html";
         
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             String url = request.getUrl().toString();
             Log.d("MEMOWAY", "shouldOverrideUrlLoading called with URL: " + url);
             
-            // localhost나 잘못된 URL인 경우 로컬 파일로 리다이렉트
-            if (url.contains("localhost") || url.contains("127.0.0.1") || 
-                url.startsWith("https://localhost") || url.startsWith("http://localhost")) {
-                Log.w("MEMOWAY", "Invalid localhost URL detected, loading local file instead: " + url);
-                view.loadUrl(LOCAL_FILE_PATH);
-                return true;
-            }
-            
-            // Capacitor 내부 URL (capacitor://, https://localhost 등)은 WebView에서 처리
-            if (url.startsWith("capacitor://") || url.startsWith("https://localhost") || 
-                url.startsWith("http://localhost")) {
+            // Capacitor 내부 URL (capacitor://, https://localhost, file:// 등)은 WebView에서 처리
+            // localhost도 정상적인 앱 로딩 URL로 취급
+            if (url.startsWith("capacitor://") || 
+                url.startsWith("https://localhost") || 
+                url.startsWith("http://localhost") ||
+                url.startsWith("file://")) {
                 return false; // WebView에서 처리
             }
             
@@ -210,19 +204,6 @@ public class MainActivity extends BridgeActivity {
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
             Log.d("MEMOWAY", "Page finished loading: " + url);
-            
-            // localhost나 잘못된 URL이 로드된 경우 로컬 파일로 리다이렉트
-            if (url.contains("localhost") || url.contains("127.0.0.1") || 
-                url.startsWith("https://localhost") || url.startsWith("http://localhost")) {
-                Log.w("MEMOWAY", "Invalid URL loaded, redirecting to local file");
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        view.loadUrl(LOCAL_FILE_PATH);
-                    }
-                }, 100);
-            }
         }
     }
     
@@ -248,19 +229,6 @@ public class MainActivity extends BridgeActivity {
                     if (webView != null) {
                         // keepScreenOn 재설정
                         webView.setKeepScreenOn(true);
-                        
-                        // WebView가 완전히 로드된 후에만 URL 체크
-                        // Capacitor가 초기화 중일 때는 URL이 비어있을 수 있으므로
-                        // localhost나 잘못된 URL인 경우에만 리다이렉트
-                        String currentUrl = webView.getUrl();
-                        if (currentUrl != null && !currentUrl.isEmpty()) {
-                            if (currentUrl.contains("localhost") || currentUrl.contains("127.0.0.1") ||
-                                currentUrl.startsWith("https://localhost") || currentUrl.startsWith("http://localhost")) {
-                                Log.w("MEMOWAY", "Invalid URL detected in onResume, loading local file: " + currentUrl);
-                                webView.loadUrl("file:///android_asset/public/index.html");
-                            }
-                        }
-                        // URL이 비어있는 경우는 Capacitor가 아직 초기화 중이므로 무시
                     }
                 }
             }
@@ -326,4 +294,3 @@ public class MainActivity extends BridgeActivity {
     }
     
 }
-
