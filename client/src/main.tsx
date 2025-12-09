@@ -17,8 +17,9 @@ try {
     throw new Error("Root element not found");
   }
   
+  console.log("[MEMOWAY] React app mounting...");
   createRoot(rootElement).render(<App />);
-  console.log("App rendered successfully");
+  console.log("[MEMOWAY] React app mounted");
 } catch (error) {
   console.error("Failed to render app:", error);
   document.body.innerHTML = `

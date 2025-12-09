@@ -26,8 +26,6 @@ public class MainActivity extends BridgeActivity {
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        
         // Activity recreate 방지: savedInstanceState가 있으면 recreate가 발생한 것
         if (savedInstanceState != null) {
             Log.d("MEMOWAY", "MainActivity onCreate - Activity recreated (savedInstanceState != null), restoring state");
@@ -35,10 +33,7 @@ public class MainActivity extends BridgeActivity {
             Log.d("MEMOWAY", "MainActivity onCreate - Activity created (fresh start)");
         }
         
-        // Android WebView 쿠키 설정 - SameSite=None, Secure 쿠키 지원을 위해 필수
-        configureWebViewCookies();
-        
-        // 카카오 SDK 초기화 (안드로이드 네이티브 카카오 로그인을 위해 필요)
+        // 카카오 SDK 초기화 (WebView 초기화 전에 먼저 초기화)
         try {
             KakaoSdk.init(this, KAKAO_NATIVE_APP_KEY);
             Log.d("MEMOWAY", "Kakao SDK initialized successfully");
@@ -46,11 +41,11 @@ public class MainActivity extends BridgeActivity {
             Log.e("MEMOWAY", "Kakao SDK initialization error", e);
         }
         
-        // 배터리 최적화 예외 확인 및 요청
-        checkAndRequestBatteryOptimization();
+        // BridgeActivity의 onCreate 호출 - 이 시점에서 WebView가 초기화됨
+        super.onCreate(savedInstanceState);
         
-        // Foreground Service 시작 (백그라운드 실행 유지)
-        startForegroundService();
+        // WebView 초기화 후 쿠키 설정
+        // Bridge가 준비되면 onStart에서 추가 설정을 수행함
     }
     
     /**
@@ -85,22 +80,6 @@ public class MainActivity extends BridgeActivity {
         }
     }
     
-    /**
-     * WebView 쿠키 설정
-     * Android WebView에서 cross-site Secure 쿠키(SameSite=None) 저장을 위해 필수
-     */
-    private void configureWebViewCookies() {
-        try {
-            CookieManager cookieManager = CookieManager.getInstance();
-            
-            // 쿠키 허용 활성화 (전역 설정)
-            cookieManager.setAcceptCookie(true);
-            
-            Log.d("MEMOWAY", "Global cookie acceptance enabled");
-        } catch (Exception e) {
-            Log.e("MEMOWAY", "Error configuring global cookie settings", e);
-        }
-    }
     
     /**
      * Bridge 초기화 후 WebView 쿠키 설정 재적용 및 timers 재개
@@ -149,6 +128,20 @@ public class MainActivity extends BridgeActivity {
                 }
             }
         }
+        
+        // WebView 초기화 후에 서비스 시작 및 배터리 최적화 확인
+        // 이렇게 하면 WebView 로딩에 방해되지 않음
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // 배터리 최적화 예외 확인 및 요청
+                checkAndRequestBatteryOptimization();
+                
+                // Foreground Service 시작 (백그라운드 실행 유지)
+                startForegroundService();
+            }
+        }, 500); // WebView 초기화 후 500ms 지연
     }
     
     /**
