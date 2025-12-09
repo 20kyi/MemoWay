@@ -64,6 +64,13 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean | string) => void) => {
+    // 요청 origin 로그 출력 (확인용)
+    if (origin) {
+      console.log(`[CORS] Request origin: ${origin}`);
+    } else {
+      console.log(`[CORS] Request with no origin (same-origin or mobile app)`);
+    }
+
     // origin이 없을 때 (같은 origin 요청, Postman 등) 허용
     if (!origin) {
       console.log(`[CORS] Request with no origin (same-origin or mobile app) - ALLOWED`);
