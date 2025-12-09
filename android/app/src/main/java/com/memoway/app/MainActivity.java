@@ -7,8 +7,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.webkit.RenderProcessGoneDetail;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Bridge;
 import com.kakao.sdk.common.KakaoSdk;
@@ -112,15 +110,9 @@ public class MainActivity extends BridgeActivity {
                         Log.e("MEMOWAY", "WebView resume failed in onStart", e);
                     }
                     
-                    // WebView 렌더러 크래시 감지를 위한 WebViewClient 설정
-                    webView.setWebViewClient(new WebViewClient() {
-                        @Override
-                        public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
-                            Log.e("MEMOWAY", "WebView Renderer crashed - restarting activity");
-                            MainActivity.this.recreate();
-                            return true;
-                        }
-                    });
+                    // 주의: WebViewClient를 직접 설정하지 않음
+                    // Capacitor가 자체적으로 WebViewClient를 관리하므로
+                    // 직접 설정하면 URL 로딩이 제대로 작동하지 않을 수 있음
                     
                     Log.d("MEMOWAY", "WebView cookie configuration reapplied and timers resumed after bridge initialization");
                 } catch (Exception e) {
@@ -258,14 +250,5 @@ public class MainActivity extends BridgeActivity {
         Log.d("MEMOWAY", "MainActivity onNewIntent - New intent received");
     }
     
-    /**
-     * WebView 렌더러 크래시 감지 및 Activity 재생성
-     * WebViewClient에서 호출됨
-     */
-    public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
-        Log.e("MEMOWAY", "WebView Renderer crashed - restarting activity");
-        this.recreate();
-        return true;
-    }
 }
 
