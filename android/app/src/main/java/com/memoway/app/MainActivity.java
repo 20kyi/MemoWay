@@ -140,7 +140,7 @@ public class MainActivity extends BridgeActivity {
      * idle 상태에서 suspend되는 것을 방지
      */
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         Log.d("MEMOWAY", "MainActivity onResume - Activity resumed");
         
@@ -193,7 +193,7 @@ public class MainActivity extends BridgeActivity {
      * idle 상태에서 suspend되는 것을 방지하기 위해 pauseTimers 호출을 제거
      */
     @Override
-    protected void onPause() {
+    public void onPause() {
         Log.d("MEMOWAY", "MainActivity onPause - Activity paused (NOT pausing WebView timers to prevent suspend)");
         
         // WebView timers를 pause하지 않음 - idle 상태에서 suspend되는 것을 방지
@@ -206,7 +206,7 @@ public class MainActivity extends BridgeActivity {
      * Activity가 완전히 보이지 않게 될 때도 WebView를 destroy하지 않음
      */
     @Override
-    protected void onStop() {
+    public void onStop() {
         Log.d("MEMOWAY", "MainActivity onStop - Activity stopped (WebView preserved)");
         
         // WebView를 destroy하지 않음 - 상태 유지
@@ -217,7 +217,7 @@ public class MainActivity extends BridgeActivity {
      * Activity가 소멸될 때만 로그 기록
      */
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         Log.d("MEMOWAY", "MainActivity onDestroy - Activity destroyed");
         super.onDestroy();
     }
@@ -226,7 +226,7 @@ public class MainActivity extends BridgeActivity {
      * Activity 상태 저장 (recreate 방지)
      */
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(Bundle outState) {
         Log.d("MEMOWAY", "MainActivity onSaveInstanceState - Saving activity state");
         super.onSaveInstanceState(outState);
         // WebView 상태는 자동으로 저장되므로 추가 작업 불필요
@@ -236,14 +236,14 @@ public class MainActivity extends BridgeActivity {
      * Activity 상태 복원 (recreate 후)
      */
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
         Log.d("MEMOWAY", "MainActivity onRestoreInstanceState - Restoring activity state");
         super.onRestoreInstanceState(savedInstanceState);
         // WebView 상태는 자동으로 복원되므로 추가 작업 불필요
     }
     
     @Override
-    protected void onNewIntent(Intent intent) {
+    public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
         Log.d("MEMOWAY", "MainActivity onNewIntent - New intent received");
