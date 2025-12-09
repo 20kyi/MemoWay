@@ -66,6 +66,10 @@ export default defineConfig({
     // manualChunks 제거: Capacitor WebView는 청크 로딩 순서를 보장하지 않음
     // 기본 Vite 청크 분리 로직이 자동으로 의존성 순서를 보장함
     rollupOptions: {
+      // Capacitor 플러그인은 external로 처리 (런타임에 네이티브 코드로 로드됨)
+      external: [
+        '@capacitor-community/keep-awake',
+      ],
       onwarn(warning, warn) {
         // Capacitor 플러그인 동적 import 경고는 무시 (런타임에 로드됨)
         if (warning.code === 'UNRESOLVED_IMPORT' && 
@@ -100,6 +104,6 @@ export default defineConfig({
   // 성능 최적화: 의존성 사전 번들링
   optimizeDeps: {
     include: ['react', 'react-dom'],
-    exclude: ['@capacitor/core'],
+    exclude: ['@capacitor/core', '@capacitor-community/keep-awake'],
   },
 });

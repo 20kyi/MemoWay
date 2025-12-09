@@ -611,7 +611,9 @@ function App() {
       try {
         if (Capacitor.isNativePlatform()) {
           // 런타임에만 플러그인 로드 (빌드 시 번들링되지 않음)
-          const { KeepAwake } = await import('@capacitor-community/keep-awake');
+          // 문자열 변수를 사용하여 Rollup이 정적 분석하지 못하게 함
+          const pluginPath = '@capacitor-community/keep-awake';
+          const { KeepAwake } = await import(/* @vite-ignore */ pluginPath);
           await KeepAwake.keepAwake();
           console.log('[App] Screen Keep Awake enabled');
         }
