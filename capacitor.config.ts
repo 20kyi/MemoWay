@@ -1,19 +1,18 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
-const config: CapacitorConfig & { bundledWebRuntime?: boolean } = {
+const config: CapacitorConfig = {
   appId: 'com.memoway.app',
   appName: 'MemoWay',
   webDir: 'dist',
-  bundledWebRuntime: true,
   server: {
     androidScheme: 'https',
-    allowNavigation: ['*'],
+    // allowNavigation: [],
   },
   android: {
-    allowMixedContent: false,
+    allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: true,
-    backgroundColor: '#00000000',
+    backgroundColor: '#ffffff',
   },
   plugins: {
     Camera: {},
@@ -26,7 +25,7 @@ const config: CapacitorConfig & { bundledWebRuntime?: boolean } = {
     KakaoLogin: {
       nativeAppKey: '972181125f7cd0fb9dbd9442fdde314e',
     },
-  }
+  },
 };
 
 export default config;

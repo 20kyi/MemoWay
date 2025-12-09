@@ -65,11 +65,13 @@
         </provider>
 
         <!-- Foreground Service for background execution -->
+        <!-- 서비스 잠시 비활성화
         <service
             android:name="com.memoway.app.LocationForegroundService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location" />
+        -->
     </application>
 
     <!-- Permissions -->
