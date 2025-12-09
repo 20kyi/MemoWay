@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import com.getcapacitor.BridgeActivity;
@@ -134,13 +135,30 @@ public class MainActivity extends BridgeActivity {
      */
     private void setupWebView(WebView webView) {
         try {
+            WebSettings settings = webView.getSettings();
+            
+            // file:// 프로토콜에서 리소스 로드를 허용 (CSS, JS, images 등)
+            settings.setAllowFileAccess(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                settings.setAllowFileAccessFromFileURLs(true);
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                settings.setAllowUniversalAccessFromFileURLs(true);
+            }
+            
+            // DOM Storage 활성화
+            settings.setDomStorageEnabled(true);
+            
+            // JavaScript 활성화
+            settings.setJavaScriptEnabled(true);
+            
             // 화면이 꺼지지 않도록 설정 (WebView unload 방지)
             webView.setKeepScreenOn(true);
             
             // 커스텀 WebViewClient 설정
             webView.setWebViewClient(new CustomWebViewClient());
             
-            Log.d("MEMOWAY", "WebView configured with custom WebViewClient and keepScreenOn");
+            Log.d("MEMOWAY", "WebView configured with file access enabled and custom WebViewClient");
         } catch (Exception e) {
             Log.e("MEMOWAY", "Error setting up WebView", e);
         }
