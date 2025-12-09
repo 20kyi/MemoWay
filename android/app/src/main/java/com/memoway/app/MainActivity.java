@@ -5,8 +5,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.webkit.CookieManager;
-import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Bridge;
 import com.kakao.sdk.common.KakaoSdk;
@@ -80,49 +78,15 @@ public class MainActivity extends BridgeActivity {
     
     
     /**
-     * Bridge 초기화 후 WebView 쿠키 설정 재적용 및 timers 재개
+     * Bridge 초기화 후 최소한의 설정만 수행
      */
     @Override
     public void onStart() {
         super.onStart();
         Log.d("MEMOWAY", "MainActivity onStart - Activity started");
         
-        // Bridge가 준비되면 WebView 쿠키 설정 재적용 및 timers 재개
-        Bridge bridge = getBridge();
-        if (bridge != null) {
-            WebView webView = bridge.getWebView();
-            if (webView != null) {
-                try {
-                    // 쿠키 설정 재적용
-                    CookieManager cookieManager = CookieManager.getInstance();
-                    cookieManager.setAcceptCookie(true);
-                    
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        cookieManager.setAcceptThirdPartyCookies(webView, true);
-                        cookieManager.flush();
-                    }
-                    
-                    // WebView timers도 여기서 재개 (onResume에서 실패한 경우 대비)
-                    try {
-                        webView.resumeTimers();
-                        webView.onResume();
-                    } catch (Exception e) {
-                        Log.e("MEMOWAY", "WebView resume failed in onStart", e);
-                    }
-                    
-                    // 주의: WebViewClient를 직접 설정하지 않음
-                    // Capacitor가 자체적으로 WebViewClient를 관리하므로
-                    // 직접 설정하면 URL 로딩이 제대로 작동하지 않을 수 있음
-                    
-                    Log.d("MEMOWAY", "WebView cookie configuration reapplied and timers resumed after bridge initialization");
-                } catch (Exception e) {
-                    Log.e("MEMOWAY", "Error reapplying WebView cookie configuration or resuming timers", e);
-                }
-            }
-        }
-        
         // WebView 초기화 후에 서비스 시작 및 배터리 최적화 확인
-        // 이렇게 하면 WebView 로딩에 방해되지 않음
+        // WebView 로딩에 방해되지 않도록 지연 실행
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
             @Override
@@ -133,74 +97,29 @@ public class MainActivity extends BridgeActivity {
                 // Foreground Service 시작 (백그라운드 실행 유지)
                 startForegroundService();
             }
-        }, 500); // WebView 초기화 후 500ms 지연
+        }, 1000); // WebView 초기화 후 1초 지연
     }
     
     /**
-     * Activity가 포그라운드로 돌아올 때 WebView timers를 강제로 재개
-     * idle 상태에서 suspend되는 것을 방지
+     * Activity가 포그라운드로 돌아올 때
+     * Capacitor의 기본 동작을 사용하므로 최소한의 로직만 유지
      */
     @Override
     public void onResume() {
         super.onResume();
         Log.d("MEMOWAY", "MainActivity onResume - Activity resumed");
-        
-        // WebView timers를 강제로 재개하여 idle 상태에서 suspend되지 않도록 함
-        // 이는 idle 상태에서 WebView가 suspend되는 것을 방지하는 핵심 코드
-        Bridge bridge = getBridge();
-        if (bridge != null) {
-            WebView webView = bridge.getWebView();
-            if (webView != null) {
-                try {
-                    // WebView timers 강제 재개 (idle suspend 방지) - 항상 호출
-                    webView.resumeTimers();
-                    // WebView 자체도 resume
-                    webView.onResume();
-                    Log.d("MEMOWAY", "MainActivity onResume - WebView timers resumed and WebView resumed (idle suspend prevented)");
-                } catch (Exception e) {
-                    Log.e("MEMOWAY", "WebView resume failed", e);
-                }
-            } else {
-                Log.w("MEMOWAY", "MainActivity onResume - WebView is null, will retry");
-            }
-        } else {
-            Log.w("MEMOWAY", "MainActivity onResume - Bridge is null, will retry");
-        }
-        
-        // Bridge가 아직 준비되지 않은 경우를 대비해 지연 후 재시도
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Bridge bridge = getBridge();
-                if (bridge != null) {
-                    WebView webView = bridge.getWebView();
-                    if (webView != null) {
-                        try {
-                            webView.resumeTimers();
-                            webView.onResume();
-                            Log.d("MEMOWAY", "MainActivity onResume - WebView timers resumed (delayed retry)");
-                        } catch (Exception e) {
-                            Log.e("MEMOWAY", "WebView resume failed (delayed retry)", e);
-                        }
-                    }
-                }
-            }
-        }, 100);
+        // Capacitor가 WebView 생명주기를 자동으로 관리하므로 추가 로직 제거
     }
     
     /**
-     * Activity가 백그라운드로 갈 때 WebView timers를 일시 중지하지 않음
-     * idle 상태에서 suspend되는 것을 방지하기 위해 pauseTimers 호출을 제거
+     * Activity가 백그라운드로 갈 때
+     * Capacitor의 기본 동작을 사용하므로 최소한의 로직만 유지
      */
     @Override
     public void onPause() {
-        Log.d("MEMOWAY", "MainActivity onPause - Activity paused (NOT pausing WebView timers to prevent suspend)");
-        
-        // WebView timers를 pause하지 않음 - idle 상태에서 suspend되는 것을 방지
-        // 기존 코드: webView.pauseTimers() - 제거됨
-        
         super.onPause();
+        Log.d("MEMOWAY", "MainActivity onPause - Activity paused");
+        // Capacitor가 WebView 생명주기를 자동으로 관리하므로 추가 로직 제거
     }
     
     /**
