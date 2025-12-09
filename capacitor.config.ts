@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig & { bundledWebRuntime?: boolean } = {
   appId: 'com.memoway.app',
   appName: 'MemoWay',
-  webDir: 'dist/public',
+  webDir: 'dist',
   bundledWebRuntime: true,
   server: {
     androidScheme: 'https',
