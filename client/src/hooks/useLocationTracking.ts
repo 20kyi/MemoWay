@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "@/utils/geolocation";
 import type { MemoWithDetails } from "@shared/schema";
 import type { UserLocation } from "@/types/home";
+import { Capacitor } from "@capacitor/core";
 
 interface UseLocationTrackingProps {
   locationEnabled: boolean;
