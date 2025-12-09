@@ -5,11 +5,15 @@ const config: CapacitorConfig & { bundledWebRuntime?: boolean } = {
   appName: 'MemoWay',
   webDir: 'dist/public',
   bundledWebRuntime: true,
+  server: {
+    androidScheme: 'https',
+    allowNavigation: ['*'],
+  },
   android: {
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: false,
-    backgroundColor: '#ffffff',
+    webContentsDebuggingEnabled: true,
+    backgroundColor: '#00000000',
   },
   plugins: {
     Camera: {},

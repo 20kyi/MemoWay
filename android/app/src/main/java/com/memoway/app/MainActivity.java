@@ -1,10 +1,15 @@
 package com.memoway.app;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.WindowManager;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Bridge;
 import com.kakao.sdk.common.KakaoSdk;
@@ -40,8 +45,8 @@ public class MainActivity extends BridgeActivity {
         // BridgeActivity의 onCreate 호출 - 이 시점에서 WebView가 초기화됨
         super.onCreate(savedInstanceState);
         
-        // WebView 초기화 후 쿠키 설정
-        // Bridge가 준비되면 onStart에서 추가 설정을 수행함
+        // 화면이 꺼지지 않도록 설정 (WebView unload 방지)
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
     
     /**
@@ -78,12 +83,36 @@ public class MainActivity extends BridgeActivity {
     
     
     /**
-     * Bridge 초기화 후 최소한의 설정만 수행
+     * Bridge 초기화 후 WebView 설정 및 커스텀 WebViewClient 적용
      */
     @Override
     public void onStart() {
         super.onStart();
         Log.d("MEMOWAY", "MainActivity onStart - Activity started");
+        
+        // Bridge가 준비되면 WebView 설정
+        Bridge bridge = getBridge();
+        if (bridge != null) {
+            WebView webView = bridge.getWebView();
+            if (webView != null) {
+                setupWebView(webView);
+            } else {
+                // WebView가 아직 준비되지 않았으면 지연 후 재시도
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Bridge bridge = getBridge();
+                        if (bridge != null) {
+                            WebView webView = bridge.getWebView();
+                            if (webView != null) {
+                                setupWebView(webView);
+                            }
+                        }
+                    }
+                }, 500);
+            }
+        }
         
         // WebView 초기화 후에 서비스 시작 및 배터리 최적화 확인
         // WebView 로딩에 방해되지 않도록 지연 실행
@@ -101,14 +130,112 @@ public class MainActivity extends BridgeActivity {
     }
     
     /**
-     * Activity가 포그라운드로 돌아올 때
-     * Capacitor의 기본 동작을 사용하므로 최소한의 로직만 유지
+     * WebView 설정 및 커스텀 WebViewClient 적용
+     */
+    private void setupWebView(WebView webView) {
+        try {
+            // 화면이 꺼지지 않도록 설정 (WebView unload 방지)
+            webView.setKeepScreenOn(true);
+            
+            // 커스텀 WebViewClient 설정
+            webView.setWebViewClient(new CustomWebViewClient());
+            
+            Log.d("MEMOWAY", "WebView configured with custom WebViewClient and keepScreenOn");
+        } catch (Exception e) {
+            Log.e("MEMOWAY", "Error setting up WebView", e);
+        }
+    }
+    
+    /**
+     * 커스텀 WebViewClient: 로컬 파일 강제 로드 및 URL 처리
+     */
+    private class CustomWebViewClient extends WebViewClient {
+        private static final String LOCAL_FILE_PATH = "file:///android_asset/public/index.html";
+        
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            String url = request.getUrl().toString();
+            Log.d("MEMOWAY", "shouldOverrideUrlLoading called with URL: " + url);
+            
+            // localhost나 잘못된 URL인 경우 로컬 파일로 리다이렉트
+            if (url.contains("localhost") || url.contains("127.0.0.1") || 
+                url.startsWith("https://localhost") || url.startsWith("http://localhost")) {
+                Log.w("MEMOWAY", "Invalid localhost URL detected, loading local file instead: " + url);
+                view.loadUrl(LOCAL_FILE_PATH);
+                return true;
+            }
+            
+            // Capacitor 내부 URL (capacitor://, https://localhost 등)은 WebView에서 처리
+            if (url.startsWith("capacitor://") || url.startsWith("https://localhost") || 
+                url.startsWith("http://localhost")) {
+                return false; // WebView에서 처리
+            }
+            
+            // 외부 URL은 기본 브라우저로 열기
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(intent);
+                    Log.d("MEMOWAY", "Opening external URL in browser: " + url);
+                    return true;
+                } catch (Exception e) {
+                    Log.e("MEMOWAY", "Failed to open external URL", e);
+                    return false;
+                }
+            }
+            
+            // 기타 URL은 WebView에서 처리
+            return false;
+        }
+        
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            Log.d("MEMOWAY", "Page finished loading: " + url);
+            
+            // localhost나 잘못된 URL이 로드된 경우 로컬 파일로 리다이렉트
+            if (url.contains("localhost") || url.contains("127.0.0.1") || 
+                url.startsWith("https://localhost") || url.startsWith("http://localhost")) {
+                Log.w("MEMOWAY", "Invalid URL loaded, redirecting to local file");
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        view.loadUrl(LOCAL_FILE_PATH);
+                    }
+                }, 100);
+            }
+        }
+    }
+    
+    /**
+     * Activity가 포그라운드로 돌아올 때 WebView 상태 확인 및 복구
      */
     @Override
     public void onResume() {
         super.onResume();
         Log.d("MEMOWAY", "MainActivity onResume - Activity resumed");
-        // Capacitor가 WebView 생명주기를 자동으로 관리하므로 추가 로직 제거
+        
+        // WebView가 백그라운드에서 unload되지 않도록 keepScreenOn 재설정
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        
+        // WebView 상태 확인 및 복구
+        Bridge bridge = getBridge();
+        if (bridge != null) {
+            WebView webView = bridge.getWebView();
+            if (webView != null) {
+                // keepScreenOn 재설정
+                webView.setKeepScreenOn(true);
+                
+                // WebView가 비어있거나 잘못된 URL이 로드된 경우 로컬 파일로 리다이렉트
+                String currentUrl = webView.getUrl();
+                if (currentUrl == null || currentUrl.isEmpty() || 
+                    currentUrl.contains("localhost") || currentUrl.contains("127.0.0.1")) {
+                    Log.w("MEMOWAY", "Invalid or empty URL detected in onResume, loading local file");
+                    webView.loadUrl("file:///android_asset/public/index.html");
+                }
+            }
+        }
     }
     
     /**
