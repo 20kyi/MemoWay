@@ -113,7 +113,9 @@ export function useLocationTracking({
       // 네이티브 플랫폼에서는 background-geolocation 사용
       if (Capacitor.isNativePlatform()) {
         try {
-          const { BackgroundGeolocation } = await import("@capacitor-community/background-geolocation");
+          // 동적 import를 문자열 변수로 감싸서 Vite의 정적 분석 방지
+          const pluginPath = '@capacitor-community/background-geolocation';
+          const { BackgroundGeolocation } = await import(/* @vite-ignore */ pluginPath);
           
           watcherId = await BackgroundGeolocation.addWatcher(
             {
@@ -186,7 +188,9 @@ export function useLocationTracking({
       }
       if (watcherId !== null && Capacitor.isNativePlatform()) {
         // Background geolocation watcher 제거
-        import("@capacitor-community/background-geolocation").then(({ BackgroundGeolocation }) => {
+        // 동적 import를 문자열 변수로 감싸서 Vite의 정적 분석 방지
+        const pluginPath = '@capacitor-community/background-geolocation';
+        import(/* @vite-ignore */ pluginPath).then(({ BackgroundGeolocation }) => {
           BackgroundGeolocation.removeWatcher({ id: watcherId! }).catch(console.error);
         }).catch(console.error);
       }

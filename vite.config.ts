@@ -65,10 +65,14 @@ export default defineConfig({
     reportCompressedSize: false, // Disable compressed size reporting for faster builds
     // manualChunks 제거: Capacitor WebView는 청크 로딩 순서를 보장하지 않음
     // 기본 Vite 청크 분리 로직이 자동으로 의존성 순서를 보장함
+    commonjsOptions: {
+      exclude: ['@capacitor-community/background-geolocation'],
+    },
     rollupOptions: {
       // Capacitor 플러그인은 external로 처리 (런타임에 네이티브 코드로 로드됨)
       external: [
         '@capacitor-community/keep-awake',
+        '@capacitor-community/background-geolocation',
       ],
       onwarn(warning, warn) {
         // Capacitor 플러그인 동적 import 경고는 무시 (런타임에 로드됨)
@@ -77,6 +81,12 @@ export default defineConfig({
             (warning.id.includes('@team-lepisode/capacitor-kakao-login') ||
              warning.id.includes('@capacitor/') ||
              warning.id.includes('@capacitor-community/'))) {
+          return; // 경고 무시
+        }
+        // background-geolocation 관련 경고도 무시
+        if (warning.code === 'UNRESOLVED_IMPORT' && 
+            warning.id && 
+            warning.id.includes('@capacitor-community/background-geolocation')) {
           return; // 경고 무시
         }
         // 환경 변수 관련 경고는 무시하지 않음
@@ -104,6 +114,10 @@ export default defineConfig({
   // 성능 최적화: 의존성 사전 번들링
   optimizeDeps: {
     include: ['react', 'react-dom'],
-    exclude: ['@capacitor/core', '@capacitor-community/keep-awake'],
+    exclude: [
+      '@capacitor/core', 
+      '@capacitor-community/keep-awake',
+      '@capacitor-community/background-geolocation',
+    ],
   },
 });

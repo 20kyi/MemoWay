@@ -480,7 +480,9 @@ export function SettingsView() {
               onClick={async () => {
                 try {
                   if (Capacitor.isNativePlatform()) {
-                    const { BatteryOptimization } = await import('@capawesome-team/capacitor-android-battery-optimization');
+                    // 동적 import를 문자열 변수로 감싸서 Vite의 정적 분석 방지
+                    const pluginPath = '@capawesome-team/capacitor-android-battery-optimization';
+                    const { BatteryOptimization } = await import(/* @vite-ignore */ pluginPath);
                     
                     // 배터리 최적화가 활성화되어 있는지 확인
                     const status = await BatteryOptimization.isBatteryOptimizationEnabled();
