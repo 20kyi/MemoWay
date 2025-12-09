@@ -19,6 +19,14 @@ const config: CapacitorConfig = {
     // url: 'https://your-dev-repl-url.replit.dev',
     // cleartext: true
   },
+  android: {
+    // WebView가 백그라운드에서 unload되지 않도록 설정
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: false,
+    // Activity가 백그라운드로 가도 WebView 상태 유지
+    backgroundColor: '#ffffff',
+  },
   plugins: {
     Camera: {
       // 카메라 권한은 Android Manifest에 자동 추가됨

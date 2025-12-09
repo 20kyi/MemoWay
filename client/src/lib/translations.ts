@@ -1017,7 +1017,7 @@ export const translations = {
       batteryOptimization: "电池优化",
       batteryOptimizationDesc: "允许应用在后台运行以进行位置跟踪",
       batteryOptimizationRequest: "请求电池优化例外",
-      batteryOptimizationRequestDesc: "点击打开电池优化设置并将应用设置为"未优化"",
+      batteryOptimizationRequestDesc: "点击打开电池优化设置并将应用设置为\"未优化\"",
       batteryOptimizationNote: "💡 这可以防止应用在后台自动关闭",
     },
     // Toast messages

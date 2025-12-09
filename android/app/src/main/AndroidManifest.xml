@@ -26,11 +26,12 @@
         </activity>
 
         <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|screenLayout|smallestScreenSize|locale|layoutDirection|fontScale|density|uiMode|navigation|mcc|mnc|touchscreen|hardKeyboardHidden"
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
+            android:alwaysRetainTaskState="true"
             android:exported="true">
 
             <intent-filter>
