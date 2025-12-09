@@ -7,6 +7,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.webkit.RenderProcessGoneDetail;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Bridge;
 import com.kakao.sdk.common.KakaoSdk;
@@ -124,8 +126,22 @@ public class MainActivity extends BridgeActivity {
                     }
                     
                     // WebView timers도 여기서 재개 (onResume에서 실패한 경우 대비)
-                    webView.resumeTimers();
-                    webView.onResume();
+                    try {
+                        webView.resumeTimers();
+                        webView.onResume();
+                    } catch (Exception e) {
+                        Log.e("MEMOWAY", "WebView resume failed in onStart", e);
+                    }
+                    
+                    // WebView 렌더러 크래시 감지를 위한 WebViewClient 설정
+                    webView.setWebViewClient(new WebViewClient() {
+                        @Override
+                        public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                            Log.e("MEMOWAY", "WebView Renderer crashed - restarting activity");
+                            MainActivity.this.recreate();
+                            return true;
+                        }
+                    });
                     
                     Log.d("MEMOWAY", "WebView cookie configuration reapplied and timers resumed after bridge initialization");
                 } catch (Exception e) {
@@ -157,7 +173,7 @@ public class MainActivity extends BridgeActivity {
                     webView.onResume();
                     Log.d("MEMOWAY", "MainActivity onResume - WebView timers resumed and WebView resumed (idle suspend prevented)");
                 } catch (Exception e) {
-                    Log.e("MEMOWAY", "Error resuming WebView timers", e);
+                    Log.e("MEMOWAY", "WebView resume failed", e);
                 }
             } else {
                 Log.w("MEMOWAY", "MainActivity onResume - WebView is null, will retry");
@@ -180,7 +196,7 @@ public class MainActivity extends BridgeActivity {
                             webView.onResume();
                             Log.d("MEMOWAY", "MainActivity onResume - WebView timers resumed (delayed retry)");
                         } catch (Exception e) {
-                            Log.e("MEMOWAY", "Error resuming WebView timers (delayed retry)", e);
+                            Log.e("MEMOWAY", "WebView resume failed (delayed retry)", e);
                         }
                     }
                 }
@@ -247,6 +263,16 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         Log.d("MEMOWAY", "MainActivity onNewIntent - New intent received");
+    }
+    
+    /**
+     * WebView 렌더러 크래시 감지 및 Activity 재생성
+     * WebViewClient에서 호출됨
+     */
+    public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+        Log.e("MEMOWAY", "WebView Renderer crashed - restarting activity");
+        this.recreate();
+        return true;
     }
 }
 
