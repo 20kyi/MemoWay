@@ -460,6 +460,60 @@ export function SettingsView() {
       </Dialog>
 
 
+      {/* 4. 배터리 최적화 (안드로이드만) */}
+      {Capacitor.isNativePlatform() && (
+        <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-purple-50/50 via-white to-purple-50/30 backdrop-blur-sm border border-purple-200/50 shadow-lg hover:shadow-xl transition-all">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-lg">
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 shrink-0" />
+              {t.settings.batteryOptimization}
+            </CardTitle>
+            <CardDescription className="text-xs sm:text-sm mt-0.5">
+              {t.settings.batteryOptimizationDesc}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {t.settings.batteryOptimizationRequestDesc}
+            </p>
+            <Button
+              onClick={async () => {
+                try {
+                  // 네이티브 코드에서 배터리 최적화 설정 화면 열기
+                  // MainActivity에서 이미 구현되어 있으므로, 여기서는 단순히 앱 정보 화면으로 이동
+                  // 또는 Capacitor App 플러그인을 통해 Intent 호출
+                  if (Capacitor.isNativePlatform()) {
+                    // Android Intent를 통해 배터리 최적화 설정 화면 열기
+                    const { App } = await import('@capacitor/app');
+                    // 직접 Intent를 호출할 수 없으므로, 사용자에게 안내
+                    toast({
+                      title: t.settings.batteryOptimization,
+                      description: t.settings.batteryOptimizationRequestDesc,
+                      duration: 5000,
+                    });
+                    // 앱이 시작될 때 자동으로 배터리 최적화 설정 화면이 열리도록 MainActivity에서 처리됨
+                  }
+                } catch (err) {
+                  console.error('Failed to open battery optimization settings:', err);
+                  toast({
+                    title: t.settings.batteryOptimization,
+                    description: t.settings.batteryOptimizationRequestDesc,
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold shadow-md text-sm sm:text-base h-9 sm:h-10"
+            >
+              <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+              {t.settings.batteryOptimizationRequest}
+            </Button>
+            <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
+              {t.settings.batteryOptimizationNote}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* 5. 앱정보 */}
       <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="pb-3 sm:pb-4">
