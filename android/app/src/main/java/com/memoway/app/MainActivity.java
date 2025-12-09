@@ -8,6 +8,7 @@ import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Bridge;
 import com.kakao.sdk.common.KakaoSdk;
+import android.util.Log;
 
 /**
  * MainActivity for MemoWay Android App
@@ -32,6 +33,44 @@ public class MainActivity extends BridgeActivity {
             android.util.Log.d("MainActivity", "Kakao SDK initialized successfully");
         } catch (Exception e) {
             android.util.Log.e("MainActivity", "Kakao SDK initialization error", e);
+        }
+        
+        // 배터리 최적화 예외 확인 및 요청
+        checkAndRequestBatteryOptimization();
+        
+        // Foreground Service 시작 (백그라운드 실행 유지)
+        startForegroundService();
+    }
+    
+    /**
+     * 배터리 최적화 예외 확인 및 요청
+     */
+    private void checkAndRequestBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!BatteryOptimizationHelper.isIgnoringBatteryOptimizations(this)) {
+                Log.d("MainActivity", "Battery optimization is not ignored, requesting...");
+                // 앱 시작 시 자동으로 배터리 최적화 예외 설정 화면 열기
+                BatteryOptimizationHelper.requestIgnoreBatteryOptimizations(this);
+            } else {
+                Log.d("MainActivity", "Battery optimization is already ignored");
+            }
+        }
+    }
+    
+    /**
+     * Foreground Service 시작 (백그라운드 실행 유지)
+     */
+    private void startForegroundService() {
+        try {
+            Intent serviceIntent = new Intent(this, LocationForegroundService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
+            Log.d("MainActivity", "Foreground service started");
+        } catch (Exception e) {
+            Log.e("MainActivity", "Failed to start foreground service", e);
         }
     }
     

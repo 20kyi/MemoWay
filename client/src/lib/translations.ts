@@ -258,6 +258,11 @@ export const translations = {
       supportEmail: "이메일 문의",
       supportEmailDesc: "support@memoway.com으로 문의해주세요",
       appInfoDesc: "앱 버전 및 개발자 정보를 확인하세요",
+      batteryOptimization: "배터리 최적화",
+      batteryOptimizationDesc: "백그라운드에서 위치 추적을 위해 앱이 계속 실행되도록 허용",
+      batteryOptimizationRequest: "배터리 최적화 예외 설정",
+      batteryOptimizationRequestDesc: "탭하여 배터리 최적화 설정을 열고 '제한 없음'으로 설정하세요",
+      batteryOptimizationNote: "💡 이렇게 하면 백그라운드에서 앱이 자동으로 꺼지지 않습니다",
     },
     // Toast messages
     toast: {
@@ -631,6 +636,11 @@ export const translations = {
       supportEmail: "Email Support",
       supportEmailDesc: "Contact us at support@memoway.com",
       appInfoDesc: "View app version and developer information",
+      batteryOptimization: "Battery Optimization",
+      batteryOptimizationDesc: "Allow the app to run in the background for location tracking",
+      batteryOptimizationRequest: "Request Battery Optimization Exception",
+      batteryOptimizationRequestDesc: "Tap to open battery optimization settings and set the app to 'Not optimized'",
+      batteryOptimizationNote: "💡 This prevents the app from being automatically closed in the background",
     },
     // Toast messages
     toast: {
@@ -1004,6 +1014,11 @@ export const translations = {
       supportEmail: "邮件支持",
       supportEmailDesc: "通过 support@memoway.com 联系我们",
       appInfoDesc: "查看应用版本和开发者信息",
+      batteryOptimization: "电池优化",
+      batteryOptimizationDesc: "允许应用在后台运行以进行位置跟踪",
+      batteryOptimizationRequest: "请求电池优化例外",
+      batteryOptimizationRequestDesc: "点击打开电池优化设置并将应用设置为"未优化"",
+      batteryOptimizationNote: "💡 这可以防止应用在后台自动关闭",
     },
     // Toast messages
     toast: {
@@ -1377,6 +1392,11 @@ export const translations = {
       supportEmail: "メールサポート",
       supportEmailDesc: "support@memoway.com までお問い合わせください",
       appInfoDesc: "アプリバージョンと開発者情報を確認できます",
+      batteryOptimization: "バッテリー最適化",
+      batteryOptimizationDesc: "位置追跡のためにアプリがバックグラウンドで実行され続けるように許可",
+      batteryOptimizationRequest: "バッテリー最適化例外を設定",
+      batteryOptimizationRequestDesc: "タップしてバッテリー最適化設定を開き、「最適化しない」に設定してください",
+      batteryOptimizationNote: "💡 これにより、バックグラウンドでアプリが自動的に閉じられることを防ぎます",
     },
     // Toast messages
     toast: {
