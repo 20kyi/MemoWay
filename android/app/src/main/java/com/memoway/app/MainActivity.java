@@ -237,23 +237,34 @@ public class MainActivity extends BridgeActivity {
         // WebView가 백그라운드에서 unload되지 않도록 keepScreenOn 재설정
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         
-        // WebView 상태 확인 및 복구
-        Bridge bridge = getBridge();
-        if (bridge != null) {
-            WebView webView = bridge.getWebView();
-            if (webView != null) {
-                // keepScreenOn 재설정
-                webView.setKeepScreenOn(true);
-                
-                // WebView가 비어있거나 잘못된 URL이 로드된 경우 로컬 파일로 리다이렉트
-                String currentUrl = webView.getUrl();
-                if (currentUrl == null || currentUrl.isEmpty() || 
-                    currentUrl.contains("localhost") || currentUrl.contains("127.0.0.1")) {
-                    Log.w("MEMOWAY", "Invalid or empty URL detected in onResume, loading local file");
-                    webView.loadUrl("file:///android_asset/public/index.html");
+        // WebView 상태 확인 및 복구 (지연 실행하여 Capacitor 초기화 완료 대기)
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Bridge bridge = getBridge();
+                if (bridge != null) {
+                    WebView webView = bridge.getWebView();
+                    if (webView != null) {
+                        // keepScreenOn 재설정
+                        webView.setKeepScreenOn(true);
+                        
+                        // WebView가 완전히 로드된 후에만 URL 체크
+                        // Capacitor가 초기화 중일 때는 URL이 비어있을 수 있으므로
+                        // localhost나 잘못된 URL인 경우에만 리다이렉트
+                        String currentUrl = webView.getUrl();
+                        if (currentUrl != null && !currentUrl.isEmpty()) {
+                            if (currentUrl.contains("localhost") || currentUrl.contains("127.0.0.1") ||
+                                currentUrl.startsWith("https://localhost") || currentUrl.startsWith("http://localhost")) {
+                                Log.w("MEMOWAY", "Invalid URL detected in onResume, loading local file: " + currentUrl);
+                                webView.loadUrl("file:///android_asset/public/index.html");
+                            }
+                        }
+                        // URL이 비어있는 경우는 Capacitor가 아직 초기화 중이므로 무시
+                    }
                 }
             }
-        }
+        }, 500); // Capacitor 초기화 대기
     }
     
     /**
