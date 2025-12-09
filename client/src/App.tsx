@@ -15,7 +15,6 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { getApiBaseUrl } from "./lib/api-config";
-import { KeepAwake } from '@capacitor-community/keep-awake';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import("@/pages/home"));
@@ -606,15 +605,19 @@ import { ErrorBoundary } from "@/components/error-boundary";
 
 function App() {
   // 앱 실행 시 화면 꺼짐 방지 활성화 (Android/iOS)
+  // 동적 import를 사용하여 빌드 시 오류 방지 및 웹 환경에서 안전하게 처리
   useEffect(() => {
     const keepScreenOn = async () => {
       try {
         if (Capacitor.isNativePlatform()) {
+          // 런타임에만 플러그인 로드 (빌드 시 번들링되지 않음)
+          const { KeepAwake } = await import('@capacitor-community/keep-awake');
           await KeepAwake.keepAwake();
           console.log('[App] Screen Keep Awake enabled');
         }
       } catch (err) {
-        console.error('[App] Failed to enable Keep Awake:', err);
+        // 플러그인 로드 실패는 앱 실행을 막지 않음 (로그인 등 다른 기능에 영향 없음)
+        console.warn('[App] Keep Awake plugin not available (this is normal on web):', err);
       }
     };
     

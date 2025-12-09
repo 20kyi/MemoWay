@@ -71,7 +71,8 @@ export default defineConfig({
         if (warning.code === 'UNRESOLVED_IMPORT' && 
             warning.id && 
             (warning.id.includes('@team-lepisode/capacitor-kakao-login') ||
-             warning.id.includes('@capacitor/'))) {
+             warning.id.includes('@capacitor/') ||
+             warning.id.includes('@capacitor-community/'))) {
           return; // 경고 무시
         }
         // 환경 변수 관련 경고는 무시하지 않음
