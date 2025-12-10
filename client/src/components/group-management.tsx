@@ -841,7 +841,6 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
         </div>
         )}
       </div>
-      </div>
 
       {/* 그룹 수정 다이얼로그 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
