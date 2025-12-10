@@ -453,7 +453,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
     <div className="flex flex-col h-full">
       {/* App Name Header */}
       {!hideHeader && (
-        <div className="px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:pt-[calc(env(safe-area-inset-top)+1rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <div className="px-4 pt-[calc(env(safe-area-inset-top)+2.5rem)] sm:pt-[calc(env(safe-area-inset-top)+2rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
             MemoWay
           </h1>
