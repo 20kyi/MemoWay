@@ -227,7 +227,7 @@ export function MemoDetailSheet({
                     <ArrowLeft className="w-4 h-4 sm:w-5 sm:w-5" />
                   </Button>
                   <SheetTitle 
-                    className="text-lg sm:text-xl md:text-2xl font-bold text-black dark:text-white truncate flex-1 min-w-0 text-left cursor-pointer hover:opacity-70 transition-opacity" 
+                    className="text-lg sm:text-xl md:text-2xl font-bold text-black dark:text-white inline-block max-w-[14ch] overflow-hidden text-ellipsis whitespace-nowrap text-left cursor-pointer hover:opacity-70 transition-opacity" 
                     data-testid="text-memo-title"
                     onClick={() => {
                       if (onNavigateToLocation) {
