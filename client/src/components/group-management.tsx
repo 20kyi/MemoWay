@@ -387,7 +387,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
         </div>
 
       {/* 그룹 검색 바 - 고정 */}
-      <div className="px-2 sm:px-4 pt-4 pb-2 flex-shrink-0">
+      <div className="px-4 pt-4 pb-2 flex-shrink-0">
         <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
           <div className="relative flex-1">
             <Input
@@ -421,7 +421,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
       </div>
 
       {/* 탭 전환 버튼 - 고정 */}
-      <div className="px-2 sm:px-4 pb-2 flex-shrink-0">
+      <div className="px-4 pb-2 flex-shrink-0">
         <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5 sm:p-2">
           <button
             onClick={() => setActiveTab("leader")}
@@ -680,7 +680,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
       </Dialog>
 
       {/* 그룹 리스트 - 스크롤 가능 */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
+      <div className="flex-1 overflow-y-auto px-4 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
         {filteredGroups.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-center px-4">
           <div className="bg-primary/10 rounded-full p-4 sm:p-6 mb-3 sm:mb-4">
