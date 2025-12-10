@@ -226,14 +226,14 @@ export function MemoDetailSheet({
                   >
                     <ArrowLeft className="w-4 h-4 sm:w-5 sm:w-5" />
                   </Button>
-                  <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-black dark:text-white truncate flex-1 min-w-0" data-testid="text-memo-title">
+                  <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-black dark:text-white truncate flex-1 min-w-0 text-left" data-testid="text-memo-title">
                     {memo.buildingName}
                   </SheetTitle>
                   {onNavigateToLocation && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 text-sky-600 dark:text-sky-500 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/20"
+                      className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 text-sky-600 dark:text-sky-500 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/20 -ml-1"
                       onClick={() => {
                         onNavigateToLocation(memo.latitude, memo.longitude);
                         onOpenChange(false);
