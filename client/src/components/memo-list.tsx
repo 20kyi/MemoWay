@@ -678,36 +678,61 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                 </div>
               </CardHeader>
 
-          {memo.photos.length > 0 && (
+          {memo.photos.length > 0 ? (
             <CardContent className="pb-3">
-              <div className="grid grid-cols-3 gap-2">
-                {memo.photos.slice(0, 3).map((photo, index) => (
-                  <div 
-                    key={index} 
-                    className="aspect-square rounded-lg overflow-hidden shadow-sm border-2 border-primary/10 hover:border-primary/30 hover:shadow-md transition-all"
-                  >
-                    <img 
-                      src={photo.url} 
-                      alt={`Photo ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+              <div className="flex gap-3">
+                {/* 대표사진 */}
+                <div className="relative flex-shrink-0">
+                  {(() => {
+                    const mainPhotoId = (memo as any).mainPhotoId;
+                    const mainPhoto = mainPhotoId 
+                      ? memo.photos.find((p: any) => p.id === mainPhotoId)
+                      : memo.photos[0];
+                    const remainingCount = memo.photos.length - 1;
+                    
+                    return (
+                      <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden shadow-sm border-2 border-primary/10">
+                        <img 
+                          src={mainPhoto?.url || memo.photos[0].url} 
+                          alt="Main photo"
+                          className="w-full h-full object-cover"
+                        />
+                        {remainingCount > 0 && (
+                          <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center shadow-md border-2 border-background">
+                            +{remainingCount}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+                {/* 메모 내용 (사진 오른쪽) */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm line-clamp-3 leading-relaxed whitespace-pre-wrap mb-2">{memo.content}</p>
+                  <div className="flex items-center gap-1">
+                    <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
+                    {(memo as any).rating > 0 && (
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {(memo as any).rating}
+                      </span>
+                    )}
                   </div>
-                ))}
+                </div>
+              </div>
+            </CardContent>
+          ) : (
+            <CardContent className="pb-3">
+              <p className="text-sm line-clamp-2 leading-relaxed whitespace-pre-wrap">{memo.content}</p>
+              <div className="mt-2 flex items-center gap-1">
+                <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
+                {(memo as any).rating > 0 && (
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {(memo as any).rating}
+                  </span>
+                )}
               </div>
             </CardContent>
           )}
-
-          <CardContent className="pb-3">
-            <p className="text-sm line-clamp-2 leading-relaxed whitespace-pre-wrap">{memo.content}</p>
-            <div className="mt-2 flex items-center gap-1">
-              <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
-              {(memo as any).rating > 0 && (
-                <span className="text-xs text-muted-foreground font-medium">
-                  {(memo as any).rating}
-                </span>
-              )}
-            </div>
-          </CardContent>
 
           {!isSelectionMode && (
             <CardFooter className="flex items-center justify-end pt-0 pb-3">
