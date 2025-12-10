@@ -44,17 +44,21 @@ export function LayoutThemeProvider({ children }: { children: React.ReactNode })
           const { StatusBar, Style } = await import("@capacitor/status-bar");
           
           if (layoutTheme === "default") {
-            // 기본 테마: 검은색 상태바
-            await StatusBar.setStyle({ style: Style.Dark });
-            await StatusBar.setBackgroundColor({ color: "#000000" });
-          } else if (layoutTheme === "lavender-night") {
-            // 라벤더 나이트 테마: 밝은 상태바 (다크 테마이므로)
+            // 기본 테마: 밝은 배경이므로 Light style (어두운 아이콘) + 흰색 배경
             await StatusBar.setStyle({ style: Style.Light });
-            await StatusBar.setBackgroundColor({ color: "#1a1a2e" });
-          } else if (layoutTheme === "couple-clay") {
-            // 커플 클레이 테마: 밝은 상태바
+            await StatusBar.setBackgroundColor({ color: "#ffffff" });
+            // 상태바 오버레이 모드 활성화 (콘텐츠가 상태바 뒤로 올라갈 수 있도록)
+            await StatusBar.setOverlaysWebView({ overlay: false });
+          } else if (layoutTheme === "lavender-night") {
+            // 라벤더 나이트 테마: 어두운 배경이므로 Dark style (밝은 아이콘) + 어두운 배경
             await StatusBar.setStyle({ style: Style.Dark });
+            await StatusBar.setBackgroundColor({ color: "#0a0a0a" });
+            await StatusBar.setOverlaysWebView({ overlay: false });
+          } else if (layoutTheme === "couple-clay") {
+            // 커플 클레이 테마: 밝은 배경이므로 Light style (어두운 아이콘) + 밝은 핑크 배경
+            await StatusBar.setStyle({ style: Style.Light });
             await StatusBar.setBackgroundColor({ color: "#ffc0e8" });
+            await StatusBar.setOverlaysWebView({ overlay: false });
           }
         } catch (error) {
           console.warn("StatusBar plugin not available:", error);
