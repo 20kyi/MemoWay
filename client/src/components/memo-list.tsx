@@ -655,9 +655,27 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                     />
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold truncate text-foreground">
-                      {memo.buildingName}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-bold truncate text-foreground flex-1 min-w-0">
+                        {memo.buildingName}
+                      </h3>
+                      {/* 복사 버튼 (다른 사용자 메모인 경우에만) - 건물명 옆에 배치 */}
+                      {currentUserId && memo.member.userId !== currentUserId && onCopy && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="rounded-full text-muted-foreground hover:text-emerald-600 h-7 w-7 flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPendingCopyMemoId(memo.id);
+                            setCopyDialogOpen(true);
+                          }}
+                          data-testid={`button-copy-${memo.id}`}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground truncate">{memo.address}</p>
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
@@ -743,22 +761,6 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                           : 'text-muted-foreground'
                       }`} 
                     />
-                  </Button>
-                )}
-                {/* 복사 버튼 (다른 사용자 메모인 경우에만) */}
-                {currentUserId && memo.member.userId !== currentUserId && onCopy && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="rounded-full text-muted-foreground hover:text-emerald-600"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPendingCopyMemoId(memo.id);
-                      setCopyDialogOpen(true);
-                    }}
-                    data-testid={`button-copy-${memo.id}`}
-                  >
-                    <Copy className="h-4 w-4" />
                   </Button>
                 )}
               </div>
