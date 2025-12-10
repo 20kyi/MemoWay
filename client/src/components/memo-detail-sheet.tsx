@@ -207,7 +207,7 @@ export function MemoDetailSheet({
             <div className="w-12 h-1 bg-indigo-300/50 rounded-full mx-auto mt-3 mb-4 flex-shrink-0" />
 
             {/* 헤더 영역 */}
-            <div className="px-4 sm:px-5 pt-2 pb-4 flex-shrink-0">
+            <div className="px-4 sm:px-5 pt-[calc(env(safe-area-inset-top)+0.5rem)] pb-4 flex-shrink-0">
               <SheetHeader className="pr-12 sm:pr-14">
                 <div className="flex items-center gap-2 mb-3">
                   <Button

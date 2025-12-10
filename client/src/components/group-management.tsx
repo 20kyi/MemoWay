@@ -271,7 +271,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
     return (
       <div className="flex flex-col h-full">
         {/* 그룹 헤더 */}
-        <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <div className="px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:pt-[calc(env(safe-area-inset-top)+1rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-3 mb-2">
             <Button
               variant="ghost"
@@ -373,7 +373,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
   return (
     <div className="flex flex-col h-full">
       {/* App Name Header */}
-        <div className="px-4 pt-6 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <div className="px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:pt-[calc(env(safe-area-inset-top)+1rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
             MemoWay
           </h1>

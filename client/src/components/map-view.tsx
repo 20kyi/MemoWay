@@ -2389,7 +2389,7 @@ function MapViewComponent({
           
           {/* MemoWay 로고 - 커플 테마에서만 표시 */}
           {isCoupleTheme && (
-            <div className="absolute top-[calc(env(safe-area-inset-top)+1.5rem)] sm:top-[calc(env(safe-area-inset-top)+2rem)] left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap">
+            <div className="absolute top-[calc(env(safe-area-inset-top)+2rem)] sm:top-[calc(env(safe-area-inset-top)+2.5rem)] left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap">
               <div className="relative flex-shrink-0">
                 <MapPin className="h-8 w-8 sm:h-14 sm:w-14 text-[#A28DB3] drop-shadow-md" fill="currentColor" />
               </div>
@@ -2400,7 +2400,7 @@ function MapViewComponent({
           )}
 
           {/* 주소 검색 바 */}
-          <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+5.5rem)] sm:top-[calc(env(safe-area-inset-top)+6.5rem)]' : 'top-[calc(env(safe-area-inset-top)+1rem)]'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
+          <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+5.5rem)] sm:top-[calc(env(safe-area-inset-top)+6.5rem)]' : 'top-[calc(env(safe-area-inset-top)+3rem)]'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
             <div className="flex flex-col gap-2">
               <div className={isCoupleTheme 
                 ? "search-bar-couple-theme flex gap-2 p-2"
