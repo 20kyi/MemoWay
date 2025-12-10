@@ -206,10 +206,11 @@ export function MemoDetailSheet({
       <Sheet open={open} onOpenChange={onOpenChange} modal={true}>
       <SheetContent 
         side="bottom" 
-        className="min-h-[50vh] max-h-[90vh] h-auto rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col bg-gradient-to-br from-blue-50/30 to-white touch-pan-y"
+        className="min-h-[50vh] max-h-[90vh] h-auto rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col bg-white touch-pan-y relative"
+        style={{ backgroundColor: 'rgba(239, 246, 255, 0.98)' }}
       >
         <TooltipProvider delayDuration={300}>
-          <div className="flex flex-col h-full min-h-[50vh] relative w-full">
+          <div className="flex flex-col h-full min-h-[50vh] relative w-full bg-gradient-to-br from-blue-50 via-white to-blue-50">
             {/* 드래그 핸들 */}
             <div className="w-12 h-1 bg-indigo-300/50 rounded-full mx-auto mt-3 mb-4 flex-shrink-0" />
 
@@ -238,25 +239,6 @@ export function MemoDetailSheet({
                   >
                     {memo.buildingName}
                   </SheetTitle>
-                  {onAddNewMemo && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 text-sky-600 dark:text-sky-500 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/20 -ml-1"
-                      onClick={() => {
-                        onAddNewMemo({
-                          lat: memo.latitude,
-                          lng: memo.longitude,
-                          address: memo.address,
-                          buildingName: memo.buildingName,
-                        });
-                        onOpenChange(false);
-                      }}
-                      data-testid="button-add-memo-header"
-                    >
-                      <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </Button>
-                  )}
                   <div className="flex items-center ml-auto gap-1 flex-shrink-0">
                     <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
                   </div>
@@ -499,6 +481,35 @@ export function MemoDetailSheet({
                     </>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* 플로팅 새 메모 추가 버튼 */}
+            {onAddNewMemo && open && (
+              <div className="absolute bottom-[7rem] right-4 z-10">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      onClick={() => {
+                        onAddNewMemo({
+                          lat: memo.latitude,
+                          lng: memo.longitude,
+                          address: memo.address,
+                          buildingName: memo.buildingName,
+                        });
+                        onOpenChange(false);
+                      }}
+                      className="h-10 w-10 rounded-lg shadow-md bg-primary/90 hover:bg-primary border border-primary/20 backdrop-blur-sm transition-all hover:shadow-lg"
+                      data-testid="button-add-memo-floating"
+                    >
+                      <Plus className="h-5 w-5 text-primary-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    <p>{t.memoDetail.addMemoHere || "새 메모 추가"}</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             )}
           </div>
