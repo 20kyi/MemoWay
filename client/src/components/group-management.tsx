@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit, Search, X, DoorOpen, Coins, AlertTriangle, ArrowLeft, FileText } from "lucide-react";
+import { Plus, Share2, Users, MapPin, Plane, Heart, Utensils, Coffee, ShoppingBag, Trophy, Briefcase, Copy, Crown, Trash2, Settings, UserMinus, RefreshCw, Edit, Search, X, DoorOpen, Coins, AlertTriangle, ArrowLeft, FileText, MoreVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markerIconTypes, type MarkerIconType, type MemoWithDetails } from "@shared/schema";
 import { useLanguage } from "@/lib/language-context";
@@ -24,6 +24,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type GroupFormValues = {
   name: string;
@@ -732,99 +739,97 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
                           <p className="text-xs text-muted-foreground truncate mt-0.5">{group.description}</p>
                         )}
                       </div>
-                      {onCopyGroup && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 flex-shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCopyConfirmGroup(group);
-                          }}
-                          data-testid={`button-copy-${group.id}`}
-                          title="새 그룹으로 복사 (그룹 생성)"
-                        >
-                          <Copy className="h-3.5 w-3.5 text-primary" />
-                        </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant="secondary" 
+                        className="flex-shrink-0 text-xs px-2 py-0.5"
+                      >
+                        <Users className="h-3 w-3 mr-1" />
+                        {group.members.length}/{group.maxMembers || 20}
+                      </Badge>
+                      {myMember && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                              data-testid={`button-menu-${group.id}`}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                            {onCopyGroup && (
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCopyConfirmGroup(group);
+                                }}
+                                data-testid={`menu-copy-${group.id}`}
+                              >
+                                <Copy className="h-4 w-4 mr-2" />
+                                {t.groups.copyGroup}
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopyInviteCode(group.inviteCode);
+                              }}
+                              data-testid={`menu-copy-code-${group.id}`}
+                            >
+                              <Share2 className="h-4 w-4 mr-2" />
+                              {t.groups.copyInviteCode}
+                            </DropdownMenuItem>
+                            {myMember && isLeader && onUpdateGroup && (
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenEditDialog(group);
+                                }}
+                                data-testid={`menu-edit-${group.id}`}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                {t.common.edit}
+                              </DropdownMenuItem>
+                            )}
+                            {myMember && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMemberDialogOpen(group.id);
+                                  }}
+                                  data-testid={`menu-members-${group.id}`}
+                                >
+                                  <Users className="h-4 w-4 mr-2" />
+                                  {t.groups.memberCount}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onLeaveGroup(group.id, myMember.id);
+                                  }}
+                                  data-testid={`menu-leave-${group.id}`}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <DoorOpen className="h-4 w-4 mr-2" />
+                                  {t.common.leave}
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
-                    <Badge 
-                      variant="secondary" 
-                      className="flex-shrink-0 text-xs px-2 py-0.5"
-                    >
-                      <Users className="h-3 w-3 mr-1" />
-                      {group.members.length}/{group.maxMembers || 20}
-                    </Badge>
                   </div>
                 </CardHeader>
-
-              <CardFooter className="pt-2 pb-3 sm:pb-4 px-2 sm:px-4 flex flex-nowrap gap-1 sm:gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-[10px] sm:text-sm px-0.5 sm:px-3 flex-1 min-w-0 whitespace-nowrap"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCopyInviteCode(group.inviteCode);
-                  }}
-                  data-testid={`button-copy-code-${group.id}`}
-                >
-                  <Copy className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1.5 flex-shrink-0" />
-                  <span className="hidden sm:inline truncate">{t.groups.copyInviteCode}</span>
-                  <span className="sm:hidden truncate">{t.groups.inviteCodeShort}</span>
-                </Button>
-                {(() => {
-                  return (
-                    <>
-                      {myMember && isLeader && onUpdateGroup && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-[10px] sm:text-sm px-0.5 sm:px-3 flex-1 min-w-0 whitespace-nowrap"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenEditDialog(group);
-                          }}
-                          data-testid={`button-edit-${group.id}`}
-                        >
-                          <Edit className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1.5 flex-shrink-0" />
-                          <span className="truncate">{t.common.edit}</span>
-                        </Button>
-                      )}
-                      {myMember && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-[10px] sm:text-sm px-0.5 sm:px-3 flex-1 min-w-0 whitespace-nowrap"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMemberDialogOpen(group.id);
-                          }}
-                          data-testid={`button-members-${group.id}`}
-                        >
-                          <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1.5 flex-shrink-0" />
-                          <span className="hidden sm:inline truncate">{t.groups.memberCount}</span>
-                          <span className="sm:hidden truncate">{t.groups.memberCountShort}</span>
-                        </Button>
-                      )}
-                      {myMember && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="h-8 text-[10px] sm:text-sm px-0.5 sm:px-3 flex-1 min-w-0 whitespace-nowrap bg-gradient-to-br from-pink-200 to-rose-200 hover:from-pink-300 hover:to-rose-300 border-2 border-pink-300/60 text-rose-700 shadow-sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onLeaveGroup(group.id, myMember.id);
-                          }}
-                          data-testid={`button-leave-${group.id}`}
-                        >
-                          <span className="truncate">{t.common.leave}</span>
-                        </Button>
-                      )}
-                    </>
-                  );
-                })()}
-              </CardFooter>
             </Card>
             );
           })}
