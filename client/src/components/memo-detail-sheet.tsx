@@ -257,38 +257,6 @@ export function MemoDetailSheet({
             {/* 내용 영역 - 스크롤 가능 */}
             <div className="px-4 sm:px-5 overflow-y-auto flex-1 min-h-0 flex-grow">
               <div className="space-y-4 pb-4">
-                {/* 사진 섹션 */}
-                {memo.photos && memo.photos.length > 0 && (
-                  <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-indigo-50/30 backdrop-blur-sm border border-indigo-200/50 shadow-lg">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                        <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
-                        {t.memoDetail.photos}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                        {memo.photos.map((photo) => (
-                          <button
-                            key={photo.id}
-                            type="button"
-                            className="relative rounded-xl sm:rounded-2xl border border-indigo-200/50 bg-white/50 p-1.5 sm:p-2 hover:bg-indigo-50/50 active:bg-indigo-50 transition-all hover:shadow-md"
-                            onClick={() => setSelectedPhoto(photo.url)}
-                            data-testid={`container-photo-${photo.id}`}
-                          >
-                            <img
-                              src={photo.url}
-                              alt={t.memoDetail.photos}
-                              className="w-full h-20 sm:h-28 object-cover rounded-lg sm:rounded-xl"
-                              data-testid={`img-photo-${photo.id}`}
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
                 {/* 메모 내용 섹션 */}
                 <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-indigo-50/30 backdrop-blur-sm border border-indigo-200/50 shadow-lg">
                   <CardHeader className="pb-3">
@@ -386,6 +354,38 @@ export function MemoDetailSheet({
                     </p>
                   </CardContent>
                 </Card>
+
+                {/* 사진 섹션 */}
+                {memo.photos && memo.photos.length > 0 && (
+                  <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-indigo-50/30 backdrop-blur-sm border border-indigo-200/50 shadow-lg">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                        <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
+                        {t.memoDetail.photos}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-indigo-200 scrollbar-track-transparent">
+                        {memo.photos.map((photo) => (
+                          <button
+                            key={photo.id}
+                            type="button"
+                            className="relative rounded-xl sm:rounded-2xl border border-indigo-200/50 bg-white/50 p-1.5 sm:p-2 hover:bg-indigo-50/50 active:bg-indigo-50 transition-all hover:shadow-md flex-shrink-0"
+                            onClick={() => setSelectedPhoto(photo.url)}
+                            data-testid={`container-photo-${photo.id}`}
+                          >
+                            <img
+                              src={photo.url}
+                              alt={t.memoDetail.photos}
+                              className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg sm:rounded-xl"
+                              data-testid={`img-photo-${photo.id}`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
 
