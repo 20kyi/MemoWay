@@ -215,7 +215,7 @@ export function MemoDetailSheet({
 
             {/* 헤더 영역 */}
             <div className="px-4 sm:px-5 pt-[calc(env(safe-area-inset-top)+0.5rem)] pb-4 flex-shrink-0">
-              <SheetHeader className="pr-12 sm:pr-14">
+              <SheetHeader>
                 <div className="flex items-center gap-2 mb-3">
                   <Button
                     variant="ghost"
@@ -226,12 +226,9 @@ export function MemoDetailSheet({
                   >
                     <ArrowLeft className="w-4 h-4 sm:w-5 sm:w-5" />
                   </Button>
-                  <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-black dark:text-white truncate flex-1" data-testid="text-memo-title">
+                  <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-black dark:text-white truncate flex-1 min-w-0" data-testid="text-memo-title">
                     {memo.buildingName}
                   </SheetTitle>
-                  <div className="flex items-center ml-2 gap-1">
-                    <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
-                  </div>
                   {onNavigateToLocation && (
                     <Button
                       variant="ghost"
@@ -246,10 +243,13 @@ export function MemoDetailSheet({
                       <Navigation className="w-4 h-4 sm:w-5 sm:h-5" />
                     </Button>
                   )}
+                  <div className="flex items-center ml-auto gap-1 flex-shrink-0">
+                    <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm">
                   <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="truncate flex-1" data-testid="text-memo-address">{memo.address}</span>
+                  <span className="truncate text-left" data-testid="text-memo-address">{memo.address}</span>
                 </div>
               </SheetHeader>
             </div>
