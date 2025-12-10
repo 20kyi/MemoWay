@@ -206,7 +206,7 @@ export function MemoDetailSheet({
       <Sheet open={open} onOpenChange={onOpenChange} modal={true}>
       <SheetContent 
         side="bottom" 
-        className="min-h-[50vh] max-h-[90vh] h-auto rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col bg-gradient-to-br from-blue-50/30 to-white touch-pan-y relative"
+        className="min-h-[50vh] max-h-[90vh] h-auto rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col bg-gradient-to-br from-blue-50/95 via-white to-blue-50/95 touch-pan-y relative"
       >
         <TooltipProvider delayDuration={300}>
           <div className="flex flex-col h-full min-h-[50vh] relative w-full">
@@ -485,7 +485,7 @@ export function MemoDetailSheet({
 
             {/* 플로팅 새 메모 추가 버튼 */}
             {onAddNewMemo && open && (
-              <div className="absolute bottom-[7rem] right-4 z-50">
+              <div className="absolute bottom-[7rem] right-4 z-10">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
