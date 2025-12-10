@@ -98,6 +98,26 @@ export function setupKakaoAuth(app: Express) {
     res.json({
       configured: !!(clientId && clientSecret),
       hasClientId: !!clientId,
+      expectedRedirectUri,
+      setupInstructions: {
+        title: "카카오 개발자 콘솔 설정 가이드",
+        steps: [
+          "1. https://developers.kakao.com 접속",
+          "2. 내 애플리케이션 > 앱 선택 > 플랫폼 설정",
+          "3. Web 플랫폼 등록 (개발용: http://localhost:5000)",
+          "4. Redirect URI 등록:",
+          `   - 개발용: ${expectedRedirectUri}`,
+          "5. 제품 설정 > 카카오 로그인 활성화",
+          "6. 카카오 로그인 > Redirect URI 등록:",
+          `   - 개발용: ${expectedRedirectUri}`,
+          "7. 저장 후 5-10분 대기 (설정 반영 시간 필요)"
+        ],
+        commonErrors: {
+          KOE006: "Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다. 위의 Redirect URI를 정확히 등록해주세요.",
+          KOE101: "앱 키(Client ID)가 잘못되었습니다. KAKAO_CLIENT_ID 환경 변수를 확인하세요.",
+          KOE303: "동의 항목이 필요합니다. 카카오 로그인 동의 항목을 설정하세요."
+        }
+      },
       hasClientSecret: !!clientSecret,
       isLocalDev,
       expectedRedirectUri,
@@ -180,6 +200,13 @@ export function setupKakaoAuth(app: Express) {
     
     // Store state in session for verification
     (req.session as any).kakaoState = state;
+    
+    console.log('[KAKAO LOGIN FLOW] State stored in session:', {
+      stateLength: state.length,
+      statePreview: state.substring(0, 50) + '...',
+      sessionId: req.session?.id?.substring(0, 20),
+      hasSession: !!req.session,
+    });
     
     // Determine host and protocol
     // For local development, always use localhost:5000 to ensure consistency with Kakao Developer Console
@@ -276,7 +303,45 @@ export function setupKakaoAuth(app: Express) {
       }
       
       console.log('[KAKAO LOGIN FLOW] ✅ Session saved successfully');
-      console.log('[KAKAO LOGIN FLOW] Session ID:', req.session?.id?.substring(0, 10));
+      console.log('[KAKAO LOGIN FLOW] Session details:', {
+        sessionId: req.session?.id?.substring(0, 20),
+        hasKakaoState: !!(req.session as any).kakaoState,
+        kakaoStatePreview: (req.session as any).kakaoState?.substring(0, 50) + '...',
+        statePreview: state.substring(0, 50) + '...',
+        statesMatch: (req.session as any).kakaoState === state,
+        cookieConfig: {
+          secure: req.session.cookie.secure,
+          sameSite: req.session.cookie.sameSite,
+          httpOnly: req.session.cookie.httpOnly,
+          path: req.session.cookie.path,
+        },
+      });
+      
+      // Android WebView 쿠키 저장을 위해 쿠키를 명시적으로 설정
+      // 세션 저장 후 쿠키가 제대로 설정되었는지 확인
+      // 로컬 개발 환경 감지
+      const isLocalDevForCookie = process.env.NODE_ENV === 'development' && 
+                                   (req.get('host')?.includes('localhost') || req.get('host')?.includes('127.0.0.1'));
+      
+      const cookieValue = req.sessionID;
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isLocalDevForCookie ? false : req.session.cookie.secure, // 로컬에서는 false
+        sameSite: (isLocalDevForCookie ? "lax" : req.session.cookie.sameSite) as "none" | "lax" | "strict" | undefined, // 로컬에서는 lax
+        path: "/",
+        maxAge: req.session.cookie.maxAge || 7 * 24 * 60 * 60 * 1000,
+      };
+      
+      console.log('[KAKAO LOGIN FLOW] Setting cookie explicitly:', {
+        name: 'connect.sid',
+        value: cookieValue.substring(0, 20) + '...',
+        options: cookieOptions,
+      });
+      
+      res.cookie("connect.sid", cookieValue, cookieOptions);
+      
+      const setCookieHeader = res.getHeader('Set-Cookie');
+      console.log('[KAKAO LOGIN FLOW] Set-Cookie header:', setCookieHeader);
       
       // 서버 측 리다이렉트로 직접 이동 (더 안정적)
       // 안드로이드 앱의 외부 브라우저에서도 작동
@@ -646,9 +711,45 @@ export function setupKakaoAuth(app: Express) {
     
     // Check for OAuth errors
     if (req.query.error) {
-      console.error('[KAKAO LOGIN FLOW] ❌ OAuth error:', req.query.error);
-      console.error('[KAKAO LOGIN FLOW] Error description:', req.query.error_description || 'No description');
-      const errorRedirect = `/?error=oauth_failed&provider=kakao&message=${encodeURIComponent(req.query.error_description as string || req.query.error as string)}`;
+      const errorCode = req.query.error as string;
+      const errorDescription = req.query.error_description as string || req.query.error as string;
+      
+      console.error('[KAKAO LOGIN FLOW] ❌ OAuth error:', errorCode);
+      console.error('[KAKAO LOGIN FLOW] Error description:', errorDescription);
+      
+      // KOE006 오류에 대한 상세 안내
+      if (errorCode === 'KOE006' || errorDescription?.includes('KOE006')) {
+        const currentRedirectUri = isLocalDev 
+          ? 'http://localhost:5000/api/kakao/redirect'
+          : `${useHttps ? 'https' : 'http'}://${appDomain || req.get('host') || 'unknown'}/api/kakao/redirect`;
+        
+        console.error('[KAKAO LOGIN FLOW] ⚠️  KOE006 오류: Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다.');
+        console.error('[KAKAO LOGIN FLOW] 현재 사용 중인 Redirect URI:', currentRedirectUri);
+        console.error('[KAKAO LOGIN FLOW] 해결 방법:');
+        console.error('  1. https://developers.kakao.com 접속');
+        console.error('  2. 내 애플리케이션 > 앱 선택');
+        console.error('  3. 제품 설정 > 카카오 로그인 활성화');
+        console.error('  4. 카카오 로그인 > Redirect URI 등록');
+        console.error(`  5. 다음 URI를 정확히 등록: ${currentRedirectUri}`);
+        console.error('  6. 저장 후 5-10분 대기 (설정 반영 시간 필요)');
+        
+        const detailedError = `KOE006: Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다.\\n\\n` +
+          `현재 사용 중인 Redirect URI: ${currentRedirectUri}\\n\\n` +
+          `해결 방법:\\n` +
+          `1. https://developers.kakao.com 접속\\n` +
+          `2. 내 애플리케이션 > 앱 선택\\n` +
+          `3. 제품 설정 > 카카오 로그인 활성화\\n` +
+          `4. 카카오 로그인 > Redirect URI 등록\\n` +
+          `5. 다음 URI를 정확히 등록: ${currentRedirectUri}\\n` +
+          `6. 저장 후 5-10분 대기`;
+        
+        const errorRedirect = `/?error=oauth_failed&provider=kakao&code=${errorCode}&message=${encodeURIComponent(detailedError)}`;
+        console.log('[KAKAO FLOW] redirect to:', errorRedirect);
+        console.log('[KAKAO LOGIN FLOW] 🔄 Redirecting to:', errorRedirect);
+        return res.redirect(errorRedirect);
+      }
+      
+      const errorRedirect = `/?error=oauth_failed&provider=kakao&code=${errorCode}&message=${encodeURIComponent(errorDescription)}`;
       console.log('[KAKAO FLOW] redirect to:', errorRedirect);
       console.log('[KAKAO LOGIN FLOW] 🔄 Redirecting to:', errorRedirect);
       return res.redirect(errorRedirect);
@@ -807,8 +908,15 @@ export function setupKakaoAuth(app: Express) {
       });
 
       if (!tokenResponse.ok) {
-        const error = await tokenResponse.text();
-        console.error("Kakao token exchange failed:", error);
+        const errorText = await tokenResponse.text();
+        let errorData: any = {};
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          errorData = { error: errorText };
+        }
+        
+        console.error("Kakao token exchange failed:", errorText);
         console.error("Token exchange details:", {
           status: tokenResponse.status,
           statusText: tokenResponse.statusText,
@@ -816,10 +924,46 @@ export function setupKakaoAuth(app: Express) {
           hasCode: !!code,
           hasClientId: !!clientId,
           hasClientSecret: !!clientSecret,
+          errorCode: errorData.error,
+          errorDescription: errorData.error_description,
         });
+        
+        // KOE006 오류 처리
+        if (errorData.error === 'KOE006' || errorText.includes('KOE006')) {
+          const currentRedirectUri = redirectUri;
+          console.error('[KAKAO TOKEN EXCHANGE] ⚠️  KOE006 오류: Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다.');
+          console.error('[KAKAO TOKEN EXCHANGE] 현재 사용 중인 Redirect URI:', currentRedirectUri);
+          console.error('[KAKAO TOKEN EXCHANGE] 해결 방법:');
+          console.error('  1. https://developers.kakao.com 접속');
+          console.error('  2. 내 애플리케이션 > 앱 선택');
+          console.error('  3. 제품 설정 > 카카오 로그인 활성화');
+          console.error('  4. 카카오 로그인 > Redirect URI 등록');
+          console.error(`  5. 다음 URI를 정확히 등록: ${currentRedirectUri}`);
+          console.error('  6. 저장 후 5-10분 대기 (설정 반영 시간 필요)');
+          
+          return res.status(400).json({ 
+            error: "KOE006: Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다",
+            errorCode: "KOE006",
+            redirectUri: currentRedirectUri,
+            setupInstructions: {
+              title: "카카오 개발자 콘솔 설정 가이드",
+              steps: [
+                "1. https://developers.kakao.com 접속",
+                "2. 내 애플리케이션 > 앱 선택",
+                "3. 제품 설정 > 카카오 로그인 활성화",
+                "4. 카카오 로그인 > Redirect URI 등록",
+                `5. 다음 URI를 정확히 등록: ${currentRedirectUri}`,
+                "6. 저장 후 5-10분 대기 (설정 반영 시간 필요)"
+              ]
+            },
+            hint: "Redirect URI는 정확히 일치해야 합니다. 대소문자, 슬래시, 포트 번호까지 모두 동일해야 합니다."
+          });
+        }
+        
         return res.status(500).json({ 
           error: "Failed to exchange authorization code",
-          details: error,
+          errorCode: errorData.error || 'UNKNOWN',
+          errorDescription: errorData.error_description || errorText,
           redirectUri: redirectUri,
           hint: "Check if the redirect URI matches the one registered in Kakao Developer Console"
         });
@@ -1002,8 +1146,88 @@ export function setupKakaoAuth(app: Express) {
     
     // OAuth 에러 처리
     if (error) {
-      console.error('[KAKAO FLOW] OAuth error:', error, error_description);
-      const errorDeepLink = `com.memoway.app://login?error=oauth_failed&message=${encodeURIComponent(error_description as string || error as string)}`;
+      const errorCode = error as string;
+      const errorDesc = error_description as string || error as string;
+      
+      console.error('[KAKAO FLOW] OAuth error:', errorCode, errorDesc);
+      
+      // KOE006 오류에 대한 상세 안내
+      if (errorCode === 'KOE006' || errorDesc?.includes('KOE006')) {
+        // 현재 redirect_uri 결정
+        const isLocalDevRedirect = process.env.NODE_ENV === 'development' || 
+                                   (req.get('host')?.includes('localhost') || req.get('host')?.includes('127.0.0.1'));
+        const currentRedirectUri = isLocalDevRedirect 
+          ? 'http://localhost:5000/api/kakao/redirect'
+          : `${req.protocol}://${req.get('host') || 'unknown'}/api/kakao/redirect`;
+        
+        console.error('[KAKAO FLOW] ⚠️  KOE006 오류: Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다.');
+        console.error('[KAKAO FLOW] 현재 사용 중인 Redirect URI:', currentRedirectUri);
+        console.error('[KAKAO FLOW] 해결 방법:');
+        console.error('  1. https://developers.kakao.com 접속');
+        console.error('  2. 내 애플리케이션 > 앱 선택');
+        console.error('  3. 제품 설정 > 카카오 로그인 활성화');
+        console.error('  4. 카카오 로그인 > Redirect URI 등록');
+        console.error(`  5. 다음 URI를 정확히 등록: ${currentRedirectUri}`);
+        console.error('  6. 저장 후 5-10분 대기 (설정 반영 시간 필요)');
+        
+        const detailedMessage = `KOE006: Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다.\n\n` +
+          `현재 사용 중인 Redirect URI: ${currentRedirectUri}\n\n` +
+          `해결 방법:\n` +
+          `1. https://developers.kakao.com 접속\n` +
+          `2. 내 애플리케이션 > 앱 선택\n` +
+          `3. 제품 설정 > 카카오 로그인 활성화\n` +
+          `4. 카카오 로그인 > Redirect URI 등록\n` +
+          `5. 다음 URI를 정확히 등록: ${currentRedirectUri}\n` +
+          `6. 저장 후 5-10분 대기`;
+        
+        const errorDeepLink = `com.memoway.app://login?error=KOE006&message=${encodeURIComponent(detailedMessage)}`;
+        console.log('[KAKAO FLOW] redirect to (error):', errorDeepLink);
+        return res.send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>로그인 설정 오류</title>
+              <style>
+                body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+                .error-box { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                .error-code { font-weight: bold; color: #856404; }
+                .redirect-uri { background: #f8f9fa; padding: 10px; border-radius: 3px; font-family: monospace; word-break: break-all; margin: 10px 0; }
+                .steps { margin: 15px 0; }
+                .steps li { margin: 5px 0; }
+              </style>
+              <script>
+                const detailedMessage = ${JSON.stringify(detailedMessage)};
+                alert('로그인 설정 오류 (KOE006)\\n\\n' + detailedMessage);
+                setTimeout(() => {
+                  window.location.href = '${errorDeepLink}';
+                }, 3000);
+              </script>
+            </head>
+            <body>
+              <h2>로그인 설정 오류 (KOE006)</h2>
+              <div class="error-box">
+                <p class="error-code">앱 관리자 설정 오류 (KOE006)</p>
+                <p>Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다.</p>
+                <p><strong>현재 사용 중인 Redirect URI:</strong></p>
+                <div class="redirect-uri">${currentRedirectUri}</div>
+                <p><strong>해결 방법:</strong></p>
+                <ol class="steps">
+                  <li>https://developers.kakao.com 접속</li>
+                  <li>내 애플리케이션 > 앱 선택</li>
+                  <li>제품 설정 > 카카오 로그인 활성화</li>
+                  <li>카카오 로그인 > Redirect URI 등록</li>
+                  <li>위의 Redirect URI를 정확히 등록</li>
+                  <li>저장 후 5-10분 대기 (설정 반영 시간 필요)</li>
+                </ol>
+              </div>
+              <p>앱으로 돌아가는 중...</p>
+            </body>
+          </html>
+        `);
+      }
+      
+      const errorDeepLink = `com.memoway.app://login?error=oauth_failed&code=${errorCode}&message=${encodeURIComponent(errorDesc)}`;
       console.log('[KAKAO FLOW] redirect to (error):', errorDeepLink);
       return res.send(`
         <!DOCTYPE html>
@@ -1012,7 +1236,7 @@ export function setupKakaoAuth(app: Express) {
             <meta charset="UTF-8">
             <title>로그인 실패</title>
             <script>
-              alert('로그인에 실패했습니다: ${error_description || error}');
+              alert('로그인에 실패했습니다: ${errorDesc || errorCode}');
               setTimeout(() => {
                 window.location.href = '${errorDeepLink}';
               }, 1000);
@@ -1037,6 +1261,18 @@ export function setupKakaoAuth(app: Express) {
       if (isAuthenticated) {
         // 이미 로그인되어 있으면 딥링크로 이동
         const lang = req.query.lang || 'ko';
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const userAgent = req.get('user-agent') || '';
+        const isWebBrowser = !userAgent.includes('wv') && 
+                             !userAgent.includes('Android.*Chrome') &&
+                             (userAgent.includes('Chrome') || userAgent.includes('Firefox') || userAgent.includes('Safari') || userAgent.includes('Edge'));
+        
+        // 웹 브라우저 환경에서는 홈으로 리다이렉트
+        if (isWebBrowser) {
+          console.log('[KAKAO FLOW] Web browser detected - redirecting to home');
+          return res.redirect(`/?lang=${lang}&login_success=true`);
+        }
+        
         const appDeepLink = `com.memoway.app://login?lang=${lang}&session_ok=true`;
         console.log('[KAKAO FLOW] Already authenticated, redirecting to app:', appDeepLink);
         return res.send(`
@@ -1046,9 +1282,26 @@ export function setupKakaoAuth(app: Express) {
               <meta charset="UTF-8">
               <title>로그인 완료</title>
               <script>
-                setTimeout(() => {
-                  window.location.href = '${appDeepLink}';
-                }, 500);
+                // 웹 브라우저 감지
+                const isWebBrowser = !navigator.userAgent.includes('wv') && 
+                                     !(navigator.userAgent.includes('Android') && navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('wv')) &&
+                                     (navigator.userAgent.includes('Chrome') || navigator.userAgent.includes('Firefox') || navigator.userAgent.includes('Safari') || navigator.userAgent.includes('Edge'));
+                
+                if (isWebBrowser) {
+                  window.location.href = '${baseUrl}/?lang=${lang}&login_success=true';
+                } else {
+                  setTimeout(() => {
+                    try {
+                      window.location.href = '${appDeepLink}';
+                      // 딥링크 실행 실패 감지
+                      setTimeout(() => {
+                        window.location.href = '${baseUrl}/?lang=${lang}&login_success=true';
+                      }, 3000);
+                    } catch (e) {
+                      window.location.href = '${baseUrl}/?lang=${lang}&login_success=true';
+                    }
+                  }, 500);
+                }
               </script>
             </head>
             <body>
@@ -1096,10 +1349,71 @@ export function setupKakaoAuth(app: Express) {
     
     // CSRF state 검증
     const sessionState = (req.session as any).kakaoState;
-    if (state && state !== sessionState) {
-      console.error('[KAKAO FLOW] ❌ State mismatch - possible CSRF attack');
-      const errorDeepLink = 'com.memoway.app://login?error=state_mismatch';
-      console.log('[KAKAO FLOW] redirect to (state_mismatch):', errorDeepLink);
+    
+    // 디버깅을 위한 상세 로그
+    console.log('[KAKAO FLOW] State validation details:', {
+      hasState: !!state,
+      stateLength: state ? state.length : 0,
+      statePreview: state ? state.substring(0, 50) + '...' : 'none',
+      hasSessionState: !!sessionState,
+      sessionStateLength: sessionState ? sessionState.length : 0,
+      sessionStatePreview: sessionState ? sessionState.substring(0, 50) + '...' : 'none',
+      sessionId: req.session?.id?.substring(0, 20),
+      hasSession: !!req.session,
+      cookies: req.headers.cookie ? 'present' : 'missing',
+      cookieHeader: req.headers.cookie?.substring(0, 100),
+    });
+    
+    // 세션이 없는 경우 처리
+    if (!req.session || !sessionState) {
+      console.error('[KAKAO FLOW] ❌ Session or state not found');
+      console.error('[KAKAO FLOW] Session details:', {
+        hasSession: !!req.session,
+        sessionId: req.session?.id,
+        hasKakaoState: !!(req.session as any)?.kakaoState,
+        cookies: req.headers.cookie,
+        userAgent: req.get('user-agent'),
+        referer: req.get('referer'),
+      });
+      
+      // 세션 쿠키 문제일 수 있으므로 재시도 안내
+      const errorDeepLink = 'com.memoway.app://login?error=session_not_found&message=세션이 만료되었거나 쿠키가 전달되지 않았습니다. 다시 로그인해주세요.';
+      console.log('[KAKAO FLOW] redirect to (session_not_found):', errorDeepLink);
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>로그인 실패</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+              .error-box { background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 5px; margin: 20px 0; }
+              .error-title { font-weight: bold; color: #721c24; }
+            </style>
+            <script>
+              alert('세션이 만료되었거나 쿠키가 전달되지 않았습니다.\\n\\n다시 로그인해주세요.');
+              setTimeout(() => {
+                window.location.href = '${errorDeepLink}';
+              }, 2000);
+            </script>
+          </head>
+          <body>
+            <h2>로그인 실패</h2>
+            <div class="error-box">
+              <p class="error-title">세션 오류</p>
+              <p>세션이 만료되었거나 쿠키가 전달되지 않았습니다.</p>
+              <p>다시 로그인해주세요.</p>
+            </div>
+            <p>앱으로 돌아가는 중...</p>
+          </body>
+        </html>
+      `);
+    }
+    
+    // State가 없는 경우 처리
+    if (!state || typeof state !== 'string') {
+      console.error('[KAKAO FLOW] ❌ State parameter missing or invalid');
+      const errorDeepLink = 'com.memoway.app://login?error=state_missing';
       return res.send(`
         <!DOCTYPE html>
         <html>
@@ -1107,18 +1421,62 @@ export function setupKakaoAuth(app: Express) {
             <meta charset="UTF-8">
             <title>로그인 실패</title>
             <script>
-              alert('보안 검증에 실패했습니다.');
+              alert('인가 코드를 받지 못했습니다.');
               setTimeout(() => {
                 window.location.href = '${errorDeepLink}';
               }, 1000);
             </script>
           </head>
           <body>
-            <p>보안 검증에 실패했습니다. 잠시 후 다시 시도해주세요.</p>
+            <p>인가 코드를 받지 못했습니다. 잠시 후 다시 시도해주세요.</p>
           </body>
         </html>
       `);
     }
+    
+    // State 불일치 검증
+    if (state !== sessionState) {
+      console.error('[KAKAO FLOW] ❌ State mismatch - possible CSRF attack');
+      console.error('[KAKAO FLOW] State comparison:', {
+        requestState: state.substring(0, 50) + '...',
+        sessionState: sessionState.substring(0, 50) + '...',
+        statesMatch: state === sessionState,
+        stateLengths: { request: state.length, session: sessionState.length },
+      });
+      
+      const errorDeepLink = 'com.memoway.app://login?error=state_mismatch&message=보안 검증에 실패했습니다. 다시 로그인해주세요.';
+      console.log('[KAKAO FLOW] redirect to (state_mismatch):', errorDeepLink);
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>로그인 실패</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+              .error-box { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 5px; margin: 20px 0; }
+              .error-title { font-weight: bold; color: #856404; }
+            </style>
+            <script>
+              alert('보안 검증에 실패했습니다.\\n\\n다시 로그인해주세요.');
+              setTimeout(() => {
+                window.location.href = '${errorDeepLink}';
+              }, 2000);
+            </script>
+          </head>
+          <body>
+            <h2>로그인 실패</h2>
+            <div class="error-box">
+              <p class="error-title">보안 검증 실패</p>
+              <p>보안 검증에 실패했습니다. 다시 로그인해주세요.</p>
+            </div>
+            <p>앱으로 돌아가는 중...</p>
+          </body>
+        </html>
+      `);
+    }
+    
+    console.log('[KAKAO FLOW] ✅ State validation passed');
     
     // Clear state from session
     if (sessionState) {
@@ -1200,9 +1558,97 @@ export function setupKakaoAuth(app: Express) {
       });
 
       if (!tokenResponse.ok) {
-        const error = await tokenResponse.text();
-        console.error('[KAKAO FLOW] ❌ Token exchange failed:', error);
-        const errorDeepLink = `com.memoway.app://login?error=token_exchange_failed&message=${encodeURIComponent(error)}`;
+        const errorText = await tokenResponse.text();
+        let errorData: any = {};
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          errorData = { error: errorText };
+        }
+        
+        console.error('[KAKAO FLOW] ❌ Token exchange failed:', errorText);
+        console.error('[KAKAO FLOW] Token exchange details:', {
+          status: tokenResponse.status,
+          statusText: tokenResponse.statusText,
+          redirectUri,
+          hasCode: !!code,
+          hasClientId: !!clientId,
+          hasClientSecret: !!clientSecret,
+          errorCode: errorData.error,
+          errorDescription: errorData.error_description,
+        });
+        
+        // KOE006 오류 처리
+        if (errorData.error === 'KOE006' || errorText.includes('KOE006')) {
+          const currentRedirectUri = redirectUri;
+          console.error('[KAKAO FLOW] ⚠️  KOE006 오류: Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다.');
+          console.error('[KAKAO FLOW] 현재 사용 중인 Redirect URI:', currentRedirectUri);
+          console.error('[KAKAO FLOW] 해결 방법:');
+          console.error('  1. https://developers.kakao.com 접속');
+          console.error('  2. 내 애플리케이션 > 앱 선택');
+          console.error('  3. 제품 설정 > 카카오 로그인 활성화');
+          console.error('  4. 카카오 로그인 > Redirect URI 등록');
+          console.error(`  5. 다음 URI를 정확히 등록: ${currentRedirectUri}`);
+          console.error('  6. 저장 후 5-10분 대기 (설정 반영 시간 필요)');
+          
+          const detailedMessage = `KOE006: Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다.\n\n` +
+            `현재 사용 중인 Redirect URI: ${currentRedirectUri}\n\n` +
+            `해결 방법:\n` +
+            `1. https://developers.kakao.com 접속\n` +
+            `2. 내 애플리케이션 > 앱 선택\n` +
+            `3. 제품 설정 > 카카오 로그인 활성화\n` +
+            `4. 카카오 로그인 > Redirect URI 등록\n` +
+            `5. 다음 URI를 정확히 등록: ${currentRedirectUri}\n` +
+            `6. 저장 후 5-10분 대기`;
+          
+          const errorDeepLink = `com.memoway.app://login?error=KOE006&message=${encodeURIComponent(detailedMessage)}`;
+          console.log('[KAKAO FLOW] redirect to (KOE006):', errorDeepLink);
+          return res.send(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="UTF-8">
+                <title>로그인 설정 오류</title>
+                <style>
+                  body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+                  .error-box { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                  .error-code { font-weight: bold; color: #856404; }
+                  .redirect-uri { background: #f8f9fa; padding: 10px; border-radius: 3px; font-family: monospace; word-break: break-all; margin: 10px 0; }
+                  .steps { margin: 15px 0; }
+                  .steps li { margin: 5px 0; }
+                </style>
+                <script>
+                  const detailedMessage = ${JSON.stringify(detailedMessage)};
+                  alert('로그인 설정 오류 (KOE006)\\n\\n' + detailedMessage);
+                  setTimeout(() => {
+                    window.location.href = '${errorDeepLink}';
+                  }, 3000);
+                </script>
+              </head>
+              <body>
+                <h2>로그인 설정 오류 (KOE006)</h2>
+                <div class="error-box">
+                  <p class="error-code">앱 관리자 설정 오류 (KOE006)</p>
+                  <p>Redirect URI가 카카오 개발자 콘솔에 등록되지 않았습니다.</p>
+                  <p><strong>현재 사용 중인 Redirect URI:</strong></p>
+                  <div class="redirect-uri">${currentRedirectUri}</div>
+                  <p><strong>해결 방법:</strong></p>
+                  <ol class="steps">
+                    <li>https://developers.kakao.com 접속</li>
+                    <li>내 애플리케이션 > 앱 선택</li>
+                    <li>제품 설정 > 카카오 로그인 활성화</li>
+                    <li>카카오 로그인 > Redirect URI 등록</li>
+                    <li>위의 Redirect URI를 정확히 등록</li>
+                    <li>저장 후 5-10분 대기 (설정 반영 시간 필요)</li>
+                  </ol>
+                </div>
+                <p>앱으로 돌아가는 중...</p>
+              </body>
+            </html>
+          `);
+        }
+        
+        const errorDeepLink = `com.memoway.app://login?error=token_exchange_failed&code=${errorData.error || 'UNKNOWN'}&message=${encodeURIComponent(errorData.error_description || errorText)}`;
         console.log('[KAKAO FLOW] redirect to (token_exchange_failed):', errorDeepLink);
         return res.send(`
           <!DOCTYPE html>
@@ -1211,7 +1657,7 @@ export function setupKakaoAuth(app: Express) {
               <meta charset="UTF-8">
               <title>로그인 실패</title>
               <script>
-                alert('토큰 교환에 실패했습니다.');
+                alert('토큰 교환에 실패했습니다: ${errorData.error_description || errorData.error || '알 수 없는 오류'}');
                 setTimeout(() => {
                   window.location.href = '${errorDeepLink}';
                 }, 1000);
@@ -1428,6 +1874,18 @@ export function setupKakaoAuth(app: Express) {
                 return res.redirect(`/?lang=${lang}&login_success=true`);
               }
               
+              // 웹 브라우저 환경 감지
+              const userAgent = req.get('user-agent') || '';
+              const isWebBrowser = !userAgent.includes('wv') && // WebView가 아님
+                                   !userAgent.includes('Android.*Chrome') && // Android Chrome이 아님
+                                   (userAgent.includes('Chrome') || userAgent.includes('Firefox') || userAgent.includes('Safari') || userAgent.includes('Edge'));
+              
+              // 웹 브라우저 환경에서는 딥링크 대신 홈으로 리다이렉트
+              if (isWebBrowser && platform === 'web') {
+                console.log('[KAKAO FLOW] ✅ Web browser detected - redirecting to home page');
+                return res.redirect(`/?lang=${lang}&login_success=true`);
+              }
+              
               // ⚠️ 무한 루프 방지: 서버 레벨에서는 절대 res.redirect를 사용하지 않음 (외부 브라우저용)
               // HTML만 반환하고 JavaScript로 딥링크 이동
               res.send(`
@@ -1488,8 +1946,22 @@ export function setupKakaoAuth(app: Express) {
               text-decoration: none;
               display: inline-block;
               border: 1px solid rgba(255, 255, 255, 0.3);
+              cursor: pointer;
             }
             .fallback-link:hover {
+              background: rgba(255, 255, 255, 0.3);
+            }
+            .home-link {
+              margin-top: 20px;
+              padding: 12px 24px;
+              background: rgba(255, 255, 255, 0.2);
+              border-radius: 8px;
+              color: white;
+              text-decoration: none;
+              display: inline-block;
+              border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+            .home-link:hover {
               background: rgba(255, 255, 255, 0.3);
             }
           </style>
@@ -1502,9 +1974,24 @@ export function setupKakaoAuth(app: Express) {
             <p style="font-size: 14px; opacity: 0.7; margin-top: 20px;">
               자동으로 이동되지 않으면 아래 버튼을 클릭하세요
             </p>
-            <a href="${appDeepLink}" class="fallback-link">앱으로 돌아가기</a>
+            <a href="${appDeepLink}" class="fallback-link" id="deepLinkBtn">앱으로 돌아가기</a>
+            <a href="${baseUrl}/?lang=${lang}&login_success=true" class="home-link" id="homeLink" style="display: none;">홈으로 이동</a>
           </div>
           <script>
+            // 환경 감지: 웹 브라우저인지 확인
+            const isWebBrowser = !navigator.userAgent.includes('wv') && 
+                                 !(navigator.userAgent.includes('Android') && navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('wv')) &&
+                                 (navigator.userAgent.includes('Chrome') || navigator.userAgent.includes('Firefox') || navigator.userAgent.includes('Safari') || navigator.userAgent.includes('Edge'));
+            
+            // 웹 브라우저인 경우 홈으로 리다이렉트
+            if (isWebBrowser) {
+              console.log('[REDIRECT PAGE] Web browser detected - redirecting to home');
+              setTimeout(() => {
+                window.location.href = '${baseUrl}/?lang=${lang}&login_success=true';
+              }, 500);
+              return;
+            }
+            
             // 세션 쿠키를 WebView에 설정하기 위해 API 호출
             // 중요: OAuth WebView와 앱의 WebView는 별개의 쿠키 저장소를 사용하므로
             // 앱이 Deep Link로 열릴 때 세션을 다시 확인해야 합니다
@@ -1531,9 +2018,23 @@ export function setupKakaoAuth(app: Express) {
                   setTimeout(() => {
                     try {
                       console.log('[REDIRECT PAGE] Redirecting to app via Deep Link...');
-                      window.location.href = ${JSON.stringify(appDeepLink)};
+                      const deepLink = ${JSON.stringify(appDeepLink)};
+                      
+                      // 딥링크 실행 시도
+                      window.location.href = deepLink;
+                      
+                      // 딥링크 실행 실패 감지 (3초 후에도 페이지가 남아있으면 실패로 간주)
+                      setTimeout(() => {
+                        console.warn('[REDIRECT PAGE] Deep link may have failed, showing fallback');
+                        const homeLink = document.getElementById('homeLink');
+                        if (homeLink) {
+                          homeLink.style.display = 'inline-block';
+                        }
+                      }, 3000);
                     } catch (e) {
                       console.error('[REDIRECT PAGE] Failed to redirect:', e);
+                      // 딥링크 실행 실패 시 홈으로 리다이렉트
+                      window.location.href = '${baseUrl}/?lang=${lang}&login_success=true';
                     }
                   }, 800); // 쿠키 설정을 위한 충분한 시간 확보
                 } else {
@@ -1541,26 +2042,43 @@ export function setupKakaoAuth(app: Express) {
                   // 세션 동기화 실패 시에도 Deep Link로 리다이렉트 (앱에서 처리)
                   const errorDeepLink = ${JSON.stringify(appDeepLink.replace('session_ok=true', 'error=session_sync_failed'))};
                   setTimeout(() => {
-                    window.location.href = errorDeepLink;
+                    try {
+                      window.location.href = errorDeepLink;
+                      // 딥링크 실행 실패 감지
+                      setTimeout(() => {
+                        window.location.href = '${baseUrl}/?lang=${lang}&login_success=true';
+                      }, 3000);
+                    } catch (e) {
+                      window.location.href = '${baseUrl}/?lang=${lang}&login_success=true';
+                    }
                   }, 500);
                 }
               } catch (error) {
                 console.error('[REDIRECT PAGE] Failed to sync session cookie:', error);
-                // 에러 발생 시에도 Deep Link로 리다이렉트
-                const errorDeepLink = ${JSON.stringify(appDeepLink.replace('session_ok=true', 'error=session_sync_failed'))};
+                // 에러 발생 시 홈으로 리다이렉트
                 setTimeout(() => {
-                  window.location.href = errorDeepLink;
+                  window.location.href = '${baseUrl}/?lang=${lang}&login_success=true';
                 }, 500);
               }
             })();
             
-            // Fallback: if not redirected after 3 seconds, show manual link
-            setTimeout(() => {
-              const link = document.querySelector('.fallback-link');
-              if (link) {
-                link.style.display = 'block';
+            // Fallback: 딥링크 버튼 클릭 시
+            document.getElementById('deepLinkBtn')?.addEventListener('click', function(e) {
+              e.preventDefault();
+              try {
+                window.location.href = ${JSON.stringify(appDeepLink)};
+                // 딥링크 실행 실패 감지
+                setTimeout(() => {
+                  const homeLink = document.getElementById('homeLink');
+                  if (homeLink) {
+                    homeLink.style.display = 'inline-block';
+                  }
+                }, 2000);
+              } catch (e) {
+                console.error('[REDIRECT PAGE] Deep link failed:', e);
+                window.location.href = '${baseUrl}/?lang=${lang}&login_success=true';
               }
-            }, 3000);
+            });
           </script>
         </body>
       </html>

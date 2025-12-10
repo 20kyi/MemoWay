@@ -48,9 +48,10 @@ export function getSession() {
   
   // Android WebView에서 쿠키 저장을 위해 SameSite=None + Secure=true 필수
   // Railway HTTPS 환경에서 Android WebView cross-site 쿠키 지원을 위해
-  // 모든 환경에서 일관되게 SameSite=None + Secure=true 사용
-  const cookieSecure = true; // HTTPS 필수
-  const cookieSameSite: "none" = "none"; // Android WebView cross-site 쿠키 지원
+  // 로컬 개발 환경에서는 HTTP를 사용하므로 secure=false, sameSite=lax 사용
+  // 프로덕션 환경에서는 secure=true, sameSite=none 사용
+  const cookieSecure = isLocalhost ? false : true; // 로컬에서는 false, 프로덕션에서는 true
+  const cookieSameSite: "none" | "lax" = isLocalhost ? "lax" : "none"; // 로컬에서는 lax, 프로덕션에서는 none
   
   console.log('[SESSION CONFIG] ========== SESSION CONFIGURATION ==========');
   console.log('[SESSION CONFIG] NODE_ENV:', process.env.NODE_ENV);
@@ -59,8 +60,8 @@ export function getSession() {
   console.log('[SESSION CONFIG] isRailway:', isRailway);
   console.log('[SESSION CONFIG] isLocalhost:', isLocalhost);
   console.log('[SESSION CONFIG] isHttps:', isHttps);
-  console.log('[SESSION CONFIG] Cookie secure:', cookieSecure, '(강제: true - Android WebView 지원)');
-  console.log('[SESSION CONFIG] Cookie sameSite:', cookieSameSite, '(강제: none - Android WebView cross-site 쿠키)');
+  console.log('[SESSION CONFIG] Cookie secure:', cookieSecure, isLocalhost ? '(로컬 개발: false - HTTP 지원)' : '(프로덕션: true - HTTPS 필수)');
+  console.log('[SESSION CONFIG] Cookie sameSite:', cookieSameSite, isLocalhost ? '(로컬 개발: lax - HTTP 지원)' : '(프로덕션: none - Android WebView cross-site 쿠키)');
   console.log('[SESSION CONFIG] saveUninitialized:', saveUninitialized, '(테스트용 플래그:', process.env.ENABLE_SAVE_UNINITIALIZED || 'not set', ')');
   console.log('[SESSION CONFIG] ===========================================');
   
