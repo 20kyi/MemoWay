@@ -2156,7 +2156,7 @@ function MapViewComponent({
           
           {/* 위치 고정 모드 상태 배너 */}
           {isLocationLocked && (
-            <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+10.1rem)] sm:top-[calc(env(safe-area-inset-top)+10.1rem)]' : 'top-[calc(env(safe-area-inset-top)+7.5rem)]'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
+            <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+9.5rem)] sm:top-[calc(env(safe-area-inset-top)+9.5rem)]' : 'top-[calc(env(safe-area-inset-top)+6.9rem)]'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
               <div 
                 className={`relative text-white rounded-2xl flex items-center justify-center whitespace-nowrap overflow-hidden ${
                   isCoupleTheme 
@@ -2400,7 +2400,7 @@ function MapViewComponent({
           )}
 
           {/* 주소 검색 바 */}
-          <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+2.5rem)] sm:top-[calc(env(safe-area-inset-top)+2.5rem)]' : 'top-[calc(env(safe-area-inset-top)+2.5rem)]'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
+          <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+1.9rem)] sm:top-[calc(env(safe-area-inset-top)+1.9rem)]' : 'top-[calc(env(safe-area-inset-top)+1.9rem)]'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
             <div className="flex flex-col gap-2">
               <div className={isCoupleTheme 
                 ? "search-bar-couple-theme flex gap-2 p-2"
