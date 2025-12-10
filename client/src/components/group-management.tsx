@@ -695,11 +695,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
             return (
               <Card 
                 key={group.id} 
-                className={`hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg cursor-pointer ${
-                  isLeader 
-                    ? 'border-2 border-amber-400/60 hover:border-amber-400/80 bg-gradient-to-br from-amber-50/30 to-card/90' 
-                    : 'border border-primary/20 hover:border-primary/40'
-                }`} 
+                className="hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg cursor-pointer border-2 border-amber-400/60 hover:border-amber-400/80 bg-gradient-to-br from-amber-50/30 to-card/90"
                 onClick={() => setSelectedGroupId(group.id)}
                 data-testid={`card-group-${group.id}`}
               >
