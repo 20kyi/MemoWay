@@ -891,7 +891,7 @@ function GoogleMapViewComponent({
       
       {/* 위치 고정 모드 상태 배너 */}
       {isLocationLocked && (
-        <div className="absolute top-[calc(env(safe-area-inset-top)+6rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
+        <div className="absolute top-[calc(env(safe-area-inset-top)+8rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
           <div 
             className="relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3"
             style={{

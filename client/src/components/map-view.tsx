@@ -2156,7 +2156,7 @@ function MapViewComponent({
           
           {/* 위치 고정 모드 상태 배너 */}
           {isLocationLocked && (
-            <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+13.1rem)] sm:top-[calc(env(safe-area-inset-top)+14.1rem)]' : 'top-[calc(env(safe-area-inset-top)+6rem)]'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
+            <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+13.1rem)] sm:top-[calc(env(safe-area-inset-top)+14.1rem)]' : 'top-[calc(env(safe-area-inset-top)+8rem)]'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
               <div 
                 className={`relative text-white rounded-2xl flex items-center justify-center whitespace-nowrap overflow-hidden ${
                   isCoupleTheme 
