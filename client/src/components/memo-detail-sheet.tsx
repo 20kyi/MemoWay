@@ -226,21 +226,35 @@ export function MemoDetailSheet({
                   >
                     <ArrowLeft className="w-4 h-4 sm:w-5 sm:w-5" />
                   </Button>
-                  <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-black dark:text-white truncate flex-1 min-w-0 text-left" data-testid="text-memo-title">
+                  <SheetTitle 
+                    className="text-lg sm:text-xl md:text-2xl font-bold text-black dark:text-white truncate flex-1 min-w-0 text-left cursor-pointer hover:opacity-70 transition-opacity" 
+                    data-testid="text-memo-title"
+                    onClick={() => {
+                      if (onNavigateToLocation) {
+                        onNavigateToLocation(memo.latitude, memo.longitude);
+                        onOpenChange(false);
+                      }
+                    }}
+                  >
                     {memo.buildingName}
                   </SheetTitle>
-                  {onNavigateToLocation && (
+                  {onAddNewMemo && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 text-sky-600 dark:text-sky-500 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/20 -ml-1"
                       onClick={() => {
-                        onNavigateToLocation(memo.latitude, memo.longitude);
+                        onAddNewMemo({
+                          lat: memo.latitude,
+                          lng: memo.longitude,
+                          address: memo.address,
+                          buildingName: memo.buildingName,
+                        });
                         onOpenChange(false);
                       }}
-                      data-testid="button-navigate-to-location"
+                      data-testid="button-add-memo-header"
                     >
-                      <Navigation className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                     </Button>
                   )}
                   <div className="flex items-center ml-auto gap-1 flex-shrink-0">
@@ -390,29 +404,9 @@ export function MemoDetailSheet({
             </div>
 
             {/* 하단 고정 영역 - 액션 버튼들 */}
-            {(onAddNewMemo || onEdit || onDelete || (currentUserId && memo.member.userId !== currentUserId ? !!onCopy : false)) && (
+            {(onEdit || onDelete || (currentUserId && memo.member.userId !== currentUserId ? !!onCopy : false)) && (
               <div className="mt-auto flex-shrink-0 px-4 sm:px-5 py-4 border-t border-indigo-200/50 bg-gradient-to-br from-indigo-50/30 to-white">
                 <div className="flex flex-nowrap gap-1.5 sm:gap-3">
-                  {onAddNewMemo && (
-                    <Button
-                      size="lg"
-                      onClick={() => {
-                        onAddNewMemo({
-                          lat: memo.latitude,
-                          lng: memo.longitude,
-                          address: memo.address,
-                          buildingName: memo.buildingName,
-                        });
-                        onOpenChange(false);
-                      }}
-                      className="h-11 sm:h-12 text-xs sm:text-base font-medium bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
-                      data-testid="button-add-memo"
-                    >
-                      <Plus className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                      <span className="whitespace-nowrap hidden sm:inline">{t.memoDetail.addMemoHere}</span>
-                      <span className="whitespace-nowrap sm:hidden">{t.common.add}</span>
-                    </Button>
-                  )}
                   {/* ⚠️ 중요: 다른 사용자가 쓴 메모인지 확인 */}
                   {currentUserId && memo.member.userId !== currentUserId ? (
                     // 다른 사용자가 쓴 메모: 관리자인 경우 복사/편집/삭제 버튼, 아니면 복사 버튼만
@@ -432,23 +426,7 @@ export function MemoDetailSheet({
                           <span className="whitespace-nowrap">{t.common.copy || "복사"}</span>
                         </Button>
                       )}
-                      {/* 관리자 또는 방장인 경우 편집 버튼 표시 */}
-                      {isAdmin && onEdit && (
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          onClick={() => {
-                            onEdit(memo.id);
-                            onOpenChange(false);
-                          }}
-                          className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
-                          data-testid="button-edit-memo"
-                        >
-                          <Edit className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                          <span className="whitespace-nowrap">{t.common.edit}</span>
-                        </Button>
-                      )}
-                      {/* 방장인 경우에만 삭제 버튼 표시 */}
+                      {/* 방장인 경우에만 삭제 버튼 표시 - 왼쪽 */}
                       {isLeader && onDelete && (
                         <Button
                           size="lg"
@@ -466,11 +444,8 @@ export function MemoDetailSheet({
                           <span className="whitespace-nowrap">{t.common.delete}</span>
                         </Button>
                       )}
-                    </>
-                  ) : (
-                    // 내가 쓴 메모: 편집 및 삭제 버튼 표시 (복사 버튼 제거)
-                    <>
-                      {onEdit && (
+                      {/* 관리자 또는 방장인 경우 편집 버튼 표시 - 오른쪽 */}
+                      {isAdmin && onEdit && (
                         <Button
                           size="lg"
                           variant="outline"
@@ -478,13 +453,17 @@ export function MemoDetailSheet({
                             onEdit(memo.id);
                             onOpenChange(false);
                           }}
-                          className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 flex-1 min-w-0 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3"
+                          className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 ml-auto"
                           data-testid="button-edit-memo"
                         >
                           <Edit className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
                           <span className="whitespace-nowrap">{t.common.edit}</span>
                         </Button>
                       )}
+                    </>
+                  ) : (
+                    // 내가 쓴 메모: 삭제(왼쪽) 및 편집(오른쪽) 버튼 표시
+                    <>
                       {onDelete && (
                         <Button
                           size="lg"
@@ -500,6 +479,21 @@ export function MemoDetailSheet({
                         >
                           <Trash2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
                           <span className="whitespace-nowrap">{t.common.delete}</span>
+                        </Button>
+                      )}
+                      {onEdit && (
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          onClick={() => {
+                            onEdit(memo.id);
+                            onOpenChange(false);
+                          }}
+                          className="h-11 sm:h-12 text-xs sm:text-base font-medium border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 ml-auto"
+                          data-testid="button-edit-memo"
+                        >
+                          <Edit className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{t.common.edit}</span>
                         </Button>
                       )}
                     </>
