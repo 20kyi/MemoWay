@@ -386,40 +386,42 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
           </h1>
         </div>
 
-      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))] space-y-3 sm:space-y-4">
-        {/* 그룹 검색 바 */}
+      {/* 그룹 검색 바 - 고정 */}
+      <div className="px-2 sm:px-4 pt-4 pb-2 flex-shrink-0">
         <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
-        <div className="relative flex-1">
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t.groups.searchPlaceholder || "그룹 이름, 설명, 멤버 검색..."}
-            className="pr-10 border-0 focus-visible:ring-0"
-            data-testid="input-group-search"
-          />
-          {searchQuery && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-              onClick={() => setSearchQuery("")}
-              data-testid="button-clear-search"
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
-          )}
+          <div className="relative flex-1">
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t.groups.searchPlaceholder || "그룹 이름, 설명, 멤버 검색..."}
+              className="pr-10 border-0 focus-visible:ring-0"
+              data-testid="input-group-search"
+            />
+            {searchQuery && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                onClick={() => setSearchQuery("")}
+                data-testid="button-clear-search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+          <Button
+            size="icon"
+            disabled={!searchQuery.trim()}
+            className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
+            data-testid="button-search-group"
+          >
+            <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+          </Button>
         </div>
-        <Button
-          size="icon"
-          disabled={!searchQuery.trim()}
-          className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
-          data-testid="button-search-group"
-        >
-          <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
-        </Button>
       </div>
 
-        {/* 탭 전환 버튼 */}
+      {/* 탭 전환 버튼 - 고정 */}
+      <div className="px-2 sm:px-4 pb-2 flex-shrink-0">
         <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5 sm:p-2">
           <button
             onClick={() => setActiveTab("leader")}
@@ -466,6 +468,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
             </Badge>
           </button>
         </div>
+      </div>
 
       {/* 그룹 만들기 Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -676,6 +679,8 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
         </DialogContent>
       </Dialog>
 
+      {/* 그룹 리스트 - 스크롤 가능 */}
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
         {filteredGroups.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-center px-4">
           <div className="bg-primary/10 rounded-full p-4 sm:p-6 mb-3 sm:mb-4">
@@ -835,6 +840,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
           })}
         </div>
         )}
+      </div>
       </div>
 
       {/* 그룹 수정 다이얼로그 */}
