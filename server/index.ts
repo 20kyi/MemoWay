@@ -196,10 +196,11 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
+  
   server.listen({
     port,
     host: "0.0.0.0",
-    reusePort: true,
+    reusePort: false, // reusePort를 false로 변경하여 포트 충돌 시 명확한 에러 처리
   }, async () => {
     log(`serving on port ${port}`);
     
@@ -220,6 +221,18 @@ app.use((req, res, next) => {
         // Silently fail if browser can't be opened
         log(`Failed to open browser automatically: ${error}`);
       }
+    }
+  }).on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      log(`❌ Port ${port} is already in use.`);
+      log(`Please either:`);
+      log(`  1. Stop the process using port ${port}`);
+      log(`  2. Set a different port using PORT environment variable (e.g., PORT=5001)`);
+      log(`  3. Wait a few seconds and try again`);
+      process.exit(1);
+    } else {
+      log(`❌ Server error: ${err.message}`);
+      throw err;
     }
   });
 })();
