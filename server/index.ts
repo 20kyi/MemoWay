@@ -197,6 +197,8 @@ app.use((req, res, next) => {
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
   
+  // HTTP 서버에 에러 핸들러가 이미 routes.ts에 추가되어 있으므로
+  // 여기서는 listen만 수행
   server.listen({
     port,
     host: "0.0.0.0",
@@ -221,18 +223,6 @@ app.use((req, res, next) => {
         // Silently fail if browser can't be opened
         log(`Failed to open browser automatically: ${error}`);
       }
-    }
-  }).on('error', (err: NodeJS.ErrnoException) => {
-    if (err.code === 'EADDRINUSE') {
-      log(`❌ Port ${port} is already in use.`);
-      log(`Please either:`);
-      log(`  1. Stop the process using port ${port}`);
-      log(`  2. Set a different port using PORT environment variable (e.g., PORT=5001)`);
-      log(`  3. Wait a few seconds and try again`);
-      process.exit(1);
-    } else {
-      log(`❌ Server error: ${err.message}`);
-      throw err;
     }
   });
 })();

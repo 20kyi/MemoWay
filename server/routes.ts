@@ -1214,8 +1214,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
+  // HTTP 서버 에러 핸들러 추가
+  httpServer.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      const port = process.env.PORT || '5000';
+      console.error(`❌ Port ${port} is already in use.`);
+      console.error(`Please either:`);
+      console.error(`  1. Stop the process using port ${port}`);
+      console.error(`  2. Set a different port using PORT environment variable (e.g., PORT=5001)`);
+      console.error(`  3. Wait a few seconds and try again`);
+      process.exit(1);
+    } else {
+      console.error(`❌ HTTP Server error: ${err.message}`);
+      throw err;
+    }
+  });
+
   // WebSocket server for real-time memo updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  // WebSocketServer 에러 핸들러 추가
+  wss.on('error', (err: Error) => {
+    console.error(`❌ WebSocket Server error: ${err.message}`);
+    // WebSocketServer 에러는 HTTP 서버 에러와 연관될 수 있으므로
+    // HTTP 서버 에러 핸들러가 처리하도록 함
+  });
 
   const clients = new Set<WebSocket>();
 
