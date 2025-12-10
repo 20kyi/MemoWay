@@ -604,26 +604,54 @@ function Router() {
 import { ErrorBoundary } from "@/components/error-boundary";
 
 function App() {
-  // 앱 실행 시 화면 꺼짐 방지 활성화 (Android/iOS)
+  // 앱 실행 시 화면 꺼짐 방지 활성화 및 상태바 색상 설정 (Android/iOS)
   // 동적 import를 사용하여 빌드 시 오류 방지 및 웹 환경에서 안전하게 처리
   useEffect(() => {
-    const keepScreenOn = async () => {
+    const initializeNativeFeatures = async () => {
       try {
         if (Capacitor.isNativePlatform()) {
-          // 런타임에만 플러그인 로드 (빌드 시 번들링되지 않음)
-          // 문자열 변수를 사용하여 Rollup이 정적 분석하지 못하게 함
-          const pluginPath = '@capacitor-community/keep-awake';
-          const { KeepAwake } = await import(/* @vite-ignore */ pluginPath);
-          await KeepAwake.keepAwake();
-          console.log('[App] Screen Keep Awake enabled');
+          // 화면 꺼짐 방지
+          try {
+            const pluginPath = '@capacitor-community/keep-awake';
+            const { KeepAwake } = await import(/* @vite-ignore */ pluginPath);
+            await KeepAwake.keepAwake();
+            console.log('[App] Screen Keep Awake enabled');
+          } catch (err) {
+            console.warn('[App] Keep Awake plugin not available:', err);
+          }
+
+          // 상태바 색상 설정 (기본 테마: 검은색)
+          try {
+            const { StatusBar, Style } = await import("@capacitor/status-bar");
+            const savedLayoutTheme = localStorage.getItem("layoutTheme");
+            const layoutTheme = (savedLayoutTheme === "default" || savedLayoutTheme === "lavender-night" || savedLayoutTheme === "couple-clay") 
+              ? savedLayoutTheme 
+              : "default";
+            
+            if (layoutTheme === "default") {
+              // 기본 테마: 검은색 상태바
+              await StatusBar.setStyle({ style: Style.Dark });
+              await StatusBar.setBackgroundColor({ color: "#000000" });
+            } else if (layoutTheme === "lavender-night") {
+              // 라벤더 나이트 테마: 밝은 상태바
+              await StatusBar.setStyle({ style: Style.Light });
+              await StatusBar.setBackgroundColor({ color: "#1a1a2e" });
+            } else if (layoutTheme === "couple-clay") {
+              // 커플 클레이 테마: 밝은 상태바
+              await StatusBar.setStyle({ style: Style.Dark });
+              await StatusBar.setBackgroundColor({ color: "#ffc0e8" });
+            }
+            console.log('[App] StatusBar color set for theme:', layoutTheme);
+          } catch (err) {
+            console.warn('[App] StatusBar plugin not available:', err);
+          }
         }
       } catch (err) {
-        // 플러그인 로드 실패는 앱 실행을 막지 않음 (로그인 등 다른 기능에 영향 없음)
-        console.warn('[App] Keep Awake plugin not available (this is normal on web):', err);
+        console.warn('[App] Native features initialization error:', err);
       }
     };
     
-    keepScreenOn();
+    initializeNativeFeatures();
   }, []);
 
   return (

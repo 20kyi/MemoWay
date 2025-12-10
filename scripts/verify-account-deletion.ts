@@ -1,7 +1,7 @@
 
 import "dotenv/config";
 import { db } from "../server/db";
-import { users, members, groups } from "@shared/schema";
+import { users, members, groups } from "../shared/schema";
 import { storage } from "../server/storage";
 import { eq } from "drizzle-orm";
 

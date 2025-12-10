@@ -1,16 +1,18 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "@/utils/geolocation";
 import type { MemoWithDetails } from "@shared/schema";
 import type { UserLocation } from "@/types/home";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
+import type { BackgroundGeolocationPlugin } from "@capacitor-community/background-geolocation";
+
+const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("BackgroundGeolocation");
 
 interface UseLocationTrackingProps {
   locationEnabled: boolean;
   notificationsEnabled: boolean;
   proximityRadius: number;
   memos: MemoWithDetails[];
-  myMemberIds: string[];
 }
 
 export function useLocationTracking({
@@ -18,7 +20,6 @@ export function useLocationTracking({
   notificationsEnabled,
   proximityRadius,
   memos,
-  myMemberIds,
 }: UseLocationTrackingProps) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [notifiedMemoIds, setNotifiedMemoIds] = useState<Set<string>>(new Set());
@@ -113,15 +114,35 @@ export function useLocationTracking({
       // 네이티브 플랫폼에서는 background-geolocation 사용
       if (Capacitor.isNativePlatform()) {
         try {
-          // 동적 import를 문자열 변수로 감싸서 Vite의 정적 분석 방지
-          const pluginPath = '@capacitor-community/background-geolocation';
-          const { BackgroundGeolocation } = await import(/* @vite-ignore */ pluginPath);
+          // 네이티브 플랫폼에서는 background-geolocation 사용 (registerPlugin을 통해 이미 로드됨)
+          const { Geolocation } = await import('@capacitor/geolocation');
+
+          // Android 14+ 대응: 권한을 먼저 명시적으로 확인
+          // Foreground Service가 권한 없이 시작되면 크래시 발생 가능 (SecurityException)
+          try {
+            const permissionStatus = await Geolocation.checkPermissions();
+            let locationPermission = permissionStatus.location;
+
+            if (locationPermission !== 'granted') {
+              const request = await Geolocation.requestPermissions();
+              locationPermission = request.location;
+            }
+
+            if (locationPermission !== 'granted') {
+              console.warn("Location permission not granted, skipping background tracking");
+              handleLocationError({ code: "NOT_AUTHORIZED" });
+              return;
+            }
+          } catch (permError) {
+            console.error("Error checking permissions:", permError);
+            // 권한 체크 실패 시에도 일단 진행해보고 실패하면 catch 블록으로 이동
+          }
           
           watcherId = await BackgroundGeolocation.addWatcher(
             {
               backgroundMessage: "위치 기반 알림을 위해 앱이 실행 중입니다.",
               backgroundTitle: "지도 리마인더",
-              requestPermissions: true,
+              requestPermissions: false, // 위에서 이미 체크했으므로 false로 설정하여 이중 요청 방지
               stale: false,
               distanceFilter: 10, // 10미터 이동 시마다 갱신 (배터리 소모 조절)
             },
@@ -188,54 +209,10 @@ export function useLocationTracking({
       }
       if (watcherId !== null && Capacitor.isNativePlatform()) {
         // Background geolocation watcher 제거
-        // 동적 import를 문자열 변수로 감싸서 Vite의 정적 분석 방지
-        const pluginPath = '@capacitor-community/background-geolocation';
-        import(/* @vite-ignore */ pluginPath).then(({ BackgroundGeolocation }) => {
-          BackgroundGeolocation.removeWatcher({ id: watcherId! }).catch(console.error);
-        }).catch(console.error);
+        BackgroundGeolocation.removeWatcher({ id: watcherId! }).catch(console.error);
       }
     };
   }, [locationEnabled, notificationsEnabled, memos, proximityRadius, notifiedMemoIds, toast]);
-
-  const checkNearbyMemos = useCallback(
-    (location: UserLocation) => {
-      const nearbyMemos = memos.filter((memo) => {
-        const distance = calculateDistance(
-          location.lat,
-          location.lng,
-          memo.latitude,
-          memo.longitude
-        );
-        return distance <= 100;
-      });
-
-      // Only notify for new memos that haven't been notified yet (자신이 작성한 메모도 포함)
-      nearbyMemos.forEach((memo) => {
-        if (Notification.permission === "granted" && !notifiedMemoIds.has(memo.id)) {
-          new Notification("근처 메모 있음", {
-            body: `${memo.buildingName}에 메모가 있습니다`,
-            icon: "/favicon.png",
-          });
-
-          // Mark this memo as notified
-          setNotifiedMemoIds((prev) => new Set(prev).add(memo.id));
-        }
-      });
-
-      // Clean up notified memos that are no longer nearby
-      const nearbyMemoIds = new Set(nearbyMemos.map((m) => m.id));
-      setNotifiedMemoIds((prev) => {
-        const updated = new Set<string>();
-        prev.forEach((id) => {
-          if (nearbyMemoIds.has(id)) {
-            updated.add(id);
-          }
-        });
-        return updated;
-      });
-    },
-    [memos, notifiedMemoIds]
-  );
 
   return {
     userLocation,

@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 
 export type LayoutTheme = "default" | "lavender-night" | "couple-clay";
 
@@ -35,6 +36,33 @@ export function LayoutThemeProvider({ children }: { children: React.ReactNode })
     }
     
     localStorage.setItem("layoutTheme", layoutTheme);
+
+    // 모바일 앱에서 상태바 색상 설정
+    const setStatusBarColor = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const { StatusBar, Style } = await import("@capacitor/status-bar");
+          
+          if (layoutTheme === "default") {
+            // 기본 테마: 검은색 상태바
+            await StatusBar.setStyle({ style: Style.Dark });
+            await StatusBar.setBackgroundColor({ color: "#000000" });
+          } else if (layoutTheme === "lavender-night") {
+            // 라벤더 나이트 테마: 밝은 상태바 (다크 테마이므로)
+            await StatusBar.setStyle({ style: Style.Light });
+            await StatusBar.setBackgroundColor({ color: "#1a1a2e" });
+          } else if (layoutTheme === "couple-clay") {
+            // 커플 클레이 테마: 밝은 상태바
+            await StatusBar.setStyle({ style: Style.Dark });
+            await StatusBar.setBackgroundColor({ color: "#ffc0e8" });
+          }
+        } catch (error) {
+          console.warn("StatusBar plugin not available:", error);
+        }
+      }
+    };
+
+    setStatusBarColor();
   }, [layoutTheme]);
 
   const setLayoutTheme = (newTheme: LayoutTheme) => {
