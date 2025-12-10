@@ -485,7 +485,7 @@ export function MemoDetailSheet({
 
             {/* 플로팅 새 메모 추가 버튼 */}
             {onAddNewMemo && open && (
-              <div className="fixed bottom-[7rem] right-4 z-50">
+              <div className="absolute bottom-[7rem] right-4 z-50">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
