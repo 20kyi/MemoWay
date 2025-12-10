@@ -656,7 +656,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold truncate text-foreground flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-foreground inline-block max-w-[12ch] overflow-hidden text-ellipsis whitespace-nowrap">
                         {memo.buildingName}
                       </h3>
                       {/* 복사 버튼 (다른 사용자 메모인 경우에만) - 건물명 옆에 배치 */}
