@@ -676,14 +676,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                         {t.common.personal}
                       </Badge>
                     )}
-                    <div className="flex items-center gap-1">
-                      <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
-                      {(memo as any).rating > 0 && (
-                        <span className="text-xs text-muted-foreground font-medium">
-                          {(memo as any).rating}
-                        </span>
-                      )}
-                    </div>
+                    <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
                   </div>
                 </div>
               </CardHeader>
