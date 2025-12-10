@@ -660,21 +660,31 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                     </h3>
                     <p className="text-sm text-muted-foreground truncate">{memo.address}</p>
                   </div>
-                  {memo.group && memo.group.name !== "개인 메모" ? (
-                    <Badge 
-                      variant="secondary" 
-                      className="shrink-0 rounded-full px-3 bg-primary/10 border border-primary/30"
-                    >
-                      {memo.group.name}
-                    </Badge>
-                  ) : (
-                    <Badge 
-                      variant="outline" 
-                      className="shrink-0 rounded-full px-3 bg-accent/10 border border-accent/40"
-                    >
-                      {t.common.personal}
-                    </Badge>
-                  )}
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    {memo.group && memo.group.name !== "개인 메모" ? (
+                      <Badge 
+                        variant="secondary" 
+                        className="rounded-full px-3 bg-primary/10 border border-primary/30"
+                      >
+                        {memo.group.name}
+                      </Badge>
+                    ) : (
+                      <Badge 
+                        variant="outline" 
+                        className="rounded-full px-3 bg-accent/10 border border-accent/40"
+                      >
+                        {t.common.personal}
+                      </Badge>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
+                      {(memo as any).rating > 0 && (
+                        <span className="text-xs text-muted-foreground font-medium">
+                          {(memo as any).rating}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
 
@@ -708,29 +718,13 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                 </div>
                 {/* 메모 내용 (사진 오른쪽) */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm line-clamp-3 leading-relaxed whitespace-pre-wrap mb-2">{memo.content}</p>
-                  <div className="flex items-center gap-1">
-                    <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
-                    {(memo as any).rating > 0 && (
-                      <span className="text-xs text-muted-foreground font-medium">
-                        {(memo as any).rating}
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-sm line-clamp-3 leading-relaxed whitespace-pre-wrap">{memo.content}</p>
                 </div>
               </div>
             </CardContent>
           ) : (
             <CardContent className="pb-3">
               <p className="text-sm line-clamp-2 leading-relaxed whitespace-pre-wrap">{memo.content}</p>
-              <div className="mt-2 flex items-center gap-1">
-                <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
-                {(memo as any).rating > 0 && (
-                  <span className="text-xs text-muted-foreground font-medium">
-                    {(memo as any).rating}
-                  </span>
-                )}
-              </div>
             </CardContent>
           )}
 
