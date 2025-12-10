@@ -891,7 +891,7 @@ function GoogleMapViewComponent({
       
       {/* 위치 고정 모드 상태 배너 */}
       {isLocationLocked && (
-        <div className="absolute top-[calc(env(safe-area-inset-top)+6.5rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
+        <div className="absolute top-[calc(env(safe-area-inset-top)+7.5rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
           <div 
             className="relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3"
             style={{
@@ -1038,7 +1038,7 @@ function GoogleMapViewComponent({
       )}
 
       {/* 주소 검색 바 */}
-      <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+1.5rem)] sm:top-[calc(env(safe-area-inset-top)+1.5rem)]' : 'top-[calc(env(safe-area-inset-top)+1.5rem)]'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
+      <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+2.5rem)] sm:top-[calc(env(safe-area-inset-top)+2.5rem)]' : 'top-[calc(env(safe-area-inset-top)+2.5rem)]'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
         <div className={isCoupleTheme
           ? "search-bar-couple-theme flex gap-2 p-2"
           : "flex gap-2 p-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
