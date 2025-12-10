@@ -473,6 +473,15 @@ export default function Landing() {
           ? "카카오 로그인에 실패했습니다."
           : "Kakao login failed.";
         
+        // 상세 에러 내용을 alert으로 표시 (디버깅용)
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (errorMsg.includes('fetch') || errorMsg.includes('Network') || errorMsg.includes('Load failed')) {
+           const baseUrl = getApiBaseUrl();
+           alert(`서버 연결 실패 (Fail Fetch)\n\n서버 주소: ${baseUrl}\n\n1. Railway 서버가 정상 작동 중인지 확인하세요.\n2. 인터넷 연결 상태를 확인하세요.\n\n에러: ${errorMsg}`);
+        } else {
+           // 일반적인 에러는 토스트 메시지 생성을 위해 아래 로직을 따름
+        }
+
         if (error.message) {
           if (error.message.includes('Server configuration')) {
             errorMessage = language === 'ko'

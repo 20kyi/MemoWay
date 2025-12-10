@@ -56,8 +56,8 @@ export default defineConfig({
   },
   root: path.resolve(__dirname, "client"),
   build: {
-    outDir: path.resolve(__dirname, "dist"),
-    emptyOutDir: false, // dist 폴더에 server 빌드 결과물도 있으므로 false로 설정
+    outDir: path.resolve(__dirname, "dist", "public"),
+    emptyOutDir: true, // dist/public 폴더는 클라이언트 빌드 전용이므로 비워도 됨
     chunkSizeWarningLimit: 1000, // Increase limit to 1MB
     minify: false, // Disable minification for debugging
     sourcemap: true, // Enable sourcemaps for debugging

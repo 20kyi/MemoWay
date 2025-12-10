@@ -8,6 +8,10 @@ export function getApiBaseUrl(): string {
   
   // Android 앱에서는 항상 Railway 프로덕션 서버 사용
   if (isNativePlatform) {
+    // [개발용] 로컬 서버 사용 시 아래 주석을 해제하고 사용하세요
+    // return "http://192.168.219.100:5000";
+    
+    // [프로덕션용] Railway 배포 서버 사용
     const baseUrl = "https://memoway-production.up.railway.app";
     console.log('[API CONFIG] ========== NATIVE PLATFORM DETECTED ==========');
     console.log('[API CONFIG] Platform: Android/Capacitor');
