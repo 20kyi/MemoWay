@@ -206,10 +206,11 @@ export function MemoDetailSheet({
       <Sheet open={open} onOpenChange={onOpenChange} modal={true}>
       <SheetContent 
         side="bottom" 
-        className="min-h-[50vh] max-h-[90vh] h-auto rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col bg-gradient-to-br from-blue-50/95 via-white to-blue-50/95 touch-pan-y relative"
+        className="min-h-[50vh] max-h-[90vh] h-auto rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col bg-white touch-pan-y relative"
+        style={{ backgroundColor: 'rgba(239, 246, 255, 0.98)' }}
       >
         <TooltipProvider delayDuration={300}>
-          <div className="flex flex-col h-full min-h-[50vh] relative w-full">
+          <div className="flex flex-col h-full min-h-[50vh] relative w-full bg-gradient-to-br from-blue-50 via-white to-blue-50">
             {/* 드래그 핸들 */}
             <div className="w-12 h-1 bg-indigo-300/50 rounded-full mx-auto mt-3 mb-4 flex-shrink-0" />
 
