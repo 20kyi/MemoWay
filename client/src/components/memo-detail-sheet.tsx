@@ -16,13 +16,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus, ArrowLeft, Star, Copy } from "lucide-react";
+import { MapPin, Calendar, User, Users, Edit, Trash2, Navigation, X, Plus, ArrowLeft, Star, Copy, MoreVertical } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails } from "@shared/schema";
@@ -214,21 +221,16 @@ export function MemoDetailSheet({
                     variant="ghost"
                     size="icon"
                     onClick={() => onOpenChange(false)}
-                    className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 text-sky-600 dark:text-sky-500 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/20 -ml-2"
+                    className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 -ml-2"
                     data-testid="button-back-memo-detail"
                   >
                     <ArrowLeft className="w-4 h-4 sm:w-5 sm:w-5" />
                   </Button>
-                  <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-sky-600 dark:text-sky-500 truncate flex-1" data-testid="text-memo-title">
+                  <SheetTitle className="text-lg sm:text-xl md:text-2xl font-bold text-black dark:text-white truncate flex-1" data-testid="text-memo-title">
                     {memo.buildingName}
                   </SheetTitle>
                   <div className="flex items-center ml-2 gap-1">
                     <StarRating value={(memo as any).rating || 0} readOnly size="sm" />
-                    {(memo as any).rating > 0 && (
-                      <span className="text-sm text-muted-foreground font-medium">
-                        {(memo as any).rating}
-                      </span>
-                    )}
                   </div>
                   {onNavigateToLocation && (
                     <Button
@@ -288,12 +290,91 @@ export function MemoDetailSheet({
                 )}
 
                 {/* 메모 내용 섹션 */}
-                <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-pink-50/50 via-white to-pink-50/30 backdrop-blur-sm border border-pink-200/50 shadow-lg">
+                <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-indigo-50/30 backdrop-blur-sm border border-indigo-200/50 shadow-lg">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                      <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" />
-                      {t.memoDetail.content}
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                        <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
+                        {t.memoDetail.content}
+                      </CardTitle>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground"
+                            data-testid="button-info-menu"
+                          >
+                            <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-64 sm:w-80">
+                          <div className="p-3 space-y-3">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 border border-indigo-200 flex items-center justify-center shrink-0">
+                                <User className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.author}</p>
+                                <p className="font-semibold text-sm sm:text-base text-foreground truncate" data-testid="text-memo-author">{memo.member.name}</p>
+                              </div>
+                            </div>
+
+                            {memo.group && memo.editorMember && memo.editorMember.id !== memo.member.id && (
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 border border-blue-200 flex items-center justify-center shrink-0">
+                                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.editor}</p>
+                                  <p className="font-semibold text-sm sm:text-base text-foreground truncate" data-testid="text-memo-editor">{memo.editorMember.name}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {memo.group && (
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200 flex items-center justify-center shrink-0">
+                                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.group}</p>
+                                  <Badge variant="secondary" className="text-xs sm:text-sm px-2 py-0.5 mt-1" data-testid="badge-memo-group">
+                                    {memo.group.name}
+                                  </Badge>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200 flex items-center justify-center shrink-0">
+                                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.created}</p>
+                                <p className="text-sm sm:text-base text-foreground truncate" data-testid="text-memo-created">
+                                  {format(new Date(memo.createdAt), "PPP p", { locale: dateLocale })}
+                                </p>
+                              </div>
+                            </div>
+
+                            {memo.updatedAt && new Date(memo.updatedAt).getTime() !== new Date(memo.createdAt).getTime() && (
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 border border-violet-200 flex items-center justify-center shrink-0">
+                                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-violet-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.updated}</p>
+                                  <p className="text-sm sm:text-base text-foreground truncate" data-testid="text-memo-updated">
+                                    {format(new Date(memo.updatedAt), "PPP p", { locale: dateLocale })}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <p 
@@ -303,76 +384,6 @@ export function MemoDetailSheet({
                     >
                       {memo.content}
                     </p>
-                  </CardContent>
-                </Card>
-
-                {/* 메타데이터 섹션 */}
-                <Card className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-50/50 via-white to-slate-50/30 backdrop-blur-sm border border-slate-200/50 shadow-lg">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm sm:text-base">{t.memoDetail.info}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 space-y-3">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 border border-indigo-200 flex items-center justify-center shrink-0">
-                        <User className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.author}</p>
-                        <p className="font-semibold text-sm sm:text-base text-foreground truncate" data-testid="text-memo-author">{memo.member.name}</p>
-                      </div>
-                    </div>
-
-                    {memo.group && memo.editorMember && memo.editorMember.id !== memo.member.id && (
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 border border-blue-200 flex items-center justify-center shrink-0">
-                          <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.editor}</p>
-                          <p className="font-semibold text-sm sm:text-base text-foreground truncate" data-testid="text-memo-editor">{memo.editorMember.name}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {memo.group && (
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200 flex items-center justify-center shrink-0">
-                          <Users className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.group}</p>
-                          <Badge variant="secondary" className="text-xs sm:text-sm px-2 py-0.5 mt-1" data-testid="badge-memo-group">
-                            {memo.group.name}
-                          </Badge>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200 flex items-center justify-center shrink-0">
-                        <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.created}</p>
-                        <p className="text-sm sm:text-base text-foreground truncate" data-testid="text-memo-created">
-                          {format(new Date(memo.createdAt), "PPP p", { locale: dateLocale })}
-                        </p>
-                      </div>
-                    </div>
-
-                    {memo.updatedAt && new Date(memo.updatedAt).getTime() !== new Date(memo.createdAt).getTime() && (
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 border border-violet-200 flex items-center justify-center shrink-0">
-                          <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-violet-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm text-muted-foreground">{t.memoDetail.updated}</p>
-                          <p className="text-sm sm:text-base text-foreground truncate" data-testid="text-memo-updated">
-                            {format(new Date(memo.updatedAt), "PPP p", { locale: dateLocale })}
-                          </p>
-                        </div>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               </div>
