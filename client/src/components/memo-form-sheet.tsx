@@ -195,6 +195,49 @@ export function MemoFormSheet({
   // Track if form has been initialized for this open session
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
+  // 모바일에서 모달이 열릴 때 키보드가 자동으로 나오지 않도록 focus 제거
+  useEffect(() => {
+    if (open) {
+      // 모바일 감지
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                       (typeof window !== 'undefined' && window.innerWidth < 768);
+      
+      if (isMobile) {
+        // 모든 input, textarea에서 focus 제거
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+          activeElement.blur();
+        }
+        
+        // body에 focus를 이동하여 키보드가 나오지 않도록 함
+        if (document.body) {
+          document.body.focus();
+          // body는 focusable이 아니므로, 대신 다른 방법 사용
+          const dummyElement = document.createElement('div');
+          dummyElement.setAttribute('tabindex', '-1');
+          dummyElement.style.position = 'absolute';
+          dummyElement.style.left = '-9999px';
+          dummyElement.style.opacity = '0';
+          document.body.appendChild(dummyElement);
+          dummyElement.focus();
+          
+          // 잠시 후 제거
+          setTimeout(() => {
+            document.body.removeChild(dummyElement);
+          }, 100);
+        }
+        
+        // 추가 안전장치: 모든 input/textarea에 blur 이벤트 강제 실행
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach((input) => {
+          if (document.activeElement === input) {
+            (input as HTMLElement).blur();
+          }
+        });
+      }
+    }
+  }, [open]);
+
   useEffect(() => {
     if (open && scrollContainerRef.current) {
       // 약간의 지연 후 스크롤을 맨 위로 올림
@@ -496,7 +539,19 @@ export function MemoFormSheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} modal={true}>
+    <Sheet 
+      open={open} 
+      onOpenChange={onOpenChange} 
+      modal={true}
+      onOpenAutoFocus={(e) => {
+        // 모바일에서 자동 focus를 방지하여 키보드가 나오지 않도록 함
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         (typeof window !== 'undefined' && window.innerWidth < 768);
+        if (isMobile) {
+          e.preventDefault();
+        }
+      }}
+    >
       <SheetContent 
         side="bottom" 
         className="h-[90vh] rounded-t-2xl sm:rounded-t-3xl p-0 flex flex-col [&>button]:cursor-default touch-pan-y"

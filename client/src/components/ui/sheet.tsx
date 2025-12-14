@@ -7,6 +7,8 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+// Sheet는 SheetPrimitive.Root를 직접 export하므로 onOpenAutoFocus를 지원함
+// Radix UI Dialog의 모든 props를 지원
 const Sheet = SheetPrimitive.Root
 
 const SheetTrigger = SheetPrimitive.Trigger
