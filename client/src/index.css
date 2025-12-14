@@ -1666,3 +1666,45 @@
     line-height: 1.5;
   }
 }
+
+/* 모달 z-index 및 stacking context 보장 */
+[data-radix-dialog-overlay],
+[data-radix-dialog-content],
+[data-radix-sheet-overlay],
+[data-radix-sheet-content] {
+  /* stacking context를 깨는 CSS 속성 제거 보장 */
+  isolation: isolate;
+}
+
+/* 모바일 WebView (Capacitor) 대응: position: fixed fallback */
+@supports (-webkit-touch-callout: none) {
+  /* iOS WebView에서 position: fixed가 깨질 수 있는 경우 대응 */
+  [data-radix-dialog-content],
+  [data-radix-sheet-content] {
+    position: fixed !important;
+  }
+  
+  /* iOS에서 transform이 position: fixed를 깨뜨릴 수 있으므로 대안 */
+  @media (max-width: 768px) {
+    [data-radix-dialog-content] {
+      position: fixed !important;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+    }
+  }
+}
+
+/* 모달 오버레이 및 컨텐츠 z-index 강제 설정 */
+[data-radix-dialog-overlay],
+[data-radix-sheet-overlay] {
+  z-index: 9998 !important;
+  position: fixed !important;
+  inset: 0 !important;
+}
+
+[data-radix-dialog-content],
+[data-radix-sheet-content] {
+  z-index: 9999 !important;
+  position: fixed !important;
+}

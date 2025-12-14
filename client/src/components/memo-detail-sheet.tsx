@@ -99,6 +99,57 @@ export function MemoDetailSheet({
     // DOM이 렌더링될 때까지 대기
     const timeoutId = setTimeout(() => {
       const sheetContent = findSheetContent();
+      
+      // 디버깅: 모달 DOM 존재 여부 및 z-index 확인
+      if (sheetContent) {
+        const overlay = document.querySelector('[data-radix-dialog-overlay]') as HTMLElement;
+        const computedContentStyle = window.getComputedStyle(sheetContent);
+        const computedOverlayStyle = overlay ? window.getComputedStyle(overlay) : null;
+        const contentRect = sheetContent.getBoundingClientRect();
+        
+        console.log('[MemoDetailSheet] 모달 디버깅 정보:', {
+          contentExists: !!sheetContent,
+          overlayExists: !!overlay,
+          contentZIndex: computedContentStyle.zIndex,
+          overlayZIndex: computedOverlayStyle?.zIndex,
+          contentPosition: computedContentStyle.position,
+          overlayPosition: computedOverlayStyle?.position,
+          contentBoundingBox: {
+            top: contentRect.top,
+            left: contentRect.left,
+            width: contentRect.width,
+            height: contentRect.height,
+            visible: contentRect.width > 0 && contentRect.height > 0,
+          },
+          contentParent: sheetContent.parentElement?.tagName,
+          contentInBody: document.body.contains(sheetContent),
+          stackingContext: {
+            transform: computedContentStyle.transform,
+            filter: computedContentStyle.filter,
+            opacity: computedContentStyle.opacity,
+            willChange: computedContentStyle.willChange,
+          },
+        });
+        
+        // z-index가 올바르게 설정되지 않은 경우 경고
+        const contentZIndex = parseInt(computedContentStyle.zIndex || '0', 10);
+        const overlayZIndex = overlay ? parseInt(computedOverlayStyle?.zIndex || '0', 10) : 0;
+        
+        if (contentZIndex <= overlayZIndex) {
+          console.warn('[MemoDetailSheet] ⚠️ z-index 문제 감지: 모달 컨텐츠의 z-index가 오버레이보다 낮거나 같습니다.', {
+            contentZIndex,
+            overlayZIndex,
+          });
+        }
+        
+        // 모달이 보이지 않는 경우 추가 진단
+        if (contentRect.width === 0 || contentRect.height === 0) {
+          console.error('[MemoDetailSheet] ❌ 모달 컨텐츠가 보이지 않습니다. bounding box가 0입니다.');
+        }
+      } else {
+        console.error('[MemoDetailSheet] ❌ 모달 컨텐츠 DOM 요소를 찾을 수 없습니다.');
+      }
+      
       if (!sheetContent) return;
 
       let startY = 0;
