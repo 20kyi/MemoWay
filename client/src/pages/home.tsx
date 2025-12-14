@@ -712,7 +712,7 @@ export default function Home() {
   }, [updateMemoMutation, memos, toast, t, queryClient]);
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden pt-[env(safe-area-inset-top)]">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden" style={{ paddingTop: 'var(--safe-area-inset-top-fixed, env(safe-area-inset-top))' }}>
       {/* App Header - 지도 탭 제외 */}
       {activeTab !== "map" && (
         <AppHeader 

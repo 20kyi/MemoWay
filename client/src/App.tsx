@@ -15,6 +15,7 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { getApiBaseUrl } from "./lib/api-config";
+import { useSafeAreaInset } from "@/hooks/useSafeAreaInset";
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import("@/pages/home"));

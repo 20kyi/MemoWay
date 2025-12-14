@@ -9,6 +9,8 @@
     --safe-area-inset-bottom: env(safe-area-inset-bottom);
     --safe-area-inset-left: env(safe-area-inset-left);
     --safe-area-inset-right: env(safe-area-inset-right);
+    /* 고정된 safe-area-inset-top 값 (resume 시에도 동일한 값 유지) */
+    --safe-area-inset-top-fixed: env(safe-area-inset-top);
   }
 }
 
