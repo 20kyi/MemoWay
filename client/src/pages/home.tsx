@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
 import { BottomNav } from "@/components/bottom-nav";
+import { AppHeader } from "@/components/app-header";
 import { ExitDialog } from "@/components/exit-dialog";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useAuth } from "@/hooks/useAuth";
@@ -712,6 +713,12 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-background via-secondary/10 to-accent/20 relative overflow-hidden pt-[env(safe-area-inset-top)]">
+      {/* App Header - 지도 탭 제외 */}
+      {activeTab !== "map" && (
+        <AppHeader 
+          variant={activeTab === "profile" ? "profile" : "default"}
+        />
+      )}
       <div className={`overflow-hidden relative z-10 ${
         isCoupleTheme ? "h-screen pb-0" : "flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]"
       }`}>

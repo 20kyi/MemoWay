@@ -53,7 +53,6 @@ interface MemoListProps {
   onSetMainMemo?: (memoId: string) => void;
   onMoveToGroup?: (memoIds: string[], groupId: string) => void;
   onDeleteSavedMap?: (mapId: string) => void;
-  hideHeader?: boolean;
   hideFilters?: boolean;
   showAuthorTab?: boolean;
   currentUserId?: string;
@@ -72,7 +71,7 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onBulkCopy, onCopy, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideHeader = false, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery, userPoints = 0 }: MemoListProps) {
+export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onBulkCopy, onCopy, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery, userPoints = 0 }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
@@ -451,18 +450,9 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
 
   return (
     <div className="flex flex-col h-full">
-      {/* App Name Header */}
-      {!hideHeader && (
-        <div className="px-4 pt-[calc(env(safe-area-inset-top)+1.9rem)] sm:pt-[calc(env(safe-area-inset-top)+1.9rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
-            MemoWay
-          </h1>
-        </div>
-      )}
-
       {/* Selection Mode Header */}
       {isSelectionMode ? (
-        <div className="px-4 pt-[calc(env(safe-area-inset-top)+1.9rem)] pb-3 bg-muted/50 border-b flex flex-col gap-3 flex-shrink-0">
+        <div className="px-4 pt-0 pb-3 bg-muted/50 border-b flex flex-col gap-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
