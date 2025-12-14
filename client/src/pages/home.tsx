@@ -1103,9 +1103,7 @@ export default function Home() {
           }}
           onEdit={handleEditMemo}
           onDelete={(memoId) => {
-            if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
-              deleteMemoMutation.mutate(memoId);
-            }
+            deleteMemoMutation.mutate(memoId);
           }}
           onNavigateToLocation={handleNavigateToLocation}
           onAddNewMemo={(location) => {
