@@ -90,86 +90,57 @@ export function MemoDetailSheet({
   useEffect(() => {
     if (!open) return;
     
-    // SheetContent의 실제 DOM 요소 찾기 (재시도 로직 포함)
-    const findSheetContent = (retries = 5, delay = 100): Promise<HTMLElement | null> => {
-      return new Promise((resolve) => {
-        const tryFind = (attempt: number) => {
-          // 여러 selector 시도: Sheet는 Dialog를 기반으로 하므로 data-radix-dialog-content 사용
-          const content = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
-          
-          if (content) {
-            resolve(content);
-            return;
-          }
-          
-          if (attempt < retries) {
-            setTimeout(() => tryFind(attempt + 1), delay);
-          } else {
-            resolve(null);
-          }
-        };
-        
-        tryFind(0);
-      });
-    };
+    let cleanup: (() => void) | null = null;
+    let observer: MutationObserver | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
     
-    // DOM이 렌더링될 때까지 대기하고 재시도
-    const timeoutId = setTimeout(async () => {
-      const sheetContent = await findSheetContent(5, 100);
-      
+    // setupTouchHandlers 함수 정의
+    const setupTouchHandlers = (sheetContent: HTMLElement) => {
       // 디버깅: 모달 DOM 존재 여부 및 z-index 확인
-      if (sheetContent) {
-        const overlay = document.querySelector('[data-radix-dialog-overlay]') as HTMLElement;
-        const computedContentStyle = window.getComputedStyle(sheetContent);
-        const computedOverlayStyle = overlay ? window.getComputedStyle(overlay) : null;
-        const contentRect = sheetContent.getBoundingClientRect();
-        
-        console.log('[MemoDetailSheet] ✅ 모달 디버깅 정보:', {
-          contentExists: !!sheetContent,
-          overlayExists: !!overlay,
-          contentZIndex: computedContentStyle.zIndex,
-          overlayZIndex: computedOverlayStyle?.zIndex,
-          contentPosition: computedContentStyle.position,
-          overlayPosition: computedOverlayStyle?.position,
-          contentBoundingBox: {
-            top: contentRect.top,
-            left: contentRect.left,
-            width: contentRect.width,
-            height: contentRect.height,
-            visible: contentRect.width > 0 && contentRect.height > 0,
-          },
-          contentParent: sheetContent.parentElement?.tagName,
-          contentInBody: document.body.contains(sheetContent),
-          stackingContext: {
-            transform: computedContentStyle.transform,
-            filter: computedContentStyle.filter,
-            opacity: computedContentStyle.opacity,
-            willChange: computedContentStyle.willChange,
-          },
+      const overlay = document.querySelector('[data-radix-dialog-overlay]') as HTMLElement;
+      const computedContentStyle = window.getComputedStyle(sheetContent);
+      const computedOverlayStyle = overlay ? window.getComputedStyle(overlay) : null;
+      const contentRect = sheetContent.getBoundingClientRect();
+      
+      console.log('[MemoDetailSheet] ✅ 모달 디버깅 정보:', {
+        contentExists: !!sheetContent,
+        overlayExists: !!overlay,
+        contentZIndex: computedContentStyle.zIndex,
+        overlayZIndex: computedOverlayStyle?.zIndex,
+        contentPosition: computedContentStyle.position,
+        overlayPosition: computedOverlayStyle?.position,
+        contentBoundingBox: {
+          top: contentRect.top,
+          left: contentRect.left,
+          width: contentRect.width,
+          height: contentRect.height,
+          visible: contentRect.width > 0 && contentRect.height > 0,
+        },
+        contentParent: sheetContent.parentElement?.tagName,
+        contentInBody: document.body.contains(sheetContent),
+        stackingContext: {
+          transform: computedContentStyle.transform,
+          filter: computedContentStyle.filter,
+          opacity: computedContentStyle.opacity,
+          willChange: computedContentStyle.willChange,
+        },
+      });
+      
+      // z-index가 올바르게 설정되지 않은 경우 경고
+      const contentZIndex = parseInt(computedContentStyle.zIndex || '0', 10);
+      const overlayZIndex = overlay ? parseInt(computedOverlayStyle?.zIndex || '0', 10) : 0;
+      
+      if (contentZIndex <= overlayZIndex) {
+        console.warn('[MemoDetailSheet] ⚠️ z-index 문제 감지: 모달 컨텐츠의 z-index가 오버레이보다 낮거나 같습니다.', {
+          contentZIndex,
+          overlayZIndex,
         });
-        
-        // z-index가 올바르게 설정되지 않은 경우 경고
-        const contentZIndex = parseInt(computedContentStyle.zIndex || '0', 10);
-        const overlayZIndex = overlay ? parseInt(computedOverlayStyle?.zIndex || '0', 10) : 0;
-        
-        if (contentZIndex <= overlayZIndex) {
-          console.warn('[MemoDetailSheet] ⚠️ z-index 문제 감지: 모달 컨텐츠의 z-index가 오버레이보다 낮거나 같습니다.', {
-            contentZIndex,
-            overlayZIndex,
-          });
-        }
-        
-        // 모달이 보이지 않는 경우 추가 진단
-        if (contentRect.width === 0 || contentRect.height === 0) {
-          console.warn('[MemoDetailSheet] ⚠️ 모달 컨텐츠가 보이지 않습니다. bounding box가 0입니다.');
-        }
-      } else {
-        // DOM을 찾지 못한 경우 경고만 출력 (에러가 아닌 경고로 변경)
-        console.warn('[MemoDetailSheet] ⚠️ 모달 컨텐츠 DOM 요소를 찾을 수 없습니다. 스와이프 제스처가 작동하지 않을 수 있습니다.');
-        return; // DOM을 찾지 못하면 스와이프 제스처 등록하지 않음
       }
       
-      if (!sheetContent) return;
+      // 모달이 보이지 않는 경우 추가 진단
+      if (contentRect.width === 0 || contentRect.height === 0) {
+        console.warn('[MemoDetailSheet] ⚠️ 모달 컨텐츠가 보이지 않습니다. bounding box가 0입니다.');
+      }
 
       let startY = 0;
       let startTime = 0;
@@ -257,15 +228,57 @@ export function MemoDetailSheet({
       sheetContent.addEventListener('touchmove', handleTouchMove, { passive: true });
       sheetContent.addEventListener('touchend', handleTouchEnd, { passive: true });
 
-      return () => {
+      cleanup = () => {
         sheetContent.removeEventListener('touchstart', handleTouchStart);
         sheetContent.removeEventListener('touchmove', handleTouchMove);
         sheetContent.removeEventListener('touchend', handleTouchEnd);
       };
-    }, 100);
+    };
+    
+    // MutationObserver를 사용하여 DOM이 추가될 때 감지
+    observer = new MutationObserver((mutations, obs) => {
+      const content = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
+      if (content) {
+        obs.disconnect();
+        observer = null;
+        setupTouchHandlers(content);
+      }
+    });
+
+    // body를 관찰하여 DOM 변경 감지
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    // DOM이 렌더링될 때까지 대기하고 재시도 (fallback)
+    timeoutId = setTimeout(() => {
+      const content = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
+      
+      // 이미 observer에서 처리되었으면 중복 처리 방지
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      
+      if (content) {
+        setupTouchHandlers(content);
+      } else {
+        // DOM을 찾지 못한 경우 경고만 출력 (에러가 아닌 경고로 변경)
+        console.warn('[MemoDetailSheet] ⚠️ 모달 컨텐츠 DOM 요소를 찾을 수 없습니다. 스와이프 제스처가 작동하지 않을 수 있습니다.');
+      }
+    }, 500); // 500ms로 증가하여 DOM 렌더링 대기
 
     return () => {
-      clearTimeout(timeoutId);
+      if (observer) {
+        observer.disconnect();
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      if (cleanup) {
+        cleanup();
+      }
     };
   }, [open, onOpenChange]);
 
