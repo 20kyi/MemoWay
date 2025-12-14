@@ -380,7 +380,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
   return (
     <div className="flex flex-col h-full">
       {/* App Name Header */}
-        <div className="px-4 pt-[calc(env(safe-area-inset-top)+2.5rem)] sm:pt-[calc(env(safe-area-inset-top)+2rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <div className="px-4 pt-[calc(env(safe-area-inset-top)+1rem)] sm:pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
             MemoWay
           </h1>

@@ -992,7 +992,7 @@ export function ProfileView({
   };
 
   return (
-    <div className="px-4 pt-[calc(env(safe-area-inset-top)+2.5rem)] sm:pt-[calc(env(safe-area-inset-top)+2rem)] sm:px-5 space-y-3 sm:space-y-4 overflow-y-auto h-full bg-gradient-to-br from-blue-50/30 to-white min-h-screen pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom))+1rem)]">
+    <div className="px-4 pt-[calc(env(safe-area-inset-top)+1rem)] sm:pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:px-5 space-y-3 sm:space-y-4 overflow-y-auto h-full bg-gradient-to-br from-blue-50/30 to-white min-h-screen pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom))+1rem)]">
       <h1 className="text-2xl sm:text-3xl font-bold text-sky-600 dark:text-sky-500 mb-4 sm:mb-5">
         {language === 'ko' ? '마이페이지' : language === 'en' ? 'Profile' : language === 'zh' ? '我的' : 'マイページ'}
       </h1>
