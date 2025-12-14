@@ -86,6 +86,74 @@ export function MemoDetailSheet({
 
   const dateLocale = language === "ko" ? ko : language === "en" ? enUS : language === "zh" ? zhCN : ja;
 
+  // Android WebView에서 모달이 보이도록 강제 스타일 적용
+  useEffect(() => {
+    if (!open) return;
+    
+    // Android WebView 감지
+    const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+    
+    if (isAndroid) {
+      // 모달이 열릴 때 강제로 스타일 적용
+      const applyAndroidStyles = () => {
+        const overlay = document.querySelector('[data-radix-dialog-overlay]') as HTMLElement;
+        const content = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
+        
+        if (overlay) {
+          overlay.style.cssText = `
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 2147483646 !important;
+            transform: translateZ(0) !important;
+            -webkit-transform: translateZ(0) !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: block !important;
+            pointer-events: auto !important;
+          `;
+        }
+        
+        if (content) {
+          content.style.cssText = `
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            z-index: 2147483647 !important;
+            transform: translateZ(0) !important;
+            -webkit-transform: translateZ(0) !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: block !important;
+            pointer-events: auto !important;
+          `;
+        }
+      };
+      
+      // 즉시 적용
+      applyAndroidStyles();
+      
+      // DOM이 렌더링될 때까지 대기 후 재적용
+      const timeoutId = setTimeout(applyAndroidStyles, 100);
+      const timeoutId2 = setTimeout(applyAndroidStyles, 300);
+      const timeoutId3 = setTimeout(applyAndroidStyles, 500);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        clearTimeout(timeoutId2);
+        clearTimeout(timeoutId3);
+      };
+    }
+  }, [open]);
+
   // 스와이프 제스처 처리 (모바일에서 아래로 스와이프하여 닫기)
   useEffect(() => {
     if (!open) return;

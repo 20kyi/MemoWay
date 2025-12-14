@@ -1674,9 +1674,43 @@
 [data-radix-sheet-content] {
   /* stacking context를 깨는 CSS 속성 제거 보장 */
   isolation: isolate;
+  /* Android WebView에서 하드웨어 가속 강제 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
 }
 
-/* 모바일 WebView (Capacitor) 대응: position: fixed fallback */
+/* 모달 오버레이 및 컨텐츠 z-index 강제 설정 */
+[data-radix-dialog-overlay],
+[data-radix-sheet-overlay] {
+  z-index: 9998 !important;
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  /* Android WebView에서 레이어 강제 */
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+}
+
+[data-radix-dialog-content],
+[data-radix-sheet-content] {
+  z-index: 9999 !important;
+  position: fixed !important;
+  /* Android WebView에서 레이어 강제 */
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  /* Android WebView에서 보이도록 보장 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+/* Android WebView (Capacitor) 특별 대응 */
 @supports (-webkit-touch-callout: none) {
   /* iOS WebView에서 position: fixed가 깨질 수 있는 경우 대응 */
   [data-radix-dialog-content],
@@ -1690,21 +1724,50 @@
       position: fixed !important;
       left: 50% !important;
       top: 50% !important;
-      transform: translate(-50%, -50%) !important;
+      transform: translate(-50%, -50%) translateZ(0) !important;
+      -webkit-transform: translate(-50%, -50%) translateZ(0) !important;
     }
   }
 }
 
-/* 모달 오버레이 및 컨텐츠 z-index 강제 설정 */
-[data-radix-dialog-overlay],
-[data-radix-sheet-overlay] {
-  z-index: 9998 !important;
-  position: fixed !important;
-  inset: 0 !important;
-}
-
-[data-radix-dialog-content],
-[data-radix-sheet-content] {
-  z-index: 9999 !important;
-  position: fixed !important;
+/* Android WebView 감지 및 특별 처리 */
+/* user-agent에 Android가 포함된 경우 */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  /* Android WebView에서 모달이 지도 위에 표시되도록 강제 */
+  [data-radix-sheet-content][data-side="bottom"] {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    /* Android WebView에서 레이어 최상위 보장 */
+    z-index: 2147483647 !important; /* 최대 z-index 값 */
+    transform: translateZ(0) !important;
+    -webkit-transform: translateZ(0) !important;
+    /* Android WebView에서 보이도록 보장 */
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    pointer-events: auto !important;
+  }
+  
+  [data-radix-dialog-overlay],
+  [data-radix-sheet-overlay] {
+    z-index: 2147483646 !important; /* 최대 z-index - 1 */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    transform: translateZ(0) !important;
+    -webkit-transform: translateZ(0) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    pointer-events: auto !important;
+  }
 }

@@ -22,8 +22,21 @@ const SheetOverlay = React.forwardRef<
   <SheetPrimitive.Overlay
     className={cn(
       "fixed inset-0 z-[9998] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "!top-0 !left-0 !right-0 !bottom-0 !w-full !h-full",
       className
     )}
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      width: '100%',
+      height: '100%',
+      zIndex: 9998,
+      transform: 'translateZ(0)',
+      WebkitTransform: 'translateZ(0)',
+    }}
     {...props}
     ref={ref}
   />
@@ -56,26 +69,66 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "right", className, children, ...props }, ref) => (
-  <SheetPortal container={typeof document !== "undefined" ? document.body : undefined}>
-    <SheetOverlay />
-    <SheetPrimitive.Content
-      ref={ref}
-      className={cn(
-        sheetVariants({ side }),
-        "bg-card border-border",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full w-8 h-8 flex items-center justify-center opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none [&>button]:cursor-default">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </SheetPrimitive.Close>
-    </SheetPrimitive.Content>
-  </SheetPortal>
-))
+>(({ side = "right", className, children, ...props }, ref) => {
+  // Android WebView 감지 및 스타일 강제 적용을 위한 ref
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  
+  React.useEffect(() => {
+    if (!contentRef.current) return;
+    
+    // Android WebView 감지
+    const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+    
+    if (isAndroid) {
+      // Android WebView에서 모달이 보이도록 강제 스타일 적용
+      const element = contentRef.current;
+      element.style.cssText = `
+        position: fixed !important;
+        ${side === 'bottom' ? 'bottom: 0 !important; top: auto !important;' : ''}
+        ${side === 'top' ? 'top: 0 !important; bottom: auto !important;' : ''}
+        ${side === 'left' ? 'left: 0 !important; right: auto !important;' : ''}
+        ${side === 'right' ? 'right: 0 !important; left: auto !important;' : ''}
+        width: 100% !important;
+        max-width: 100% !important;
+        z-index: 2147483647 !important;
+        transform: translateZ(0) !important;
+        -webkit-transform: translateZ(0) !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+        pointer-events: auto !important;
+      `;
+    }
+  }, [side]);
+  
+  return (
+    <SheetPortal container={typeof document !== "undefined" ? document.body : undefined}>
+      <SheetOverlay />
+      <SheetPrimitive.Content
+        ref={(node) => {
+          if (typeof ref === 'function') {
+            ref(node);
+          } else if (ref) {
+            ref.current = node;
+          }
+          contentRef.current = node;
+        }}
+        className={cn(
+          sheetVariants({ side }),
+          "bg-card border-border",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full w-8 h-8 flex items-center justify-center opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none [&>button]:cursor-default">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </SheetPrimitive.Close>
+      </SheetPrimitive.Content>
+    </SheetPortal>
+  );
+})
 SheetContent.displayName = SheetPrimitive.Content.displayName
 
 const SheetHeader = ({
