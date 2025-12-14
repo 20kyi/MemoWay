@@ -90,15 +90,32 @@ export function MemoDetailSheet({
   useEffect(() => {
     if (!open) return;
     
-    // SheetContent의 실제 DOM 요소 찾기 (약간의 딜레이를 두어 DOM이 완전히 렌더링된 후 찾기)
-    const findSheetContent = () => {
-      const content = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
-      return content;
+    // SheetContent의 실제 DOM 요소 찾기 (재시도 로직 포함)
+    const findSheetContent = (retries = 5, delay = 100): Promise<HTMLElement | null> => {
+      return new Promise((resolve) => {
+        const tryFind = (attempt: number) => {
+          // 여러 selector 시도: Sheet는 Dialog를 기반으로 하므로 data-radix-dialog-content 사용
+          const content = document.querySelector('[data-radix-dialog-content]') as HTMLElement;
+          
+          if (content) {
+            resolve(content);
+            return;
+          }
+          
+          if (attempt < retries) {
+            setTimeout(() => tryFind(attempt + 1), delay);
+          } else {
+            resolve(null);
+          }
+        };
+        
+        tryFind(0);
+      });
     };
     
-    // DOM이 렌더링될 때까지 대기
-    const timeoutId = setTimeout(() => {
-      const sheetContent = findSheetContent();
+    // DOM이 렌더링될 때까지 대기하고 재시도
+    const timeoutId = setTimeout(async () => {
+      const sheetContent = await findSheetContent(5, 100);
       
       // 디버깅: 모달 DOM 존재 여부 및 z-index 확인
       if (sheetContent) {
@@ -107,7 +124,7 @@ export function MemoDetailSheet({
         const computedOverlayStyle = overlay ? window.getComputedStyle(overlay) : null;
         const contentRect = sheetContent.getBoundingClientRect();
         
-        console.log('[MemoDetailSheet] 모달 디버깅 정보:', {
+        console.log('[MemoDetailSheet] ✅ 모달 디버깅 정보:', {
           contentExists: !!sheetContent,
           overlayExists: !!overlay,
           contentZIndex: computedContentStyle.zIndex,
@@ -144,10 +161,12 @@ export function MemoDetailSheet({
         
         // 모달이 보이지 않는 경우 추가 진단
         if (contentRect.width === 0 || contentRect.height === 0) {
-          console.error('[MemoDetailSheet] ❌ 모달 컨텐츠가 보이지 않습니다. bounding box가 0입니다.');
+          console.warn('[MemoDetailSheet] ⚠️ 모달 컨텐츠가 보이지 않습니다. bounding box가 0입니다.');
         }
       } else {
-        console.error('[MemoDetailSheet] ❌ 모달 컨텐츠 DOM 요소를 찾을 수 없습니다.');
+        // DOM을 찾지 못한 경우 경고만 출력 (에러가 아닌 경고로 변경)
+        console.warn('[MemoDetailSheet] ⚠️ 모달 컨텐츠 DOM 요소를 찾을 수 없습니다. 스와이프 제스처가 작동하지 않을 수 있습니다.');
+        return; // DOM을 찾지 못하면 스와이프 제스처 등록하지 않음
       }
       
       if (!sheetContent) return;
