@@ -453,7 +453,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
     <div className="flex flex-col h-full">
       {/* App Name Header */}
       {!hideHeader && (
-        <div className="px-4 pt-[calc(env(safe-area-inset-top)-0.3rem)] sm:pt-[calc(env(safe-area-inset-top)-0.3rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <div className="px-4 pt-[calc(env(safe-area-inset-top)+1.9rem)] sm:pt-[calc(env(safe-area-inset-top)+1.9rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
             MemoWay
           </h1>
@@ -462,7 +462,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
 
       {/* Selection Mode Header */}
       {isSelectionMode ? (
-        <div className="px-4 pt-[calc(env(safe-area-inset-top)-0.3rem)] pb-3 bg-muted/50 border-b flex flex-col gap-3 flex-shrink-0">
+        <div className="px-4 pt-[calc(env(safe-area-inset-top)+1.9rem)] pb-3 bg-muted/50 border-b flex flex-col gap-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
