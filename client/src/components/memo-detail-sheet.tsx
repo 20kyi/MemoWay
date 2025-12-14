@@ -250,7 +250,11 @@ export function MemoDetailSheet({
     };
   }, [open, onOpenChange]);
 
-  if (!memo) return null;
+  // memo가 없어도 open이 true면 모달을 렌더링하되, 내용은 로딩 상태로 표시
+  // 이렇게 하면 상태 업데이트 순서와 관계없이 모달이 열릴 수 있음
+  const shouldRender = open; // memo가 없어도 open이 true면 렌더링
+
+  if (!shouldRender) return null;
 
   return (
     <>
@@ -261,6 +265,13 @@ export function MemoDetailSheet({
         style={{ backgroundColor: 'rgba(239, 246, 255, 0.98)' }}
       >
         <TooltipProvider delayDuration={300}>
+          {!memo ? (
+            // memo가 아직 로드되지 않은 경우 로딩 상태 표시
+            <div className="flex flex-col h-full min-h-[50vh] relative w-full bg-gradient-to-br from-blue-50 via-white to-blue-50 items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+              <p className="text-muted-foreground">메모를 불러오는 중...</p>
+            </div>
+          ) : (
           <div className="flex flex-col h-full min-h-[50vh] relative w-full bg-gradient-to-br from-blue-50 via-white to-blue-50">
             {/* 드래그 핸들 */}
             <div className="w-12 h-1 bg-indigo-300/50 rounded-full mx-auto mt-3 mb-4 flex-shrink-0" />
@@ -536,7 +547,7 @@ export function MemoDetailSheet({
             )}
 
             {/* 플로팅 새 메모 추가 버튼 */}
-            {onAddNewMemo && open && (
+            {onAddNewMemo && open && memo && (
               <div className="absolute bottom-[7rem] right-4 z-10">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -564,6 +575,7 @@ export function MemoDetailSheet({
               </div>
             )}
           </div>
+          )}
         </TooltipProvider>
       </SheetContent>
     </Sheet>

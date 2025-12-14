@@ -625,21 +625,44 @@ function GoogleMapViewComponent({
           });
 
           marker.addListener('click', () => {
+            console.log('[GoogleMapView] 🎯 마커 클릭 이벤트 발생:', {
+              memoId: firstMemo.id,
+              count,
+              isMapInteracting: isMapInteractingRef.current,
+              isDragging: isDraggingRef.current,
+              isZooming: isZoomingRef.current,
+              timeSinceZoomEnd: Date.now() - lastZoomEndTimeRef.current,
+              hasOnMarkerClick: !!onMarkerClick,
+              hasOnClusterClick: !!onClusterClick,
+            });
+            
             // 지도 조작 중이면 마커 클릭 무시
             if (isMapInteractingRef.current) {
-              console.log("지도 조작 중이므로 마커 클릭 무시");
+              console.log("[GoogleMapView] ⚠️ 지도 조작 중이므로 마커 클릭 무시");
               return;
             }
             
             // 드래그 중이거나 줌 중이면 클릭 이벤트 무시
             const timeSinceZoomEnd = Date.now() - lastZoomEndTimeRef.current;
             if (isDraggingRef.current || isZoomingRef.current || timeSinceZoomEnd < 300) {
+              console.log("[GoogleMapView] ⚠️ 드래그/줌 중이므로 마커 클릭 무시:", {
+                isDragging: isDraggingRef.current,
+                isZooming: isZoomingRef.current,
+                timeSinceZoomEnd,
+              });
               return;
             }
+            
             if (count > 1 && onClusterClick) {
+              console.log('[GoogleMapView] ✅ onClusterClick 호출:', clusterMemos.map(m => m.id));
               onClusterClick(clusterMemos.map(m => m.id));
             } else {
-              onMarkerClick(firstMemo.id);
+              console.log('[GoogleMapView] ✅ onMarkerClick 호출:', firstMemo.id);
+              if (onMarkerClick) {
+                onMarkerClick(firstMemo.id);
+              } else {
+                console.warn('[GoogleMapView] ⚠️ onMarkerClick이 없습니다');
+              }
             }
           });
 

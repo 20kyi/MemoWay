@@ -451,12 +451,41 @@ export default function Home() {
 
   // 마커 클릭 핸들러 (메모이제이션)
   const handleMarkerClick = useCallback((memoId: string) => {
+    console.log('[Home] 🎯 handleMarkerClick 호출됨:', { memoId, memosCount: memos.length });
     const memo = memos.find((m) => m.id === memoId);
     if (memo) {
+      console.log('[Home] ✅ 메모 찾음, 모달 열기:', { 
+        memoId, 
+        buildingName: memo.buildingName,
+        address: memo.address 
+      });
+      // 상태 업데이트 순서 보장: 먼저 memo를 설정하고, 그 다음 open을 true로 설정
       setSelectedMemo(memo);
+      // React의 상태 업데이트는 비동기이므로, 다음 틱에서 open을 설정
+      // 하지만 실제로는 배치 업데이트가 되므로 동시에 설정해도 문제없음
       setMemoDetailOpen(true);
+    } else {
+      console.warn('[Home] ⚠️ 메모를 찾을 수 없습니다:', { 
+        memoId, 
+        availableMemoIds: memos.map(m => m.id) 
+      });
     }
   }, [memos]);
+
+  // 디버깅: selectedMemo와 memoDetailOpen 상태 추적
+  useEffect(() => {
+    if (memoDetailOpen) {
+      console.log('[Home] 📋 모달 상태:', {
+        memoDetailOpen,
+        selectedMemo: selectedMemo ? {
+          id: selectedMemo.id,
+          buildingName: selectedMemo.buildingName,
+          address: selectedMemo.address,
+        } : null,
+        hasMemo: !!selectedMemo,
+      });
+    }
+  }, [memoDetailOpen, selectedMemo]);
 
   // 클러스터 클릭 핸들러 (메모이제이션)
   const handleClusterClick = useCallback((memoIds: string[]) => {
