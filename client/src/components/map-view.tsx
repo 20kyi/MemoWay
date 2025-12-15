@@ -2149,10 +2149,10 @@ function MapViewComponent({
           </Sheet>
 
           <div 
-            ref={mapRef}
-            className={`w-full h-full ${isCoupleTheme ? 'map-container-couple-theme' : ''}`}
-            data-testid="map-container"
-            style={{ paddingTop: '4.5rem' }}
+            ref={mapRef} 
+            className={`w-full h-full ${isCoupleTheme ? 'map-container-couple-theme' : ''}`} 
+            data-testid="map-container" 
+            style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 4.5rem)' }}
           />
           
           {/* 위치 고정 모드 상태 배너 */}
@@ -2390,7 +2390,7 @@ function MapViewComponent({
           
           {/* MemoWay 로고 - 커플 테마에서만 표시 */}
           {isCoupleTheme && (
-            <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap">
+            <div className="fixed left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4rem)' }}>
               <div className="relative flex-shrink-0">
                 <MapPin className="h-8 w-8 sm:h-14 sm:w-14 text-[#A28DB3] drop-shadow-md" fill="currentColor" />
               </div>
@@ -2401,7 +2401,7 @@ function MapViewComponent({
           )}
 
           {/* 주소 검색 바 */}
-          <div className={`fixed top-0 ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10 pt-2 sm:pt-4`}>
+          <div className={`fixed ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10 pt-2 sm:pt-4`} style={{ top: 'env(safe-area-inset-top, 0px)' }}>
             <div className="flex flex-col gap-2">
               <div className={isCoupleTheme 
                 ? "search-bar-couple-theme flex gap-2 p-2"
