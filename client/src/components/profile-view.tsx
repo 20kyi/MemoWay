@@ -992,7 +992,7 @@ export function ProfileView({
   };
 
   return (
-    <div className="px-4 sm:px-5 space-y-3 sm:space-y-4 overflow-y-auto h-full bg-gradient-to-br from-blue-50/30 to-white min-h-screen pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom))+1rem)]" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5rem)' }}>
+    <div className="px-4 sm:px-5 space-y-3 sm:space-y-4 overflow-y-auto h-full bg-gradient-to-br from-blue-50/30 to-white min-h-screen pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom))+1rem)]" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5.25rem)' }}>
 
       {/* 계정 카드 */}
       {user && (

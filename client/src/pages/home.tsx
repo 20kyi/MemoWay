@@ -719,8 +719,10 @@ export default function Home() {
         />
       )}
       <div className={`overflow-hidden relative z-10 ${
-"flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]"
-      }`}>
+        activeTab !== "map" 
+          ? "flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]" 
+          : "flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]"
+      }`} style={activeTab !== "map" ? { paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5.25rem)' } : undefined}>
         {activeTab === "map" && (
           <div className="relative h-full">
             {mapProvider === "kakao" ? (
