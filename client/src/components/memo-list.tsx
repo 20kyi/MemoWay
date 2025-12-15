@@ -524,7 +524,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
         <>
           {/* 작성자 탭 (그룹 메모 뷰에서만 표시) */}
           {showAuthorTab && currentUserId && (
-            <div className="px-4 pb-2 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5rem)' }}>
+            <div className="px-4 pb-2 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5.25rem)' }}>
               <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5">
                 <button
                   onClick={() => setAuthorTab("mine")}
@@ -573,38 +573,39 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
               </div>
             </div>
           )}
-          {/* 검색 바 (메모 탭에서만 표시) */}
-          {!hideFilters && (
-            <div className="px-4 pb-2 flex-shrink-0" style={{ paddingTop: showAuthorTab && currentUserId ? '0.5rem' : 'calc(env(safe-area-inset-top, 0px) + 5rem)' }}>
-              <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
-                <div className="relative flex-1">
-                  <Input
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t.memoList.searchPlaceholder}
-                    className="pr-10 border-0 focus-visible:ring-0 bg-transparent"
-                    data-testid="input-memo-search"
-                  />
-                  {searchQuery && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                      onClick={() => setSearchQuery("")}
-                      data-testid="button-clear-search"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
 
-      {/* Memo List */}
-      <div ref={scrollContainerRef} className="px-4 space-y-4 overflow-y-auto flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
+      {/* Memo List with Search Bar */}
+      <div ref={scrollContainerRef} className="overflow-y-auto flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
+        {/* 검색 바 (메모 탭에서만 표시) */}
+        {!isSelectionMode && !hideFilters && (
+          <div className="px-4 pb-2 flex-shrink-0" style={showAuthorTab && currentUserId ? { paddingTop: '0.5rem' } : {}}>
+            <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
+              <div className="relative flex-1">
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t.memoList.searchPlaceholder}
+                  className="pr-10 border-0 focus-visible:ring-0 bg-transparent"
+                  data-testid="input-memo-search"
+                />
+                {searchQuery && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                    onClick={() => setSearchQuery("")}
+                    data-testid="button-clear-search"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="px-4 space-y-4">
       {filteredMemos.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full p-8 text-center">
           <p className="text-muted-foreground text-lg mb-2">
@@ -760,6 +761,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
           );
         })
       )}
+        </div>
       </div>
 
       {/* 그룹으로 이동 다이얼로그 */}
