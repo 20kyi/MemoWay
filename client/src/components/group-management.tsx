@@ -278,7 +278,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
     return (
       <div className="flex flex-col h-full">
         {/* 그룹 헤더 */}
-        <div className="fixed left-0 right-0 px-4 pt-2 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0 z-40" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="fixed left-0 right-0 px-4 pt-4 sm:pt-6 pb-5 border-b bg-card/95 backdrop-blur-sm flex-shrink-0 z-40" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
           <div className="flex items-center gap-3 mb-2">
             <Button
               variant="ghost"
@@ -320,7 +320,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
         </div>
 
         {/* 검색 바 */}
-        <div className="px-4 pb-2 flex-shrink-0 border-b" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5rem)' }}>
+        <div className="px-4 pb-2 flex-shrink-0 border-b" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5.25rem)' }}>
           <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -379,87 +379,253 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
 
   return (
     <div className="flex flex-col h-full">
-      {/* 그룹 검색 바 - 고정 */}
-      <div className="px-4 pb-2 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5rem)' }}>
-        <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
-          <div className="relative flex-1">
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t.groups.searchPlaceholder || "그룹 이름, 설명, 멤버 검색..."}
-              className="pr-10 border-0 focus-visible:ring-0"
-              data-testid="input-group-search"
-            />
-            {searchQuery && (
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                onClick={() => setSearchQuery("")}
-                data-testid="button-clear-search"
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            )}
+      {/* 그룹 리스트 - 스크롤 가능 */}
+      <div className="flex-1 overflow-y-auto pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
+        {/* 그룹 검색 바 */}
+        <div className="px-4 pb-2 pt-4 flex-shrink-0">
+          <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
+            <div className="relative flex-1">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t.groups.searchPlaceholder || "그룹 이름, 설명, 멤버 검색..."}
+                className="pr-10 border-0 focus-visible:ring-0"
+                data-testid="input-group-search"
+              />
+              {searchQuery && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  onClick={() => setSearchQuery("")}
+                  data-testid="button-clear-search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+            <Button
+              size="icon"
+              disabled={!searchQuery.trim()}
+              className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
+              data-testid="button-search-group"
+            >
+              <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+            </Button>
           </div>
-          <Button
-            size="icon"
-            disabled={!searchQuery.trim()}
-            className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
-            data-testid="button-search-group"
-          >
-            <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
-          </Button>
         </div>
-      </div>
 
-      {/* 탭 전환 버튼 - 고정 */}
-      <div className="px-4 pb-2 flex-shrink-0">
-        <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5 sm:p-2">
-          <button
-            onClick={() => setActiveTab("leader")}
-            className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-              activeTab === "leader"
-                ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            }`}
-            data-testid="tab-leader"
-          >
-            <Crown className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" fill={activeTab === "leader" ? "currentColor" : "none"} />
-            <span className="truncate">{t.groups.myInvitedGroups}</span>
-            <Badge 
-              variant="secondary" 
-              className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
-                activeTab === "leader" 
-                  ? "bg-sky-100/80 text-sky-700 border-sky-300/60" 
-                  : "bg-muted"
-              } ${groupCounts.leader === 0 ? "opacity-0" : ""}`}
+        {/* 탭 전환 버튼 */}
+        <div className="px-4 pb-2 flex-shrink-0">
+          <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5 sm:p-2">
+            <button
+              onClick={() => setActiveTab("leader")}
+              className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                activeTab === "leader"
+                  ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+              data-testid="tab-leader"
             >
-              {groupCounts.leader}
-            </Badge>
-          </button>
-          <button
-            onClick={() => setActiveTab("member")}
-            className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-              activeTab === "member"
-                ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            }`}
-            data-testid="tab-member"
-          >
-            <Users className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" />
-            <span className="truncate">{t.groups.groupsInvitedMe}</span>
-            <Badge 
-              variant="secondary" 
-              className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
-                activeTab === "member" 
-                  ? "bg-sky-100/80 text-sky-700 border-sky-300/60" 
-                  : "bg-muted"
-              } ${groupCounts.member === 0 ? "opacity-0" : ""}`}
+              <Crown className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" fill={activeTab === "leader" ? "currentColor" : "none"} />
+              <span className="truncate">{t.groups.myInvitedGroups}</span>
+              <Badge 
+                variant="secondary" 
+                className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
+                  activeTab === "leader" 
+                    ? "bg-sky-100/80 text-sky-700 border-sky-300/60" 
+                    : "bg-muted"
+                } ${groupCounts.leader === 0 ? "opacity-0" : ""}`}
+              >
+                {groupCounts.leader}
+              </Badge>
+            </button>
+            <button
+              onClick={() => setActiveTab("member")}
+              className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                activeTab === "member"
+                  ? "bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700 shadow-sm hover:shadow-md"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+              data-testid="tab-member"
             >
-              {groupCounts.member}
-            </Badge>
-          </button>
+              <Users className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 shrink-0" />
+              <span className="truncate">{t.groups.groupsInvitedMe}</span>
+              <Badge 
+                variant="secondary" 
+                className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
+                  activeTab === "member" 
+                    ? "bg-sky-100/80 text-sky-700 border-sky-300/60" 
+                    : "bg-muted"
+                } ${groupCounts.member === 0 ? "opacity-0" : ""}`}
+              >
+                {groupCounts.member}
+              </Badge>
+            </button>
+          </div>
+        </div>
+
+        {/* 그룹 목록 */}
+        <div className="px-4">
+          {filteredGroups.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-center px-4">
+            <div className="bg-primary/10 rounded-full p-4 sm:p-6 mb-3 sm:mb-4">
+              <Users className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
+            </div>
+            {searchQuery ? (
+              <>
+                <p className="text-foreground font-semibold text-base sm:text-lg mb-1.5 sm:mb-2">{t.groups.noSearchResults || "검색 결과가 없습니다"}</p>
+                <p className="text-muted-foreground text-xs sm:text-sm">{t.groups.noSearchResultsDesc || "다른 검색어를 시도해보세요"}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-foreground font-semibold text-base sm:text-lg mb-1.5 sm:mb-2">{t.groups.noGroups}</p>
+                <p className="text-muted-foreground text-xs sm:text-sm">{t.groups.noGroupsDesc}</p>
+              </>
+            )}
+            </div>
+          ) : (
+          <div className="space-y-2.5 sm:space-y-3">
+            {filteredGroups.map(group => {
+              const myMember = group.members.find(m => m.userId === userId);
+              const isLeader = myMember?.role === 'leader';
+              
+              return (
+                <Card 
+                  key={group.id} 
+                  className="hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg cursor-pointer border border-primary/20 hover:border-primary/40"
+                  onClick={() => setSelectedGroupId(group.id)}
+                  data-testid={`card-group-${group.id}`}
+                >
+                  <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div 
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-sm border relative" 
+                          style={{ 
+                            backgroundColor: `${group.color}30`,
+                            borderColor: `${group.color}60`
+                          }}
+                          data-testid={`color-dot-${group.id}`}
+                        >
+                          {(() => {
+                            const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
+                            return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: group.color }} />;
+                          })()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="text-base sm:text-lg font-semibold truncate leading-tight">{group.name}</h3>
+                            {isLeader && (
+                              <Badge 
+                                variant="secondary" 
+                                className="flex-shrink-0 text-[10px] sm:text-xs px-1.5 py-0.5 bg-amber-400/20 text-amber-700 border-amber-400/40"
+                              >
+                                <Crown className="h-2.5 w-2.5 mr-0.5" fill="currentColor" />
+                                방장
+                              </Badge>
+                            )}
+                          </div>
+                          {group.description && (
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">{group.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant="secondary" 
+                          className="flex-shrink-0 text-xs px-2 py-0.5"
+                        >
+                          <Users className="h-3 w-3 mr-1" />
+                          {group.members.length}/{group.maxMembers || 20}
+                        </Badge>
+                        {myMember && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 flex-shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                data-testid={`button-menu-${group.id}`}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              {onCopyGroup && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCopyConfirmGroup(group);
+                                  }}
+                                  data-testid={`menu-copy-${group.id}`}
+                                >
+                                  <Copy className="h-4 w-4 mr-2" />
+                                  {t.groups.copyGroup}
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyInviteCode(group.inviteCode);
+                                }}
+                                data-testid={`menu-copy-code-${group.id}`}
+                              >
+                                <Share2 className="h-4 w-4 mr-2" />
+                                {t.groups.copyInviteCode}
+                              </DropdownMenuItem>
+                              {myMember && isLeader && onUpdateGroup && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenEditDialog(group);
+                                  }}
+                                  data-testid={`menu-edit-${group.id}`}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  {t.common.edit}
+                                </DropdownMenuItem>
+                              )}
+                              {myMember && (
+                                <>
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setMemberDialogOpen(group.id);
+                                    }}
+                                    data-testid={`menu-members-${group.id}`}
+                                  >
+                                    <Users className="h-4 w-4 mr-2" />
+                                    {t.groups.memberCount}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onLeaveGroup(group.id, myMember.id);
+                                    }}
+                                    data-testid={`menu-leave-${group.id}`}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <DoorOpen className="h-4 w-4 mr-2" />
+                                    {t.common.leave}
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+              </Card>
+              );
+            })}
+          </div>
+          )}
         </div>
       </div>
 
@@ -671,169 +837,6 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
           </Form>
         </DialogContent>
       </Dialog>
-
-      {/* 그룹 리스트 - 스크롤 가능 */}
-      <div className="flex-1 overflow-y-auto px-4 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
-        {filteredGroups.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-center px-4">
-          <div className="bg-primary/10 rounded-full p-4 sm:p-6 mb-3 sm:mb-4">
-            <Users className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
-          </div>
-          {searchQuery ? (
-            <>
-              <p className="text-foreground font-semibold text-base sm:text-lg mb-1.5 sm:mb-2">{t.groups.noSearchResults || "검색 결과가 없습니다"}</p>
-              <p className="text-muted-foreground text-xs sm:text-sm">{t.groups.noSearchResultsDesc || "다른 검색어를 시도해보세요"}</p>
-            </>
-          ) : (
-            <>
-              <p className="text-foreground font-semibold text-base sm:text-lg mb-1.5 sm:mb-2">{t.groups.noGroups}</p>
-              <p className="text-muted-foreground text-xs sm:text-sm">{t.groups.noGroupsDesc}</p>
-            </>
-          )}
-          </div>
-        ) : (
-        <div className="space-y-2.5 sm:space-y-3">
-          {filteredGroups.map(group => {
-            const myMember = group.members.find(m => m.userId === userId);
-            const isLeader = myMember?.role === 'leader';
-            
-            return (
-              <Card 
-                key={group.id} 
-                className="hover-elevate transition-all shadow-md rounded-xl sm:rounded-2xl bg-card/90 backdrop-blur-sm hover:shadow-lg cursor-pointer border border-primary/20 hover:border-primary/40"
-                onClick={() => setSelectedGroupId(group.id)}
-                data-testid={`card-group-${group.id}`}
-              >
-                <CardHeader className="pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div 
-                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-sm border relative" 
-                        style={{ 
-                          backgroundColor: `${group.color}30`,
-                          borderColor: `${group.color}60`
-                        }}
-                        data-testid={`color-dot-${group.id}`}
-                      >
-                        {(() => {
-                          const IconComponent = MARKER_ICON_COMPONENTS[group.markerIcon as MarkerIconType] || MapPin;
-                          return <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: group.color }} />;
-                        })()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="text-base sm:text-lg font-semibold truncate leading-tight">{group.name}</h3>
-                          {isLeader && (
-                            <Badge 
-                              variant="secondary" 
-                              className="flex-shrink-0 text-[10px] sm:text-xs px-1.5 py-0.5 bg-amber-400/20 text-amber-700 border-amber-400/40"
-                            >
-                              <Crown className="h-2.5 w-2.5 mr-0.5" fill="currentColor" />
-                              방장
-                            </Badge>
-                          )}
-                        </div>
-                        {group.description && (
-                          <p className="text-xs text-muted-foreground truncate mt-0.5">{group.description}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant="secondary" 
-                        className="flex-shrink-0 text-xs px-2 py-0.5"
-                      >
-                        <Users className="h-3 w-3 mr-1" />
-                        {group.members.length}/{group.maxMembers || 20}
-                      </Badge>
-                      {myMember && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 flex-shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
-                              data-testid={`button-menu-${group.id}`}
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                            {onCopyGroup && (
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setCopyConfirmGroup(group);
-                                }}
-                                data-testid={`menu-copy-${group.id}`}
-                              >
-                                <Copy className="h-4 w-4 mr-2" />
-                                {t.groups.copyGroup}
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCopyInviteCode(group.inviteCode);
-                              }}
-                              data-testid={`menu-copy-code-${group.id}`}
-                            >
-                              <Share2 className="h-4 w-4 mr-2" />
-                              {t.groups.copyInviteCode}
-                            </DropdownMenuItem>
-                            {myMember && isLeader && onUpdateGroup && (
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenEditDialog(group);
-                                }}
-                                data-testid={`menu-edit-${group.id}`}
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                {t.common.edit}
-                              </DropdownMenuItem>
-                            )}
-                            {myMember && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setMemberDialogOpen(group.id);
-                                  }}
-                                  data-testid={`menu-members-${group.id}`}
-                                >
-                                  <Users className="h-4 w-4 mr-2" />
-                                  {t.groups.memberCount}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onLeaveGroup(group.id, myMember.id);
-                                  }}
-                                  data-testid={`menu-leave-${group.id}`}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <DoorOpen className="h-4 w-4 mr-2" />
-                                  {t.common.leave}
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-            </Card>
-            );
-          })}
-        </div>
-        )}
-      </div>
 
       {/* 그룹 수정 다이얼로그 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
