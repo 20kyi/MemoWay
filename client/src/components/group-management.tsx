@@ -278,7 +278,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
     return (
       <div className="flex flex-col h-full">
         {/* 그룹 헤더 */}
-        <div className="px-4 pt-[calc(env(safe-area-inset-top)+2.5rem)] sm:pt-[calc(env(safe-area-inset-top)+2rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+        <div className="fixed top-0 left-0 right-0 px-4 pt-2 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0 z-40">
           <div className="flex items-center gap-3 mb-2">
             <Button
               variant="ghost"
@@ -320,7 +320,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
         </div>
 
         {/* 검색 바 */}
-        <div className="px-4 pt-4 pb-2 flex-shrink-0 border-b">
+        <div className="px-4 pt-20 sm:pt-24 pb-2 flex-shrink-0 border-b">
           <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -380,7 +380,7 @@ export function GroupManagement({ groups, memos = [], onCreateGroup, onUpdateGro
   return (
     <div className="flex flex-col h-full">
       {/* 그룹 검색 바 - 고정 */}
-      <div className="px-4 pt-4 pb-2 flex-shrink-0">
+      <div className="px-4 pt-20 sm:pt-24 pb-2 flex-shrink-0">
         <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
           <div className="relative flex-1">
             <Input

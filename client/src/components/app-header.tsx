@@ -22,7 +22,7 @@ export function AppHeader({ title, variant = "default" }: AppHeaderProps) {
   // profile variant는 다른 스타일 적용
   if (variant === "profile") {
     return (
-      <div className="px-4 sm:px-5 pt-[calc(env(safe-area-inset-top)+1.9rem)] sm:pt-[calc(env(safe-area-inset-top)+1.9rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+      <div className="fixed top-0 left-0 right-0 px-4 sm:px-5 pt-2 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0 z-50">
         <h1 className="text-2xl sm:text-3xl font-bold text-sky-600 dark:text-sky-500">
           {displayTitle}
         </h1>
@@ -31,7 +31,7 @@ export function AppHeader({ title, variant = "default" }: AppHeaderProps) {
   }
 
   return (
-    <div className="px-4 pt-[calc(env(safe-area-inset-top)+1.9rem)] sm:pt-[calc(env(safe-area-inset-top)+1.9rem)] pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0">
+    <div className="fixed top-0 left-0 right-0 px-4 pt-2 sm:pt-4 pb-3 border-b bg-card/95 backdrop-blur-sm flex-shrink-0 z-50">
       <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary text-transparent bg-clip-text">
         {displayTitle}
       </h1>

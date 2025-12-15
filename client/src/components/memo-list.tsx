@@ -604,7 +604,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
       )}
 
       {/* Memo List */}
-      <div ref={scrollContainerRef} className="px-4 space-y-4 overflow-y-auto flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
+      <div ref={scrollContainerRef} className="px-4 pt-20 sm:pt-24 space-y-4 overflow-y-auto flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
       {filteredMemos.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full p-8 text-center">
           <p className="text-muted-foreground text-lg mb-2">

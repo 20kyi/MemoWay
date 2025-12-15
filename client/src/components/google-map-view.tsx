@@ -908,7 +908,8 @@ function GoogleMapViewComponent({
         <div 
           ref={mapRef} 
           className={`w-full h-full ${isCoupleTheme ? 'map-container-couple-theme' : ''}`} 
-          data-testid="map-container" 
+          data-testid="map-container"
+          style={{ paddingTop: '4.5rem' }}
         />
       )}
       
@@ -1050,7 +1051,7 @@ function GoogleMapViewComponent({
 
       {/* MemoWay 로고 - 커플 테마에서만 표시 */}
       {isCoupleTheme && (
-        <div className="absolute top-[calc(env(safe-area-inset-top)+2rem)] sm:top-[calc(env(safe-area-inset-top)+2.5rem)] left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap">
+        <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap">
           <div className="relative flex-shrink-0">
             <MapPin className="h-8 w-8 sm:h-14 sm:w-14 text-[#A28DB3] drop-shadow-md" fill="currentColor" />
           </div>
@@ -1061,7 +1062,7 @@ function GoogleMapViewComponent({
       )}
 
       {/* 주소 검색 바 */}
-      <div className={`absolute ${isCoupleTheme ? 'top-[calc(var(--safe-area-inset-top-fixed,env(safe-area-inset-top))+1.9rem)] sm:top-[calc(var(--safe-area-inset-top-fixed,env(safe-area-inset-top))+1.9rem)]' : 'top-[calc(var(--safe-area-inset-top-fixed,env(safe-area-inset-top))+1.9rem)]'} ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10`}>
+      <div className={`fixed top-0 ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10 pt-2 sm:pt-4`}>
         <div className={isCoupleTheme
           ? "search-bar-couple-theme flex gap-2 p-2"
           : "flex gap-2 p-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
