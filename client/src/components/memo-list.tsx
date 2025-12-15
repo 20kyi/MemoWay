@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, ChevronDown, X, Star, Users, User, Search, ArrowRight, Check, Calendar, Copy, Coins, AlertTriangle } from "lucide-react";
+import { Trash2, Heart, Plane, UtensilsCrossed, Coffee, ShoppingBag, Dumbbell, Briefcase, MapPin, X, Star, Users, ArrowRight, Check, Copy, Coins, AlertTriangle } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { ko, enUS, zhCN, ja } from "date-fns/locale";
 import type { MemoWithDetails, MarkerIconType } from "@shared/schema";
@@ -54,7 +54,6 @@ interface MemoListProps {
   onMoveToGroup?: (memoIds: string[], groupId: string) => void;
   onDeleteSavedMap?: (mapId: string) => void;
   hideFilters?: boolean;
-  showAuthorTab?: boolean;
   currentUserId?: string;
   externalSearchQuery?: string; // 외부에서 전달받는 검색어 (그룹 메모 뷰용)
   userPoints?: number; // 사용자 포인트 (타인 메모 복사 확인 팝업용)
@@ -71,11 +70,10 @@ const categoryIcons: Record<MarkerIconType, any> = {
   work: Briefcase,
 };
 
-export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onBulkCopy, onCopy, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideFilters = false, showAuthorTab = false, currentUserId, externalSearchQuery, userPoints = 0 }: MemoListProps) {
+export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete, onBulkDelete, onBulkCopy, onCopy, onMemoClick, onSetMainMemo, onMoveToGroup, onDeleteSavedMap, hideFilters = false, currentUserId, externalSearchQuery, userPoints = 0 }: MemoListProps) {
   const { t, language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<MarkerIconType | "all">("all");
   const [selectedGroup, setSelectedGroup] = useState<string | "all">("all");
-  const [authorTab, setAuthorTab] = useState<"mine" | "others">("mine");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMemoIds, setSelectedMemoIds] = useState<Set<string>>(new Set());
@@ -164,15 +162,6 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
   const filteredMemos = useMemo(() => {
     let filtered = memos;
     
-    // 작성자 탭 필터링
-    if (showAuthorTab && currentUserId) {
-      if (authorTab === "mine") {
-        filtered = filtered.filter(memo => memo.member.userId === currentUserId);
-      } else {
-        filtered = filtered.filter(memo => memo.member.userId !== currentUserId);
-      }
-    }
-    
     // 검색어 필터링 (hideFilters가 false이거나 externalSearchQuery가 있을 때)
     const activeSearchQuery = externalSearchQuery !== undefined ? externalSearchQuery : (!hideFilters ? searchQuery : "");
     if (activeSearchQuery.trim()) {
@@ -260,7 +249,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
     }
     
     return filtered;
-  }, [memos, selectedCategory, selectedGroup, showAuthorTab, authorTab, currentUserId, hideFilters, searchQuery, externalSearchQuery]);
+  }, [memos, selectedCategory, selectedGroup, currentUserId, hideFilters, searchQuery, externalSearchQuery]);
 
   // Group memos by location to determine if main memo button should be shown
   const memosByLocation = useMemo(() => {
@@ -437,16 +426,6 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
   const currentCategory = getCategoryDisplay(selectedCategory);
   const CurrentIcon = currentCategory.icon;
 
-  // 선택된 메모들이 모두 다른 사용자의 것인지 확인
-  const isAllOthersMemos = useMemo(() => {
-    if (!currentUserId || selectedMemoIds.size === 0) return false;
-    return Array.from(selectedMemoIds).every(id => {
-      const memo = memos.find(m => m.id === id);
-      // 메모가 없거나(삭제됨?), 작성자 ID가 현재 사용자 ID와 다르면 true (남의 것)
-      // 즉, 내 것이 하나라도 있으면 false
-      return memo && memo.member.userId !== currentUserId;
-    });
-  }, [selectedMemoIds, memos, currentUserId]);
 
   return (
     <div className="flex flex-col h-full">
@@ -493,19 +472,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
                 {t.memoList.moveToGroup}
               </Button>
             )}
-            {onBulkCopy && isAllOthersMemos ? (
-              <Button
-                size="sm"
-                variant="default"
-                onClick={handleBulkCopy}
-                disabled={selectedMemoIds.size === 0}
-                className="flex-1 bg-gradient-to-br from-emerald-200 to-teal-200 hover:from-emerald-300 hover:to-teal-300 border-2 border-emerald-300/60 text-emerald-700 shadow-sm hover:shadow-md transition-all"
-                data-testid="button-bulk-copy"
-              >
-                <Copy className="h-4 w-4 mr-1" />
-                {t.common.copy || "복사"}
-              </Button>
-            ) : (
+            {onBulkCopy && (
               <Button
                 size="sm"
                 variant="destructive"
@@ -520,67 +487,13 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
             )}
           </div>
         </div>
-      ) : (
-        <>
-          {/* 작성자 탭 (그룹 메모 뷰에서만 표시) */}
-          {showAuthorTab && currentUserId && (
-            <div className="px-4 pb-2 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5.25rem)' }}>
-              <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5">
-                <button
-                  onClick={() => setAuthorTab("mine")}
-                  className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-                    authorTab === "mine"
-                      ? "bg-primary/80 text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                  data-testid="tab-my-memos"
-                >
-                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate">{t.memoList.myMemos}</span>
-                  <Badge 
-                    variant="secondary" 
-                    className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
-                      authorTab === "mine" 
-                        ? "bg-primary-foreground/20 text-primary-foreground" 
-                        : "bg-muted"
-                    }`}
-                  >
-                    {memos.filter(m => m.member.userId === currentUserId).length}
-                  </Badge>
-                </button>
-                <button
-                  onClick={() => setAuthorTab("others")}
-                  className={`flex-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-                    authorTab === "others"
-                      ? "bg-primary/80 text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                  data-testid="tab-others-memos"
-                >
-                  <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate">{t.memoList.othersMemos}</span>
-                  <Badge 
-                    variant="secondary" 
-                    className={`ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[9px] sm:text-xs shrink-0 ${
-                      authorTab === "others" 
-                        ? "bg-primary-foreground/20 text-primary-foreground" 
-                        : "bg-muted"
-                    }`}
-                  >
-                    {memos.filter(m => m.member.userId !== currentUserId).length}
-                  </Badge>
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+      ) : null}
 
       {/* Memo List with Search Bar */}
       <div ref={scrollContainerRef} className="overflow-y-auto flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
         {/* 검색 바 (메모 탭에서만 표시) */}
         {!isSelectionMode && !hideFilters && (
-          <div className="px-4 pb-2 flex-shrink-0" style={showAuthorTab && currentUserId ? { paddingTop: '0.5rem' } : {}}>
+          <div className="px-4 pb-2 flex-shrink-0">
             <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
               <div className="relative flex-1">
                 <Input
