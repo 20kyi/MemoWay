@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 
-export type LayoutTheme = "default" | "lavender-night" | "couple-clay";
+export type LayoutTheme = "default" | "lavender-night";
 
 interface LayoutThemeContextType {
   layoutTheme: LayoutTheme;
@@ -14,7 +14,7 @@ export function LayoutThemeProvider({ children }: { children: React.ReactNode })
   const [layoutTheme, setLayoutThemeState] = useState<LayoutTheme>(() => {
     const saved = localStorage.getItem("layoutTheme");
     // 지원되는 테마만 유지하고, 나머지는 기본값으로 마이그레이션
-    if (saved === "default" || saved === "lavender-night" || saved === "couple-clay") {
+    if (saved === "default" || saved === "lavender-night") {
       return saved;
     }
     // 지원되지 않는 테마는 기본값으로 변경
@@ -53,11 +53,6 @@ export function LayoutThemeProvider({ children }: { children: React.ReactNode })
             // 라벤더 나이트 테마: 어두운 배경이므로 Dark style (밝은 아이콘) + 어두운 배경
             await StatusBar.setStyle({ style: Style.Dark });
             await StatusBar.setBackgroundColor({ color: "#0a0a0a" });
-            await StatusBar.setOverlaysWebView({ overlay: false });
-          } else if (layoutTheme === "couple-clay") {
-            // 커플 클레이 테마: 밝은 배경이므로 Light style (어두운 아이콘) + 밝은 핑크 배경
-            await StatusBar.setStyle({ style: Style.Light });
-            await StatusBar.setBackgroundColor({ color: "#ffc0e8" });
             await StatusBar.setOverlaysWebView({ overlay: false });
           }
         } catch (error) {

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarCheck, Check, X, Sparkles } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
-import { useLayoutTheme } from "@/lib/layout-theme-context";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
@@ -27,8 +26,6 @@ export function AttendanceButton() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
-  const { layoutTheme } = useLayoutTheme();
-  const isCoupleTheme = layoutTheme === "couple-clay";
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // 출석 상태 조회
@@ -110,33 +107,14 @@ export function AttendanceButton() {
           // [수정] 위치 20rem 상향 조정
           // 기존: bottom-[12rem]/[15rem] -> +20rem -> bottom-[32rem]/[35rem]
           // [수정] 색상: 상점(Store) 테마와 동일하게 (Purple/Pink Gradient)
-          className={`
-            fixed right-4 z-[9999]
-            ${isCoupleTheme 
-              ? 'bottom-[35rem] h-[60px] w-[60px] rounded-full' 
-              : 'bottom-[32rem] h-10 w-10 rounded-lg'
-            }
-            shadow-lg transition-all hover:shadow-xl
-            bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600
-            text-white border-2 border-purple-200/50
-            flex items-center justify-center
-            transition-transform duration-200 ease-in-out hover:scale-105 active:scale-95
-            pointer-events-auto touch-manipulation
-          `}
+          className="fixed right-4 bottom-[32rem] z-[9999] h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-2 border-purple-200/50 flex items-center justify-center transition-transform duration-200 ease-in-out hover:scale-105 active:scale-95 pointer-events-auto touch-manipulation"
           style={{
             position: 'fixed',
-            zIndex: 9999,
-            ...(isCoupleTheme ? {
-              boxShadow: `
-                inset 0 1px 2px rgba(255, 255, 255, 0.5),
-                0 4px 8px rgba(240, 120, 150, 0.25),
-                0 0 30px rgba(0, 0, 0, 0.10)
-              `
-            } : {})
+            zIndex: 9999
           }}
           data-testid="btn-attendance-check"
         >
-          <CalendarCheck className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} text-white`} />
+          <CalendarCheck className="h-5 w-5 text-white" />
         </Button>
       )}
 

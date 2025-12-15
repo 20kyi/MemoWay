@@ -48,7 +48,6 @@ export default function Home() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { mapProvider } = useMapProvider();
   const { layoutTheme } = useLayoutTheme();
-  const isCoupleTheme = layoutTheme === "couple-clay";
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
@@ -720,10 +719,10 @@ export default function Home() {
         />
       )}
       <div className={`overflow-hidden relative z-10 ${
-        isCoupleTheme ? "h-screen pb-0" : "flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]"
+"flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]"
       }`}>
         {activeTab === "map" && (
-          <div className={`relative h-full ${isCoupleTheme ? 'bg-[#FCEDEF]' : ''}`}>
+          <div className="relative h-full">
             {mapProvider === "kakao" ? (
               <MapView
                   onLocationSelect={handleLocationSelect}

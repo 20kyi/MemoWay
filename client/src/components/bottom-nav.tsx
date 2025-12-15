@@ -1,9 +1,5 @@
 import { Map, List, Users, Heart, User } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
-import { useLayoutTheme } from "@/lib/layout-theme-context";
-import { CustomMapPin } from "./icons/custom-map-pin";
-import { CustomMemoIcon } from "./icons/custom-memo-icon";
-import { CustomGroupIcon } from "./icons/custom-group-icon";
 
 interface BottomNavProps {
   activeTab: "map" | "memos" | "groups" | "profile";
@@ -12,8 +8,6 @@ interface BottomNavProps {
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   const { t } = useLanguage();
-  const { layoutTheme } = useLayoutTheme();
-  const isCoupleTheme = layoutTheme === "couple-clay";
   
   const tabs = [
     { id: "map" as const, label: t.nav.map, icon: Map },
@@ -23,11 +17,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   ];
 
   return (
-    <nav className={`fixed left-0 right-0 flex items-center justify-around z-50 ${
-      isCoupleTheme 
-        ? "bottom-nav-couple-theme px-2" 
-        : "bottom-0 bg-card/95 dark:bg-card dark:backdrop-blur-md backdrop-blur-md border-t-2 border-primary/20 dark:border-primary/30 min-h-[64px] sm:min-h-16 gap-2 px-4 shadow-lg bottom-nav-romantic pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 sm:pt-0"
-    }`}>
+    <nav className="fixed left-0 right-0 bottom-0 flex items-center justify-around z-50 bg-card/95 dark:bg-card dark:backdrop-blur-md backdrop-blur-md border-t-2 border-primary/20 dark:border-primary/30 min-h-[64px] sm:min-h-16 gap-2 px-4 shadow-lg bottom-nav-romantic pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 sm:pt-0">
       {tabs.map(tab => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
@@ -36,37 +26,17 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`relative flex items-center justify-center transition-all touch-manipulation ${
-              isCoupleTheme
-                ? "min-h-14 min-w-14 p-2"
-                : "flex-col min-h-12 min-w-14 gap-1 py-1"
-            } ${
+            className={`relative flex flex-col items-center justify-center transition-all touch-manipulation min-h-12 min-w-14 gap-1 py-1 ${
               isActive 
                 ? "text-primary" 
                 : "text-muted-foreground hover:text-foreground hover-elevate"
             }`}
             data-testid={`nav-${tab.id}`}
           >
-            <div className={`transition-all ${
-              isCoupleTheme
-                ? isActive
-                  ? "bottom-nav-icon-active-couple"
-                  : "bottom-nav-icon-inactive-couple"
-                : "rounded-full p-2"
-            }`}>
-              {isCoupleTheme && tab.id === "map" ? (
-                <CustomMapPin size={40} isActive={isActive} color="#6289F3" />
-              ) : isCoupleTheme && tab.id === "memos" ? (
-                <CustomMemoIcon size={42} isActive={isActive} color="#EB8FA6" />
-              ) : isCoupleTheme && tab.id === "groups" ? (
-                <CustomGroupIcon size={63} isActive={isActive} color="#8E66D5" />
-              ) : (
-                <Icon className="h-6 w-6" />
-              )}
+            <div className="transition-all rounded-full p-2">
+              <Icon className="h-6 w-6" />
             </div>
-            {!isCoupleTheme && (
-              <span className={`text-[10px] sm:text-xs font-medium leading-tight ${isActive ? "font-bold" : ""}`}>{tab.label}</span>
-            )}
+            <span className={`text-[10px] sm:text-xs font-medium leading-tight ${isActive ? "font-bold" : ""}`}>{tab.label}</span>
           </button>
         );
       })}

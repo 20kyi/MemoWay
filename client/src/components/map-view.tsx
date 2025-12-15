@@ -395,8 +395,6 @@ function MapViewComponent({
   isActive = true, // 기본값은 true (항상 활성화된 것으로 간주)
 }: MapViewProps) {
   const { t } = useLanguage();
-  const { layoutTheme } = useLayoutTheme();
-  const isCoupleTheme = layoutTheme === "couple-clay";
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [searchMarker, setSearchMarker] = useState<any>(null);
@@ -2150,22 +2148,18 @@ function MapViewComponent({
 
           <div 
             ref={mapRef} 
-            className={`w-full h-full ${isCoupleTheme ? 'map-container-couple-theme' : ''}`} 
+            className="w-full h-full" 
             data-testid="map-container" 
             style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 4.5rem)' }}
           />
           
           {/* 위치 고정 모드 상태 배너 */}
           {isLocationLocked && (
-            <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+9.5rem)] sm:top-[calc(env(safe-area-inset-top)+9.5rem)]' : 'top-[calc(env(safe-area-inset-top)+6.9rem)]'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
+            <div className="absolute top-[calc(env(safe-area-inset-top)+6.9rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
               <div 
-                className={`relative text-white rounded-2xl flex items-center justify-center whitespace-nowrap overflow-hidden ${
-                  isCoupleTheme 
-                    ? 'px-7 py-5 sm:px-10 sm:py-6 gap-5 sm:gap-6' 
-                    : 'px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3'
-                }`}
+                className="relative text-white rounded-2xl flex items-center justify-center whitespace-nowrap overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3"
                 style={{
-                  background: isCoupleTheme ? '#779EF3' : '#8fa0d8',
+                  background: '#8fa0d8',
                   boxShadow: `
                     0 6px 12px -3px rgba(120, 139, 200, 0.35),
                     0 3px 6px -2px rgba(120, 139, 200, 0.25),
@@ -2173,7 +2167,7 @@ function MapViewComponent({
                     inset 0 -1px 3px rgba(90, 110, 180, 0.35)
                   `,
                   transform: 'translateY(-1px)',
-                  minWidth: isCoupleTheme ? '280px' : '200px',
+                  minWidth: '200px',
                 }}
               >
                 {/* 볼록한 느낌을 위한 방사형 그라데이션 - 상단 중앙이 약간 밝음 (너무 밝지 않게) */}
@@ -2199,9 +2193,7 @@ function MapViewComponent({
                 />
                 <Lock 
                   className={`flex-shrink-0 relative z-10 ${
-                    isCoupleTheme 
-                      ? 'h-8.5 w-8.5 sm:h-10 sm:w-10' 
-                      : 'h-4 w-4 sm:h-5 sm:w-5'
+'h-4 w-4 sm:h-5 sm:w-5'
                   }`}
                   style={{ 
                     filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25))',
@@ -2209,9 +2201,7 @@ function MapViewComponent({
                 />
                 <span 
                   className={`font-medium leading-tight relative z-10 ${
-                    isCoupleTheme 
-                      ? 'text-[24px] sm:text-[24px] md:text-[24px]' 
-                      : 'text-[12px] sm:text-[13px] md:text-[14px]'
+'text-[12px] sm:text-[13px] md:text-[14px]'
                   }`}
                   style={{ 
                     textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
@@ -2226,14 +2216,10 @@ function MapViewComponent({
 
           {/* 검색 결과 취소 버튼 (검색 결과가 있을 때 표시) */}
           {(searchMarker !== null || searchPlaceMarkers.length > 0) && (
-            <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+13.1rem)] sm:top-[calc(env(safe-area-inset-top)+14.1rem)]' : 'top-[calc(env(safe-area-inset-top)+6rem)]'} left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2`}>
+            <div className="absolute top-[calc(env(safe-area-inset-top)+6rem)] left-1/2 -translate-x-1/2 z-50 pointer-events-none px-2">
               <button
                 onClick={handleClearSearch}
-                className={`relative rounded-2xl flex items-center justify-center whitespace-nowrap overflow-hidden ${
-                  isCoupleTheme 
-                    ? 'px-7 py-5 sm:px-10 sm:py-6 gap-5 sm:gap-6' 
-                    : 'px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3'
-                } cursor-pointer hover:scale-105 active:scale-95 transition-transform pointer-events-auto bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700`}
+                className="relative rounded-2xl flex items-center justify-center whitespace-nowrap overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3 cursor-pointer hover:scale-105 active:scale-95 transition-transform pointer-events-auto bg-gradient-to-br from-sky-200 to-indigo-200 hover:from-sky-300 hover:to-indigo-300 border-2 border-sky-300/60 text-sky-700"
                 style={{
                   boxShadow: `
                     0 6px 12px -3px rgba(56, 189, 248, 0.35),
@@ -2242,7 +2228,7 @@ function MapViewComponent({
                     inset 0 -1px 3px rgba(99, 102, 241, 0.35)
                   `,
                   transform: 'translateY(-1px)',
-                  minWidth: isCoupleTheme ? '280px' : '200px',
+                  minWidth: '200px',
                 }}
                 data-testid="button-cancel-search-results"
               >
@@ -2269,9 +2255,7 @@ function MapViewComponent({
                 />
                 <X 
                   className={`flex-shrink-0 relative z-10 ${
-                    isCoupleTheme 
-                      ? 'h-8.5 w-8.5 sm:h-10 sm:w-10' 
-                      : 'h-4 w-4 sm:h-5 sm:w-5'
+'h-4 w-4 sm:h-5 sm:w-5'
                   }`}
                   style={{ 
                     filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25))',
@@ -2279,9 +2263,7 @@ function MapViewComponent({
                 />
                 <span 
                   className={`font-medium leading-tight relative z-10 ${
-                    isCoupleTheme 
-                      ? 'text-[24px] sm:text-[24px] md:text-[24px]' 
-                      : 'text-[12px] sm:text-[13px] md:text-[14px]'
+'text-[12px] sm:text-[13px] md:text-[14px]'
                   }`}
                   style={{ 
                     textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
@@ -2296,16 +2278,12 @@ function MapViewComponent({
           
           {/* 지도 저장하기 버튼 (선택된 메모가 있을 때만 표시) */}
           {selectedMemoIdsForMap && selectedMemoIdsForMap.size > 0 && onSaveMap && (
-            <div className={`absolute ${isCoupleTheme ? 'top-[calc(env(safe-area-inset-top)+13.1rem)] sm:top-[calc(env(safe-area-inset-top)+14.1rem)]' : 'top-[calc(env(safe-area-inset-top)+6rem)]'} left-1/2 -translate-x-1/2 z-50 px-2`}>
+            <div className="absolute top-[calc(env(safe-area-inset-top)+6rem)] left-1/2 -translate-x-1/2 z-50 px-2">
               <button
                 onClick={onSaveMap}
-                className={`relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden ${
-                  isCoupleTheme 
-                    ? 'px-7 py-5 sm:px-10 sm:py-6 gap-5 sm:gap-6' 
-                    : 'px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3'
-                } cursor-pointer hover:scale-105 active:scale-95 transition-transform`}
+                className="relative text-white rounded-2xl flex items-center whitespace-nowrap overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3 gap-2.5 sm:gap-3 cursor-pointer hover:scale-105 active:scale-95 transition-transform"
                 style={{
-                  background: isCoupleTheme ? '#a78bfa' : '#a78bfa',
+                  background: '#a78bfa',
                   boxShadow: `
                     0 6px 12px -3px rgba(139, 92, 246, 0.35),
                     0 3px 6px -2px rgba(139, 92, 246, 0.25),
@@ -2338,9 +2316,7 @@ function MapViewComponent({
                 />
                 <Save 
                   className={`flex-shrink-0 relative z-10 ${
-                    isCoupleTheme 
-                      ? 'h-8.5 w-8.5 sm:h-10 sm:w-10' 
-                      : 'h-4 w-4 sm:h-5 sm:w-5'
+'h-4 w-4 sm:h-5 sm:w-5'
                   }`}
                   style={{ 
                     filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25))',
@@ -2348,9 +2324,7 @@ function MapViewComponent({
                 />
                 <span 
                   className={`font-medium leading-tight relative z-10 ${
-                    isCoupleTheme 
-                      ? 'text-[24px] sm:text-[24px] md:text-[24px]' 
-                      : 'text-[12px] sm:text-[13px] md:text-[14px]'
+'text-[12px] sm:text-[13px] md:text-[14px]'
                   }`}
                   style={{ 
                     textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
@@ -2388,25 +2362,11 @@ function MapViewComponent({
             </div>
           )}
           
-          {/* MemoWay 로고 - 커플 테마에서만 표시 */}
-          {isCoupleTheme && (
-            <div className="fixed left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 sm:gap-4 whitespace-nowrap" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4rem)' }}>
-              <div className="relative flex-shrink-0">
-                <MapPin className="h-8 w-8 sm:h-14 sm:w-14 text-[#A28DB3] drop-shadow-md" fill="currentColor" />
-              </div>
-              <span className="text-3xl sm:text-5xl font-bold text-[#A28DB3] tracking-tight drop-shadow-md">
-                Memo Way
-              </span>
-            </div>
-          )}
 
           {/* 주소 검색 바 */}
-          <div className={`fixed ${isCoupleTheme ? 'left-3 right-3' : 'left-4 right-4'} z-10 pt-2 sm:pt-4`} style={{ top: 'env(safe-area-inset-top, 0px)' }}>
+          <div className="fixed left-4 right-4 z-10 pt-2 sm:pt-4" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
             <div className="flex flex-col gap-2">
-              <div className={isCoupleTheme 
-                ? "search-bar-couple-theme flex gap-2 p-2"
-                : "flex gap-2 p-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border"
-              }>
+              <div className="flex gap-2 p-2 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-border">
                 <div className="relative flex-1">
                   <Input
                     value={searchQuery}
@@ -2450,33 +2410,24 @@ function MapViewComponent({
           </div>
 
           {/* 플로팅 필터 버튼들 (오른쪽 하단) */}
-          <div className={`${isCoupleTheme ? 'absolute bottom-[10rem] right-4' : 'fixed bottom-[7rem] right-4'} flex flex-col ${isCoupleTheme ? 'gap-3' : 'gap-2'} z-50`}>
+          <div className="fixed bottom-[7rem] right-4 flex flex-col gap-2 z-50">
             {/* 지도 확대/축소 잠금 버튼 */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
                   onClick={toggleMapLock}
-                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-xl ${
+                  className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-xl ${
                     isMapLocked 
                       ? 'bg-destructive hover:bg-destructive/90 border-2 border-destructive' 
                       : 'bg-primary hover:bg-primary/90 border-2 border-primary'
                   }`}
-                  style={isCoupleTheme && !isMapLocked ? {
-                    backgroundColor: '#EE88A1',
-                    borderColor: '#EE88A1',
-                    boxShadow: `
-                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
-                      0 4px 8px rgba(240, 120, 150, 0.25),
-                      0 0 30px rgba(0, 0, 0, 0.10)
-                    `,
-                  } : undefined}
                   data-testid="button-map-lock"
                 >
                   {isMapLocked ? (
-                    <Lock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} text-primary-foreground`} />
+                    <Lock className="h-5 w-5 text-primary-foreground" />
                   ) : (
-                    <Unlock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-primary-foreground'}`} />
+                    <Unlock className="h-5 w-5 text-primary-foreground" />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -2567,26 +2518,17 @@ function MapViewComponent({
                         : t.toast.locationLockDisabledDesc,
                     });
                   }}
-                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg transition-all hover:shadow-xl relative ${
+                  className={`h-10 w-10 rounded-lg shadow-lg transition-all hover:shadow-xl relative ${
                     isLocationLocked 
                       ? 'bg-primary hover:bg-primary/90 border-2 border-primary' 
                       : 'bg-muted hover:bg-muted/80 border-2 border-border'
                   }`}
-                  style={isCoupleTheme ? {
-                    backgroundColor: isLocationLocked ? '#EE88A1' : '#FFE4E9',
-                    borderColor: isLocationLocked ? '#EE88A1' : '#FFE4E9',
-                    boxShadow: `
-                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
-                      0 4px 8px rgba(240, 120, 150, 0.25),
-                      0 0 30px rgba(0, 0, 0, 0.10)
-                    `,
-                  } : undefined}
                   data-testid="button-location-lock"
                 >
                   {isLocationLocked ? (
-                    <Lock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-primary-foreground'}`} />
+                    <Lock className="h-5 w-5 text-primary-foreground" />
                   ) : (
-                    <Unlock className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-[#EE88A1]' : 'text-muted-foreground'}`} />
+                    <Unlock className="h-5 w-5 text-muted-foreground" />
                   )}
                   {/* 상태 표시 점 */}
                   {isLocationLocked && (
@@ -2609,25 +2551,12 @@ function MapViewComponent({
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
-                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative overflow-visible transition-all hover:shadow-xl ${
+                  className={`h-10 w-10 rounded-lg shadow-lg relative overflow-visible transition-all hover:shadow-xl ${
                     selectedGroupIds.includes("all") ? 'bg-primary hover:bg-primary/90 border-2 border-primary' : ''
                   }`}
                   onClick={() => setGroupFilterOpen(true)}
                   data-testid="button-group-filter"
                   style={(() => {
-                    const baseShadow = isCoupleTheme ? `
-                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
-                      0 4px 8px rgba(240, 120, 150, 0.25),
-                      0 0 30px rgba(0, 0, 0, 0.10)
-                    ` : undefined;
-
-                    if (isCoupleTheme && selectedGroupIds.includes("all")) {
-                      return {
-                        backgroundColor: '#EE88A1',
-                        borderColor: '#EE88A1',
-                        boxShadow: baseShadow,
-                      };
-                    }
                     if (selectedGroupIds.includes("all")) return {};
                     
                     const colors: string[] = [];
@@ -2641,13 +2570,12 @@ function MapViewComponent({
                     });
 
                     if (colors.length === 0) {
-                      return isCoupleTheme ? { boxShadow: baseShadow } : {};
+                      return {};
                     }
                     if (colors.length === 1) {
                       return {
                         backgroundColor: colors[0],
                         borderColor: colors[0],
-                        ...(isCoupleTheme ? { boxShadow: baseShadow } : {})
                       };
                     }
 
@@ -2661,12 +2589,11 @@ function MapViewComponent({
                     return {
                       background: `linear-gradient(135deg, ${gradientStops})`,
                       borderColor: colors[0],
-                      ...(isCoupleTheme ? { boxShadow: baseShadow } : {})
                     };
                   })()}
                 >
-                  <Users className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${
-                    selectedGroupIds.includes("all") ? (isCoupleTheme ? 'text-white' : 'text-primary-foreground') : ''
+                  <Users className={`h-5 w-5 ${
+                    selectedGroupIds.includes("all") ? 'text-primary-foreground' : ''
                   }`} style={{
                     color: selectedGroupIds.includes("all") ? undefined : 'white',
                     filter: selectedGroupIds.includes("all") ? undefined : 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
@@ -2691,20 +2618,11 @@ function MapViewComponent({
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
-                  className={`${isCoupleTheme ? 'h-[60px] w-[60px]' : 'h-10 w-10'} ${isCoupleTheme ? 'rounded-full' : 'rounded-lg'} shadow-lg relative hover:shadow-xl transition-all bg-primary hover:bg-primary/90 border-2 border-primary`}
-                  style={isCoupleTheme ? {
-                    backgroundColor: '#EE88A1',
-                    borderColor: '#EE88A1',
-                    boxShadow: `
-                      inset 0 1px 2px rgba(255, 255, 255, 0.5),
-                      0 4px 8px rgba(240, 120, 150, 0.25),
-                      0 0 30px rgba(0, 0, 0, 0.10)
-                    `,
-                  } : undefined}
+                  className="h-10 w-10 rounded-lg shadow-lg relative hover:shadow-xl transition-all bg-primary hover:bg-primary/90 border-2 border-primary"
                   onClick={() => setMarkerFilterOpen(true)}
                   data-testid="button-marker-filter"
                 >
-                  <Filter className={`${isCoupleTheme ? 'h-[30px] w-[30px]' : 'h-5 w-5'} ${isCoupleTheme ? 'text-white' : 'text-primary-foreground'}`} />
+                  <Filter className="h-5 w-5 text-primary-foreground" />
                   {!selectedMarkerIcons.includes("all") && (
                     <Badge 
                       className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-white text-black border-2 border-white"
