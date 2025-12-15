@@ -524,7 +524,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
         <>
           {/* 작성자 탭 (그룹 메모 뷰에서만 표시) */}
           {showAuthorTab && currentUserId && (
-            <div className="px-4 pt-4 pb-2 flex-shrink-0">
+            <div className="px-4 pb-2 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5rem)' }}>
               <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-1 sm:p-1.5">
                 <button
                   onClick={() => setAuthorTab("mine")}
@@ -575,7 +575,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
           )}
           {/* 검색 바 (메모 탭에서만 표시) */}
           {!hideFilters && (
-            <div className="px-4 pt-[calc(0.5rem-0.3rem)] pb-2 flex-shrink-0">
+            <div className="px-4 pb-2 flex-shrink-0" style={{ paddingTop: showAuthorTab && currentUserId ? '0.5rem' : 'calc(env(safe-area-inset-top, 0px) + 5rem)' }}>
               <div className="flex gap-1.5 sm:gap-2 bg-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md border border-primary/20 p-2 sm:p-2.5">
                 <div className="relative flex-1">
                   <Input
@@ -604,7 +604,7 @@ export function MemoList({ memos, groups = [], savedMaps = [], onEdit, onDelete,
       )}
 
       {/* Memo List */}
-      <div ref={scrollContainerRef} className="px-4 space-y-4 overflow-y-auto flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 5rem)' }}>
+      <div ref={scrollContainerRef} className="px-4 space-y-4 overflow-y-auto flex-1 pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))]">
       {filteredMemos.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full p-8 text-center">
           <p className="text-muted-foreground text-lg mb-2">
